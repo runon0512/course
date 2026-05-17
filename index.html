@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Stages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0e0e1a;
+            --primary-color: #00ff41;
+            --secondary-color: #ff00ff;
+            --text-color: #ffffff;
+            --pixel-size: 4px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Press Start 2P', cursive;
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        .container {
+            /* 10:5 (2:1) の比率を厳密に固定 */
+            position: relative;
+            width: min(100vw, 200vh);
+            height: min(50vw, 100vh);
+            text-align: center;
+            image-rendering: pixelated;
+            overflow: hidden;
+            container-type: size; /* コンテナサイズ基準の単位(cqw)を有効化 */
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            transition: background 0.5s;
+        }
+
+        /* テーマ別の背景色 */
+        .container.bg-city { background: #4fc3f7; }
+        .container.bg-sky  { background: #e1f5fe; }
+        .container.bg-night { background: #0b1026; }
+
+        .container.bg-night .mountains { filter: brightness(0.3) saturate(0.5); }
+        .container.bg-night .clouds { opacity: 0.3; }
+        .container.bg-sky .mountains { display: none; }
+
+        /* 背景レイヤー */
+        .bg-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .clouds {
+            background: 
+                radial-gradient(circle at 20% 30%, #fff 2%, transparent 2.1%),
+                radial-gradient(circle at 50% 15%, #fff 3%, transparent 3.1%),
+                radial-gradient(circle at 80% 25%, #fff 2.5%, transparent 2.6%);
+            animation: cloudScroll 60s linear infinite;
+        }
+
+        .mountains {
+            background: 
+                conic-gradient(from 135deg at 50% 100%, #546e7a 0 90%, transparent 0) 0 65% / 40% 20% repeat-x,
+                conic-gradient(from 135deg at 50% 100%, #78909c 0 90%, transparent 0) 20% 70% / 30% 15% repeat-x;
+        }
+
+        .ground {
+            top: 75%;
+            height: 25%;
+            background: repeating-conic-gradient(#2e7d32 0% 25%, #388e3c 0% 50%) 0 0 / 4cqw 4cqw;
+            border-top: 0.5cqw solid #1b5e20;
+            display: none; /* 奈落にするため非表示 */
+        }
+
+        /* 走査線エフェクト（レトロ感） */
+        .scanlines {
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 10;
+        }
+
+        h1 {
+            position: absolute;
+            top: 25%;
+            left: 0;
+            width: 100%;
+            margin: 0;
+            text-align: center;
+            font-size: 8cqw; /* コンテナ幅に基づいたサイズ */
+            text-transform: uppercase;
+            letter-spacing: 0.5cqw;
+            padding-left: 0.5cqw; /* letter-spacingによる右側のズレを補正 */
+            box-sizing: border-box;
+            color: #fff;
+            text-shadow: 0.8cqw 0.8cqw 0px var(--secondary-color),
+                         -0.2cqw -0.2cqw 0px #000;
+            animation: float 3s ease-in-out infinite;
+            z-index: 5;
+        }
+
+        /* 通知用オーバーレイ */
+        #msg-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            border: 0.5cqw solid #fff;
+            padding: 3cqw;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 2cqh;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            min-width: 40%;
+        }
+
+        /* 通知用オーバーレイ（共通） */
+        #msg-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            border: 0.5cqw solid #fff;
+            padding: 3cqw;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 2cqh;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            min-width: 40%;
+        }
+
+        /* ユーザー情報表示 */
+        #user-info {
+            position: absolute;
+            top: 2cqh;
+            right: 2cqw;
+            font-size: 1.2cqw;
+            color: #fff;
+            background: rgba(0,0,0,0.5);
+            padding: 0.5cqw 1cqw;
+            border: 0.1cqw solid var(--primary-color);
+            z-index: 15;
+            display: none;
+        }
+
+        /* 認証画面のスタイル */
+        #auth-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .auth-box {
+            background: #000;
+            border: 0.5cqw solid #fff;
+            padding: 4cqw;
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            gap: 2cqh;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .auth-box input {
+            width: 100%;
+            background: #222;
+            border: 0.3cqw solid #fff;
+            color: #fff;
+            padding: 1.5cqw;
+            padding-right: 8cqw; /* トグルボタン用のスペース */
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5cqw;
+            box-sizing: border-box;
+        }
+
+        .toggle-pass {
+            position: absolute;
+            right: 1.5cqw;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #aaa;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1cqw;
+            cursor: pointer;
+            padding: 0.5cqw;
+        }
+
+        .toggle-pass:hover {
+            color: var(--primary-color);
+        }
+
+        .remember-wrap {
+            display: flex;
+            align-items: center;
+            gap: 1cqw;
+            font-size: 1cqw;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .remember-wrap input {
+            width: 1.5cqw;
+            height: 1.5cqw;
+            cursor: pointer;
+        }
+
+        .auth-msg {
+            font-size: 1.2cqw;
+            color: var(--primary-color);
+            height: 2cqh;
+            margin-top: 1cqh;
+        }
+
+        .menu {
+            position: absolute;
+            top: 68%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10%; 
+            align-items: center;
+            width: 80%;
+            z-index: 5;
+            display: none; /* ログインまで非表示 */
+        }
+
+        .menu.active {
+            display: flex;
+        }
+
+        .pixel-btn {
+            background-color: #000;
+            border: 0.5cqw solid #fff;
+            color: var(--text-color);
+            padding: 2% 5%;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 3cqw; 
+            cursor: pointer;
+            position: relative;
+            transition: all 0.1s;
+            width: 60%;
+            box-shadow: 0.8cqw 0.8cqw 0px rgba(0, 0, 0, 0.5);
+        }
+
+        .pixel-btn.small {
+            font-size: 1.1cqw;
+            width: auto;
+            margin: 0;
+            padding: 1cqh 1.2cqw;
+        }
+
+        .pixel-btn:hover {
+            background-color: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+            transform: translate(-2px, -2px);
+            box-shadow: 1.2cqw 1.2cqw 0px var(--secondary-color);
+        }
+
+        .pixel-btn:active {
+            transform: translate(0.4cqw, 0.4cqw);
+            box-shadow: 0px 0px 0px transparent;
+        }
+
+        /* エディタ・ゲーム共通画面 */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 30;
+            background: rgba(0,0,0,0.8);
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #4fc3f7;
+            cursor: crosshair;
+        }
+
+        .editor-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8cqh;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            gap: 0.5cqw;
+            background: rgba(0,0,0,0.8);
+            border-bottom: 0.2cqw solid #fff;
+            z-index: 40;
+            box-sizing: border-box;
+        }
+
+        .editor-bottom-bar {
+            position: absolute;
+            bottom: 2cqh;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            white-space: nowrap;
+            gap: 1cqw;
+            background: rgba(0,0,0,0.8);
+            padding: 1cqw;
+            border: 0.2cqw solid #fff;
+            z-index: 40;
+        }
+
+        .toolbar-label {
+            color: #fff;
+            font-size: 1cqw;
+            display: flex;
+            align-items: center;
+            margin-right: 1cqw;
+        }
+
+        .tool-btn {
+            width: 4.5cqw;
+            height: 4.5cqw;
+            border: 0.2cqw solid #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1cqw;
+            color: white;
+            padding: 0.2cqw;
+            box-sizing: border-box;
+            transition: transform 0.1s;
+        }
+
+        .tool-btn.active { border-color: var(--primary-color); background: #333; }
+        .tool-btn:hover { transform: scale(1.1); z-index: 45; }
+
+        .tool-canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .tool-block { background: #5d4037; }
+        .tool-start { background: #2e7d32; }
+        .tool-goal { background: #d32f2f; }
+        .tool-eraser { background: #757575; }
+
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* ステージ選択オーバーレイ */
+        #stage-list-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 5cqh;
+        }
+
+        .stage-item {
+            width: 80%;
+            background: #222;
+            border: 0.2cqw solid #fff;
+            padding: 1cqw;
+            margin-bottom: 1cqh;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1.5cqw;
+            display: flex;
+            align-items: center;
+            gap: 2cqw;
+        }
+        .stage-item:hover { background: #444; }
+        .stage-stats {
+            font-size: 0.8cqw;
+            color: #aaa;
+            margin-top: 0.5cqh;
+            display: flex;
+            gap: 1cqw;
+        }
+        .stat-val { color: var(--primary-color); }
+
+        .stage-preview {
+            width: 16cqw;
+            height: 8cqw;
+            background: #4fc3f7;
+            border: 0.1cqw solid #fff;
+            image-rendering: pixelated;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(-50%); }
+            50% { transform: translateY(calc(-50% - 2cqh)); }
+        }
+
+        @keyframes cloudScroll {
+            from { background-position: 0 0; }
+            to { background-position: 100% 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 背景レイヤー -->
+        <div class="bg-layer clouds"></div>
+        <div class="bg-layer mountains"></div>
+        <div class="bg-layer ground"></div>
+        <div class="bg-layer scanlines"></div>
+
+        <!-- 共通通知オーバーレイ -->
+        <div id="msg-overlay">
+            <h2 id="msg-title" style="margin:0; font-size: 2.5cqw;">GOAL!!</h2>
+            <p id="msg-content" style="font-size: 1.2cqw;"></p>
+            <button class="pixel-btn small" onclick="closeMessage()">OK</button>
+        </div>
+
+        <!-- ユーザー情報 -->
+        <div id="user-info">USER: <span id="current-user">-</span> | <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span></div>
+
+        <!-- 認証画面 -->
+        <div id="auth-overlay">
+            <div class="auth-box">
+                <h2 style="font-size: 2cqw; margin-bottom: 2cqh;">Login / Sign Up</h2>
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="USERNAME" maxlength="12">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="PASSWORD">
+                    <button type="button" class="toggle-pass" onclick="togglePassword()">SHOW</button>
+                </div>
+                <label class="remember-wrap">
+                    <input type="checkbox" id="remember-me">
+                    <span>REMEMBER ME</span>
+                </label>
+                <label class="remember-wrap">
+                    <input type="checkbox" id="original-mode" onchange="toggleTitle(this.checked)">
+                    <span>オリジナル版で表示</span>
+                </label>
+                <div style="display: flex; gap: 2cqw; justify-content: center;">
+                    <button class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
+                    <button class="pixel-btn small" onclick="handleAuth('register')">新規登録</button>
+                </div>
+                <div id="auth-msg" class="auth-msg"></div>
+            </div>
+        </div>
+
+        <!-- 報酬画面 -->
+        <div id="reward-overlay" class="screen" style="z-index: 110; flex-direction: column; justify-content: center; align-items: center; display: none;">
+            <div class="auth-box" style="text-align: center; width: 40%;">
+                <h2 style="color: var(--primary-color); font-size: 3cqw; margin-bottom: 2cqh;">STAGE CLEAR!</h2>
+                <div style="font-size: 2cqw; margin: 2cqh 0;">GET: <span style="color: #f1c40f;">100 G</span></div>
+                <hr style="border: 0.1cqw solid #444; width: 100%;">
+                <div style="margin: 2cqh 0;">
+                    <p style="font-size: 1cqw;">RATE THIS STAGE:</p>
+                    <button id="btn-upvote" class="pixel-btn small" onclick="voteStage('up')" style="background:#2e7d32;">👍 GOOD</button>
+                    <button id="btn-downvote" class="pixel-btn small" onclick="voteStage('down')" style="background:#d32f2f;">👎 BAD</button>
+                </div>
+                <div style="font-size: 1.5cqw; margin: 2cqh 0;">TOTAL: <span id="reward-total-gold">0</span> G</div>
+                <button class="pixel-btn small" onclick="closeReward()" style="width: 80%;">OK</button>
+            </div>
+        </div>
+
+        <!-- コンテンツ -->
+        <h1>Pixel Stages</h1>
+        <div style="position: absolute; top: 42%; left: 0; width: 100%; text-align: center; font-size: 1cqw; color: #fff; z-index: 5; opacity: 0.8;">Created by Ajitama chi ̄ taka shioshio shioshio toppingu Aji-to Aji-to</div>
+        <div id="main-menu" class="menu">
+            <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
+            <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
+        </div>
+
+        <!-- ステージ選択画面 -->
+        <div id="stage-list-overlay">
+            <h2 style="font-size: 3cqw;">PUBLISHED STAGES</h2>
+            <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box;"></div>
+            <button class="pixel-btn small" onclick="closeStageSelect()" style="margin: 2cqh;">戻る</button>
+        </div>
+
+        <!-- エディタ画面 -->
+        <div id="editor-screen" class="screen">
+            <div id="canvas-container">
+                <canvas id="editor-canvas"></canvas>
+                <div class="editor-top-bar">
+                    <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
+                    <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
+                    <button class="pixel-btn small" style="margin-top:0" onclick="cycleBackground()">🌆背景</button>
+                    <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
+                    <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
+                    <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
+                </div>
+                <div class="editor-bottom-bar">
+                    <span class="toolbar-label">ITEMS:</span>
+                    <div class="tool-btn tool-block active" onclick="setTool('B', this)" title="BLOCK"><canvas id="icon-B" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-start" onclick="setTool('S', this)" title="START"><canvas id="icon-S" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-goal" onclick="setTool('G', this)" title="GOAL"><canvas id="icon-G" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-spike" onclick="setTool('K', this)" title="SPIKE"><canvas id="icon-K" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-arrow" onclick="setTool('A', this)" title="ARROW LAUNCHER"><canvas id="icon-A" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-trampoline" onclick="setTool('T', this)" title="TRAMPOLINE"><canvas id="icon-T" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-troll" onclick="setTool('X', this)" title="TROLL BLOCK"><canvas id="icon-X" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-wind" onclick="setTool('W', this)" title="WIND ZONE"><canvas id="icon-W" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-speed" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="game-screen" class="screen">
+            <canvas id="game-canvas"></canvas>
+            <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.5cqw;">
+                ARROWS: MOVE | SPACE: JUMP | <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 設定エリア ---
+        const CONFIG = {
+            // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
+            // google.script.run を使う場合は空でも動作します
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxbhG149GqDxGxYCVV0uF12plGMHzsCcZCihv--JDjEIYFdpgO3Spx1IZasGRdyUa4G/exec",
+            IS_LOGGED_IN: false,
+            USERNAME: ""
+        };
+        let userGold = 0;
+
+        // --- ゲームエンジン変数 ---
+        let editorGrid = [];
+        let currentTool = 'B';
+        const GRID_W = 20, GRID_H = 10;
+        let isDrawing = false;
+        let gameLoopId = null;
+        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false };
+        let keys = {};
+        let activeStage = [];
+        let currentStageData = null; // 現在プレイ中のステージ情報
+        let cachedStages = null;    // ステージリストのキャッシュ
+        let arrows = [];
+        let playbackGhosts = [];
+        let currentGhostData = [];
+        let startTime = 0;
+        let frameCount = 0;
+        let currentBgIndex = 0;
+        let countdown = 3;
+        let isCountingDown = false;
+        let countdownStartTime = 0;
+
+        let isClearChecked = false;
+
+        function toggleTitle(isOriginal) {
+            const h1 = document.querySelector('h1');
+            h1.innerText = isOriginal ? "コース作り" : "Pixel Stages";
+        }
+        let isGoalTriggered = false;
+        let gameMode = 'play';
+
+        // キャラクターの16x16ドットデータ
+        const PLAYER_SPRITE = [
+            "      5555      ",
+            "     555555     ",
+            "    55555555    ",
+            "    55111155    ",
+            "    51111115    ",
+            "    51411415    ",
+            "    11111111    ",
+            "     111111     ",
+            "   2222222222   ",
+            "  222222222222  ",
+            "  222222222222  ",
+            "  222222222222  ",
+            "    333   333   ",
+            "    333   333   ",
+            " 66666666666666 ",
+            "  666666666666  "
+        ];
+
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function initGrid() {
+            editorGrid = Array(GRID_H).fill().map(() => Array(GRID_W).fill(null));
+        }
+        initGrid();
+
+        function cycleBackground() {
+            const bgs = ['bg-city', 'bg-sky', 'bg-night'];
+            currentBgIndex = (currentBgIndex + 1) % bgs.length;
+            const container = document.querySelector('.container');
+            bgs.forEach(bg => container.classList.remove(bg));
+            container.classList.add(bgs[currentBgIndex]);
+        }
+
+        /**
+         * GAS APIへの通信を共通化
+         */
+        async function callApi(action, payload) {
+            try {
+                const response = await fetch(CONFIG.DEPLOY_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'text/plain' // CORS preflightを回避するためにtext/plainを使用
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        ...payload 
+                    })
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return { success: false, message: "通信エラーが発生しました。" };
+            }
+        }
+
+        function togglePassword() {
+            const passInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.toggle-pass');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                toggleBtn.innerText = 'HIDE';
+            } else {
+                passInput.type = 'password';
+                toggleBtn.innerText = 'SHOW';
+            }
+        }
+
+        function handleAuth(type) {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const msg = document.getElementById('auth-msg');
+            const remember = document.getElementById('remember-me').checked;
+
+            if (!user || !pass) {
+                msg.innerText = "入力してください！";
+                return;
+            }
+
+            msg.style.color = "#fff";
+            msg.innerText = "通信中...";
+
+            // google.script.run ではなく、定義済みの callApi を使用します
+            callApi(type, { username: user, password: pass })
+                .then((res) => {
+                    msg.innerText = res.message;
+                    if (res.success) {
+                        msg.style.color = "var(--primary-color)";
+                        if (type === 'login') {
+                            if (remember) {
+                                localStorage.setItem('pixel_stages_user', user);
+                                localStorage.setItem('pixel_stages_pass', pass);
+                                localStorage.setItem('pixel_stages_remember', 'true');
+                            } else {
+                                localStorage.removeItem('pixel_stages_user');
+                                localStorage.removeItem('pixel_stages_pass');
+                                localStorage.removeItem('pixel_stages_remember');
+                            }
+
+                            setTimeout(() => {
+                                // ログイン成功時の処理
+                                CONFIG.IS_LOGGED_IN = true;
+                                CONFIG.USERNAME = res.username;
+                                
+                                document.getElementById('auth-overlay').style.display = 'none';
+                                document.getElementById('main-menu').classList.add('active');
+                                document.getElementById('user-info').style.display = 'block';
+                                document.getElementById('current-user').innerText = res.username;
+                                updateGoldDisplay();
+                            }, 1000);
+                        }
+                    } else {
+                        msg.style.color = "var(--secondary-color)";
+                    }
+                });
+        }
+
+        // --- エディタ関連 ---
+        function startEditor() {
+            document.getElementById('editor-screen').style.display = 'block';
+            resizeCanvas('editor-canvas');
+            drawEditor();
+            renderToolIcons();
+        }
+
+        function exitEditor() {
+            document.getElementById('editor-screen').style.display = 'none';
+        }
+
+        function renderToolIcons() {
+            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'P', 'E'];
+            tools.forEach(type => {
+                const canvas = document.getElementById(`icon-${type}`);
+                if (!canvas) return;
+                canvas.width = 60;
+                canvas.height = 60;
+                const ctx = canvas.getContext('2d');
+                if (type === 'E') drawEraserIcon(ctx, 60, 60);
+                else drawTile(ctx, 0, 0, 60, 60, type);
+            });
+        }
+
+        function setTool(type, btn) {
+            currentTool = type;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function drawEraserIcon(ctx, w, h) {
+            ctx.fillStyle = "#ff80ab";
+            ctx.fillRect(w*0.2, h*0.2, w*0.6, h*0.4);
+            ctx.fillStyle = "#fce4ec";
+            ctx.fillRect(w*0.2, h*0.6, w*0.6, h*0.2);
+            ctx.strokeStyle = "#fff";
+            ctx.strokeRect(w*0.2, h*0.2, w*0.6, h*0.6);
+        }
+
+        function resizeCanvas(id) {
+            const c = document.getElementById(id);
+            const container = document.querySelector('.container');
+            c.width = container.clientWidth;
+            c.height = container.clientHeight;
+        }
+
+        const editorCanvas = document.getElementById('editor-canvas');
+        editorCanvas.addEventListener('mousedown', e => { isDrawing = true; handleEditorInput(e); });
+        editorCanvas.addEventListener('mousemove', e => { if(isDrawing) handleEditorInput(e); });
+        window.addEventListener('mouseup', () => { isDrawing = false; });
+
+        function handleEditorInput(e) {
+            const rect = editorCanvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / (editorCanvas.width / GRID_W));
+            const y = Math.floor((e.clientY - rect.top) / (editorCanvas.height / GRID_H));
+            if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
+                if (currentTool === 'E') {
+                    if (editorGrid[y][x] !== null) {
+                        editorGrid[y][x] = null;
+                        isClearChecked = false;
+                        drawEditor();
+                    }
+                } else {
+                    if (currentTool === 'S' && editorGrid[y][x] !== 'S') {
+                        for(let r=0; r<GRID_H; r++) {
+                            for(let c=0; c<GRID_W; c++) {
+                                if(editorGrid[r][c] === 'S') editorGrid[r][c] = null;
+                            }
+                        }
+                    }
+                    if (editorGrid[y][x] === currentTool) return;
+                    editorGrid[y][x] = currentTool;
+                    isClearChecked = false;
+                    drawEditor();
+                }
+            }
+        }
+
+        function drawEditor() {
+            const ctx = editorCanvas.getContext('2d');
+            const cw = editorCanvas.width / GRID_W;
+            const ch = editorCanvas.height / GRID_H;
+            ctx.clearRect(0,0,editorCanvas.width, editorCanvas.height);
+            const time = Date.now() * 0.002;
+            
+            for(let y=0; y<GRID_H; y++){
+                for(let x=0; x<GRID_W; x++){
+                    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                    ctx.strokeRect(x*cw, y*ch, cw, ch);
+                    if(editorGrid[y][x]) drawTile(ctx, x, y, cw, ch, editorGrid[y][x], time);
+                }
+            }
+        }
+
+        function drawTile(ctx, x, y, cw, ch, type, time = 0) {
+            const pad = 2;
+
+            if(type === 'B') {
+                // レンガ風ブロック
+                ctx.fillStyle = "#5d4037";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#3e2723";
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.4, cw - pad*2, ch*0.1);
+            } else if(type === 'S') {
+                // スタートパッド
+                ctx.fillStyle = "#1b5e20";
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.7, cw - pad*2, ch*0.2);
+                ctx.fillStyle = "#2e7d32";
+                ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.6, ch*0.3);
+                ctx.fillStyle = "#fff";
+                ctx.font = `bold ${ch*0.3}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText("S", x*cw + cw/2, y*ch + ch*0.3);
+            } else if(type === 'G') {
+                // ゴールゲート
+                ctx.fillStyle = "#000";
+                ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
+                ctx.strokeStyle = "#d32f2f";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
+                ctx.fillStyle = "#fff";
+                ctx.font = `bold ${ch*0.3}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText("G", x*cw + cw/2, y*ch + ch*0.4);
+            } else if(type === 'K') {
+                // スパイク
+                ctx.fillStyle = "#78909c";
+                for(let i=0; i<3; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + i*cw/3, y*ch + ch);
+                    ctx.lineTo(x*cw + (i+0.5)*cw/3, y*ch + ch*0.4);
+                    ctx.lineTo(x*cw + (i+1)*cw/3, y*ch + ch);
+                    ctx.fill();
+                }
+            } else if(type === 'A') {
+                // 弓発射台
+                ctx.fillStyle = "#455a64";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#ff5722";
+                ctx.fillRect(x*cw, y*ch + ch*0.4, cw*0.3, ch*0.2);
+            } else if(type === 'T') {
+                // トランポリン
+                ctx.fillStyle = "#ffb300";
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.6, cw - pad*2, ch*0.3);
+                ctx.fillStyle = "#fb8c00";
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.5, cw - pad*2, ch*0.1);
+            } else if(type === 'X') {
+                // トロール（弾く）
+                ctx.fillStyle = "#4a148c";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#fff";
+                ctx.font = `bold ${ch*0.5}px sans-serif`; ctx.textAlign = "center";
+                ctx.fillText("!", x*cw + cw/2, y*ch + ch*0.7);
+            } else if(type === 'W') {
+                // 風ゾーン
+                ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
+                ctx.lineWidth = 2;
+                let drift = (time * 100) % cw;
+                for(let i=0; i<3; i++) {
+                    ctx.beginPath(); ctx.moveTo(x*cw + drift, y*ch + (i+1)*ch/4);
+                    ctx.lineTo(x*cw + drift + cw/2, y*ch + (i+1)*ch/4); ctx.stroke();
+                }
+            } else if(type === 'P') {
+                // 加速
+                ctx.fillStyle = "#ffd600";
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.8, cw - pad*2, ch*0.2);
+                ctx.fillStyle = "#ff6f00";
+                ctx.beginPath(); ctx.moveTo(x*cw+cw*0.3, y*ch+ch*0.85); ctx.lineTo(x*cw+cw*0.7, y*ch+ch*0.9); ctx.lineTo(x*cw+cw*0.3, y*ch+ch*0.95); ctx.fill();
+            }
+        }
+
+        async function saveStage() {
+            await callApi('save', { username: CONFIG.USERNAME, key: 'my_stage', data: editorGrid });
+            alert("あなた専用の枠に保存しました！");
+        }
+
+        async function loadSavedStage() {
+            const res = await callApi('load', { username: CONFIG.USERNAME, key: 'my_stage' });
+            if (res && res.data) { editorGrid = res.data; drawEditor(); alert("保存データを読み込みました。"); }
+            else { alert("保存データが見つかりません。"); }
+        }
+
+        async function publishStage() {
+            if (!isClearChecked) {
+                showQuickMsg("先にクリアチェックが必要です！", "var(--secondary-color)");
+                return;
+            }
+            const name = prompt("ステージ名を入力してください:");
+            if(!name) return;
+            
+            cachedStages = null; // リストを更新するためにキャッシュをクリア
+            const btn = document.getElementById('publish-btn');
+            const oldText = btn.innerText;
+            btn.innerText = "投稿中...";
+            btn.disabled = true;
+
+            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid });
+            btn.innerText = oldText;
+            btn.disabled = false;
+            alert("投稿完了！プレイメニューから遊べます。");
+        }
+
+        // --- プレイ・ゲームロジック ---
+        async function openStageSelect(forceRefresh = false) {
+            const overlay = document.getElementById('stage-list-overlay');
+            const container = document.getElementById('stage-list-container');
+            overlay.style.display = 'flex';
+            
+            if (!cachedStages || forceRefresh) {
+                container.innerHTML = "LOADING STAGES...";
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+            }
+
+            container.innerHTML = "";
+            cachedStages.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'stage-item';
+                
+                const canvas = document.createElement('canvas');
+                canvas.className = 'stage-preview';
+                canvas.width = 200; // プレビュー解像度
+                canvas.height = 100;
+                
+                const clearRate = s.attempts > 0 ? Math.floor((s.clears || 0) / s.attempts * 100) : 0;
+                const bestRecord = s.leaderboard && s.leaderboard.length > 0 ? 
+                    `<div style="font-size:0.9cqw; color:#f1c40f; margin-top:0.3cqh;">🏆 1st: ${s.leaderboard[0].time.toFixed(2)}s (${s.leaderboard[0].name})</div>` : 
+                    "";
+
+                const info = document.createElement('div');
+                info.innerHTML = `
+                    <div style="color:var(--primary-color)">${s.name}</div>
+                    <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
+                    <div class="stage-stats">
+                        Clear: <span class="stat-val">${clearRate}%</span> | 👍 <span class="stat-val">${s.upvotes || 0}</span> | 👎 <span class="stat-val">${s.downvotes || 0}</span>
+                    </div>
+                    ${bestRecord}
+                `;
+                
+                div.appendChild(canvas);
+                div.appendChild(info);
+                div.onclick = () => startGame(s);
+                container.appendChild(div);
+                
+                renderPreview(canvas, s.data);
+            });
+        }
+
+        function renderPreview(canvas, data) {
+            const ctx = canvas.getContext('2d');
+            const cw = canvas.width / GRID_W;
+            const ch = canvas.height / GRID_H;
+            ctx.fillStyle = "#4fc3f7";
+            ctx.fillRect(0,0,canvas.width, canvas.height);
+            for(let y=0; y<GRID_H; y++){
+                for(let x=0; x<GRID_W; x++){
+                    if(data[y][x]) drawTile(ctx, x, y, cw, ch, data[y][x]);
+                }
+            }
+        }
+
+        function closeStageSelect() {
+            document.getElementById('stage-list-overlay').style.display = 'none';
+        }
+
+        function startGame(stageObj, mode = 'play') {
+            gameMode = mode;
+            currentStageData = stageObj;
+
+            if (mode === 'play') {
+                closeStageSelect();
+                // 挑戦数をカウントアップ（非同期で送信）
+                callApi('recordAttempt', { stageId: stageObj.id || stageObj.name });
+            } else {
+                document.getElementById('editor-screen').style.display = 'none';
+            }
+
+            activeStage = stageObj.data;
+            playbackGhosts = stageObj.leaderboard || [];
+            document.getElementById('game-screen').style.display = 'block';
+            resizeCanvas('game-canvas');
+            
+            // 状態リセット
+            frameCount = 0;
+            isCountingDown = true;
+            countdownStartTime = Date.now();
+            currentGhostData = [];
+            document.getElementById('btn-upvote').style.opacity = "1";
+            document.getElementById('btn-downvote').style.opacity = "1";
+
+            // 初期位置探し
+            player.x = 1; player.y = 1;
+            resetPlayer();
+            player.vx = 0; player.vy = 0;
+            
+            arrows = [];
+            isGoalTriggered = false;
+            if(gameLoopId) cancelAnimationFrame(gameLoopId);
+            gameLoop();
+        }
+
+        function exitGame() {
+            cancelAnimationFrame(gameLoopId);
+            document.getElementById('game-screen').style.display = 'none';
+            if (gameMode === 'test') {
+                document.getElementById('editor-screen').style.display = 'block';
+                drawEditor();
+            } else {
+                // プレイモード終了時はリロードせずリストを表示
+                document.getElementById('stage-list-overlay').style.display = 'flex';
+            }
+        }
+
+        function showMessage(title, content) {
+            const overlay = document.getElementById('msg-overlay');
+            document.getElementById('msg-title').innerText = title;
+            document.getElementById('msg-content').innerText = content;
+            overlay.style.display = 'flex';
+            // ゲームを停止
+            cancelAnimationFrame(gameLoopId);
+        }
+
+        function closeMessage() {
+            document.getElementById('msg-overlay').style.display = 'none';
+            exitGame();
+        }
+
+        async function showReward() {
+            const clearTime = (Date.now() - startTime) / 1000;
+            if (currentStageData && currentStageData.id) {
+                // API送信が終わるまで待機
+                await callApi('recordClear', { 
+                    stageId: currentStageData.id, 
+                    username: CONFIG.USERNAME, 
+                    time: clearTime, 
+                    ghost: currentGhostData 
+                });
+            }
+            
+            userGold += 100;
+            updateGoldDisplay();
+            callApi('updateGold', { username: CONFIG.USERNAME, gold: userGold });
+            
+            document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(2)}s)`;
+            document.getElementById('reward-overlay').style.display = 'flex';
+            cancelAnimationFrame(gameLoopId);
+        }
+
+        async function voteStage(type) {
+            if (!currentStageData) return;
+            document.getElementById('btn-upvote').style.opacity = "0.3";
+            document.getElementById('btn-downvote').style.opacity = "0.3";
+            
+            const res = await callApi('vote', { 
+                stageId: currentStageData.id, 
+                username: CONFIG.USERNAME, 
+                type: type 
+            });
+            
+            showQuickMsg(res.message, res.success ? "var(--primary-color)" : "var(--secondary-color)");
+            cachedStages = null; // リストに戻った時に最新情報を取得するためキャッシュクリア
+        }
+
+        function closeReward() {
+            document.getElementById('reward-overlay').style.display = 'none';
+            exitGame();
+        }
+
+        function updateGoldDisplay() {
+            const display = document.getElementById('user-gold');
+            if (display) display.innerText = userGold;
+        }
+
+        function testPlay() {
+            if (!editorGrid.some(row => row.includes('S')) || !editorGrid.some(row => row.includes('G'))) {
+                showQuickMsg("SとGを配置してください！", "var(--secondary-color)");
+                return;
+            }
+            startGame({data: editorGrid, name: 'TEST'}, 'test');
+        }
+
+        function showQuickMsg(txt, col) { const m = document.getElementById('auth-msg'); m.innerText = txt; m.style.color = col; }
+
+        function gameLoop() {
+            frameCount++;
+            updateGame();
+            drawGame();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateGame() {
+            if (isGoalTriggered) return;
+
+            if (isCountingDown) {
+                let elapsed = Date.now() - countdownStartTime;
+                if (elapsed < 3000) {
+                    countdown = 3 - Math.floor(elapsed / 1000);
+                    return;
+                } else {
+                    isCountingDown = false;
+                    startTime = Date.now();
+                    frameCount = 0;
+                }
+            }
+
+            const speed = 0.015; // 加速を遅く設定
+            const gravity = 0.015;
+            const jumpForce = -0.3;
+
+            if (keys['ArrowLeft']) player.vx -= speed;
+            if (keys['ArrowRight']) player.vx += speed;
+            if (keys['Space'] && player.onGround) { player.vy = jumpForce; player.onGround = false; }
+
+            player.vy += gravity;
+            player.vx *= 0.9; // 摩擦を少し弱めて慣性を出す
+
+            // ゴースト用の記録（5フレームに1回）
+            if (frameCount % 5 === 0) currentGhostData.push({x: player.x, y: player.y});
+
+            // 風の処理
+            const cx = Math.floor(player.x + player.w/2), cy = Math.floor(player.y + player.h/2);
+            if(activeStage[cy] && activeStage[cy][cx] === 'W') player.vx += 0.012;
+
+            // 奈落判定
+            if (player.y > GRID_H - 0.5) {
+                handlePlayerDeath();
+                return;
+            }
+
+            // X衝突
+            let nextX = player.x + player.vx;
+            if(!isCollide(nextX, player.y)) {
+                player.x = nextX;
+            } else {
+                if(isTouchingType(nextX, player.y, 'X')) player.vx = (player.vx > 0 ? -0.5 : 0.5);
+                else player.vx = 0;
+            }
+
+            // Y衝突
+            let nextY = player.y + player.vy;
+            if(!isCollide(player.x, nextY)) {
+                player.y = nextY;
+                player.onGround = false;
+            } else {
+                if(player.vy > 0) player.onGround = true;
+                player.vy = 0;
+            }
+
+            // ギミック判定
+            checkGimmicks();
+
+            // 矢の生成と更新
+            if (frameCount % 120 === 0) {
+                for(let y=0; y<GRID_H; y++) {
+                    for(let x=0; x<GRID_W; x++) {
+                        if(activeStage[y][x] === 'A') arrows.push({x: x, y: y + 0.4, vx: -0.15});
+                    }
+                }
+            }
+            arrows.forEach((a, i) => {
+                a.x += a.vx;
+                if(a.x < 0 || isCollide(a.x, a.y)) arrows.splice(i, 1);
+                if(Math.abs(a.x - player.x) < 0.5 && Math.abs(a.y - player.y) < 0.5) handlePlayerDeath();
+            });
+
+            // ゴール判定
+            const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
+            if(!isGoalTriggered && activeStage[gy] && activeStage[gy][gx] === 'G') {
+                isGoalTriggered = true;
+                player.vx = 0; player.vy = 0;
+                
+                if (gameMode === 'test') {
+                    isClearChecked = true;
+                    showMessage("CHECK OK!", "ステージを完走しました！投稿が可能です。");
+                } else {
+                    showReward();
+                }
+            }
+        }
+
+        function checkGimmicks() {
+            const gx = Math.floor(player.x + player.w/2);
+            const gy = Math.floor(player.y + player.h/2);
+            const footY = Math.floor(player.y + player.h);
+            const tile = activeStage[gy] ? activeStage[gy][gx] : null;
+            const footTile = activeStage[footY] ? activeStage[footY][gx] : null;
+
+            if (tile === 'K' || footTile === 'K') handlePlayerDeath();
+            if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
+            if (footTile === 'P') player.vx *= 1.15; // 加速
+        }
+
+        function isTouchingType(x, y, type) {
+            const inset = 0.02;
+            const points = [[x+inset, y+inset], [x+player.w-inset, y+inset], [x+inset, y+player.h-inset], [x+player.w-inset, y+player.h-inset]];
+            for(let p of points) {
+                const ix = Math.floor(p[0]), iy = Math.floor(p[1]);
+                if(activeStage[iy] && activeStage[iy][ix] === type) return true;
+            }
+            return false;
+        }
+
+        function handlePlayerDeath() {
+            if (gameMode === 'test') {
+                isGoalTriggered = true;
+                showMessage("TEST FAILED", "ミスしてしまいました。エディタに戻ります。");
+            } else if (gameMode === 'play') {
+                // プレイモードでもメッセージを出して「OK（戻る）」を押せるように修正
+                isGoalTriggered = true;
+                showMessage("GAME OVER", "ステージ失敗！リストに戻ります。");
+            } else {
+                resetPlayer();
+            }
+        }
+
+        function resetPlayer() {
+            for(let y=0; y<GRID_H; y++) {
+                for(let x=0; x<GRID_W; x++) {
+                    if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
+                }
+            }
+            player.vx = 0; player.vy = 0;
+        }
+
+        function getMovingPlatformOffset() {
+            return Math.sin(Date.now() * 0.002);
+        }
+
+        function isCollide(x, y) {
+            const inset = 0.05; // 判定をわずかに小さくして床や壁への「吸いつき」を防止
+            const collisionPoints = [
+                [x + inset, y + inset], 
+                [x + player.w - inset, y + inset], 
+                [x + inset, y + player.h - inset], 
+                [x + player.w - inset, y + player.h - inset]
+            ];
+            for(let p of collisionPoints) {
+                const ix = Math.floor(p[0]), iy = Math.floor(p[1]);
+                if(ix < 0 || ix >= GRID_W) return true;
+                if(iy < 0) return false;
+                if(iy >= GRID_H) return false; // 奈落はupdateGameで判定
+
+                const tile = activeStage[iy][ix];
+                if(tile === 'B' || tile === 'X') return true;
+            }
+            return false;
+        }
+
+        function drawGame() {
+            const canvas = document.getElementById('game-canvas');
+            const ctx = canvas.getContext('2d');
+            const cw = canvas.width / GRID_W;
+            const ch = canvas.height / GRID_H;
+            
+            const time = Date.now() * 0.002;
+            ctx.fillStyle = "#4fc3f7";
+            ctx.fillRect(0,0,canvas.width, canvas.height);
+
+            for(let y=0; y<GRID_H; y++){
+                for(let x=0; x<GRID_W; x++){
+                    if(activeStage[y][x]) drawTile(ctx, x, y, cw, ch, activeStage[y][x], time);
+                }
+            }
+
+            // 矢の描画
+            ctx.fillStyle = "#37474f";
+            arrows.forEach(a => {
+                ctx.fillRect(a.x * cw, a.y * ch, cw * 0.4, ch * 0.1);
+                ctx.fillStyle = "#ff5722";
+                ctx.fillRect(a.x * cw, a.y * ch, cw * 0.1, ch * 0.1);
+            });
+            
+            // ゴール時は描画のみ継続してプレイヤーを止める
+            if (isGoalTriggered) ctx.globalAlpha = 0.5;
+
+            // ゴーストの描画
+            ctx.globalAlpha = 0.5;
+            playbackGhosts.forEach(ghost => {
+                if (ghost.ghost) {
+                    const frameIdx = Math.floor(frameCount / 5);
+                    const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
+                    if (pos) {
+                        drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, true);
+                        // 名前のラベル表示
+                        ctx.save();
+                        ctx.globalAlpha = 1.0;
+                        ctx.fillStyle = "#fff";
+                        ctx.font = `${ch * 0.3}px sans-serif`;
+                        ctx.textAlign = "center";
+                        ctx.fillText(ghost.name, (pos.x + player.w/2) * cw, pos.y * ch - 10);
+                        ctx.restore();
+                    }
+                }
+            });
+            ctx.globalAlpha = 1.0;
+
+            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch);
+
+            // カウントダウンの描画
+            if (isCountingDown) {
+                ctx.fillStyle = "rgba(0,0,0,0.3)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#fff";
+                ctx.font = `bold ${ch * 2}px 'Press Start 2P'`;
+                ctx.textAlign = "center";
+                ctx.fillText(countdown, canvas.width/2, canvas.height/2 + ch/2);
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawPlayer(ctx, px, py, pw, ph, isGhost = false) {
+            const colors = {
+                '1': '#ffdbac', // 肌
+                '2': isGhost ? '#888' : varColor('--primary-color'), // 服
+                '3': varColor('--secondary-color'), // ズボン
+                '4': '#000000', // 目/靴
+                '5': '#5d4037',  // 髪
+                '6': '#00ffff'  // ホバーボード
+            };
+            const pixelW = pw / 16;
+            const pixelH = ph / 16;
+
+            PLAYER_SPRITE.forEach((row, y) => {
+                [...row].forEach((c, x) => {
+                    if (c !== ' ') {
+                        ctx.fillStyle = colors[c];
+                        // 微小な隙間を防ぐため+0.5
+                        ctx.fillRect(px + x * pixelW, py + y * pixelH, pixelW + 0.5, pixelH + 0.5);
+                    }
+                });
+            });
+        }
+
+        function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+        // 起動時に保存された情報を読み込む
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('pixel_stages_user');
+            const savedPass = localStorage.getItem('pixel_stages_pass');
+            const remember = localStorage.getItem('pixel_stages_remember') === 'true';
+            
+            document.querySelector('.container').classList.add('bg-city');
+
+            if (savedUser && savedPass) {
+                document.getElementById('username').value = savedUser;
+                document.getElementById('password').value = savedPass;
+                document.getElementById('remember-me').checked = remember;
+                
+                // 自動ログイン実行
+                handleAuth('login');
+            }
+        });
+    </script>
+</body>
+</html>
