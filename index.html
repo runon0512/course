@@ -147,9 +147,9 @@
         /* ユーザー情報表示 */
         #user-info {
             position: absolute;
-            top: 2cqh;
+            top: 1cqh;
             right: 2cqw;
-            font-size: 1.2cqw;
+            font-size: 1cqw;
             color: #fff;
             background: rgba(0,0,0,0.5);
             padding: 0.5cqw 1cqw;
@@ -284,6 +284,29 @@
             border-color: var(--primary-color);
             transform: translate(-2px, -2px);
             box-shadow: 1.2cqw 1.2cqw 0px var(--secondary-color);
+        }
+
+        /* ショップ用スタイル */
+        #shop-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 5cqh;
+        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2cqw;
+            width: 90%;
+            max-height: 60cqh;
+            overflow-y: auto;
+            padding: 2cqw;
+        }
+        .shop-item {
+            background: #222;
+            border: 0.3cqw solid #fff;
+            padding: 1cqw;
+            text-align: center;
         }
 
         .pixel-btn:active {
@@ -458,7 +481,11 @@
         </div>
 
         <!-- ユーザー情報 -->
-        <div id="user-info">USER: <span id="current-user">-</span> | <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span></div>
+        <div id="user-info">
+            USER: <span id="current-user">-</span> | 
+            <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
+            <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span>
+        </div>
 
         <!-- 認証画面 -->
         <div id="auth-overlay">
@@ -491,7 +518,7 @@
         <div id="reward-overlay" class="screen" style="z-index: 110; flex-direction: column; justify-content: center; align-items: center; display: none;">
             <div class="auth-box" style="text-align: center; width: 40%;">
                 <h2 style="color: var(--primary-color); font-size: 3cqw; margin-bottom: 2cqh;">STAGE CLEAR!</h2>
-                <div style="font-size: 2cqw; margin: 2cqh 0;">GET: <span style="color: #f1c40f;">100 G</span></div>
+                <div style="font-size: 2cqw; margin: 2cqh 0;">GET: <span id="reward-amount" style="color: #f1c40f;">0 G</span></div>
                 <hr style="border: 0.1cqw solid #444; width: 100%;">
                 <div style="margin: 2cqh 0;">
                     <p style="font-size: 1cqw;">RATE THIS STAGE:</p>
@@ -509,11 +536,33 @@
         <div id="main-menu" class="menu">
             <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
             <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
+            <button class="pixel-btn" onclick="openShop()">ショップ</button>
+        </div>
+
+        <!-- ショップ画面 -->
+        <div id="shop-overlay" class="screen">
+            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
+            <div class="shop-grid" id="shop-container"></div>
+            <button class="pixel-btn small" onclick="closeShop()" style="margin-top: 4cqh;">戻る</button>
         </div>
 
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
             <h2 style="font-size: 3cqw;">PUBLISHED STAGES</h2>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%;">
+                <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
+                <select id="sort-criteria" class="filter-control" onchange="openStageSelect()">
+                    <option value="newest">新着順</option>
+                    <option value="clears">クリア数順</option>
+                    <option value="upvotes">高評価順</option>
+                    <option value="reward">報酬が高い順</option>
+                </select>
+                <label class="remember-wrap" style="font-size: 1cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid var(--primary-color);">
+                    <input type="checkbox" id="filter-my-stages" onchange="openStageSelect()">
+                    <span>自分のステージのみ</span>
+                </label>
+                <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" onkeyup="openStageSelect()">
+            </div>
             <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box;"></div>
             <button class="pixel-btn small" onclick="closeStageSelect()" style="margin: 2cqh;">戻る</button>
         </div>
@@ -560,11 +609,14 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxbhG149GqDxGxYCVV0uF12plGMHzsCcZCihv--JDjEIYFdpgO3Spx1IZasGRdyUa4G/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxFDW60msLJniYNOpbcqhL_RUZJh_RnR-XuYe6xol_86RENjrxxEgKDtJsrmIch1kPK/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
         let userGold = 0;
+        let userCP = 0;
+        let purchasedSkins = ['default'];
+        let equippedSkin = 'default';
 
         // --- ゲームエンジン変数 ---
         let editorGrid = [];
@@ -577,6 +629,9 @@
         let activeStage = [];
         let currentStageData = null; // 現在プレイ中のステージ情報
         let cachedStages = null;    // ステージリストのキャッシュ
+        let currentSort = 'newest'; // デフォルトのソート順
+        let filterMyStages = false;
+        let filterCreatorName = '';
         let arrows = [];
         let playbackGhosts = [];
         let currentGhostData = [];
@@ -615,6 +670,88 @@
             " 66666666666666 ",
             "  666666666666  "
         ];
+
+        const SNOWMAN_SPRITE = [
+            "      7777      ",
+            "     777777     ",
+            "    77777777    ",
+            "    77477477    ",
+            "    77788777    ",
+            "    77777777    ",
+            "   7777777777   ",
+            "  777777777777  ",
+            "  777747777777  ",
+            "  777777747777  ",
+            "  777777777777  ",
+            "   7777777777   ",
+            "    777   333   ",
+            "    777   333   ",
+            " 55555555555555 ",
+            "  555555555555  "
+        ];
+
+        const HALLOWEEN_SPRITE = [
+            "      9999      ",
+            "     99a999     ",
+            "    999a9999    ",
+            "    99499499    ",
+            "    99999999    ",
+            "    94444449    ",
+            "   9999999999   ",
+            "  999999999994  ",
+            "  999999999994  ",
+            "  999999999994  ",
+            "    444   444   ",
+            "    444   444   ",
+            " 33333333333333 ",
+            "  333333333333  "
+        ];
+
+        const ROBOT_SPRITE = [
+            "      bbbb      ",
+            "     bccccb     ",
+            "    bc4c4ccb    ",
+            "    bccccccb    ",
+            "     bbbbbb     ",
+            "   bbbbbbbbbb   ",
+            "  bbbbbbbbbbbb  ",
+            "  bbccccccccbb  ",
+            "  bbccccccccbb  ",
+            "  bbbbbbbbbbbb  ",
+            "    bbb   bbb   ",
+            "    bbb   bbb   ",
+            " 66666666666666 ",
+            "  666666666666  "
+        ];
+
+        const ALIEN_SPRITE = [
+            "     dddddd     ",
+            "    dddddddd    ",
+            "   dd44dd44dd   ",
+            "   dd44dd44dd   ",
+            "    dddddddd    ",
+            "     dddddd     ",
+            "      dddd      ",
+            "    dddddddd    ",
+            "   dddddddddd   ",
+            "  dddddddddddd  ",
+            "    ddd   ddd   ",
+            "    ddd   ddd   ",
+            " 66666666666666 ",
+            "  666666666666  "
+        ];
+
+        const SKINS = {
+            'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE },
+            'red': { name: 'RED', price: 1000, color: '#ff4141' },
+            'blue': { name: 'BLUE', price: 1000, color: '#4141ff' },
+            'green': { name: 'GREEN', price: 1000, color: '#41ff41' },
+            'yellow': { name: 'YELLOW', price: 1000, color: '#ffff41' },
+            'snowman': { name: 'SNOWMAN', price: 5000, sprite: SNOWMAN_SPRITE },
+            'halloween': { name: 'PUMPKIN', price: 5000, sprite: HALLOWEEN_SPRITE },
+            'robot': { name: 'ROBOT', price: 8000, sprite: ROBOT_SPRITE },
+            'alien': { name: 'ALIEN', price: 10000, sprite: ALIEN_SPRITE }
+        };
 
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
@@ -703,11 +840,19 @@
                                 // ログイン成功時の処理
                                 CONFIG.IS_LOGGED_IN = true;
                                 CONFIG.USERNAME = res.username;
+                                userGold = res.gold || 0;
+                                userCP = res.cp || 0;
+                                purchasedSkins = res.purchasedSkins || ['default'];
+                                equippedSkin = res.equippedSkin || 'default';
                                 
                                 document.getElementById('auth-overlay').style.display = 'none';
                                 document.getElementById('main-menu').classList.add('active');
                                 document.getElementById('user-info').style.display = 'block';
                                 document.getElementById('current-user').innerText = res.username;
+                                // Initialize sort/filter UI on login
+                                document.getElementById('sort-criteria').value = currentSort;
+                                document.getElementById('filter-my-stages').checked = filterMyStages;
+                                document.getElementById('filter-creator').value = filterCreatorName;
                                 updateGoldDisplay();
                             }, 1000);
                         }
@@ -715,6 +860,65 @@
                         msg.style.color = "var(--secondary-color)";
                     }
                 });
+        }
+
+        // --- ショップ関連 ---
+        function openShop() {
+            document.getElementById('shop-overlay').style.display = 'flex';
+            const container = document.getElementById('shop-container');
+            container.innerHTML = '';
+
+            Object.keys(SKINS).forEach(id => {
+                const skin = SKINS[id];
+                const isPurchased = purchasedSkins.includes(id);
+                const isEquipped = equippedSkin === id;
+
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+                item.style.borderColor = isEquipped ? 'var(--primary-color)' : '#fff';
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 64; canvas.height = 64;
+                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id);
+
+                item.innerHTML = `
+                    <div style="font-size:1cqw; margin-bottom:1cqh;">${skin.name}</div>
+                `;
+                item.prepend(canvas);
+
+                const btn = document.createElement('button');
+                btn.className = 'pixel-btn small';
+                btn.style.width = '100%';
+                if (isEquipped) {
+                    btn.innerText = 'EQUIPPED';
+                    btn.disabled = true;
+                } else if (isPurchased) {
+                    btn.innerText = 'EQUIP';
+                    btn.onclick = () => equipSkin(id);
+                } else {
+                    btn.innerText = `${skin.price} G`;
+                    btn.onclick = () => buySkin(id, skin.price);
+                }
+                item.appendChild(btn);
+                container.appendChild(item);
+            });
+        }
+
+        function closeShop() { document.getElementById('shop-overlay').style.display = 'none'; }
+
+        async function buySkin(id, price) {
+            if (userGold < price) { alert("Gが足りません！"); return; }
+            userGold -= price;
+            purchasedSkins.push(id);
+            updateGoldDisplay();
+            await callApi('updateSkins', { username: CONFIG.USERNAME, gold: userGold, purchasedSkins: purchasedSkins });
+            openShop();
+        }
+
+        async function equipSkin(id) {
+            equippedSkin = id;
+            await callApi('updateSkins', { username: CONFIG.USERNAME, equippedSkin: equippedSkin });
+            openShop();
         }
 
         // --- エディタ関連 ---
@@ -942,17 +1146,19 @@
                 canvas.width = 200; // プレビュー解像度
                 canvas.height = 100;
                 
-                const clearRate = s.attempts > 0 ? Math.floor((s.clears || 0) / s.attempts * 100) : 0;
+                const clearRate = s.attempts > 0 ? ((s.clears || 0) / s.attempts * 100).toFixed(1) : "0.0";
                 const bestRecord = s.leaderboard && s.leaderboard.length > 0 ? 
                     `<div style="font-size:0.9cqw; color:#f1c40f; margin-top:0.3cqh;">🏆 1st: ${s.leaderboard[0].time.toFixed(2)}s (${s.leaderboard[0].name})</div>` : 
                     "";
+                
+                const currentStageReward = calculateStageRewardValue(s, CONFIG.USERNAME);
 
                 const info = document.createElement('div');
                 info.innerHTML = `
                     <div style="color:var(--primary-color)">${s.name}</div>
                     <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
                     <div class="stage-stats">
-                        Clear: <span class="stat-val">${clearRate}%</span> | 👍 <span class="stat-val">${s.upvotes || 0}</span> | 👎 <span class="stat-val">${s.downvotes || 0}</span>
+                        Clear: <span class="stat-val">${clearRate}%</span> | 👍 <span class="stat-val">${s.upvotes || 0}</span> | 👎 <span class="stat-val">${s.downvotes || 0}</span> | 💰 <span class="stat-val">${currentStageReward} G</span>
                     </div>
                     ${bestRecord}
                 `;
@@ -1045,22 +1251,43 @@
             exitGame();
         }
 
+        // 報酬計算用ヘルパー関数（ソート、表示、報酬付与で共通利用）
+        function calculateStageRewardValue(stageObj, username) {
+            let rewardGold = 100;
+            const s = stageObj;
+
+            if (s.attempts <= 5) {
+                rewardGold = 50;
+            } else {
+                const rate = (s.clears || 0) / s.attempts;
+                rewardGold = Math.round(1000 - (rate * 990)); // クリア率0%で1000G、100%で10G
+            }
+            if (s.creator === username) rewardGold = Math.floor(rewardGold / 2);
+            return Math.max(10, Math.min(1000, rewardGold));
+        }
+
         async function showReward() {
             const clearTime = (Date.now() - startTime) / 1000;
-            if (currentStageData && currentStageData.id) {
+            let rewardGold = 100;
+
+            if (currentStageData && currentStageData.id !== undefined) {
+                rewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
+
                 // API送信が終わるまで待機
                 await callApi('recordClear', { 
                     stageId: currentStageData.id, 
                     username: CONFIG.USERNAME, 
                     time: clearTime, 
-                    ghost: currentGhostData 
+                    ghost: currentGhostData,
+                    skin: equippedSkin
                 });
             }
             
-            userGold += 100;
+            userGold += rewardGold;
             updateGoldDisplay();
             callApi('updateGold', { username: CONFIG.USERNAME, gold: userGold });
             
+            document.getElementById('reward-amount').innerText = `${rewardGold} G`;
             document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(2)}s)`;
             document.getElementById('reward-overlay').style.display = 'flex';
             cancelAnimationFrame(gameLoopId);
@@ -1089,6 +1316,8 @@
         function updateGoldDisplay() {
             const display = document.getElementById('user-gold');
             if (display) display.innerText = userGold;
+            const cpDisplay = document.getElementById('user-cp');
+            if (cpDisplay) cpDisplay.innerText = userCP;
         }
 
         function testPlay() {
@@ -1221,6 +1450,10 @@
         }
 
         function handlePlayerDeath() {
+            if (gameMode === 'play' && currentStageData && currentStageData.id) {
+                // 死亡場所を記録
+                callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
+            }
             if (gameMode === 'test') {
                 isGoalTriggered = true;
                 showMessage("TEST FAILED", "ミスしてしまいました。エディタに戻ります。");
@@ -1293,28 +1526,40 @@
             // ゴール時は描画のみ継続してプレイヤーを止める
             if (isGoalTriggered) ctx.globalAlpha = 0.5;
 
+            // 死亡地点の描画 (カウントダウン中のみ)
+            if (isCountingDown && currentStageData && currentStageData.deaths) {
+                ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
+                ctx.font = `bold ${ch * 0.4}px sans-serif`;
+                ctx.textAlign = "center";
+                currentStageData.deaths.forEach(d => {
+                    ctx.fillText("X", d.x * cw + (cw/2), d.y * ch + (ch/2));
+                });
+            }
+
             // ゴーストの描画
-            ctx.globalAlpha = 0.5;
-            playbackGhosts.forEach(ghost => {
-                if (ghost.ghost) {
-                    const frameIdx = Math.floor(frameCount / 5);
-                    const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
-                    if (pos) {
-                        drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, true);
-                        // 名前のラベル表示
-                        ctx.save();
-                        ctx.globalAlpha = 1.0;
-                        ctx.fillStyle = "#fff";
-                        ctx.font = `${ch * 0.3}px sans-serif`;
-                        ctx.textAlign = "center";
-                        ctx.fillText(ghost.name, (pos.x + player.w/2) * cw, pos.y * ch - 10);
-                        ctx.restore();
+            if (!isCountingDown) {
+                ctx.globalAlpha = 0.5;
+                playbackGhosts.forEach(ghost => {
+                    if (ghost.ghost) {
+                        const frameIdx = Math.floor(frameCount / 5);
+                        const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
+                        if (pos) {
+                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true);
+                            // 名前のラベル表示
+                            ctx.save();
+                            ctx.globalAlpha = 1.0;
+                            ctx.fillStyle = "#fff";
+                            ctx.font = `${ch * 0.3}px sans-serif`;
+                            ctx.textAlign = "center";
+                            ctx.fillText(ghost.name, (pos.x + player.w/2) * cw, pos.y * ch - 10);
+                            ctx.restore();
+                        }
                     }
-                }
-            });
+                });
+            }
             ctx.globalAlpha = 1.0;
 
-            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch);
+            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin);
 
             // カウントダウンの描画
             if (isCountingDown) {
@@ -1328,19 +1573,29 @@
             ctx.globalAlpha = 1.0;
         }
 
-        function drawPlayer(ctx, px, py, pw, ph, isGhost = false) {
+        function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false) {
+            const skin = SKINS[skinId] || SKINS['default'];
+            const sprite = skin.sprite || PLAYER_SPRITE;
+
             const colors = {
                 '1': '#ffdbac', // 肌
-                '2': isGhost ? '#888' : varColor('--primary-color'), // 服
+                '2': isGhost ? '#888' : (skin.color || varColor('--primary-color')), // 服
                 '3': varColor('--secondary-color'), // ズボン
                 '4': '#000000', // 目/靴
                 '5': '#5d4037',  // 髪
-                '6': '#00ffff'  // ホバーボード
+                '6': '#00ffff',  // ホバーボード
+                '7': '#ffffff',  // 雪
+                '8': '#ff9800',  // 鼻
+                '9': '#ff5722',  // カボチャ
+                'a': '#4caf50',  // ヘタ
+                'b': '#bdc3c7',  // ロボ体
+                'c': '#34495e',  // ロボ細部
+                'd': '#76ff03'   // 宇宙人
             };
             const pixelW = pw / 16;
             const pixelH = ph / 16;
 
-            PLAYER_SPRITE.forEach((row, y) => {
+            sprite.forEach((row, y) => {
                 [...row].forEach((c, x) => {
                     if (c !== ' ') {
                         ctx.fillStyle = colors[c];
