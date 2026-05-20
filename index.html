@@ -527,6 +527,10 @@
                     <span>REMEMBER ME</span>
                 </label>
                 <label class="remember-wrap">
+                    <input type="checkbox" id="mobile-mode" onchange="isMobileMode = this.checked; localStorage.setItem('pixel_stages_mobile', this.checked)">
+                    <span>Smartphone操作</span>
+                </label>
+                <label class="remember-wrap">
                     <input type="checkbox" id="original-mode" onchange="toggleTitle(this.checked)">
                     <span>オリジナル版で表示</span>
                 </label>
@@ -630,6 +634,8 @@
                     <div class="tool-btn tool-troll" onclick="setTool('X', this)" title="TROLL BLOCK"><canvas id="icon-X" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-wind" onclick="setTool('W', this)" title="WIND ZONE"><canvas id="icon-W" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-speed" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-bridge" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-enemy" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
                 </div>
             </div>
@@ -644,6 +650,16 @@
                     <input type="checkbox" id="toggle-ghosts" checked onchange="showGhosts = this.checked">
                     <span>GHOSTS</span>
                 </label>
+            </div>
+            <!-- モバイル操作用ボタン -->
+            <div id="mobile-controls" style="display:none; position:absolute; bottom:5cqh; left:0; width:100%; pointer-events:none; z-index:100;">
+                <div style="position:absolute; bottom:0; left:5cqw; display:flex; gap:2cqw; pointer-events:auto;">
+                    <button id="btn-left" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:4cqw;">◀</button>
+                    <button id="btn-right" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:4cqw;">▶</button>
+                </div>
+                <div style="position:absolute; bottom:0; right:5cqw; pointer-events:auto;">
+                    <button id="btn-jump" class="pixel-btn" style="width:15cqw; height:15cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:2cqw;">JUMP</button>
+                </div>
             </div>
         </div>
     </div>
@@ -678,8 +694,10 @@
         let filterMyStages = false;
         let filterCreatorName = '';
         let arrows = [];
+        let enemies = [];
         let playbackGhosts = [];
         let showGhosts = true;
+        let isMobileMode = false;
         let currentGhostData = [];
         let startTime = 0;
         let frameCount = 0;
@@ -1181,7 +1199,7 @@
         }
 
         function renderToolIcons() {
-            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'P', 'E'];
+            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'P', 'H', 'M', 'E'];
             tools.forEach(type => {
                 const canvas = document.getElementById(`icon-${type}`);
                 if (!canvas) return;
@@ -1337,6 +1355,19 @@
                 ctx.fillRect(x*cw + pad, y*ch + ch*0.8, cw - pad*2, ch*0.2);
                 ctx.fillStyle = "#ff6f00";
                 ctx.beginPath(); ctx.moveTo(x*cw+cw*0.3, y*ch+ch*0.85); ctx.lineTo(x*cw+cw*0.7, y*ch+ch*0.9); ctx.lineTo(x*cw+cw*0.3, y*ch+ch*0.95); ctx.fill();
+            } else if(type === 'H') {
+                // 橋
+                ctx.fillStyle = "#8d6e63";
+                ctx.fillRect(x*cw, y*ch + ch*0.2, cw, ch*0.2);
+                ctx.fillStyle = "#5d4037";
+                ctx.fillRect(x*cw, y*ch + ch*0.3, cw, ch*0.1);
+            } else if(type === 'M') {
+                // 敵（アイコン用）
+                ctx.fillStyle = "#f44336";
+                ctx.fillRect(x*cw + cw*0.1, y*ch + ch*0.2, cw*0.8, ch*0.8);
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
+                ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
             }
         }
 
@@ -1448,9 +1479,10 @@
                 document.getElementById('editor-screen').style.display = 'none';
             }
 
-            activeStage = stageObj.data;
+            activeStage = JSON.parse(JSON.stringify(stageObj.data));
             playbackGhosts = stageObj.leaderboard || [];
             document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             resizeCanvas('game-canvas');
             
             // 状態リセット
@@ -1462,8 +1494,17 @@
             document.getElementById('btn-downvote').style.opacity = "1";
 
             // 初期位置探し
-            player.x = 1; player.y = 1;
-            resetPlayer();
+            enemies = [];
+            for(let y=0; y<GRID_H; y++) {
+                for(let x=0; x<GRID_W; x++) {
+                    if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
+                    if(activeStage[y][x] === 'M') {
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false});
+                        activeStage[y][x] = null; // スポーン後はグリッドから削除
+                    }
+                }
+            }
+            
             player.vx = 0; player.vy = 0;
             
             arrows = [];
@@ -1635,7 +1676,20 @@
 
             // Y衝突
             let nextY = player.y + player.vy;
-            if(!isCollide(player.x, nextY)) {
+            let collidedY = isCollide(player.x, nextY);
+            
+            // 橋（下から抜けられる足場）の特殊判定
+            if (!collidedY && player.vy >= 0) {
+                let footY = player.y + player.h;
+                let nextFootY = nextY + player.h;
+                let ix = Math.floor(player.x + player.w/2), iy = Math.floor(nextFootY);
+                if (activeStage[iy] && activeStage[iy][ix] === 'H' && footY <= iy + 0.1) {
+                    collidedY = true;
+                    nextY = iy - player.h;
+                }
+            }
+
+            if(!collidedY) {
                 player.y = nextY;
                 player.onGround = false;
             } else {
@@ -1645,6 +1699,24 @@
 
             // ギミック判定
             checkGimmicks();
+
+            // 敵の更新
+            enemies.forEach(en => {
+                if(en.dead) return;
+                en.vy += 0.015; en.y += en.vy;
+                if(isEnemyCollide(en.x, en.y)) { en.y = Math.floor(en.y); en.vy = 0; }
+                en.x += en.vx;
+                if(isEnemyCollide(en.x, en.y)) { en.vx *= -1; en.x += en.vx; }
+                const px = player.x + player.w/2, py = player.y + player.h/2;
+                const ex = en.x + 0.5, ey = en.y + 0.5;
+                if (Math.abs(px - ex) < 0.7 && Math.abs(py - ey) < 0.7) {
+                    if (player.vy > 0 && player.y + player.h < en.y + 0.5) {
+                        en.dead = true; player.vy = -0.3; // 踏んで跳ねる
+                    } else {
+                        handlePlayerDeath();
+                    }
+                }
+            });
 
             // 矢の生成と更新
             if (frameCount % 120 === 0) {
@@ -1685,6 +1757,14 @@
             if (tile === 'K' || footTile === 'K') handlePlayerDeath();
             if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
             if (footTile === 'P') player.vx *= 1.15; // 加速
+        }
+
+        function isEnemyCollide(x, y) {
+            const ix = Math.floor(x + 0.5), iy = Math.floor(y + 0.9);
+            if (ix < 0 || ix >= GRID_W || iy >= GRID_H) return true;
+            if (iy < 0) return false;
+            const tile = activeStage[iy][ix];
+            return tile === 'B' || tile === 'X' || tile === 'H';
         }
 
         function isTouchingType(x, y, type) {
@@ -1762,6 +1842,17 @@
                     if(activeStage[y][x]) drawTile(ctx, x, y, cw, ch, activeStage[y][x], time);
                 }
             }
+
+            // 敵の描画
+            enemies.forEach(en => {
+                if(!en.dead) {
+                    ctx.fillStyle = "#f44336";
+                    ctx.fillRect(en.x * cw + cw*0.1, en.y * ch + ch*0.2, cw*0.8, ch*0.8);
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(en.x * cw + cw*0.2, en.y * ch + ch*0.4, cw*0.2, ch*0.2);
+                    ctx.fillRect(en.x * cw + cw*0.6, en.y * ch + ch*0.4, cw*0.2, ch*0.2);
+                }
+            });
 
             // 矢の描画
             ctx.fillStyle = "#37474f";
@@ -1870,11 +1961,30 @@
 
         function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
+        function setupMobileControls() {
+            const btns = { 'btn-left': 'ArrowLeft', 'btn-right': 'ArrowRight', 'btn-jump': 'Space' };
+            Object.entries(btns).forEach(([id, code]) => {
+                const el = document.getElementById(id);
+                if(!el) return;
+                const setKey = (val, e) => { if(e.cancelable) e.preventDefault(); keys[code] = val; };
+                el.addEventListener('touchstart', (e) => setKey(true, e), {passive: false});
+                el.addEventListener('touchend', (e) => setKey(false, e), {passive: false});
+                el.addEventListener('mousedown', () => keys[code] = true);
+                el.addEventListener('mouseup', () => keys[code] = false);
+                el.addEventListener('mouseleave', () => keys[code] = false);
+            });
+        }
+
         // 起動時に保存された情報を読み込む
         window.addEventListener('DOMContentLoaded', () => {
             const savedUser = localStorage.getItem('pixel_stages_user');
             const savedPass = localStorage.getItem('pixel_stages_pass');
             const remember = localStorage.getItem('pixel_stages_remember') === 'true';
+            
+            const isMobile = localStorage.getItem('pixel_stages_mobile') === 'true';
+            document.getElementById('mobile-mode').checked = isMobile;
+            isMobileMode = isMobile;
+            setupMobileControls();
             
             document.querySelector('.container').classList.add('bg-city');
 
