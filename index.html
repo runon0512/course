@@ -241,14 +241,15 @@
 
         .menu {
             position: absolute;
-            top: 68%;
+            top: 72%;
             left: 50%;
             transform: translate(-50%, -50%);
             display: flex;
-            flex-direction: column;
-            gap: 10%; 
+            flex-direction: row;
+            gap: 2cqw; 
             align-items: center;
-            width: 80%;
+            justify-content: center;
+            width: 95%;
             z-index: 5;
             display: none; /* ログインまで非表示 */
         }
@@ -263,11 +264,12 @@
             color: var(--text-color);
             padding: 2% 5%;
             font-family: 'Press Start 2P', cursive;
-            font-size: 3cqw; 
+            font-size: 1.6cqw; 
             cursor: pointer;
             position: relative;
             transition: all 0.1s;
-            width: 60%;
+            width: auto;
+            min-width: 18cqw;
             box-shadow: 0.8cqw 0.8cqw 0px rgba(0, 0, 0, 0.5);
         }
 
@@ -302,11 +304,33 @@
             overflow-y: auto;
             padding: 2cqw;
         }
+        #locker-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 5cqh;
+        }
         .shop-item {
             background: #222;
             border: 0.3cqw solid #fff;
             padding: 1cqw;
             text-align: center;
+        }
+        .color-palette {
+            display: flex;
+            gap: 1cqw;
+            justify-content: center;
+            margin-top: 2cqh;
+        }
+        .color-swatch {
+            width: 4cqw;
+            height: 4cqw;
+            border: 0.3cqw solid #fff;
+            cursor: pointer;
+        }
+        .color-swatch.active {
+            border-color: var(--primary-color);
+            transform: scale(1.1);
         }
 
         .pixel-btn:active {
@@ -536,6 +560,7 @@
         <div id="main-menu" class="menu">
             <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
             <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
+            <button class="pixel-btn" onclick="openLocker()">ロッカー</button>
             <button class="pixel-btn" onclick="openShop()">ショップ</button>
         </div>
 
@@ -544,6 +569,21 @@
             <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
             <div class="shop-grid" id="shop-container"></div>
             <button class="pixel-btn small" onclick="closeShop()" style="margin-top: 4cqh;">戻る</button>
+        </div>
+
+        <!-- ロッカー画面 -->
+        <div id="locker-overlay" class="screen">
+            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL LOCKER</h2>
+            <div style="display: flex; width: 90%; height: 60cqh; gap: 2cqw;">
+                <div class="shop-grid" id="locker-container" style="flex: 1;"></div>
+                <div id="locker-preview-box" style="flex: 0.4; background: #222; border: 0.3cqw solid #fff; padding: 2cqw; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <canvas id="locker-preview-canvas" width="128" height="128" style="image-rendering: pixelated; width: 15cqw; height: 15cqw;"></canvas>
+                    <div id="locker-skin-name" style="margin-top: 2cqh; font-size: 1.5cqw;">-</div>
+                    <div class="color-palette" id="color-palette"></div>
+                    <button id="equip-confirm-btn" class="pixel-btn small" style="margin-top: 4cqh; width: 100%;" onclick="confirmEquip(this)">装備する</button>
+                </div>
+            </div>
+            <button class="pixel-btn small" onclick="closeLocker()" style="margin-top: 4cqh;">戻る</button>
         </div>
 
         <!-- ステージ選択画面 -->
@@ -598,8 +638,12 @@
         <!-- ゲーム画面 -->
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
-            <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.5cqw;">
-                ARROWS: MOVE | SPACE: JUMP | <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span>
+            <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.5cqw; display: flex; align-items: center; gap: 2cqw;">
+                <span>ARROWS: MOVE | SPACE: JUMP | <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span></span>
+                <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
+                    <input type="checkbox" id="toggle-ghosts" checked onchange="showGhosts = this.checked">
+                    <span>GHOSTS</span>
+                </label>
             </div>
         </div>
     </div>
@@ -615,8 +659,9 @@
         };
         let userGold = 0;
         let userCP = 0;
-        let purchasedSkins = ['default'];
+        let purchasedSkins = ['default', 'girl'];
         let equippedSkin = 'default';
+        let equippedColor = 'default';
 
         // --- ゲームエンジン変数 ---
         let editorGrid = [];
@@ -634,6 +679,7 @@
         let filterCreatorName = '';
         let arrows = [];
         let playbackGhosts = [];
+        let showGhosts = true;
         let currentGhostData = [];
         let startTime = 0;
         let frameCount = 0;
@@ -741,16 +787,133 @@
             "  666666666666  "
         ];
 
+        const GIRL_SPRITE = [
+            "      eeee      ",
+            "     eeeeee     ",
+            "    eeeeeeee    ",
+            "    ee1111ee    ",
+            "    e111111e    ",
+            "    e141141e    ",
+            "    11111111    ",
+            "     111111     ",
+            "   2222222222   ",
+            "  222222222222  ",
+            "  ffffffffffff  ",
+            "  ffffffffffff  ",
+            "    fff   fff   ",
+            "    fff   fff   ",
+            " 444444   444444",
+            "  44444   44444 "
+        ];
+
+        const KNIGHT_SPRITE = [
+            "      kkkk      ",
+            "     kggggk     ",
+            "    kggggggk    ",
+            "    kg4gg4gk    ",
+            "    kggggggk    ",
+            "    kggggggk    ",
+            "   gggggggggg   ",
+            "  gggggggggggg  ",
+            "  gggg2222gggg  ",
+            "  gggg2222gggg  ",
+            "    ggg   ggg   ",
+            "    ggg   ggg   ",
+            " 66666666666666 ",
+            "  666666666666  "
+        ];
+
+        const NINJA_SPRITE = [
+            "      hhhh      ",
+            "     hhhhhh     ",
+            "    hh4444hh    ",
+            "    hh4444hh    ",
+            "    hh1111hh    ",
+            "    hh2222hh    ",
+            "   hhhhhhhhhh   ",
+            "  hhhhhhhhhhhh  ",
+            "  hhhhhhhhhhhh  ",
+            "  hhhhhhhhhhhh  ",
+            "    hhh   hhh   ",
+            "    hhh   hhh   ",
+            " 44444444444444 ",
+            "  444444444444  "
+        ];
+
+        const CAT_SPRITE = [
+            "   i      i     ",
+            "   ii    ii     ",
+            "    iiiiiiii    ",
+            "    i4ii4ii i   ",
+            "    iiiiiiii    ",
+            "    i222222i    ",
+            "   iiiiiiiiii   ",
+            "  iiiiiiiiiiii  ",
+            "  iiiiiiiiiiii  ",
+            "  iiiiiiiiiiii  ",
+            "    iii   iii   ",
+            "    iii   iii   ",
+            " 44444444444444 ",
+            "  444444444444  "
+        ];
+
+        const GHOST_SPRITE = [
+            "      jjjj      ",
+            "     jjjjjj     ",
+            "    jjjjjjjj    ",
+            "    jj4jj4jj    ",
+            "    jjjjjjjj    ",
+            "    jjjjjjjj    ",
+            "   jjjjjjjjjj   ",
+            "  jjjjjjjjjjjj  ",
+            "  jjjjjjjjjjjj  ",
+            "  jjjjjjjjjjjj  ",
+            "   jjj   jjj    ",
+            "   jj     jj    ",
+            "    j     j     ",
+            "                ",
+            "                ",
+            "                "
+        ];
+
+        const DEMON_SPRITE = [
+            "   k      k     ",
+            "   kk    kk     ",
+            "    kkkkkkkk    ",
+            "    k4kk4kk k   ",
+            "    kkkkkkkk    ",
+            "    kk2222kk    ",
+            "   kkkkkkkkkk   ",
+            "  kkkkkkkkkkkk  ",
+            "  kkkkkkkkkkkk  ",
+            "  kkkkkkkkkkkk  ",
+            "    kkk   kkk   ",
+            "    kkk   kkk   ",
+            " 66666666666666 ",
+            "  666666666666  "
+        ];
+
         const SKINS = {
-            'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE },
-            'red': { name: 'RED', price: 1000, color: '#ff4141' },
-            'blue': { name: 'BLUE', price: 1000, color: '#4141ff' },
-            'green': { name: 'GREEN', price: 1000, color: '#41ff41' },
-            'yellow': { name: 'YELLOW', price: 1000, color: '#ffff41' },
-            'snowman': { name: 'SNOWMAN', price: 5000, sprite: SNOWMAN_SPRITE },
-            'halloween': { name: 'PUMPKIN', price: 5000, sprite: HALLOWEEN_SPRITE },
-            'robot': { name: 'ROBOT', price: 8000, sprite: ROBOT_SPRITE },
-            'alien': { name: 'ALIEN', price: 10000, sprite: ALIEN_SPRITE }
+            'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE, recolorIndex: '2' },
+            'girl': { name: 'GIRL', price: 0, sprite: GIRL_SPRITE, recolorIndex: '2' },
+            'snowman': { name: 'SNOWMAN', price: 5000, sprite: SNOWMAN_SPRITE, recolorIndex: '7' },
+            'halloween': { name: 'PUMPKIN', price: 5000, sprite: HALLOWEEN_SPRITE, recolorIndex: '9' },
+            'robot': { name: 'ROBOT', price: 8000, sprite: ROBOT_SPRITE, recolorIndex: 'b' },
+            'alien': { name: 'ALIEN', price: 10000, sprite: ALIEN_SPRITE, recolorIndex: 'd' },
+            'knight': { name: 'KNIGHT', price: 12000, sprite: KNIGHT_SPRITE, recolorIndex: '2' },
+            'ninja': { name: 'NINJA', price: 15000, sprite: NINJA_SPRITE, recolorIndex: '2' },
+            'cat': { name: 'CAT', price: 18000, sprite: CAT_SPRITE, recolorIndex: '2' },
+            'ghost': { name: 'GHOST', price: 20000, sprite: GHOST_SPRITE, recolorIndex: '4' },
+            'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: '2' }
+        };
+
+        const COLORS = {
+            'default': null,
+            'red': '#ff4141',
+            'blue': '#4141ff',
+            'green': '#41ff41',
+            'yellow': '#ffff41',
+            'purple': '#ff00ff'
         };
 
         window.addEventListener('keydown', e => keys[e.code] = true);
@@ -842,8 +1005,9 @@
                                 CONFIG.USERNAME = res.username;
                                 userGold = res.gold || 0;
                                 userCP = res.cp || 0;
-                                purchasedSkins = res.purchasedSkins || ['default'];
+                                purchasedSkins = res.purchasedSkins || ['default', 'girl'];
                                 equippedSkin = res.equippedSkin || 'default';
+                                equippedColor = res.equippedColor || 'default';
                                 
                                 document.getElementById('auth-overlay').style.display = 'none';
                                 document.getElementById('main-menu').classList.add('active');
@@ -879,7 +1043,7 @@
 
                 const canvas = document.createElement('canvas');
                 canvas.width = 64; canvas.height = 64;
-                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id);
+                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id, false, 'default');
 
                 item.innerHTML = `
                     <div style="font-size:1cqw; margin-bottom:1cqh;">${skin.name}</div>
@@ -889,15 +1053,13 @@
                 const btn = document.createElement('button');
                 btn.className = 'pixel-btn small';
                 btn.style.width = '100%';
-                if (isEquipped) {
-                    btn.innerText = 'EQUIPPED';
+                if (isPurchased) {
+                    btn.innerText = 'BOUGHT';
                     btn.disabled = true;
-                } else if (isPurchased) {
-                    btn.innerText = 'EQUIP';
-                    btn.onclick = () => equipSkin(id);
+                    item.style.opacity = '0.5';
                 } else {
                     btn.innerText = `${skin.price} G`;
-                    btn.onclick = () => buySkin(id, skin.price);
+                    btn.onclick = (e) => buySkin(id, skin.price, e.target);
                 }
                 item.appendChild(btn);
                 container.appendChild(item);
@@ -906,20 +1068,105 @@
 
         function closeShop() { document.getElementById('shop-overlay').style.display = 'none'; }
 
-        async function buySkin(id, price) {
+        async function buySkin(id, price, btn) {
             if (userGold < price) { alert("Gが足りません！"); return; }
+            
+            const originalText = btn.innerText;
+            btn.innerText = "通信中...";
+            btn.disabled = true;
+
             userGold -= price;
             purchasedSkins.push(id);
             updateGoldDisplay();
-            await callApi('updateSkins', { username: CONFIG.USERNAME, gold: userGold, purchasedSkins: purchasedSkins });
+            await callApi('updateSkins', { 
+                username: CONFIG.USERNAME, 
+                gold: userGold, 
+                purchasedSkins: purchasedSkins 
+            });
             openShop();
         }
 
-        async function equipSkin(id) {
-            equippedSkin = id;
-            await callApi('updateSkins', { username: CONFIG.USERNAME, equippedSkin: equippedSkin });
-            openShop();
+        // --- ロッカー関連 ---
+        let tempSelectedSkin = 'default';
+        let tempSelectedColor = 'default';
+
+        function openLocker() {
+            document.getElementById('locker-overlay').style.display = 'flex';
+            tempSelectedSkin = equippedSkin;
+            tempSelectedColor = equippedColor;
+            renderLockerList();
+            updateLockerPreview();
         }
+
+        function renderLockerList() {
+            const container = document.getElementById('locker-container');
+            container.innerHTML = '';
+            purchasedSkins.forEach(id => {
+                const skin = SKINS[id];
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+                item.style.borderColor = (tempSelectedSkin === id) ? 'var(--primary-color)' : '#fff';
+                item.style.cursor = 'pointer';
+                item.onclick = () => {
+                    tempSelectedSkin = id;
+                    renderLockerList();
+                    updateLockerPreview();
+                };
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 64; canvas.height = 64;
+                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id, false, 'default');
+                
+                item.innerHTML = `<div style="font-size:1cqw; margin-bottom:1cqh;">${skin.name}</div>`;
+                item.prepend(canvas);
+                container.appendChild(item);
+            });
+        }
+
+        function updateLockerPreview() {
+            const canvas = document.getElementById('locker-preview-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0,0,128,128);
+            drawPlayer(ctx, 0, 0, 128, 128, tempSelectedSkin, false, tempSelectedColor);
+            document.getElementById('locker-skin-name').innerText = SKINS[tempSelectedSkin].name;
+
+            // カラーパレット描画
+            const palette = document.getElementById('color-palette');
+            palette.innerHTML = '';
+            Object.keys(COLORS).forEach(cId => {
+                const div = document.createElement('div');
+                div.className = `color-swatch ${tempSelectedColor === cId ? 'active' : ''}`;
+                div.style.backgroundColor = COLORS[cId] || '#fff';
+                if (cId === 'default') div.style.background = 'linear-gradient(45deg, #fff 50%, #888 50%)';
+                div.onclick = () => {
+                    tempSelectedColor = cId;
+                    updateLockerPreview();
+                };
+                palette.appendChild(div);
+            });
+        }
+
+        async function confirmEquip(btn) {
+            btn.innerText = "通信中...";
+            btn.disabled = true;
+
+            equippedSkin = tempSelectedSkin;
+            equippedColor = tempSelectedColor;
+
+            await callApi('updateSkins', { 
+                username: CONFIG.USERNAME, 
+                equippedSkin: equippedSkin,
+                equippedColor: equippedColor
+            });
+
+            btn.innerText = "装備完了！";
+            setTimeout(() => {
+                btn.innerText = "装備する";
+                btn.disabled = false;
+            }, 1000);
+        }
+
+        function closeLocker() { document.getElementById('locker-overlay').style.display = 'none'; }
 
         // --- エディタ関連 ---
         function startEditor() {
@@ -1279,7 +1526,8 @@
                     username: CONFIG.USERNAME, 
                     time: clearTime, 
                     ghost: currentGhostData,
-                    skin: equippedSkin
+                    skin: equippedSkin,
+                    color: equippedColor
                 });
             }
             
@@ -1537,14 +1785,14 @@
             }
 
             // ゴーストの描画
-            if (!isCountingDown) {
+            if (!isCountingDown && showGhosts) {
                 ctx.globalAlpha = 0.5;
                 playbackGhosts.forEach(ghost => {
                     if (ghost.ghost) {
                         const frameIdx = Math.floor(frameCount / 5);
                         const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
                         if (pos) {
-                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true);
+                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default');
                             // 名前のラベル表示
                             ctx.save();
                             ctx.globalAlpha = 1.0;
@@ -1559,7 +1807,7 @@
             }
             ctx.globalAlpha = 1.0;
 
-            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin);
+            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor);
 
             // カウントダウンの描画
             if (isCountingDown) {
@@ -1573,25 +1821,39 @@
             ctx.globalAlpha = 1.0;
         }
 
-        function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false) {
+        function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default') {
             const skin = SKINS[skinId] || SKINS['default'];
             const sprite = skin.sprite || PLAYER_SPRITE;
+            const rIdx = skin.recolorIndex || '2'; // 色を変える対象のピクセル番号
 
             const colors = {
                 '1': '#ffdbac', // 肌
-                '2': isGhost ? '#888' : (skin.color || varColor('--primary-color')), // 服
+                '2': varColor('--primary-color'), // 服
                 '3': varColor('--secondary-color'), // ズボン
                 '4': '#000000', // 目/靴
                 '5': '#5d4037',  // 髪
                 '6': '#00ffff',  // ホバーボード
-                '7': '#ffffff',  // 雪
+                '7': '#ffffff',  // 雪（スノーマン）
                 '8': '#ff9800',  // 鼻
-                '9': '#ff5722',  // カボチャ
+                '9': '#ff5722',  // カボチャ（パンプキン）
                 'a': '#4caf50',  // ヘタ
                 'b': '#bdc3c7',  // ロボ体
                 'c': '#34495e',  // ロボ細部
-                'd': '#76ff03'   // 宇宙人
+                'd': '#76ff03',  // 宇宙人
+                'e': '#ffd700',  // 金髪
+                'f': '#3f51b5',  // ジーパン
+                'g': '#90a4ae',  // 銀
+                'h': '#212121',  // 黒（忍者）
+                'i': '#ffcc80',  // 茶トラ
+                'j': '#e0f7fa',  // ゴースト
+                'k': '#d32f2f'   // 赤
             };
+
+            // カラーバリエーションとゴースト設定の適用
+            if (colorId !== 'default' && COLORS[colorId]) { // Only apply if a specific color is chosen
+                colors[rIdx] = COLORS[colorId];
+            }
+
             const pixelW = pw / 16;
             const pixelH = ph / 16;
 
