@@ -1862,7 +1862,8 @@
                     isCountingDown = false;
                     startTime = Date.now();
                     frameCount = 0;
-                    keys['Space'] = false; // 開幕時の自動ジャンプを防止
+                keys = {}; // 全ての先行入力をリセット
+                return; // 最初のフレームは初期化のみで終了し、次フレームから物理演算を開始
                 }
             }
 
@@ -1959,7 +1960,7 @@
 
             // ゴール判定
             const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
-            if(!isGoalTriggered && activeStage[gy] && activeStage[gy][gx] === 'G') {
+            if(!isGoalTriggered && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G') {
                 isGoalTriggered = true;
                 player.vx = 0; player.vy = 0;
                 
