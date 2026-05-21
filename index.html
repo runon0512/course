@@ -605,6 +605,10 @@
                     <input type="checkbox" id="filter-my-stages" onchange="openStageSelect()">
                     <span>自分のステージのみ</span>
                 </label>
+                <label class="remember-wrap" style="font-size: 1cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid #e91e63;">
+                    <input type="checkbox" id="filter-favorites" onchange="openStageSelect()">
+                    <span>お気に入りのみ</span>
+                </label>
                 <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" onkeyup="openStageSelect()">
             </div>
             <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box;"></div>
@@ -692,7 +696,9 @@
         let cachedStages = null;    // ステージリストのキャッシュ
         let currentSort = 'newest'; // デフォルトのソート順
         let filterMyStages = false;
+        let filterFavorites = false;
         let filterCreatorName = '';
+        let favoriteStages = [];
         let arrows = [];
         let enemies = [];
         let playbackGhosts = [];
@@ -859,20 +865,22 @@
         ];
 
         const CAT_SPRITE = [
+            "                ",
             "   i      i     ",
             "   ii    ii     ",
-            "    iiiiiiii    ",
-            "    i4ii4ii i   ",
-            "    iiiiiiii    ",
-            "    i222222i    ",
-            "   iiiiiiiiii   ",
-            "  iiiiiiiiiiii  ",
-            "  iiiiiiiiiiii  ",
-            "  iiiiiiiiiiii  ",
-            "    iii   iii   ",
-            "    iii   iii   ",
-            " 44444444444444 ",
-            "  444444444444  "
+            "   iiiiiiii     ",
+            "   i4ii4ii i    ",
+            "  miiiiiiiim    ",
+            "   iiiiiiii     ",
+            "  iiiiiiiiii    ",
+            " iiiiiiiiiii    ",
+            " iiiiiiiiiii    ",
+            " iiiiiiiiiiiii  ",
+            "  iii   iii  i  ",
+            "  iii   iii  i  ",
+            " 444   444  ii  ",
+            "                ",
+            "                "
         ];
 
         const GHOST_SPRITE = [
@@ -895,20 +903,22 @@
         ];
 
         const DEMON_SPRITE = [
-            "   k      k     ",
-            "   kk    kk     ",
-            "    kkkkkkkk    ",
-            "    k4kk4kk k   ",
-            "    kkkkkkkk    ",
-            "    kk2222kk    ",
-            "   kkkkkkkkkk   ",
-            "  kkkkkkkkkkkk  ",
-            "  kkkkkkkkkkkk  ",
-            "  kkkkkkkkkkkk  ",
-            "    kkk   kkk   ",
-            "    kkk   kkk   ",
-            " 66666666666666 ",
-            "  666666666666  "
+            "  4      4      ",
+            "  44    44      ",
+            "   kkkkkk       ",
+            "  k4kk44k       ",
+            "  kkkkkkk       ",
+            "   kkkkk        ",
+            "  kkkkkkk       ",
+            " kkkkkkkkk      ",
+            " kkkkkkkkk      ",
+            " kkkkkkkkk  k   ",
+            " kkkkkkkkk k    ",
+            "  kkk  kkk k    ",
+            "  kkk  kkk k    ",
+            " 444  444  kk   ",
+            "                ",
+            "                "
         ];
 
         const SKINS = {
@@ -920,9 +930,9 @@
             'alien': { name: 'ALIEN', price: 10000, sprite: ALIEN_SPRITE, recolorIndex: 'd' },
             'knight': { name: 'KNIGHT', price: 12000, sprite: KNIGHT_SPRITE, recolorIndex: '2' },
             'ninja': { name: 'NINJA', price: 15000, sprite: NINJA_SPRITE, recolorIndex: '2' },
-            'cat': { name: 'CAT', price: 18000, sprite: CAT_SPRITE, recolorIndex: '2' },
+            'cat': { name: 'CAT', price: 18000, sprite: CAT_SPRITE, recolorIndex: 'i' },
             'ghost': { name: 'GHOST', price: 20000, sprite: GHOST_SPRITE, recolorIndex: '4' },
-            'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: '2' }
+            'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: 'k' }
         };
 
         const COLORS = {
@@ -931,7 +941,9 @@
             'blue': '#4141ff',
             'green': '#41ff41',
             'yellow': '#ffff41',
-            'purple': '#ff00ff'
+            'purple': '#ff00ff',
+            'black': '#333333',
+            'calico': 'multi'
         };
 
         window.addEventListener('keydown', e => keys[e.code] = true);
@@ -1027,6 +1039,8 @@
                                 equippedSkin = res.equippedSkin || 'default';
                                 equippedColor = res.equippedColor || 'default';
                                 
+                                favoriteStages = JSON.parse(localStorage.getItem(`favs_${CONFIG.USERNAME}`) || "[]");
+
                                 document.getElementById('auth-overlay').style.display = 'none';
                                 document.getElementById('main-menu').classList.add('active');
                                 document.getElementById('user-info').style.display = 'block';
@@ -1156,6 +1170,10 @@
                 div.className = `color-swatch ${tempSelectedColor === cId ? 'active' : ''}`;
                 div.style.backgroundColor = COLORS[cId] || '#fff';
                 if (cId === 'default') div.style.background = 'linear-gradient(45deg, #fff 50%, #888 50%)';
+                if (cId === 'calico') {
+                    div.style.background = 'linear-gradient(45deg, #fff 33%, #ff9800 33% 66%, #333 66%)';
+                    div.style.border = '0.3cqw solid #fff';
+                }
                 div.onclick = () => {
                     tempSelectedColor = cId;
                     updateLockerPreview();
@@ -1407,6 +1425,11 @@
             const overlay = document.getElementById('stage-list-overlay');
             const container = document.getElementById('stage-list-container');
             overlay.style.display = 'flex';
+
+            filterMyStages = document.getElementById('filter-my-stages').checked;
+            filterFavorites = document.getElementById('filter-favorites').checked;
+            filterCreatorName = document.getElementById('filter-creator').value.toLowerCase();
+            currentSort = document.getElementById('sort-criteria').value;
             
             if (!cachedStages || forceRefresh) {
                 container.innerHTML = "LOADING STAGES...";
@@ -1414,10 +1437,27 @@
                 cachedStages = res.stages || [];
             }
 
+            let filtered = cachedStages.filter(s => {
+                const matchMine = !filterMyStages || s.creator === CONFIG.USERNAME;
+                const matchFav = !filterFavorites || favoriteStages.includes(s.id || s.name);
+                const matchCreator = !filterCreatorName || s.creator.toLowerCase().includes(filterCreatorName);
+                return matchMine && matchFav && matchCreator;
+            });
+
+            // ソート処理
+            filtered.sort((a, b) => {
+                if (currentSort === 'clears') return (b.clears || 0) - (a.clears || 0);
+                if (currentSort === 'upvotes') return (b.upvotes || 0) - (a.upvotes || 0);
+                if (currentSort === 'reward') return calculateStageRewardValue(b, CONFIG.USERNAME) - calculateStageRewardValue(a, CONFIG.USERNAME);
+                return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
+            });
+
             container.innerHTML = "";
-            cachedStages.forEach(s => {
+            filtered.forEach(s => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
+                const sId = s.id || s.name;
+                const isFav = favoriteStages.includes(sId);
                 
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
@@ -1426,14 +1466,20 @@
                 
                 const clearRate = s.attempts > 0 ? ((s.clears || 0) / s.attempts * 100).toFixed(1) : "0.0";
                 const bestRecord = s.leaderboard && s.leaderboard.length > 0 ? 
-                    `<div style="font-size:0.9cqw; color:#f1c40f; margin-top:0.3cqh;">🏆 1st: ${s.leaderboard[0].time.toFixed(2)}s (${s.leaderboard[0].name})</div>` : 
+                    `<div style="font-size:0.9cqw; color:#f1c40f; margin-top:0.3cqh;">🏆 1st: ${s.leaderboard[0].time.toFixed(3)}s (${s.leaderboard[0].name})</div>` : 
                     "";
                 
                 const currentStageReward = calculateStageRewardValue(s, CONFIG.USERNAME);
 
+                const favBtn = `<span onclick="toggleFavorite('${sId}', event)" style="cursor:pointer; font-size:2cqw; color:${isFav ? '#e91e63' : '#666'}; line-height:1;">${isFav ? '★' : '☆'}</span>`;
+
                 const info = document.createElement('div');
+                info.style.flex = "1";
                 info.innerHTML = `
-                    <div style="color:var(--primary-color)">${s.name}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="color:var(--primary-color)">${s.name}</div>
+                        ${favBtn}
+                    </div>
                     <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
                     <div class="stage-stats">
                         Clear: <span class="stat-val">${clearRate}%</span> | 👍 <span class="stat-val">${s.upvotes || 0}</span> | 👎 <span class="stat-val">${s.downvotes || 0}</span> | 💰 <span class="stat-val">${currentStageReward} G</span>
@@ -1448,6 +1494,18 @@
                 
                 renderPreview(canvas, s.data);
             });
+        }
+
+        function toggleFavorite(id, event) {
+            event.stopPropagation();
+            const index = favoriteStages.indexOf(id);
+            if (index === -1) {
+                favoriteStages.push(id);
+            } else {
+                favoriteStages.splice(index, 1);
+            }
+            localStorage.setItem(`favs_${CONFIG.USERNAME}`, JSON.stringify(favoriteStages));
+            openStageSelect();
         }
 
         function renderPreview(canvas, data) {
@@ -1555,14 +1613,26 @@
         }
 
         async function showReward() {
-            const clearTime = (Date.now() - startTime) / 1000;
+            // タイムを小数第三位まで計算
+            const clearTime = Number(((Date.now() - startTime) / 1000).toFixed(3));
             let rewardGold = 100;
 
             if (currentStageData && currentStageData.id !== undefined) {
                 rewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
+            }
+            
+            userGold += rewardGold;
+            updateGoldDisplay();
 
-                // API送信が終わるまで待機
-                await callApi('recordClear', { 
+            // UIを即座に更新して表示
+            document.getElementById('reward-amount').innerText = `${rewardGold} G`;
+            document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(3)}s)`;
+            document.getElementById('reward-overlay').style.display = 'flex';
+            cancelAnimationFrame(gameLoopId);
+
+            // 表示したあとにバックグラウンドで通信を開始
+            if (currentStageData && currentStageData.id !== undefined) {
+                callApi('recordClear', { 
                     stageId: currentStageData.id, 
                     username: CONFIG.USERNAME, 
                     time: clearTime, 
@@ -1570,16 +1640,8 @@
                     skin: equippedSkin,
                     color: equippedColor
                 });
+                callApi('updateGold', { username: CONFIG.USERNAME, gold: userGold });
             }
-            
-            userGold += rewardGold;
-            updateGoldDisplay();
-            callApi('updateGold', { username: CONFIG.USERNAME, gold: userGold });
-            
-            document.getElementById('reward-amount').innerText = `${rewardGold} G`;
-            document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(2)}s)`;
-            document.getElementById('reward-overlay').style.display = 'flex';
-            cancelAnimationFrame(gameLoopId);
         }
 
         async function voteStage(type) {
@@ -1638,6 +1700,7 @@
                     isCountingDown = false;
                     startTime = Date.now();
                     frameCount = 0;
+                    keys['Space'] = false; // 開幕時の自動ジャンプを防止
                 }
             }
 
@@ -1934,16 +1997,18 @@
                 'e': '#ffd700',  // 金髪
                 'f': '#3f51b5',  // ジーパン
                 'g': '#90a4ae',  // 銀
-                'h': '#212121',  // 黒（忍者）
+                'h': '#6a1b9a',  // 紫（忍者頭巾）
                 'i': '#ffcc80',  // 茶トラ
                 'j': '#e0f7fa',  // ゴースト
-                'k': '#d32f2f'   // 赤
+                'k': '#d32f2f',  // 赤（デーモン）
+                'm': '#333333'   // ヒゲ用
             };
 
             // カラーバリエーションとゴースト設定の適用
-            if (colorId !== 'default' && COLORS[colorId]) { // Only apply if a specific color is chosen
+            // colorIdが不正な場合や'default'の場合は、通常（varColor）の色が使われるように維持
+            if (colorId && colorId !== 'default' && COLORS[colorId] && colorId !== 'calico') {
                 colors[rIdx] = COLORS[colorId];
-            }
+            } 
 
             const pixelW = pw / 16;
             const pixelH = ph / 16;
@@ -1951,7 +2016,15 @@
             sprite.forEach((row, y) => {
                 [...row].forEach((c, x) => {
                     if (c !== ' ') {
-                        ctx.fillStyle = colors[c];
+                        if (colorId === 'calico' && c === rIdx) {
+                            // 三毛猫のパターン：座標によって色を分ける
+                            let pattern = (x + y * 2) % 3;
+                            if (pattern === 0) ctx.fillStyle = '#ffffff'; // 白
+                            else if (pattern === 1) ctx.fillStyle = '#ff9800'; // 橙
+                            else ctx.fillStyle = '#333333'; // 黒
+                        } else {
+                            ctx.fillStyle = colors[c];
+                        }
                         // 微小な隙間を防ぐため+0.5
                         ctx.fillRect(px + x * pixelW, py + y * pixelH, pixelW + 0.5, pixelH + 0.5);
                     }
