@@ -569,7 +569,6 @@
         <div style="position: absolute; top: 42%; left: 0; width: 100%; text-align: center; font-size: 1cqw; color: #fff; z-index: 5; opacity: 0.8;">Created by Ajitama chi ̄ taka shioshio shioshio toppingu Aji-to Aji-to</div>
         <div id="main-menu" class="menu">
             <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
-            <button class="pixel-btn" onclick="openRaceMode()" style="background: #ffc107; color: #000;">レース</button>
             <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
             <button class="pixel-btn" onclick="openLocker()">ロッカー</button>
             <button class="pixel-btn" onclick="openShop()">ショップ</button>
@@ -595,17 +594,6 @@
                 </div>
             </div>
             <button class="pixel-btn small" onclick="closeLocker()" style="margin-top: 4cqh;">戻る</button>
-        </div>
-
-        <!-- レースモード画面（横スクロール） -->
-        <div id="race-screen" class="screen" style="flex-direction: column; align-items: center; justify-content: center;">
-            <h2 style="font-size: 3cqw; margin: 2cqh 0; color: #ffc107;">OFFICIAL RACE COURSES</h2>
-            <div id="race-slider" style="display: flex; overflow-x: auto; width: 90%; gap: 5cqw; padding: 2cqh 2cqw; scroll-snap-type: x mandatory; scroll-behavior: smooth;">
-                <!-- ステージカードがここに挿入される -->
-            </div>
-            <div style="margin-top: 4cqh; display: flex; gap: 2cqw;">
-                <button class="pixel-btn small" onclick="closeRaceMode()">戻る</button>
-            </div>
         </div>
 
         <!-- 順位表オーバーレイ -->
@@ -713,7 +701,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyH7wKB-GVCHXrARQhtfMSnM6OAF0_nTrO2V9E4ueQCp8-VeIk1WtJumLLZ6jvCDwQ/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzV-UYgxjafuyjZryfQHhJqdwAz1ugVpix50b3bc8JmpBo1QlvKbszmqmfUXtwjsX3A/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -1163,25 +1151,58 @@
             const screen = document.getElementById('race-screen');
             const slider = document.getElementById('race-slider');
             screen.style.display = 'flex';
-            slider.innerHTML = "";
+            slider.innerHTML = "<div style='color:#fff; font-size:2cqw; text-align:center; width:100%;'>LOADING...</div>";
 
             // 指定された固定のレースデータ
-            const officialRaceData = [["B",null,null,null,null,"B","B","B","B","B","B","B",null,"B","B","B","B","B","B","B"],["B",null,"B","B","B","B","G","H","H","H","H","H",null,"B",null,null,null,"B","B","B"],["B",null,null,null,null,"B","B","B","B","B","B","B","B","B",null,"B",null,"B","B","B"],["B",null,"B","B","B","B","A","A","A","A","A","A","A",null,null,"B",null,null,null,null],["B",null,null,null,null,null,"W","W","W","W","W","W","W","B","B","B","B","H","H","H"],["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","W","W",null,null,null],[null,"S",null,null,null,null,null,"B",null,null,"W","W","W","W","X","W","W",null,null,null],["K",null,null,null,null,null,null,null,null,null,"W","W","W","W","W","W","W",null,null,null],["X",null,null,null,null,null,null,"B",null,null,"W","W","X","W","W","W","B","H","M","H"],["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","T","H","T"]];
+            const officialRaceData = [
+                ["B",null,null,null,null,"B","B","B","B","B","B","B",null,"B","B","B","B","B","B","B"],
+                ["B",null,"B","B","B","B","G","H","H","H","H","H",null,"B",null,null,null,"B","B","B"],
+                ["B",null,null,null,null,"B","B","B","B","B","B","B","B","B",null,"B",null,"B","B","B"],
+                ["B",null,"B","B","B","B","A","A","A","A","A","A","A",null,null,"B",null,null,null,null],
+                ["B",null,null,null,null,null,"W","W","W","W","W","W","W","B","B","B","B","H","H","H"],
+                ["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","W","W",null,null,null],
+                [null,"S",null,null,null,null,null,"B",null,null,"W","W","W","W","X","W","W",null,null,null],
+                ["K",null,null,null,null,null,null,null,null,null,"W","W","W","W","W","W","W",null,null,null],
+                ["X",null,null,null,null,null,null,"B",null,null,"W","W","X","W","W","W","B","H","M","H"],
+                ["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","T","H","T"]
+            ];
             
             // サーバーから公式レースの情報を取得（リーダーボードが存在する場合に表示するため）
             const res = await callApi('getPublished', {});
             const officialInDb = (res.stages || []).find(s => s.name === "OFFICIAL RACE");
 
             const s = {
-                id: officialInDb ? officialInDb.id : "OFFICIAL",
+                id: officialInDb ? officialInDb.id : "OFFICIAL RACE", // Use the full name as ID if not found in DB
                 name: "OFFICIAL RACE",
                 creator: "SYSTEM",
                 data: officialRaceData,
                 leaderboard: officialInDb ? officialInDb.leaderboard : []
             };
 
+            const lb = s.leaderboard || [];
+            const top10 = lb.slice(0, 10);
+            // 自分のベスト（一番速い記録）を探す
+            const myRecords = lb.filter(rec => rec.name === CONFIG.USERNAME);
+            const myBest = myRecords.length > 0 ? myRecords[0] : null;
+            const myRank = lb.findIndex(rec => rec.name === CONFIG.USERNAME) + 1;
+
+            let lbHtml = `<div style="width:100%; background:rgba(0,0,0,0.5); padding:1cqw; font-size:0.8cqw; margin-top:1cqh; text-align:left; border:0.1cqw solid #444; box-sizing:border-box;">`;
+            lbHtml += `<div style="color:#ffc107; margin-bottom:0.5cqh; border-bottom:0.1cqw solid #ffc107;">TOP 10 RANKING</div>`;
+            if (top10.length === 0) {
+                lbHtml += `<div style="color:#888;">No Records</div>`;
+            } else {
+                top10.forEach((rec, idx) => {
+                    const isMe = rec.name === CONFIG.USERNAME;
+                    lbHtml += `<div style="display:flex; justify-content:space-between; ${isMe ? 'color:#00ff41;' : ''}"><span>${idx+1}. ${rec.name}</span><span>${rec.time.toFixed(3)}s</span></div>`;
+                });
+            }
+            lbHtml += `<div style="margin-top:0.5cqh; padding-top:0.5cqh; border-top:0.1cqw dashed #666; color:#00ff41; display:flex; justify-content:space-between;">`;
+            lbHtml += `<span>YOUR BEST:</span><span>${myBest ? `${myBest.time.toFixed(3)}s (#${myRank})` : 'なし'}</span>`;
+            lbHtml += `</div></div>`;
+
+            slider.innerHTML = "";
             const card = document.createElement('div');
-            card.style.cssText = "flex: 0 0 70cqw; scroll-snap-align: center; background: #222; border: 0.5cqw solid #ffc107; padding: 2cqw; display: flex; flex-direction: column; align-items: center; gap: 2cqh; box-sizing: border-box;";
+            card.style.cssText = "flex: 0 0 70cqw; scroll-snap-align: center; background: #222; border: 0.5cqw solid #ffc107; padding: 2cqw; display: flex; flex-direction: column; align-items: center; gap: 1.5cqh; box-sizing: border-box;";
             
             const canvas = document.createElement('canvas');
             canvas.width = 400; canvas.height = 200;
@@ -1191,6 +1212,7 @@
             card.innerHTML = `
                 <div style="font-size: 2.5cqw; color: #ffc107;">${s.name}</div>
                 <div style="font-size: 1.2cqw; color: #aaa;">公式タイムアタックコース</div>
+                ${lbHtml}
             `;
             card.insertBefore(canvas, card.firstChild);
 
@@ -1590,7 +1612,6 @@
                 div.className = 'stage-item';
                 const sId = s.id || s.name;
                 const isFav = favoriteStages.includes(sId);
-                const isRace = s.isRaceCourse;
                 
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
@@ -1610,7 +1631,7 @@
                 info.style.flex = "1";
                 info.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="color:var(--primary-color)">${s.name} ${isRace ? '🏁' : ''}</div>
+                        <div style="color:var(--primary-color)">${s.name}</div>
                         ${favBtn}
                     </div>
                     <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
@@ -1622,10 +1643,10 @@
                         ` : ''}
                         ${CONFIG.USERNAME === 'Runon' ? `
                             <button class="pixel-btn small" style="background:#00bcd4; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
-                                onclick="event.stopPropagation(); startGame(JSON.parse(JSON.stringify(${JSON.stringify(s)})), 'play')">▶️プレイ</button>
+                                onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${sId}'), 'play')">▶️プレイ</button>
                         ` : ''}
                     </div>
-                    ${isRace ? bestRecord : ''}
+                    ${bestRecord}
                 `;
                 
                 div.appendChild(canvas);
