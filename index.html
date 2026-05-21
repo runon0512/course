@@ -375,6 +375,12 @@
             z-index: 40;
             box-sizing: border-box;
         }
+        
+        .editor-top-bar .pixel-btn.small {
+            padding: 0.8cqh 0.5cqw;
+            font-size: 0.9cqw;
+            min-width: 6cqw;
+        }
 
         .editor-bottom-bar {
             position: absolute;
@@ -563,6 +569,7 @@
         <div style="position: absolute; top: 42%; left: 0; width: 100%; text-align: center; font-size: 1cqw; color: #fff; z-index: 5; opacity: 0.8;">Created by Ajitama chi ̄ taka shioshio shioshio toppingu Aji-to Aji-to</div>
         <div id="main-menu" class="menu">
             <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
+            <button class="pixel-btn" onclick="openRaceMode()" style="background: #ffc107; color: #000;">レース</button>
             <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
             <button class="pixel-btn" onclick="openLocker()">ロッカー</button>
             <button class="pixel-btn" onclick="openShop()">ショップ</button>
@@ -588,6 +595,39 @@
                 </div>
             </div>
             <button class="pixel-btn small" onclick="closeLocker()" style="margin-top: 4cqh;">戻る</button>
+        </div>
+
+        <!-- レースモード画面（横スクロール） -->
+        <div id="race-screen" class="screen" style="flex-direction: column; align-items: center; justify-content: center;">
+            <h2 style="font-size: 3cqw; margin: 2cqh 0; color: #ffc107;">OFFICIAL RACE COURSES</h2>
+            <div id="race-slider" style="display: flex; overflow-x: auto; width: 90%; gap: 5cqw; padding: 2cqh 2cqw; scroll-snap-type: x mandatory; scroll-behavior: smooth;">
+                <!-- ステージカードがここに挿入される -->
+            </div>
+            <div style="margin-top: 4cqh; display: flex; gap: 2cqw;">
+                <button class="pixel-btn small" onclick="closeRaceMode()">戻る</button>
+            </div>
+        </div>
+
+        <!-- 順位表オーバーレイ -->
+        <div id="leaderboard-overlay" class="screen" style="z-index: 150; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; display: none;">
+            <div class="auth-box" style="width: 70%; max-height: 80cqh;">
+                <h2 id="lb-title" style="font-size: 2cqw; color: #ffc107; margin-bottom: 2cqh;">LEADERBOARD</h2>
+                <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 1.2cqw;">
+                        <thead>
+                            <tr style="border-bottom: 0.2cqw solid #fff;">
+                                <th style="padding: 1cqh; text-align: left;">RANK</th>
+                                <th style="padding: 1cqh; text-align: left;">PLAYER</th>
+                                <th style="padding: 1cqh; text-align: right;">TIME</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lb-body">
+                            <!-- 順位データ -->
+                        </tbody>
+                    </table>
+                </div>
+                <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin-top: 3cqh;">閉じる</button>
+            </div>
         </div>
 
         <!-- ステージ選択画面 -->
@@ -673,7 +713,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxFDW60msLJniYNOpbcqhL_RUZJh_RnR-XuYe6xol_86RENjrxxEgKDtJsrmIch1kPK/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyH7wKB-GVCHXrARQhtfMSnM6OAF0_nTrO2V9E4ueQCp8-VeIk1WtJumLLZ6jvCDwQ/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -1118,6 +1158,82 @@
             openShop();
         }
 
+        // --- レースモード関連 ---
+        async function openRaceMode() {
+            const screen = document.getElementById('race-screen');
+            const slider = document.getElementById('race-slider');
+            screen.style.display = 'flex';
+            slider.innerHTML = "";
+
+            // 指定された固定のレースデータ
+            const officialRaceData = [["B",null,null,null,null,"B","B","B","B","B","B","B",null,"B","B","B","B","B","B","B"],["B",null,"B","B","B","B","G","H","H","H","H","H",null,"B",null,null,null,"B","B","B"],["B",null,null,null,null,"B","B","B","B","B","B","B","B","B",null,"B",null,"B","B","B"],["B",null,"B","B","B","B","A","A","A","A","A","A","A",null,null,"B",null,null,null,null],["B",null,null,null,null,null,"W","W","W","W","W","W","W","B","B","B","B","H","H","H"],["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","W","W",null,null,null],[null,"S",null,null,null,null,null,"B",null,null,"W","W","W","W","X","W","W",null,null,null],["K",null,null,null,null,null,null,null,null,null,"W","W","W","W","W","W","W",null,null,null],["X",null,null,null,null,null,null,"B",null,null,"W","W","X","W","W","W","B","H","M","H"],["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","T","H","T"]];
+            
+            // サーバーから公式レースの情報を取得（リーダーボードが存在する場合に表示するため）
+            const res = await callApi('getPublished', {});
+            const officialInDb = (res.stages || []).find(s => s.name === "OFFICIAL RACE");
+
+            const s = {
+                id: officialInDb ? officialInDb.id : "OFFICIAL",
+                name: "OFFICIAL RACE",
+                creator: "SYSTEM",
+                data: officialRaceData,
+                leaderboard: officialInDb ? officialInDb.leaderboard : []
+            };
+
+            const card = document.createElement('div');
+            card.style.cssText = "flex: 0 0 70cqw; scroll-snap-align: center; background: #222; border: 0.5cqw solid #ffc107; padding: 2cqw; display: flex; flex-direction: column; align-items: center; gap: 2cqh; box-sizing: border-box;";
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 400; canvas.height = 200;
+            canvas.style.width = "100%"; canvas.style.imageRendering = "pixelated";
+            renderPreview(canvas, s.data);
+
+            card.innerHTML = `
+                <div style="font-size: 2.5cqw; color: #ffc107;">${s.name}</div>
+                <div style="font-size: 1.2cqw; color: #aaa;">公式タイムアタックコース</div>
+            `;
+            card.insertBefore(canvas, card.firstChild);
+
+            const btnGroup = document.createElement('div');
+            btnGroup.style.display = "flex"; btnGroup.style.gap = "2cqw"; btnGroup.style.width = "100%";
+            
+            const playBtn = document.createElement('button');
+            playBtn.className = "pixel-btn"; playBtn.style.flex = "1"; playBtn.innerText = "CHALLENGE";
+            playBtn.onclick = () => { closeRaceMode(); startGame(s, 'play'); };
+
+            const lbBtn = document.createElement('button');
+            lbBtn.className = "pixel-btn"; lbBtn.style.flex = "1"; lbBtn.innerText = "RANKING";
+            lbBtn.style.background = "#546e7a";
+            lbBtn.onclick = () => showLeaderboard(s);
+
+            btnGroup.appendChild(playBtn);
+            btnGroup.appendChild(lbBtn);
+            card.appendChild(btnGroup);
+            slider.appendChild(card);
+        }
+
+        function closeRaceMode() { document.getElementById('race-screen').style.display = 'none'; }
+
+        function showLeaderboard(stage) {
+            const overlay = document.getElementById('leaderboard-overlay');
+            const title = document.getElementById('lb-title');
+            const body = document.getElementById('lb-body');
+            
+            title.innerText = `TOP RACERS: ${stage.name}`;
+            body.innerHTML = "";
+            const sortedRecords = (stage.leaderboard || []).sort((a, b) => a.time - b.time);
+            
+            sortedRecords.forEach((rec, idx) => {
+                body.innerHTML += `
+                    <tr style="border-bottom: 0.1cqw solid #444;">
+                        <td style="padding: 1.5cqh;">${idx + 1}</td>
+                        <td style="padding: 1.5cqh; color: var(--primary-color);">${rec.name}</td>
+                        <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
+                    </tr>`;
+            });
+            overlay.style.display = 'flex';
+        }
+
         // --- ロッカー関連 ---
         let tempSelectedSkin = 'default';
         let tempSelectedColor = 'default';
@@ -1400,6 +1516,22 @@
             else { alert("保存データが見つかりません。"); }
         }
 
+        async function deletePublishedStage(stageId) {
+            if (CONFIG.USERNAME !== 'Runon') {
+                alert("この操作はRunonのみ実行できます。");
+                return;
+            }
+            if (!confirm("本当にこのステージを削除しますか？")) return;
+            
+            const res = await callApi('deleteStage', { stageId: stageId });
+            if (res.success) {
+                alert("削除しました。");
+                openStageSelect(true);
+            } else {
+                alert("エラー: " + res.message);
+            }
+        }
+
         async function publishStage() {
             if (!isClearChecked) {
                 showQuickMsg("先にクリアチェックが必要です！", "var(--secondary-color)");
@@ -1458,6 +1590,7 @@
                 div.className = 'stage-item';
                 const sId = s.id || s.name;
                 const isFav = favoriteStages.includes(sId);
+                const isRace = s.isRaceCourse;
                 
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
@@ -1477,14 +1610,22 @@
                 info.style.flex = "1";
                 info.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="color:var(--primary-color)">${s.name}</div>
+                        <div style="color:var(--primary-color)">${s.name} ${isRace ? '🏁' : ''}</div>
                         ${favBtn}
                     </div>
                     <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
                     <div class="stage-stats">
                         Clear: <span class="stat-val">${clearRate}%</span> | 👍 <span class="stat-val">${s.upvotes || 0}</span> | 👎 <span class="stat-val">${s.downvotes || 0}</span> | 💰 <span class="stat-val">${currentStageReward} G</span>
+                        ${CONFIG.USERNAME === 'Runon' ? `
+                            <button class="pixel-btn small" style="background:#f44336; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
+                                onclick="event.stopPropagation(); deletePublishedStage('${s.id}')">🗑️削除</button>
+                        ` : ''}
+                        ${CONFIG.USERNAME === 'Runon' ? `
+                            <button class="pixel-btn small" style="background:#00bcd4; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
+                                onclick="event.stopPropagation(); startGame(JSON.parse(JSON.stringify(${JSON.stringify(s)})), 'play')">▶️プレイ</button>
+                        ` : ''}
                     </div>
-                    ${bestRecord}
+                    ${isRace ? bestRecord : ''}
                 `;
                 
                 div.appendChild(canvas);
