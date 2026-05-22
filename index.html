@@ -1058,9 +1058,9 @@
                 console.error('Fetch Error Details:', error);
                 // Failed to fetch の場合、多くはデプロイ設定の問題
                 const errorMsg = "通信エラーが発生しました。GASのデプロイ設定が「全員(Anyone)」になっているか確認してください。";
-                if (error.name === 'TypeError') {
-                    alert(errorMsg);
-                }
+                // if (error.name === 'TypeError') {
+                //     alert(errorMsg); // ユーザーの要望によりアラートを無効化
+                // }
                 return { success: false, message: errorMsg };
             }
         }
@@ -1764,13 +1764,42 @@
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
 
+            // SYSTEM作成のステージを最上部に配置（Pick up!表示用）
+            const systemStages = filtered.filter(s => s.creator === 'SYSTEM');
+            const otherStages = filtered.filter(s => s.creator !== 'SYSTEM');
+            const sortedStages = [...systemStages, ...otherStages];
+
             container.innerHTML = "";
-            filtered.forEach(s => {
+            sortedStages.forEach(s => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
                 const sId = s.id || s.name;
                 const isFav = favoriteStages.includes(sId);
+                const isPickUp = s.creator === 'SYSTEM';
+                if (isPickUp) div.style.borderColor = '#ffc107';
                 
+                // クリア率に応じた難易度バッジの計算 (5回以上プレイ時のみ)
+                const crNum = s.attempts >= 5 ? ((s.clears || 0) / s.attempts * 100) : 100;
+                let diffBadge = "";
+                if (s.attempts >= 5) {
+                    if (crNum <= 0.1) {
+                        // るのん級: 水色、白、紺
+                        diffBadge = '<span style="background:linear-gradient(45deg, #87ceeb, #ffffff, #000080); color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; text-shadow:1px 1px 2px #000; border:1px solid #fff;">るのん級</span>';
+                    } else if (crNum <= 1) {
+                        // 神: 白と黄色
+                        diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000;">神</span>';
+                    } else if (crNum <= 3) {
+                        // 鬼: 赤黒
+                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #000000); color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; border:1px solid #ff0000;">鬼</span>';
+                    } else if (crNum <= 10) {
+                        // 超難関: 赤と紫
+                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #800080); color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px;">超難関</span>';
+                    } else if (crNum <= 25) {
+                        // 難関: 紫
+                        diffBadge = '<span style="background:#800080; color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px;">難関</span>';
+                    }
+                }
+
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
                 canvas.width = 200; // プレビュー解像度
@@ -1789,7 +1818,13 @@
                 info.style.flex = "1";
                 info.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="color:var(--primary-color)">${s.name}</div>
+                        <div style="color:var(--primary-color)">
+                            <div style="display:inline-flex; align-items:center;">
+                                ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px;">Pick up!</span>' : ''}
+                                ${diffBadge}
+                            </div>
+                            ${s.name}
+                        </div>
                         ${favBtn}
                     </div>
                     <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
