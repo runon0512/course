@@ -316,6 +316,21 @@
             padding: 1cqw;
             text-align: center;
         }
+        /* カスタムエディタ用 */
+        #custom-editor-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.95);
+            z-index: 200;
+        }
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 1cqw;
+            margin-top: 2cqh;
+        }
         .color-palette {
             display: flex;
             gap: 1cqw;
@@ -590,10 +605,27 @@
                     <canvas id="locker-preview-canvas" width="128" height="128" style="image-rendering: pixelated; width: 15cqw; height: 15cqw;"></canvas>
                     <div id="locker-skin-name" style="margin-top: 2cqh; font-size: 1.5cqw;">-</div>
                     <div class="color-palette" id="color-palette"></div>
+                    <button id="edit-custom-btn" class="pixel-btn small" style="margin-top: 2cqh; width: 100%; display:none; background:#ffc107; color:#000;" onclick="openCustomEditor()">ペイントする</button>
                     <button id="equip-confirm-btn" class="pixel-btn small" style="margin-top: 4cqh; width: 100%;" onclick="confirmEquip(this)">装備する</button>
                 </div>
             </div>
             <button class="pixel-btn small" onclick="closeLocker()" style="margin-top: 4cqh;">戻る</button>
+        </div>
+
+        <!-- カスタムスキンエディタ -->
+        <div id="custom-editor-overlay" class="screen">
+            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">SKIN EDITOR</h2>
+            <div style="display: flex; gap: 4cqw; align-items: flex-start;">
+                <canvas id="custom-edit-canvas" width="256" height="256" style="border: 0.5cqw solid #fff; image-rendering: pixelated; width: 30cqw; height: 30cqw; cursor: crosshair;"></canvas>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <div id="current-pen-color" style="width: 6cqw; height: 6cqw; border: 0.3cqw solid #fff; margin-bottom: 2cqh;"></div>
+                    <div class="palette-grid" id="editor-palette"></div>
+                    <div style="margin-top: 4cqh; display: flex; flex-direction: column; gap: 2cqh; width: 100%;">
+                        <button class="pixel-btn small" onclick="saveCustomSkin()">💾 保存</button>
+                        <button class="pixel-btn small" style="background:#f44336;" onclick="closeCustomEditor()">戻る</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 順位表オーバーレイ -->
@@ -701,7 +733,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyhUqT09GcZE5Hx9jSd6wKMNMeOvlo_x5wVxQyhkimhp3kwfHYYKA9eiWA0aC-t6-tj/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyxICuhCPoiBfdrMmTCGEkMT5rWE7oCuafsIYOBBZZgaEk7DrZ6Ssn9QpkKuuk7KM6_/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -710,6 +742,14 @@
         let purchasedSkins = ['default', 'girl'];
         let equippedSkin = 'default';
         let equippedColor = 'default';
+        
+        // カスタムスキンデータ保存用
+        let customSpriteStore = { 'custom': null, 'custom2': null, 'custom3': null };
+        const CUSTOM_PALETTE = [
+            '#000000','#ffffff','#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff',
+            '#800000','#008000','#000080','#808000','#800080','#008080','#808080','#c0c0c0',
+            '#ffdbac','#f1c27d','#e0ac69','#8d5524','#c68642','#5d4037','#3e2723', null
+        ];
 
         // --- ゲームエンジン変数 ---
         let editorGrid = [];
@@ -717,7 +757,7 @@
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false;
         let gameLoopId = null;
-        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false };
+        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right' };
         let keys = {};
         let activeStage = [];
         let currentStageData = null; // 現在プレイ中のステージ情報
@@ -960,7 +1000,10 @@
             'ninja': { name: 'NINJA', price: 15000, sprite: NINJA_SPRITE, recolorIndex: '2' },
             'cat': { name: 'CAT', price: 18000, sprite: CAT_SPRITE, recolorIndex: 'i' },
             'ghost': { name: 'GHOST', price: 20000, sprite: GHOST_SPRITE, recolorIndex: '4' },
-            'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: 'k' }
+            'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: 'k' },
+            'custom': { name: 'CUSTOM 1', price: 30000, sprite: null, isCustom: true },
+            'custom2': { name: 'CUSTOM 2', price: 50000, sprite: null, isCustom: true },
+            'custom3': { name: 'CUSTOM 3', price: 75000, sprite: null, isCustom: true }
         };
 
         const COLORS = {
@@ -1075,6 +1118,12 @@
                                 equippedSkin = res.equippedSkin || 'default';
                                 equippedColor = res.equippedColor || 'default';
                                 
+                                // カスタムスキンデータの読み込み
+                                callApi('load', { username: res.username, key: 'custom_skins' })
+                                    .then(loadRes => {
+                                        if (loadRes && loadRes.data) customSpriteStore = loadRes.data;
+                                    });
+
                                 favoriteStages = JSON.parse(localStorage.getItem(`favs_${CONFIG.USERNAME}`) || "[]");
 
                                 document.getElementById('auth-overlay').style.display = 'none';
@@ -1305,12 +1354,20 @@
             const canvas = document.getElementById('locker-preview-canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0,0,128,128);
-            drawPlayer(ctx, 0, 0, 128, 128, tempSelectedSkin, false, tempSelectedColor);
+            drawPlayer(ctx, 0, 0, 128, 128, tempSelectedSkin, false, tempSelectedColor, customSpriteStore[tempSelectedSkin]);
             document.getElementById('locker-skin-name').innerText = SKINS[tempSelectedSkin].name;
+
+            // カスタムスキンの場合は編集ボタンを表示
+            document.getElementById('edit-custom-btn').style.display = SKINS[tempSelectedSkin].isCustom ? 'block' : 'none';
 
             // カラーパレット描画
             const palette = document.getElementById('color-palette');
             palette.innerHTML = '';
+            if (SKINS[tempSelectedSkin].isCustom) {
+                palette.innerHTML = '<div style="font-size:0.8cqw; color:#aaa;">(カスタムスキンはパレット無効)</div>';
+                return;
+            }
+
             Object.keys(COLORS).forEach(cId => {
                 const div = document.createElement('div');
                 div.className = `color-swatch ${tempSelectedColor === cId ? 'active' : ''}`;
@@ -1328,27 +1385,120 @@
             });
         }
 
-        async function confirmEquip(btn) {
-            btn.innerText = "通信中...";
-            btn.disabled = true;
-
+        function confirmEquip(btn) {
+            // 通信は行わず、ローカルの状態のみ更新する (クリア時にまとめて通信)
             equippedSkin = tempSelectedSkin;
             equippedColor = tempSelectedColor;
 
-            await callApi('updateSkins', { 
-                username: CONFIG.USERNAME, 
-                equippedSkin: equippedSkin,
-                equippedColor: equippedColor
-            });
-
-            btn.innerText = "装備完了！";
+            btn.innerText = "装備しました！";
+            btn.style.backgroundColor = "var(--primary-color)";
+            btn.style.color = "#000";
+            
             setTimeout(() => {
                 btn.innerText = "装備する";
-                btn.disabled = false;
+                btn.style.backgroundColor = "";
+                btn.style.color = "";
             }, 1000);
         }
 
         function closeLocker() { document.getElementById('locker-overlay').style.display = 'none'; }
+
+        // --- カスタムスキンエディタ ---
+        let editorSelectedColorIdx = 1;
+        let isEditorDrawing = false;
+        let currentEditingSprite = null;
+
+        function openCustomEditor() {
+            document.getElementById('custom-editor-overlay').style.display = 'flex';
+            // 現在のデータを読み込むか、初期化
+            if (!customSpriteStore[tempSelectedSkin]) {
+                // Normalの形を初期値にする
+                currentEditingSprite = Array(16).fill().map(() => Array(16).fill(null));
+                PLAYER_SPRITE.forEach((row, y) => {
+                    [...row].forEach((c, x) => {
+                        if (c !== ' ') {
+                            // デフォルト色を適当にマッピング（5:茶, 1:肌, 2:服, 3:赤など）
+                            const map = {'5':14, '1':1, '4':0, '2':4, '3':2, '6':7};
+                            currentEditingSprite[y][x] = CUSTOM_PALETTE[map[c] || 1];
+                        }
+                    });
+                });
+            } else {
+                currentEditingSprite = JSON.parse(JSON.stringify(customSpriteStore[tempSelectedSkin]));
+            }
+            
+            renderEditorPalette();
+            drawCustomEditor();
+        }
+
+        function renderEditorPalette() {
+            const container = document.getElementById('editor-palette');
+            container.innerHTML = '';
+            CUSTOM_PALETTE.forEach((color, idx) => {
+                const div = document.createElement('div');
+                div.className = 'color-swatch';
+                if (color === null) {
+                    div.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 10px 10px';
+                    div.title = "消しゴム";
+                } else {
+                    div.style.backgroundColor = color;
+                }
+                if (idx === editorSelectedColorIdx) div.classList.add('active');
+                div.onclick = () => {
+                    editorSelectedColorIdx = idx;
+                    renderEditorPalette();
+                };
+                container.appendChild(div);
+            });
+            const pen = document.getElementById('current-pen-color');
+            const cur = CUSTOM_PALETTE[editorSelectedColorIdx];
+            if (cur === null) {
+                pen.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 15px 15px';
+            } else {
+                pen.style.background = 'none';
+                pen.style.backgroundColor = cur;
+            }
+        }
+
+        function drawCustomEditor() {
+            const canvas = document.getElementById('custom-edit-canvas');
+            const ctx = canvas.getContext('2d');
+            const pz = canvas.width / 16;
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            for(let y=0; y<16; y++) {
+                for(let x=0; x<16; x++) {
+                    if (currentEditingSprite[y][x]) {
+                        ctx.fillStyle = currentEditingSprite[y][x];
+                        ctx.fillRect(x*pz, y*pz, pz, pz);
+                    }
+                    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                    ctx.strokeRect(x*pz, y*pz, pz, pz);
+                }
+            }
+        }
+
+        document.getElementById('custom-edit-canvas').onmousedown = e => { isEditorDrawing = true; handleEditorPaint(e); };
+        document.getElementById('custom-edit-canvas').onmousemove = e => { if(isEditorDrawing) handleEditorPaint(e); };
+        window.onmouseup = () => { isEditorDrawing = false; };
+
+        function handleEditorPaint(e) {
+            const canvas = document.getElementById('custom-edit-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / (rect.width / 16));
+            const y = Math.floor((e.clientY - rect.top) / (rect.height / 16));
+            if (x >= 0 && x < 16 && y >= 0 && y < 16) {
+                currentEditingSprite[y][x] = CUSTOM_PALETTE[editorSelectedColorIdx];
+                drawCustomEditor();
+            }
+        }
+
+        function closeCustomEditor() { document.getElementById('custom-editor-overlay').style.display = 'none'; updateLockerPreview(); }
+        async function saveCustomSkin() {
+            customSpriteStore[tempSelectedSkin] = currentEditingSprite;
+            await callApi('save', { username: CONFIG.USERNAME, key: 'custom_skins', data: customSpriteStore });
+            alert("ドット絵を保存しました！");
+            closeCustomEditor();
+        }
 
         // --- エディタ関連 ---
         function startEditor() {
@@ -1808,9 +1958,10 @@
                     time: clearTime, 
                     ghost: currentGhostData,
                     skin: equippedSkin,
-                    color: equippedColor
+                    color: equippedColor,
+                    customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
+                    gold: userGold // 現在の所持金も一緒に送って保存する
                 });
-                callApi('updateGold', { username: CONFIG.USERNAME, gold: userGold });
             }
         }
 
@@ -1879,15 +2030,15 @@
             const gravity = 0.015;
             const jumpForce = -0.3;
 
-            if (keys['ArrowLeft']) player.vx -= speed;
-            if (keys['ArrowRight']) player.vx += speed;
+            if (keys['ArrowLeft']) { player.vx -= speed; player.facing = 'left'; }
+            if (keys['ArrowRight']) { player.vx += speed; player.facing = 'right'; }
             if (keys['Space'] && player.onGround) { player.vy = jumpForce; player.onGround = false; }
 
             player.vy += gravity;
             player.vx *= 0.9; // 摩擦を少し弱めて慣性を出す
 
             // ゴースト用の記録（5フレームに1回）
-            if (frameCount % 5 === 0) currentGhostData.push({x: player.x, y: player.y});
+            if (frameCount % 5 === 0) currentGhostData.push({x: player.x, y: player.y, f: player.facing});
 
             // 風の処理
             const cx = Math.floor(player.x + player.w/2), cy = Math.floor(player.y + player.h/2);
@@ -2117,7 +2268,7 @@
                         const frameIdx = Math.floor(frameCount / 5);
                         const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
                         if (pos) {
-                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default');
+                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, pos.f || 'right');
                             // 名前のラベル表示
                             ctx.save();
                             ctx.globalAlpha = 1.0;
@@ -2132,7 +2283,7 @@
             }
             ctx.globalAlpha = 1.0;
 
-            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor);
+            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing);
 
             // カウントダウンの描画
             if (isCountingDown) {
@@ -2146,8 +2297,25 @@
             ctx.globalAlpha = 1.0;
         }
 
-        function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default') {
+        function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
             const skin = SKINS[skinId] || SKINS['default'];
+            const pixelW = pw / 16;
+            const pixelH = ph / 16;
+
+            // カスタムスキンの描画
+            if (skin.isCustom && customData) {
+                customData.forEach((row, y) => {
+                    row.forEach((color, x) => {
+                        if (color) {
+                            ctx.fillStyle = color;
+                            let rx = (facing === 'left') ? (15 - x) : x;
+                            ctx.fillRect(px + rx * pixelW, py + y * pixelH, pixelW + 0.5, pixelH + 0.5);
+                        }
+                    });
+                });
+                return;
+            }
+
             const sprite = skin.sprite || PLAYER_SPRITE;
             const rIdx = skin.recolorIndex || '2'; // 色を変える対象のピクセル番号
 
@@ -2181,9 +2349,6 @@
                 colors[rIdx] = COLORS[colorId];
             } 
 
-            const pixelW = pw / 16;
-            const pixelH = ph / 16;
-
             sprite.forEach((row, y) => {
                 [...row].forEach((c, x) => {
                     if (c !== ' ') {
@@ -2197,7 +2362,8 @@
                             ctx.fillStyle = colors[c];
                         }
                         // 微小な隙間を防ぐため+0.5
-                        ctx.fillRect(px + x * pixelW, py + y * pixelH, pixelW + 0.5, pixelH + 0.5);
+                        let rx = (facing === 'left') ? (15 - x) : x;
+                        ctx.fillRect(px + rx * pixelW, py + y * pixelH, pixelW + 0.5, pixelH + 0.5);
                     }
                 });
             });
