@@ -701,7 +701,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzV-UYgxjafuyjZryfQHhJqdwAz1ugVpix50b3bc8JmpBo1QlvKbszmqmfUXtwjsX3A/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyhUqT09GcZE5Hx9jSd6wKMNMeOvlo_x5wVxQyhkimhp3kwfHYYKA9eiWA0aC-t6-tj/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -997,20 +997,28 @@
             try {
                 const response = await fetch(CONFIG.DEPLOY_URL, {
                     method: 'POST',
-                    mode: 'cors',
+                    mode: 'cors', 
+                    cache: 'no-cache',
+                    redirect: 'follow',
                     headers: {
-                        'Content-Type': 'text/plain' // CORS preflightを回避するためにtext/plainを使用
+                        'Content-Type': 'text/plain;charset=utf-8' 
                     },
                     body: JSON.stringify({
                         action: action,
                         ...payload 
                     })
                 });
-                if (!response.ok) throw new Error('Network response was not ok');
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return await response.json();
             } catch (error) {
-                console.error('API Error:', error);
-                return { success: false, message: "通信エラーが発生しました。" };
+                console.error('Fetch Error Details:', error);
+                // Failed to fetch の場合、多くはデプロイ設定の問題
+                const errorMsg = "通信エラーが発生しました。GASのデプロイ設定が「全員(Anyone)」になっているか確認してください。";
+                if (error.name === 'TypeError') {
+                    alert(errorMsg);
+                }
+                return { success: false, message: errorMsg };
             }
         }
 
