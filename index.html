@@ -2257,8 +2257,6 @@
                 const ax_tile = Math.floor(a.x), ay_tile = Math.floor(a.y);
                 if(activeStage[ay_tile]) {
                     const tile = activeStage[ay_tile][ax_tile];
-                    if(tile === 'W') a.vx += 0.008;
-                    if(tile === 'L') a.vx -= 0.008;
                     if(tile === 'U') a.vy -= 0.005;
                 }
                 
