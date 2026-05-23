@@ -2027,26 +2027,32 @@
             document.getElementById('reward-overlay').style.display = 'flex';
             cancelAnimationFrame(gameLoopId);
 
-            // 表示したあとにバックグラウンドで通信を開始
-            callApi('updateSkins', {
-                username: CONFIG.USERNAME,
-                gold: userGold,
-                purchasedSkins: purchasedSkins,
-                equippedSkin: equippedSkin,
-                equippedColor: equippedColor
-            });
-
-            if (currentStageData && currentStageData.id !== undefined) {
-                callApi('recordClear', { 
-                    stageId: currentStageData.id, 
-                    username: CONFIG.USERNAME, 
-                    time: clearTime, 
-                    ghost: currentGhostData,
-                    skin: equippedSkin,
-                    color: equippedColor,
-                    customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
-                    gold: userGold // 現在の所持金も一緒に送って保存する
+            // 通信の競合を防ぐため、順序立てて保存を実行
+            try {
+                if (currentStageData && currentStageData.id !== undefined) {
+                    // 最優先：タイムとクリア情報の記録
+                    await callApi('recordClear', { 
+                        stageId: currentStageData.id, 
+                        username: CONFIG.USERNAME, 
+                        time: clearTime, 
+                        ghost: currentGhostData,
+                        skin: equippedSkin,
+                        color: equippedColor,
+                        customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
+                        gold: userGold 
+                    });
+                }
+                
+                // 次に、購入済みスキンリスト等を含む全体の状態を同期
+                await callApi('updateSkins', {
+                    username: CONFIG.USERNAME,
+                    gold: userGold,
+                    purchasedSkins: purchasedSkins,
+                    equippedSkin: equippedSkin,
+                    equippedColor: equippedColor
                 });
+            } catch (e) {
+                console.error("通信エラー:", e);
             }
         }
 
@@ -2279,7 +2285,7 @@
                 if (gameMode === 'test') {
                     isClearChecked = true;
                     showMessage("CHECK OK!", "ステージを完走しました！投稿が可能です。");
-                    callApi('updateSkins', {
+                    callApi('updateSkins', { // テストクリア時は基本情報のみ保存
                         username: CONFIG.USERNAME,
                         gold: userGold,
                         purchasedSkins: purchasedSkins,
