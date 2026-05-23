@@ -114,7 +114,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #000;
+            background: #1e1e2e;
+            background: #1e1e2e;
             border: 0.5cqw solid #fff;
             padding: 3cqw;
             z-index: 100;
@@ -173,7 +174,7 @@
         }
 
         .auth-box {
-            background: #000;
+            background: #252538;
             border: 0.5cqw solid #fff;
             padding: 4cqw;
             width: 50%;
@@ -189,7 +190,7 @@
 
         .auth-box input {
             width: 100%;
-            background: #222;
+            background: #1a1a2e;
             border: 0.3cqw solid #fff;
             color: #fff;
             padding: 1.5cqw;
@@ -311,7 +312,7 @@
             padding: 5cqh;
         }
         .shop-item {
-            background: #222;
+            background: #35354e;
             border: 0.3cqw solid #fff;
             padding: 1cqw;
             text-align: center;
@@ -362,14 +363,14 @@
             height: 100%;
             display: none;
             z-index: 30;
-            background: rgba(0,0,0,0.8);
+            background: rgba(30, 30, 46, 0.95);
         }
 
         #canvas-container {
             position: relative;
             width: 100%;
             height: 100%;
-            background: #4fc3f7;
+            background: #70a1ff;
             cursor: crosshair;
         }
 
@@ -470,7 +471,7 @@
 
         .stage-item {
             width: 80%;
-            background: #222;
+            background: #35354e;
             border: 0.2cqw solid #fff;
             padding: 1cqw;
             margin-bottom: 1cqh;
@@ -494,7 +495,7 @@
         .stage-preview {
             width: 16cqw;
             height: 8cqw;
-            background: #4fc3f7;
+            background: #70a1ff;
             border: 0.1cqw solid #fff;
             image-rendering: pixelated;
         }
@@ -697,6 +698,8 @@
                     <div class="tool-btn tool-trampoline" onclick="setTool('T', this)" title="TRAMPOLINE"><canvas id="icon-T" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-troll" onclick="setTool('X', this)" title="TROLL BLOCK"><canvas id="icon-X" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-wind" onclick="setTool('W', this)" title="WIND ZONE"><canvas id="icon-W" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-wind-left" onclick="setTool('L', this)" title="WIND LEFT"><canvas id="icon-L" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-updraft" onclick="setTool('U', this)" title="UPDRAFT"><canvas id="icon-U" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-speed" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-bridge" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-enemy" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
@@ -775,6 +778,7 @@
         let currentGhostData = [];
         let startTime = 0;
         let frameCount = 0;
+        let lastTime = 0;
         let currentBgIndex = 0;
         let countdown = 3;
         let isCountingDown = false;
@@ -1160,7 +1164,7 @@
 
                 const canvas = document.createElement('canvas');
                 canvas.width = 64; canvas.height = 64;
-                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id, false, 'default');
+                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
 
                 item.innerHTML = `
                     <div style="font-size:1cqw; margin-bottom:1cqh;">${skin.name}</div>
@@ -1198,7 +1202,9 @@
             await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
-                purchasedSkins: purchasedSkins 
+                purchasedSkins: purchasedSkins,
+                equippedSkin: equippedSkin,
+                equippedColor: equippedColor
             });
             openShop();
         }
@@ -1342,7 +1348,7 @@
 
                 const canvas = document.createElement('canvas');
                 canvas.width = 64; canvas.height = 64;
-                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id, false, 'default');
+                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
                 
                 item.innerHTML = `<div style="font-size:1cqw; margin-bottom:1cqh;">${skin.name}</div>`;
                 item.prepend(canvas);
@@ -1513,7 +1519,7 @@
         }
 
         function renderToolIcons() {
-            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'P', 'H', 'M', 'E'];
+            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', 'M', 'E'];
             tools.forEach(type => {
                 const canvas = document.getElementById(`icon-${type}`);
                 if (!canvas) return;
@@ -1584,6 +1590,8 @@
             const cw = editorCanvas.width / GRID_W;
             const ch = editorCanvas.height / GRID_H;
             ctx.clearRect(0,0,editorCanvas.width, editorCanvas.height);
+            ctx.fillStyle = "#70a1ff";
+            ctx.fillRect(0,0,editorCanvas.width, editorCanvas.height);
             const time = Date.now() * 0.002;
             
             for(let y=0; y<GRID_H; y++){
@@ -1643,10 +1651,10 @@
                 ctx.fillRect(x*cw, y*ch + ch*0.4, cw*0.3, ch*0.2);
             } else if(type === 'T') {
                 // トランポリン
-                ctx.fillStyle = "#ffb300";
-                ctx.fillRect(x*cw + pad, y*ch + ch*0.6, cw - pad*2, ch*0.3);
                 ctx.fillStyle = "#fb8c00";
-                ctx.fillRect(x*cw + pad, y*ch + ch*0.5, cw - pad*2, ch*0.1);
+                ctx.fillRect(x*cw, y*ch, cw, ch*0.1);
+                ctx.fillStyle = "#ffb300";
+                ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.2);
             } else if(type === 'X') {
                 // トロール（弾く）
                 ctx.fillStyle = "#4a148c";
@@ -1656,13 +1664,46 @@
                 ctx.fillText("!", x*cw + cw/2, y*ch + ch*0.7);
             } else if(type === 'W') {
                 // 風ゾーン
-                ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
-                ctx.lineWidth = 2;
+                ctx.save();
+                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
+                ctx.strokeStyle = "rgba(0, 255, 255, 0.7)";
+                ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
-                for(let i=0; i<3; i++) {
-                    ctx.beginPath(); ctx.moveTo(x*cw + drift, y*ch + (i+1)*ch/4);
-                    ctx.lineTo(x*cw + drift + cw/2, y*ch + (i+1)*ch/4); ctx.stroke();
+                for(let i=0; i<4; i++) {
+                    ctx.beginPath(); ctx.moveTo(x*cw + drift - cw, y*ch + (i+1)*ch/5);
+                    ctx.lineTo(x*cw + drift - cw + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x*cw + drift, y*ch + (i+1)*ch/5);
+                    ctx.lineTo(x*cw + drift + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
                 }
+                ctx.restore();
+            } else if(type === 'L') {
+                // 逆向きの風（左向き）
+                ctx.save();
+                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
+                ctx.strokeStyle = "rgba(255, 100, 255, 0.7)";
+                ctx.lineWidth = 3;
+                let drift = (time * 100) % cw;
+                for(let i=0; i<4; i++) {
+                    ctx.beginPath(); ctx.moveTo(x*cw + cw - drift, y*ch + (i+1)*ch/5);
+                    ctx.lineTo(x*cw + cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x*cw - drift, y*ch + (i+1)*ch/5);
+                    ctx.lineTo(x*cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                }
+                ctx.restore();
+            } else if(type === 'U') {
+                // 上昇気流
+                ctx.save();
+                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                ctx.lineWidth = 3;
+                let drift = (time * 100) % ch;
+                for(let i=0; i<4; i++) {
+                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch + ch - drift);
+                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch + ch - drift - ch*0.6); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch - drift);
+                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch - drift - ch*0.6); ctx.stroke();
+                }
+                ctx.restore();
             } else if(type === 'P') {
                 // 加速
                 ctx.fillStyle = "#ffd600";
@@ -1672,9 +1713,9 @@
             } else if(type === 'H') {
                 // 橋
                 ctx.fillStyle = "#8d6e63";
-                ctx.fillRect(x*cw, y*ch + ch*0.2, cw, ch*0.2);
+                ctx.fillRect(x*cw, y*ch, cw, ch*0.2);
                 ctx.fillStyle = "#5d4037";
-                ctx.fillRect(x*cw, y*ch + ch*0.3, cw, ch*0.1);
+                ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.1);
             } else if(type === 'M') {
                 // 敵（アイコン用）
                 ctx.fillStyle = "#f44336";
@@ -1867,7 +1908,7 @@
             const ctx = canvas.getContext('2d');
             const cw = canvas.width / GRID_W;
             const ch = canvas.height / GRID_H;
-            ctx.fillStyle = "#4fc3f7";
+            ctx.fillStyle = "#70a1ff";
             ctx.fillRect(0,0,canvas.width, canvas.height);
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
@@ -1923,7 +1964,8 @@
             arrows = [];
             isGoalTriggered = false;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
-            gameLoop();
+            lastTime = 0;
+            gameLoopId = requestAnimationFrame(gameLoop);
         }
 
         function exitGame() {
@@ -1986,6 +2028,14 @@
             cancelAnimationFrame(gameLoopId);
 
             // 表示したあとにバックグラウンドで通信を開始
+            callApi('updateSkins', {
+                username: CONFIG.USERNAME,
+                gold: userGold,
+                purchasedSkins: purchasedSkins,
+                equippedSkin: equippedSkin,
+                equippedColor: equippedColor
+            });
+
             if (currentStageData && currentStageData.id !== undefined) {
                 callApi('recordClear', { 
                     stageId: currentStageData.id, 
@@ -2037,11 +2087,30 @@
 
         function showQuickMsg(txt, col) { const m = document.getElementById('auth-msg'); m.innerText = txt; m.style.color = col; }
 
-        function gameLoop() {
-            frameCount++;
-            updateGame();
-            drawGame();
+        function gameLoop(timestamp) {
             gameLoopId = requestAnimationFrame(gameLoop);
+
+            if (!lastTime) lastTime = timestamp;
+            let elapsed = timestamp - lastTime;
+            const frameTime = 16.66; // 60FPSの1フレームあたりのミリ秒
+            let updates = 0;
+
+            // タブの切り替えなどで長時間放置された場合のスパイク対策（最大200ms分まで）
+            if (elapsed > 200) { lastTime = timestamp; elapsed = 0; }
+
+            // 経過した時間分だけ物理演算を回して追いつく（最大5回まで）
+            while (elapsed >= frameTime && updates < 5) {
+                frameCount++;
+                updateGame();
+                elapsed -= frameTime;
+                lastTime += frameTime;
+                updates++;
+            }
+
+            // 物理演算が1回でも行われたら描画を更新
+            if (updates > 0) {
+                drawGame();
+            }
         }
 
         function updateGame() {
@@ -2077,7 +2146,12 @@
 
             // 風の処理
             const cx = Math.floor(player.x + player.w/2), cy = Math.floor(player.y + player.h/2);
-            if(activeStage[cy] && activeStage[cy][cx] === 'W') player.vx += 0.012;
+            if(activeStage[cy]) {
+                const tile = activeStage[cy][cx];
+                if(tile === 'W') player.vx += 0.012;
+                if(tile === 'L') player.vx -= 0.012;
+                if(tile === 'U') player.vy -= 0.025; // 重力(0.015)を打ち消して浮き上がる
+            }
 
             // 奈落判定
             if (player.y > GRID_H - 0.5) {
@@ -2123,10 +2197,42 @@
             // 敵の更新
             enemies.forEach(en => {
                 if(en.dead) return;
-                en.vy += 0.015; en.y += en.vy;
-                if(isEnemyCollide(en.x, en.y)) { en.y = Math.floor(en.y); en.vy = 0; }
+
+                const ex_tile = Math.floor(en.x + 0.5);
+                const ey_tile = Math.floor(en.y + 0.5);
+                const current_tile = activeStage[ey_tile] ? activeStage[ey_tile][ex_tile] : null;
+                const foot_tile = activeStage[Math.floor(en.y + 1)] ? activeStage[Math.floor(en.y + 1)][ex_tile] : null;
+
+                // 風・ギミックの影響
+                if(current_tile === 'W') en.vx += 0.01;
+                if(current_tile === 'L') en.vx -= 0.01;
+                if(current_tile === 'U') en.vy -= 0.025;
+                if(current_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); // トロールの中で跳ねる
+                if(foot_tile === 'T' && en.vy > 0) en.vy = -0.4; // トランポリン
+
+                // 垂直方向の更新（スムーズ化）
+                en.vy += 0.015;
+                let nextY = en.y + en.vy;
+                if (isEnemyCollide(en.x, nextY)) {
+                    if (en.vy > 0) en.y = Math.floor(nextY); // 地面でスナップ
+                    en.vy = 0;
+                } else {
+                    en.y = nextY;
+                }
+
                 en.x += en.vx;
-                if(isEnemyCollide(en.x, en.y)) { en.vx *= -1; en.x += en.vx; }
+                if(isEnemyCollide(en.x, en.y)) {
+                    // 壁（BやX）に当たった時の反転処理
+                    const side_tile = activeStage[ey_tile] ? activeStage[ey_tile][Math.floor(en.x + (en.vx > 0 ? 0.8 : 0.2))] : null;
+                    if(side_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); 
+                    else en.vx *= -1;
+                    en.x += en.vx;
+                }
+                
+                // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
+                en.vx *= 0.98;
+                if(Math.abs(en.vx) < 0.04) en.vx = (en.vx >= 0 ? 0.04 : -0.04);
+
                 const px = player.x + player.w/2, py = player.y + player.h/2;
                 const ex = en.x + 0.5, ey = en.y + 0.5;
                 if (Math.abs(px - ex) < 0.7 && Math.abs(py - ey) < 0.7) {
@@ -2142,13 +2248,27 @@
             if (frameCount % 120 === 0) {
                 for(let y=0; y<GRID_H; y++) {
                     for(let x=0; x<GRID_W; x++) {
-                        if(activeStage[y][x] === 'A') arrows.push({x: x, y: y + 0.4, vx: -0.15});
+                        if(activeStage[y][x] === 'A') arrows.push({x: x, y: y + 0.4, vx: -0.15, vy: 0});
                     }
                 }
             }
             arrows.forEach((a, i) => {
-                a.x += a.vx;
-                if(a.x < 0 || isCollide(a.x, a.y)) arrows.splice(i, 1);
+                // 矢にも風の影響を適用
+                const ax_tile = Math.floor(a.x), ay_tile = Math.floor(a.y);
+                if(activeStage[ay_tile]) {
+                    const tile = activeStage[ay_tile][ax_tile];
+                    if(tile === 'W') a.vx += 0.008;
+                    if(tile === 'L') a.vx -= 0.008;
+                    if(tile === 'U') a.vy -= 0.005;
+                }
+                
+                a.x += a.vx; a.y += a.vy;
+                
+                // 壁にあたったら消える（先端の1点のみで判定）
+                const checkX = Math.floor(a.x), checkY = Math.floor(a.y);
+                const hitWall = activeStage[checkY] && (activeStage[checkY][checkX] === 'B' || activeStage[checkY][checkX] === 'X');
+                
+                if(a.x < 0 || a.x > GRID_W || hitWall) arrows.splice(i, 1);
                 if(Math.abs(a.x - player.x) < 0.5 && Math.abs(a.y - player.y) < 0.5) handlePlayerDeath();
             });
 
@@ -2161,6 +2281,13 @@
                 if (gameMode === 'test') {
                     isClearChecked = true;
                     showMessage("CHECK OK!", "ステージを完走しました！投稿が可能です。");
+                    callApi('updateSkins', {
+                        username: CONFIG.USERNAME,
+                        gold: userGold,
+                        purchasedSkins: purchasedSkins,
+                        equippedSkin: equippedSkin,
+                        equippedColor: equippedColor
+                    });
                 } else {
                     showReward();
                 }
@@ -2180,7 +2307,7 @@
         }
 
         function isEnemyCollide(x, y) {
-            const ix = Math.floor(x + 0.5), iy = Math.floor(y + 0.9);
+            const ix = Math.floor(x + 0.5), iy = Math.floor(y + 0.99); // 判定を足元ギリギリに
             if (ix < 0 || ix >= GRID_W || iy >= GRID_H) return true;
             if (iy < 0) return false;
             const tile = activeStage[iy][ix];
@@ -2254,7 +2381,7 @@
             const ch = canvas.height / GRID_H;
             
             const time = Date.now() * 0.002;
-            ctx.fillStyle = "#4fc3f7";
+            ctx.fillStyle = "#70a1ff";
             ctx.fillRect(0,0,canvas.width, canvas.height);
 
             for(let y=0; y<GRID_H; y++){
