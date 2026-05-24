@@ -1984,8 +1984,8 @@
                 document.getElementById('editor-screen').style.display = 'block';
                 drawEditor();
             } else {
-                // プレイモード終了時はリロードせずリストを表示
-                document.getElementById('stage-list-overlay').style.display = 'flex';
+                // プレイモード終了時はリストを再描画して最新の状態（タイム等）を反映
+                openStageSelect();
             }
         }
 
@@ -2033,7 +2033,15 @@
             // UIを即座に更新して表示
             document.getElementById('reward-amount').innerText = `${rewardGold} G`;
             document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(3)}s)`;
-            document.getElementById('reward-overlay').style.display = 'flex';
+            
+            const rewardOverlay = document.getElementById('reward-overlay');
+            const okBtn = rewardOverlay.querySelector('button[onclick="closeReward()"]');
+            rewardOverlay.style.display = 'flex';
+            if (okBtn) {
+                okBtn.disabled = true;
+                okBtn.innerText = "SAVING...";
+            }
+
             cancelAnimationFrame(gameLoopId);
 
             // 通信の競合を防ぐため、順序立てて保存を実行
@@ -2050,6 +2058,7 @@
                         customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
                         gold: userGold 
                     });
+                    cachedStages = null; // タイム更新を確実に反映させるためキャッシュをクリア
                 }
                 
                 // 次に、購入済みスキンリスト等を含む全体の状態を同期
