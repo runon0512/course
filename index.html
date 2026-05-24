@@ -2046,7 +2046,15 @@
         async function showReward() {
             // タイムを小数第三位まで計算
             const now = Date.now();
-            const clearTime = (startTime > 0) ? Number(((now - startTime) / 1000).toFixed(3)) : 0;
+            const clearTime = (startTime > 0) ? Number(((now - startTime) / 1000).toFixed(3)) : 0.001;
+
+            // ゴール到達時の位置を最後に記録
+            currentGhostData.push({
+                x: Math.round(player.x * 100) / 100, 
+                y: Math.round(player.y * 100) / 100, 
+                f: player.facing
+            });
+
             let rewardGold = 100;
             const stageId = currentStageData ? (currentStageData.id || currentStageData.name) : null;
 
@@ -2078,8 +2086,8 @@
                     await callApi('recordClear', { 
                         stageId: stageId, 
                         username: CONFIG.USERNAME, 
-                        time: clearTime, 
-                        ghost: currentGhostData,
+                        time: clearTime || 0.001, 
+                        ghost: currentGhostData.slice(0, 1500), // データ肥大化による送信失敗（5万文字制限等）を防止
                         skin: equippedSkin,
                         color: equippedColor,
                         customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
@@ -2173,6 +2181,12 @@
                     isCountingDown = false;
                     startTime = Date.now();
                     frameCount = 0;
+                    // スタート位置を記録
+                    currentGhostData.push({
+                        x: Math.round(player.x * 100) / 100, 
+                        y: Math.round(player.y * 100) / 100, 
+                        f: player.facing
+                    });
                 keys = {}; // 全ての先行入力をリセット
                 return; // 最初のフレームは初期化のみで終了し、次フレームから物理演算を開始
                 }
