@@ -1758,9 +1758,9 @@
             else { alert("保存データが見つかりません。"); }
         }
 
-        async function deletePublishedStage(stageId) {
-            if (CONFIG.USERNAME !== 'Runon') {
-                alert("この操作はRunonのみ実行できます。");
+        async function deletePublishedStage(stageId, creator) {
+            if (CONFIG.USERNAME !== 'Runon' && creator !== CONFIG.USERNAME) {
+                alert("自分の投稿したステージ、または管理者のみ削除できます。");
                 return;
             }
             if (!confirm("本当にこのステージを削除しますか？")) return;
@@ -1838,15 +1838,16 @@
                 const sId = s.id || s.name;
                 const isFav = favoriteStages.includes(sId);
                 const isPickUp = s.creator === 'SYSTEM';
-                if (isPickUp) div.style.borderColor = '#ffc107';
-                
+            
                 // クリア率に応じた難易度バッジの計算 (5回以上プレイ時のみ)
                 const crNum = s.attempts >= 5 ? ((s.clears || 0) / s.attempts * 100) : 100;
                 let diffBadge = "";
+                let isUnknown = false;
                 if (s.attempts >= 5) {
                     if (crNum <= 0.1) {
-                        // るのん級: 水色、白、紺
-                        diffBadge = '<span style="background:linear-gradient(45deg, #87ceeb, #ffffff, #000080); color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; text-shadow:1px 1px 2px #000; border:1px solid #fff;">るのん級</span>';
+                    // 未知の領域: 黒背景に赤枠
+                    isUnknown = true;
+                    diffBadge = '<span style="background:#000; color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000;">未知の領域</span>';
                     } else if (crNum <= 1) {
                         // 神: 白と黄色
                         diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000;">神</span>';
@@ -1862,15 +1863,26 @@
                     }
                 }
 
+            if (isUnknown) {
+                div.style.background = "#000";
+                div.style.borderColor = "#ff0000";
+                div.style.boxShadow = "inset 0 0 20px rgba(255, 0, 0, 0.4)";
+            }
+                if (isPickUp && !isUnknown) div.style.borderColor = '#ffc107';
+            
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
                 canvas.width = 200; // プレビュー解像度
                 canvas.height = 100;
                 
                 const clearRate = s.attempts > 0 ? ((s.clears || 0) / s.attempts * 100).toFixed(1) : "0.0";
+                const myRank = s.leaderboard ? s.leaderboard.findIndex(r => r.name === CONFIG.USERNAME) + 1 : 0;
                 const bestRecord = s.leaderboard && s.leaderboard.length > 0 ? 
                     `<div style="font-size:0.9cqw; color:#f1c40f; margin-top:0.3cqh;">🏆 1st: ${s.leaderboard[0].time.toFixed(3)}s (${s.leaderboard[0].name})</div>` : 
                     "";
+                const myRecord = myRank > 0 ? 
+                    `<div style="font-size:0.9cqw; color:#00ff41; margin-top:0.3cqh;">🚩 Your Rank: ${myRank}位 (${s.leaderboard[myRank-1].time.toFixed(3)}s)</div>` : 
+                    `<div style="font-size:0.9cqw; color:#888; margin-top:0.3cqh;">🚩 Your Rank: 未クリア</div>`;
                 
                 const currentStageReward = calculateStageRewardValue(s, CONFIG.USERNAME);
 
@@ -1892,16 +1904,14 @@
                     <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
                     <div class="stage-stats">
                         Clear: <span class="stat-val">${clearRate}%</span> | 👍 <span class="stat-val">${s.upvotes || 0}</span> | 👎 <span class="stat-val">${s.downvotes || 0}</span> | 💰 <span class="stat-val">${currentStageReward} G</span>
-                        ${CONFIG.USERNAME === 'Runon' ? `
+                        ${(CONFIG.USERNAME === 'Runon' || s.creator === CONFIG.USERNAME) ? `
                             <button class="pixel-btn small" style="background:#f44336; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
-                                onclick="event.stopPropagation(); deletePublishedStage('${s.id}')">🗑️削除</button>
+                                onclick="event.stopPropagation(); deletePublishedStage('${sId}', '${s.creator}')">🗑️削除</button>
                         ` : ''}
-                        ${CONFIG.USERNAME === 'Runon' ? `
-                            <button class="pixel-btn small" style="background:#00bcd4; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
-                                onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${sId}'), 'play')">▶️プレイ</button>
-                        ` : ''}
+                        <button class="pixel-btn small" style="background:#00bcd4; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
+                            onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${sId}'), 'play')">▶️プレイ</button>
                     </div>
-                    ${bestRecord}
+                    <div style="display:flex; gap:2cqw; flex-wrap:wrap;">${bestRecord}${myRecord}</div>
                 `;
                 
                 div.appendChild(canvas);
@@ -1955,7 +1965,9 @@
             }
 
             activeStage = JSON.parse(JSON.stringify(stageObj.data));
-            playbackGhosts = stageObj.leaderboard || [];
+            // 確実にタイムが速い順にソートしてから上位5件を取得
+            playbackGhosts = [...(stageObj.leaderboard || [])]
+                .sort((a, b) => a.time - b.time).slice(0, 5);
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             resizeCanvas('game-canvas');
@@ -1963,6 +1975,7 @@
             // 状態リセット
             frameCount = 0;
             isCountingDown = true;
+            startTime = 0;
             countdownStartTime = Date.now();
             currentGhostData = [];
             document.getElementById('btn-upvote').style.opacity = "1";
@@ -2032,7 +2045,8 @@
 
         async function showReward() {
             // タイムを小数第三位まで計算
-            const clearTime = Number(((Date.now() - startTime) / 1000).toFixed(3));
+            const now = Date.now();
+            const clearTime = (startTime > 0) ? Number(((now - startTime) / 1000).toFixed(3)) : 0;
             let rewardGold = 100;
             const stageId = currentStageData ? (currentStageData.id || currentStageData.name) : null;
 
@@ -2069,19 +2083,11 @@
                         skin: equippedSkin,
                         color: equippedColor,
                         customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
-                        gold: userGold 
+                        gold: userGold,
+                        purchasedSkins: purchasedSkins // 1回の通信で全ての状態を更新
                     });
                     cachedStages = null; // タイム更新を確実に反映させるためキャッシュをクリア
                 }
-                
-                // 次に、購入済みスキンリスト等を含む全体の状態を同期
-                await callApi('updateSkins', {
-                    username: CONFIG.USERNAME,
-                    gold: userGold,
-                    purchasedSkins: purchasedSkins,
-                    equippedSkin: equippedSkin,
-                    equippedColor: equippedColor
-                });
             } catch (e) {
                 console.error("通信エラー:", e);
             } finally {
@@ -2184,7 +2190,12 @@
             player.vx *= 0.9; // 摩擦を少し弱めて慣性を出す
 
             // ゴースト用の記録（5フレームに1回）
-            if (frameCount % 5 === 0) currentGhostData.push({x: player.x, y: player.y, f: player.facing});
+            // 通信量を減らすため、座標の精度を小数点第2位までに抑える
+            if (frameCount % 5 === 0) currentGhostData.push({
+                x: Math.round(player.x * 100) / 100, 
+                y: Math.round(player.y * 100) / 100, 
+                f: player.facing
+            });
 
             // 風の処理
             const cx = Math.floor(player.x + player.w/2), cy = Math.floor(player.y + player.h/2);
