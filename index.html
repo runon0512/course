@@ -1473,6 +1473,15 @@
             ctx.clearRect(0,0,canvas.width,canvas.height);
             for(let y=0; y<16; y++) {
                 for(let x=0; x<16; x++) {
+                    // 各マスの中に2x2の細かいチェッカー模様を描画（透明色のインジケータ）
+                    const sub = pz / 2;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(x * pz, y * pz, sub, sub);
+                    ctx.fillRect(x * pz + sub, y * pz + sub, sub, sub);
+                    ctx.fillStyle = "#cccccc";
+                    ctx.fillRect(x * pz + sub, y * pz, sub, sub);
+                    ctx.fillRect(x * pz, y * pz + sub, sub, sub);
+
                     if (currentEditingSprite[y][x]) {
                         ctx.fillStyle = currentEditingSprite[y][x];
                         ctx.fillRect(x*pz, y*pz, pz, pz);
