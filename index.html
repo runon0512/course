@@ -736,7 +736,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyxICuhCPoiBfdrMmTCGEkMT5rWE7oCuafsIYOBBZZgaEk7DrZ6Ssn9QpkKuuk7KM6_/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzmAkY0roUQMYmOwx838LelUxxf-3tUAgP-lixveQ7QMKkkrE_EhNVo2FE_qTxDjBTc/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -1391,11 +1391,23 @@
             });
         }
 
-        function confirmEquip(btn) {
-            // 通信は行わず、ローカルの状態のみ更新する (クリア時にまとめて通信)
+        async function confirmEquip(btn) {
+            btn.disabled = true;
+            btn.innerText = "SAVING...";
+
             equippedSkin = tempSelectedSkin;
             equippedColor = tempSelectedColor;
 
+            // 装備変更を即座にサーバーへ保存（いつでも反映されるように）
+            await callApi('updateSkins', { 
+                username: CONFIG.USERNAME, 
+                gold: userGold, 
+                purchasedSkins: purchasedSkins,
+                equippedSkin: equippedSkin,
+                equippedColor: equippedColor
+            });
+
+            btn.disabled = false;
             btn.innerText = "装備しました！";
             btn.style.backgroundColor = "var(--primary-color)";
             btn.style.color = "#000";
@@ -2022,8 +2034,9 @@
             // タイムを小数第三位まで計算
             const clearTime = Number(((Date.now() - startTime) / 1000).toFixed(3));
             let rewardGold = 100;
+            const stageId = currentStageData ? (currentStageData.id || currentStageData.name) : null;
 
-            if (currentStageData && currentStageData.id !== undefined) {
+            if (stageId) {
                 rewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
             }
             
@@ -2046,10 +2059,10 @@
 
             // 通信の競合を防ぐため、順序立てて保存を実行
             try {
-                if (currentStageData && currentStageData.id !== undefined) {
+                if (stageId) {
                     // 最優先：タイムとクリア情報の記録
                     await callApi('recordClear', { 
-                        stageId: currentStageData.id, 
+                        stageId: stageId, 
                         username: CONFIG.USERNAME, 
                         time: clearTime, 
                         ghost: currentGhostData,
@@ -2071,6 +2084,11 @@
                 });
             } catch (e) {
                 console.error("通信エラー:", e);
+            } finally {
+                if (okBtn) {
+                    okBtn.disabled = false;
+                    okBtn.innerText = "OK";
+                }
             }
         }
 
