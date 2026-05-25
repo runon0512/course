@@ -262,6 +262,7 @@
         .pixel-btn {
             background-color: #000;
             border: 0.5cqw solid #fff;
+            border: 0.3cqw solid #fff;
             color: var(--text-color);
             padding: 2% 5%;
             font-family: 'Press Start 2P', cursive;
@@ -272,6 +273,7 @@
             width: auto;
             min-width: 18cqw;
             box-shadow: 0.8cqw 0.8cqw 0px rgba(0, 0, 0, 0.5);
+            box-shadow: none;
         }
 
         .pixel-btn.small {
@@ -412,6 +414,8 @@
             padding: 1cqw;
             border: 0.2cqw solid #fff;
             z-index: 40;
+            max-width: 95%;
+            overflow-x: auto;
         }
 
         .toolbar-label {
@@ -435,6 +439,7 @@
             padding: 0.2cqw;
             box-sizing: border-box;
             transition: transform 0.1s;
+            flex-shrink: 0;
         }
 
         .tool-btn.active { border-color: var(--primary-color); background: #333; }
@@ -450,6 +455,11 @@
         .tool-start { background: #2e7d32; }
         .tool-goal { background: #d32f2f; }
         .tool-eraser { background: #757575; }
+        .tool-switch { background: #f1c40f; }
+        .tool-red { background: #ff5252; }
+        .tool-blue { background: #448aff; }
+        .tool-red-spike { background: #ff5252; }
+        .tool-blue-spike { background: #448aff; }
 
         #game-canvas {
             width: 100%;
@@ -584,7 +594,7 @@
         <h1>Pixel Stages</h1>
         <div style="position: absolute; top: 42%; left: 0; width: 100%; text-align: center; font-size: 1cqw; color: #fff; z-index: 5; opacity: 0.8;">Created by Ajitama chi ̄ taka shioshio shioshio toppingu Aji-to Aji-to</div>
         <div id="main-menu" class="menu">
-            <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
+            <button class="pixel-btn" onclick="openStageSelect(true)">プレイ</button>
             <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
             <button class="pixel-btn" onclick="openLocker()">ロッカー</button>
             <button class="pixel-btn" onclick="openShop()">ショップ</button>
@@ -703,6 +713,11 @@
                     <div class="tool-btn tool-speed" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-bridge" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-enemy" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-switch" onclick="setTool('!', this)" title="ON/OFF SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-red" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-blue" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-red-spike" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-blue-spike" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
                 </div>
             </div>
@@ -760,7 +775,8 @@
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false;
         let gameLoopId = null;
-        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right' };
+        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false };
+        let isSwitchOn = true;
         let keys = {};
         let activeStage = [];
         let currentStageData = null; // 現在プレイ中のステージ情報
@@ -1308,10 +1324,16 @@
             body.innerHTML = "";
             const sortedRecords = (stage.leaderboard || []).sort((a, b) => a.time - b.time);
             
+            let currentRank = 0;
+            let lastTime = -1;
             sortedRecords.forEach((rec, idx) => {
+                if (rec.time !== lastTime) {
+                    currentRank = idx + 1;
+                    lastTime = rec.time;
+                }
                 body.innerHTML += `
                     <tr style="border-bottom: 0.1cqw solid #444;">
-                        <td style="padding: 1.5cqh;">${idx + 1}</td>
+                        <td style="padding: 1.5cqh;">${currentRank}</td>
                         <td style="padding: 1.5cqh; color: var(--primary-color);">${rec.name}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
                     </tr>`;
@@ -1540,7 +1562,8 @@
         }
 
         function renderToolIcons() {
-            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', 'M', 'E'];
+            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', 'M', '!', 'r', 'b', 'k', 'q', 'E'];
+            const originalSwitchState = isSwitchOn;
             tools.forEach(type => {
                 const canvas = document.getElementById(`icon-${type}`);
                 if (!canvas) return;
@@ -1548,8 +1571,14 @@
                 canvas.height = 60;
                 const ctx = canvas.getContext('2d');
                 if (type === 'E') drawEraserIcon(ctx, 60, 60);
-                else drawTile(ctx, 0, 0, 60, 60, type);
+                else {
+                    // アイコン描画時は常に「実体」の状態で表示する
+                    if (type === 'r' || type === 'k' || type === '!') isSwitchOn = true;
+                    if (type === 'b' || type === 'q') isSwitchOn = false;
+                    drawTile(ctx, 0, 0, 60, 60, type);
+                }
             });
+            isSwitchOn = originalSwitchState;
         }
 
         function setTool(type, btn) {
@@ -1657,13 +1686,11 @@
             } else if(type === 'K') {
                 // スパイク
                 ctx.fillStyle = "#78909c";
-                for(let i=0; i<3; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(x*cw + i*cw/3, y*ch + ch);
-                    ctx.lineTo(x*cw + (i+0.5)*cw/3, y*ch + ch*0.4);
-                    ctx.lineTo(x*cw + (i+1)*cw/3, y*ch + ch);
-                    ctx.fill();
-                }
+                ctx.beginPath();
+                ctx.moveTo(x*cw + pad, y*ch + ch - pad);
+                ctx.lineTo(x*cw + cw/2, y*ch + pad);
+                ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                ctx.fill();
             } else if(type === 'A') {
                 // 弓発射台
                 ctx.fillStyle = "#455a64";
@@ -1744,6 +1771,74 @@
                 ctx.fillStyle = "#fff";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
+            } else if(type === '!') {
+                // ON/OFFスイッチ
+                ctx.fillStyle = isSwitchOn ? "#ff5252" : "#448aff";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#fff";
+                ctx.font = `bold ${ch*0.6}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText(isSwitchOn ? "R" : "B", x*cw + cw/2, y*ch + ch*0.75);
+            } else if(type === 'r') {
+                // 赤ブロック
+                if (!isSwitchOn) {
+                    ctx.setLineDash([5, 5]); // 点線
+                    ctx.strokeStyle = "#ff5252";
+                    ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                    ctx.setLineDash([]); // リセット
+                } else {
+                    ctx.fillStyle = "#ff5252";
+                    ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                }
+            } else if(type === 'b') {
+                // 青ブロック
+                if (isSwitchOn) {
+                    ctx.setLineDash([5, 5]); // 点線
+                    ctx.strokeStyle = "#448aff";
+                    ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                    ctx.setLineDash([]); // リセット
+                } else {
+                    ctx.fillStyle = "#448aff";
+                    ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                }
+            } else if(type === 'k') {
+                // 赤スパイク
+                if (isSwitchOn) {
+                    ctx.fillStyle = "#ff5252";
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + pad, y*ch + ch - pad);
+                    ctx.lineTo(x*cw + cw/2, y*ch + pad);
+                    ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                    ctx.fill();
+                } else {
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = "#ff5252";
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + pad, y*ch + ch - pad);
+                    ctx.lineTo(x*cw + cw/2, y*ch + pad);
+                    ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                    ctx.closePath(); ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            } else if(type === 'q') {
+                // 青スパイク
+                if (!isSwitchOn) {
+                    ctx.fillStyle = "#448aff";
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + pad, y*ch + ch - pad);
+                    ctx.lineTo(x*cw + cw/2, y*ch + pad);
+                    ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                    ctx.fill();
+                } else {
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = "#448aff";
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + pad, y*ch + ch - pad);
+                    ctx.lineTo(x*cw + cw/2, y*ch + pad);
+                    ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                    ctx.closePath(); ctx.stroke();
+                    ctx.setLineDash([]);
+                }
             }
         }
 
@@ -1835,9 +1930,10 @@
             sortedStages.forEach(s => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
-                const sId = s.id || s.name;
+                const sId = String(s.id || s.name);
                 const isFav = favoriteStages.includes(sId);
                 const isPickUp = s.creator === 'SYSTEM';
+                const escapedId = sId.replace(/'/g, "\\'");
             
                 // クリア率に応じた難易度バッジの計算 (5回以上プレイ時のみ)
                 const crNum = s.attempts >= 5 ? ((s.clears || 0) / s.attempts * 100) : 100;
@@ -1847,19 +1943,19 @@
                     if (crNum <= 0.1) {
                     // 未知の領域: 黒背景に赤枠
                     isUnknown = true;
-                    diffBadge = '<span style="background:#000; color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000;">未知の領域</span>';
+                    diffBadge = '<span style="background:#000; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000; margin-right:0.5cqw;">未知</span>';
                     } else if (crNum <= 1) {
                         // 神: 白と黄色
-                        diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000;">神</span>';
+                        diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">神</span>';
                     } else if (crNum <= 3) {
                         // 鬼: 赤黒
-                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #000000); color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px; border:1px solid #ff0000;">鬼</span>';
+                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #000000); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; border:1px solid #ff0000; margin-right:0.5cqw;">鬼</span>';
                     } else if (crNum <= 10) {
                         // 超難関: 赤と紫
-                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #800080); color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px;">超難関</span>';
+                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #800080); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">超難関</span>';
                     } else if (crNum <= 25) {
                         // 難関: 紫
-                        diffBadge = '<span style="background:#800080; color:#fff; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px;">難関</span>';
+                        diffBadge = '<span style="background:#800080; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">難関</span>';
                     }
                 }
 
@@ -1876,42 +1972,66 @@
                 canvas.height = 100;
                 
                 const clearRate = s.attempts > 0 ? ((s.clears || 0) / s.attempts * 100).toFixed(1) : "0.0";
-                const myRank = s.leaderboard ? s.leaderboard.findIndex(r => r.name === CONFIG.USERNAME) + 1 : 0;
-                const bestRecord = s.leaderboard && s.leaderboard.length > 0 ? 
-                    `<div style="font-size:0.9cqw; color:#f1c40f; margin-top:0.3cqh;">🏆 1st: ${s.leaderboard[0].time.toFixed(3)}s (${s.leaderboard[0].name})</div>` : 
-                    "";
-                const myRecord = myRank > 0 ? 
-                    `<div style="font-size:0.9cqw; color:#00ff41; margin-top:0.3cqh;">🚩 Your Rank: ${myRank}位 (${s.leaderboard[myRank-1].time.toFixed(3)}s)</div>` : 
-                    `<div style="font-size:0.9cqw; color:#888; margin-top:0.3cqh;">🚩 Your Rank: 未クリア</div>`;
+                
+                // 順位表示ロジックの改善
+                const lb = s.leaderboard || [];
+                const topTime = lb.length > 0 ? lb[0].time : null;
+                const topPlayers = lb.filter(r => r.time === topTime);
+                const myRec = lb.find(r => r.name === CONFIG.USERNAME);
+                
+                let myRankDisp = "未クリア";
+                if (myRec) {
+                    if (topTime !== null && myRec.time === topTime) {
+                        myRankDisp = "1位";
+                    } else {
+                        const betterCount = lb.filter(r => r.time < myRec.time).length;
+                        myRankDisp = (betterCount + 1) + "位";
+                    }
+                }
+
+                let bestRecordHtml = "";
+                if (lb.length > 0) {
+                    const namesStr = topPlayers.length > 1 ? `${topPlayers[0].name} 他${topPlayers.length - 1}名` : topPlayers[0].name;
+                    bestRecordHtml = `<div style="font-size:0.85cqw; color:#f1c40f; margin-top:0.5cqh;">🏆 1st: ${topTime.toFixed(3)}s`;
+                    if (topPlayers.length > 1) {
+                        bestRecordHtml += ` <button class="pixel-btn small" style="font-size:0.65cqw; padding:1px 4px; min-width:unset; background:#ffc107; color:#000; vertical-align:middle;" onclick="event.stopPropagation(); showTiedPlayers('${escapedId}')">同着</button>`;
+                    }
+                    bestRecordHtml += ` <span style="font-size:0.75cqw; color:#aaa;">(${namesStr})</span></div>`;
+                }
+                const myRecordHtml = `<div style="font-size:0.85cqw; color:#00ff41; margin-top:0.2cqh;">🚩 Your Rank: ${myRankDisp}${myRec ? ` (${myRec.time.toFixed(3)}s)` : ''}</div>`;
                 
                 const currentStageReward = calculateStageRewardValue(s, CONFIG.USERNAME);
 
                 const favBtn = `<span onclick="toggleFavorite('${sId}', event)" style="cursor:pointer; font-size:2cqw; color:${isFav ? '#e91e63' : '#666'}; line-height:1;">${isFav ? '★' : '☆'}</span>`;
 
                 const info = document.createElement('div');
-                info.style.flex = "1";
+                info.style.cssText = "flex: 1; display: flex; flex-direction: column; gap: 0.5cqh; min-width: 0;";
                 info.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="color:var(--primary-color)">
-                            <div style="display:inline-flex; align-items:center;">
-                                ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.8cqw; padding:0.2cqh 0.5cqw; margin-right:1cqw; vertical-align:middle; border-radius:2px;">Pick up!</span>' : ''}
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div style="color:var(--primary-color); flex:1; min-width:0;">
+                            <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.4cqw;">
+                                ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">Pick up!</span>' : ''}
                                 ${diffBadge}
+                                <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
-                            ${s.name}
+                            <div style="font-size:0.8cqw; color:#aaa;">by ${s.creator}</div>
                         </div>
                         ${favBtn}
                     </div>
-                    <div style="font-size:1cqw; color:#aaa">by ${s.creator}</div>
-                    <div class="stage-stats">
-                        Clear: <span class="stat-val">${clearRate}%</span> | 👍 <span class="stat-val">${s.upvotes || 0}</span> | 👎 <span class="stat-val">${s.downvotes || 0}</span> | 💰 <span class="stat-val">${currentStageReward} G</span>
-                        ${(CONFIG.USERNAME === 'Runon' || s.creator === CONFIG.USERNAME) ? `
-                            <button class="pixel-btn small" style="background:#f44336; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
-                                onclick="event.stopPropagation(); deletePublishedStage('${sId}', '${s.creator}')">🗑️削除</button>
-                        ` : ''}
-                        <button class="pixel-btn small" style="background:#00bcd4; color:#fff; padding: 0.5cqh 1cqw; margin-left: 1cqw;" 
-                            onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${sId}'), 'play')">▶️プレイ</button>
+                    <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
+                        Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span>
                     </div>
-                    <div style="display:flex; gap:2cqw; flex-wrap:wrap;">${bestRecord}${myRecord}</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
+                        <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
+                            onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
+                        <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
+                            onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
+                        ${(CONFIG.USERNAME === 'Runon' || s.creator === CONFIG.USERNAME) ? `
+                            <button class="pixel-btn small" style="background:#f44336; color:#fff;" 
+                                onclick="event.stopPropagation(); deletePublishedStage('${escapedId}', '${s.creator}')">🗑️削除</button>
+                        ` : ''}
+                    </div>
+                    <div style="display:flex; flex-direction:column;">${bestRecordHtml}${myRecordHtml}</div>
                 `;
                 
                 div.appendChild(canvas);
@@ -1955,6 +2075,8 @@
         function startGame(stageObj, mode = 'play') {
             gameMode = mode;
             currentStageData = stageObj;
+            isSwitchOn = true;
+            player.onSwitch = false;
 
             if (mode === 'play') {
                 closeStageSelect();
@@ -1987,7 +2109,7 @@
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
                     if(activeStage[y][x] === 'M') {
-                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false});
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false});
                         activeStage[y][x] = null; // スポーン後はグリッドから削除
                     }
                 }
@@ -2199,6 +2321,10 @@
             if (keys['ArrowLeft']) { player.vx -= speed; player.facing = 'left'; }
             if (keys['ArrowRight']) { player.vx += speed; player.facing = 'right'; }
             if (keys['Space'] && player.onGround) { player.vy = jumpForce; player.onGround = false; }
+            
+            // キーによるオンオフ切り替え
+            if (keys['KeyR']) isSwitchOn = true;
+            if (keys['KeyB']) isSwitchOn = false;
 
             player.vy += gravity;
             player.vx *= 0.9; // 摩擦を少し弱めて慣性を出す
@@ -2254,6 +2380,14 @@
                 player.y = nextY;
                 player.onGround = false;
             } else {
+                // 頭をぶつけた時にスイッチ判定（上方向への移動中）
+                if (player.vy < 0) {
+                    const gx = Math.floor(player.x + player.w/2);
+                    const headY = Math.floor(nextY);
+                    if (activeStage[headY] && activeStage[headY][gx] === '!') {
+                        if (!player.onSwitch) { isSwitchOn = !isSwitchOn; player.onSwitch = true; }
+                    }
+                }
                 if(player.vy > 0) player.onGround = true;
                 player.vy = 0;
             }
@@ -2277,23 +2411,56 @@
                 if(current_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); // トロールの中で跳ねる
                 if(foot_tile === 'T' && en.vy > 0) en.vy = -0.4; // トランポリン
 
-                // 垂直方向の更新（スムーズ化）
-                en.vy += 0.015;
-                let nextY = en.y + en.vy;
-                if (isEnemyCollide(en.x, nextY)) {
-                    if (en.vy > 0) en.y = Math.floor(nextY); // 地面でスナップ
-                    en.vy = 0;
+                // 横移動
+                let nextX = en.x + en.vx;
+                if (!isEnemyCollide(nextX, en.y)) {
+                    en.x = nextX;
                 } else {
-                    en.y = nextY;
+                    // 壁に当たったら反転。Xブロックの場合は弾かれる。
+                    const egx = Math.floor(en.x + (en.vx > 0 ? 0.9 : 0));
+                    const egy = Math.floor(en.y + 0.5);
+                    if (activeStage[egy] && activeStage[egy][egx] === 'X') {
+                        en.vx = (en.vx > 0 ? -0.5 : 0.5);
+                    } else {
+                        en.vx *= -1;
+                    }
                 }
 
-                en.x += en.vx;
-                if(isEnemyCollide(en.x, en.y)) {
-                    // 壁（BやX）に当たった時の反転処理
-                    const side_tile = activeStage[ey_tile] ? activeStage[ey_tile][Math.floor(en.x + (en.vx > 0 ? 0.8 : 0.2))] : null;
-                    if(side_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); 
-                    else en.vx *= -1;
-                    en.x += en.vx;
+                // 垂直移動
+                en.vy += 0.015;
+                let nextY = en.y + en.vy;
+                let collidedY = isEnemyCollide(en.x, nextY);
+                let isBridge = false;
+
+                // 橋（下から抜けられる足場）の判定
+                if (!collidedY && en.vy >= 0) {
+                    let footY = en.y + 0.9;
+                    let nextFootY = nextY + 0.9;
+                    let ix = Math.floor(en.x + 0.45), iy = Math.floor(nextFootY);
+                    if (activeStage[iy] && activeStage[iy][ix] === 'H' && footY <= iy + 0.1) {
+                        collidedY = true;
+                        nextY = iy - 0.9;
+                        isBridge = true;
+                    }
+                }
+
+                if (collidedY) {
+                    // スイッチ判定（頭をぶつけた時）
+                    if (en.vy < 0) {
+                        const egx = Math.floor(en.x + 0.45);
+                        const eheadY = Math.floor(nextY);
+                        if (activeStage[eheadY] && activeStage[eheadY][egx] === '!') {
+                            if (!en.onSwitch) { isSwitchOn = !isSwitchOn; en.onSwitch = true; }
+                        }
+                    }
+                    if (en.vy > 0) en.y = nextY;
+                    en.vy = 0;
+                } else {
+                    // スイッチ状態リセット
+                    const egx = Math.floor(en.x + 0.45);
+                    const egy = Math.floor(en.y + 0.45);
+                    if (!activeStage[egy] || activeStage[egy][egx] !== '!') en.onSwitch = false;
+                    en.y = nextY;
                 }
                 
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
@@ -2363,20 +2530,46 @@
             const gx = Math.floor(player.x + player.w/2);
             const gy = Math.floor(player.y + player.h/2);
             const footY = Math.floor(player.y + player.h);
+            
             const tile = activeStage[gy] ? activeStage[gy][gx] : null;
             const footTile = activeStage[footY] ? activeStage[footY][gx] : null;
 
+            // 重なりによるスイッチ判定（念のため残すが、基本は衝突時判定が優先）
+            if (tile !== '!') player.onSwitch = false;
+
             if (tile === 'K' || footTile === 'K') handlePlayerDeath();
+            if (isSwitchOn && (tile === 'k' || footTile === 'k')) handlePlayerDeath();
+            if (!isSwitchOn && (tile === 'q' || footTile === 'q')) handlePlayerDeath();
             if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
             if (footTile === 'P') player.vx *= 1.15; // 加速
         }
 
+        function isCollideAt(x, y, w, h) {
+            const inset = 0.05;
+            const collisionPoints = [
+                [x + inset, y + inset], 
+                [x + w - inset, y + inset], 
+                [x + inset, y + h - inset], 
+                [x + w - inset, y + h - inset]
+            ];
+            for(let p of collisionPoints) {
+                const ix = Math.floor(p[0]), iy = Math.floor(p[1]);
+                if(ix < 0 || ix >= GRID_W) return true;
+                if(iy < 0) return false;
+                if(iy >= GRID_H) return false;
+
+                const tile = activeStage[iy][ix];
+                if(tile === 'B' || tile === 'X' || tile === '!' || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
+            }
+            return false;
+        }
+
+        function isCollide(x, y) {
+            return isCollideAt(x, y, player.w, player.h);
+        }
+
         function isEnemyCollide(x, y) {
-            const ix = Math.floor(x + 0.5), iy = Math.floor(y + 0.99); // 判定を足元ギリギリに
-            if (ix < 0 || ix >= GRID_W || iy >= GRID_H) return true;
-            if (iy < 0) return false;
-            const tile = activeStage[iy][ix];
-            return tile === 'B' || tile === 'X' || tile === 'H';
+            return isCollideAt(x, y, 0.9, 0.9);
         }
 
         function isTouchingType(x, y, type) {
@@ -2419,26 +2612,6 @@
             return Math.sin(Date.now() * 0.002);
         }
 
-        function isCollide(x, y) {
-            const inset = 0.05; // 判定をわずかに小さくして床や壁への「吸いつき」を防止
-            const collisionPoints = [
-                [x + inset, y + inset], 
-                [x + player.w - inset, y + inset], 
-                [x + inset, y + player.h - inset], 
-                [x + player.w - inset, y + player.h - inset]
-            ];
-            for(let p of collisionPoints) {
-                const ix = Math.floor(p[0]), iy = Math.floor(p[1]);
-                if(ix < 0 || ix >= GRID_W) return true;
-                if(iy < 0) return false;
-                if(iy >= GRID_H) return false; // 奈落はupdateGameで判定
-
-                const tile = activeStage[iy][ix];
-                if(tile === 'B' || tile === 'X') return true;
-            }
-            return false;
-        }
-
         function drawGame() {
             const canvas = document.getElementById('game-canvas');
             const ctx = canvas.getContext('2d');
@@ -2459,10 +2632,10 @@
             enemies.forEach(en => {
                 if(!en.dead) {
                     ctx.fillStyle = "#f44336";
-                    ctx.fillRect(en.x * cw + cw*0.1, en.y * ch + ch*0.2, cw*0.8, ch*0.8);
+                    ctx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
                     ctx.fillStyle = "#fff";
-                    ctx.fillRect(en.x * cw + cw*0.2, en.y * ch + ch*0.4, cw*0.2, ch*0.2);
-                    ctx.fillRect(en.x * cw + cw*0.6, en.y * ch + ch*0.4, cw*0.2, ch*0.2);
+                    ctx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
+                    ctx.fillRect(en.x * cw + cw*0.55, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
                 }
             });
 
