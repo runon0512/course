@@ -451,16 +451,6 @@
             image-rendering: pixelated;
         }
 
-        .tool-block { background: #5d4037; }
-        .tool-start { background: #2e7d32; }
-        .tool-goal { background: #d32f2f; }
-        .tool-eraser { background: #757575; }
-        .tool-switch { background: #f1c40f; }
-        .tool-red { background: #ff5252; }
-        .tool-blue { background: #448aff; }
-        .tool-red-spike { background: #ff5252; }
-        .tool-blue-spike { background: #448aff; }
-
         #game-canvas {
             width: 100%;
             height: 100%;
@@ -542,6 +532,9 @@
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span>
         </div>
+
+        <!-- グローバルランキングボタン -->
+        <button id="global-rank-btn" class="pixel-btn small" onclick="showGlobalRanking()" style="position: absolute; top: 1cqh; left: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
 
         <!-- 認証画面 -->
         <div id="auth-overlay">
@@ -694,6 +687,7 @@
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="cycleBackground()">🌆背景</button>
+                    <button id="editor-switch-btn" class="pixel-btn small" style="margin-top:0; background:#ff5252; color:#fff;" onclick="toggleEditorSwitch()">R/B: ON</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
@@ -1149,6 +1143,7 @@
                                 document.getElementById('auth-overlay').style.display = 'none';
                                 document.getElementById('main-menu').classList.add('active');
                                 document.getElementById('user-info').style.display = 'block';
+                                document.getElementById('global-rank-btn').style.display = 'block';
                                 document.getElementById('current-user').innerText = res.username;
                                 // Initialize sort/filter UI on login
                                 document.getElementById('sort-criteria').value = currentSort;
@@ -1223,6 +1218,38 @@
                 equippedColor: equippedColor
             });
             openShop();
+        }
+
+        // --- グローバルランキング（1位獲得数） ---
+        async function showGlobalRanking() {
+            const overlay = document.getElementById('leaderboard-overlay');
+            const title = document.getElementById('lb-title');
+            const body = document.getElementById('lb-body');
+            
+            title.innerText = "LOADING...";
+            body.innerHTML = "";
+            overlay.style.display = 'flex';
+
+            if (!cachedStages) {
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+            }
+
+            const userWins = {};
+            cachedStages.forEach(s => {
+                const lb = s.leaderboard || [];
+                if (lb.length > 0) {
+                    const topTime = lb[0].time;
+                    const winners = lb.filter(r => r.time === topTime);
+                    winners.forEach(w => { userWins[w.name] = (userWins[w.name] || 0) + 1; });
+                }
+            });
+
+            const sorted = Object.entries(userWins).sort((a, b) => b[1] - a[1]);
+            title.innerText = "CROWN RANKING (1st Places)";
+            sorted.forEach(([name, count], idx) => {
+                body.innerHTML += `<tr style="border-bottom: 0.1cqw solid #444;"><td style="padding: 1.5cqh;">${idx+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${name}</td><td style="padding: 1.5cqh; text-align: right;">${count} Stages</td></tr>`;
+            });
         }
 
         // --- レースモード関連 ---
@@ -1563,7 +1590,6 @@
 
         function renderToolIcons() {
             const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', 'M', '!', 'r', 'b', 'k', 'q', 'E'];
-            const originalSwitchState = isSwitchOn;
             tools.forEach(type => {
                 const canvas = document.getElementById(`icon-${type}`);
                 if (!canvas) return;
@@ -1571,14 +1597,19 @@
                 canvas.height = 60;
                 const ctx = canvas.getContext('2d');
                 if (type === 'E') drawEraserIcon(ctx, 60, 60);
-                else {
-                    // アイコン描画時は常に「実体」の状態で表示する
-                    if (type === 'r' || type === 'k' || type === '!') isSwitchOn = true;
-                    if (type === 'b' || type === 'q') isSwitchOn = false;
-                    drawTile(ctx, 0, 0, 60, 60, type);
-                }
+                else drawTile(ctx, 0, 0, 60, 60, type);
             });
-            isSwitchOn = originalSwitchState;
+        }
+
+        function toggleEditorSwitch() {
+            isSwitchOn = !isSwitchOn;
+            const btn = document.getElementById('editor-switch-btn');
+            if (btn) {
+                btn.innerText = isSwitchOn ? "R/B: RED" : "R/B: BLUE";
+                btn.style.background = isSwitchOn ? "#ff5252" : "#448aff";
+            }
+            drawEditor();
+            renderToolIcons();
         }
 
         function setTool(type, btn) {
@@ -1604,9 +1635,36 @@
         }
 
         const editorCanvas = document.getElementById('editor-canvas');
-        editorCanvas.addEventListener('mousedown', e => { isDrawing = true; handleEditorInput(e); });
-        editorCanvas.addEventListener('mousemove', e => { if(isDrawing) handleEditorInput(e); });
+        editorCanvas.addEventListener('mousedown', e => {
+            if (e.button === 2) return; // 右クリックはcontextmenuで処理
+            isDrawing = true;
+            handleEditorInput(e);
+        });
+        editorCanvas.addEventListener('mousemove', e => {
+            if (isDrawing) handleEditorInput(e);
+            // 右クリックドラッグでも消去できるように
+            if (e.buttons === 2) eraseAt(e);
+        });
         window.addEventListener('mouseup', () => { isDrawing = false; });
+
+        // 右クリックで消しゴム機能
+        editorCanvas.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            eraseAt(e);
+        });
+
+        function eraseAt(e) {
+            const rect = editorCanvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / (editorCanvas.width / GRID_W));
+            const y = Math.floor((e.clientY - rect.top) / (editorCanvas.height / GRID_H));
+            if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
+                if (editorGrid[y][x] !== null) {
+                    editorGrid[y][x] = null;
+                    isClearChecked = false;
+                    drawEditor();
+                }
+            }
+        }
 
         function handleEditorInput(e) {
             const rect = editorCanvas.getBoundingClientRect();
@@ -1782,9 +1840,11 @@
             } else if(type === 'r') {
                 // 赤ブロック
                 if (!isSwitchOn) {
+                    ctx.lineWidth = 3;
                     ctx.setLineDash([5, 5]); // 点線
                     ctx.strokeStyle = "#ff5252";
                     ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                    ctx.lineWidth = 1;
                     ctx.setLineDash([]); // リセット
                 } else {
                     ctx.fillStyle = "#ff5252";
@@ -1793,9 +1853,11 @@
             } else if(type === 'b') {
                 // 青ブロック
                 if (isSwitchOn) {
+                    ctx.lineWidth = 3;
                     ctx.setLineDash([5, 5]); // 点線
                     ctx.strokeStyle = "#448aff";
                     ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                    ctx.lineWidth = 1;
                     ctx.setLineDash([]); // リセット
                 } else {
                     ctx.fillStyle = "#448aff";
@@ -1811,6 +1873,7 @@
                     ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
                     ctx.fill();
                 } else {
+                    ctx.lineWidth = 3;
                     ctx.setLineDash([5, 5]);
                     ctx.strokeStyle = "#ff5252";
                     ctx.beginPath();
@@ -1818,6 +1881,7 @@
                     ctx.lineTo(x*cw + cw/2, y*ch + pad);
                     ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
                     ctx.closePath(); ctx.stroke();
+                    ctx.lineWidth = 1;
                     ctx.setLineDash([]);
                 }
             } else if(type === 'q') {
@@ -1830,6 +1894,7 @@
                     ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
                     ctx.fill();
                 } else {
+                    ctx.lineWidth = 3;
                     ctx.setLineDash([5, 5]);
                     ctx.strokeStyle = "#448aff";
                     ctx.beginPath();
@@ -1837,6 +1902,7 @@
                     ctx.lineTo(x*cw + cw/2, y*ch + pad);
                     ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
                     ctx.closePath(); ctx.stroke();
+                    ctx.lineWidth = 1;
                     ctx.setLineDash([]);
                 }
             }
@@ -2453,7 +2519,8 @@
                             if (!en.onSwitch) { isSwitchOn = !isSwitchOn; en.onSwitch = true; }
                         }
                     }
-                    if (en.vy > 0) en.y = nextY;
+                    // 落下中に衝突した場合は地面の上に正しくスナップ (0.9は敵のサイズ)
+                    if (en.vy > 0) en.y = isBridge ? nextY : Math.floor(nextY + 0.9) - 0.9;
                     en.vy = 0;
                 } else {
                     // スイッチ状態リセット
