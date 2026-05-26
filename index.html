@@ -523,7 +523,10 @@
         <div id="msg-overlay">
             <h2 id="msg-title" style="margin:0; font-size: 2.5cqw;">GOAL!!</h2>
             <p id="msg-content" style="font-size: 1.2cqw;"></p>
-            <button class="pixel-btn small" onclick="closeMessage()">OK</button>
+            <div style="display: flex; gap: 2cqw;">
+                <button id="retry-btn" class="pixel-btn small" onclick="retryGame()" style="display:none;">RETRY</button>
+                <button class="pixel-btn small" onclick="closeMessage()">OK</button>
+            </div>
         </div>
 
         <!-- ユーザー情報 -->
@@ -2812,11 +2815,11 @@
             }
             if (gameMode === 'test') {
                 isGoalTriggered = true;
-                showMessage("TEST FAILED", "ミスしてしまいました。エディタに戻ります。");
+                showMessage("TEST FAILED", "ミスしてしまいました。", true);
             } else if (gameMode === 'play') {
                 // プレイモードでもメッセージを出して「OK（戻る）」を押せるように修正
                 isGoalTriggered = true;
-                showMessage("GAME OVER", "ステージ失敗！リストに戻ります。");
+                showMessage("GAME OVER", "ステージ失敗！", true);
             } else {
                 resetPlayer();
             }
