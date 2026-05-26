@@ -2269,6 +2269,10 @@
             if (mode === 'play') {
                 closeStageSelect();
                 // 挑戦数をカウントアップ（非同期で送信）
+                if (stageObj) {
+                    // ローカルの数値を更新して、メニューに戻った時に即座に反映されるようにする
+                    stageObj.attempts = (stageObj.attempts || 0) + 1;
+                }
                 callApi('recordAttempt', { stageId: stageObj.id || stageObj.name });
             } else {
                 document.getElementById('editor-screen').style.display = 'none';
@@ -2327,13 +2331,19 @@
             }
         }
 
-        function showMessage(title, content) {
+        function showMessage(title, content, showRetry = false) {
             const overlay = document.getElementById('msg-overlay');
             document.getElementById('msg-title').innerText = title;
             document.getElementById('msg-content').innerText = content;
+            document.getElementById('retry-btn').style.display = showRetry ? 'block' : 'none';
             overlay.style.display = 'flex';
             // ゲームを停止
             cancelAnimationFrame(gameLoopId);
+        }
+
+        function retryGame() {
+            document.getElementById('msg-overlay').style.display = 'none';
+            startGame(currentStageData, gameMode);
         }
 
         function closeMessage() {
