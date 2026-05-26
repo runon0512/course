@@ -673,6 +673,10 @@
                     <input type="checkbox" id="filter-favorites" onchange="openStageSelect()">
                     <span>お気に入りのみ</span>
                 </label>
+                <label class="remember-wrap" style="font-size: 1cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid #4caf50;">
+                    <input type="checkbox" id="filter-unplayed" onchange="openStageSelect()">
+                    <span>未プレイのみ</span>
+                </label>
                 <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" onkeyup="openStageSelect()">
             </div>
             <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box;"></div>
@@ -684,6 +688,8 @@
             <div id="canvas-container">
                 <canvas id="editor-canvas"></canvas>
                 <div class="editor-top-bar">
+                    <button class="pixel-btn small" style="margin-top:0; background:#5d4037; color:#fff;" onclick="setTool('B', document.querySelector('.tool-block') || this)">🧱ブロック</button>
+                    <button class="pixel-btn small" style="margin-top:0; background:#ff80ab; color:#000;" onclick="setTool('E', document.querySelector('.tool-eraser') || this)">🧹消しゴム</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="cycleBackground()">🌆背景</button>
@@ -710,6 +716,10 @@
                     <div class="tool-btn tool-switch" onclick="setTool('!', this)" title="ON/OFF SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-red" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-blue" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-oneway-r" onclick="setTool('>', this)" title="ONEWAY RIGHT"><canvas id="icon-owr" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-oneway-l" onclick="setTool('<', this)" title="ONEWAY LEFT"><canvas id="icon-owl" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-oneway-d" onclick="setTool('v', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-checkpoint" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-red-spike" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-blue-spike" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
@@ -778,6 +788,7 @@
         let currentSort = 'newest'; // デフォルトのソート順
         let filterMyStages = false;
         let filterFavorites = false;
+        let filterUnplayed = false;
         let filterCreatorName = '';
         let favoriteStages = [];
         let arrows = [];
@@ -788,6 +799,8 @@
         let currentGhostData = [];
         let startTime = 0;
         let frameCount = 0;
+        let totalCheckpoints = 0;
+        let activeCheckpoints = new Set();
         let lastTime = 0;
         let currentBgIndex = 0;
         let countdown = 3;
@@ -1606,15 +1619,22 @@
         }
 
         function renderToolIcons() {
-            const tools = ['B', 'S', 'G', 'K', 'A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', 'M', '!', 'r', 'b', 'k', 'q', 'E'];
-            tools.forEach(type => {
-                const canvas = document.getElementById(`icon-${type}`);
+            const toolList = [
+                {type:'B', id:'icon-B'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'K', id:'icon-K'}, 
+                {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
+                {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
+                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, 
+                {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
+                {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'E', id:'icon-E'}
+            ];
+            toolList.forEach(tool => {
+                const canvas = document.getElementById(tool.id);
                 if (!canvas) return;
                 canvas.width = 60;
                 canvas.height = 60;
                 const ctx = canvas.getContext('2d');
-                if (type === 'E') drawEraserIcon(ctx, 60, 60);
-                else drawTile(ctx, 0, 0, 60, 60, type);
+                if (tool.type === 'E') drawEraserIcon(ctx, 60, 60);
+                else drawTile(ctx, 0, 0, 60, 60, tool.type);
             });
         }
 
@@ -1722,6 +1742,7 @@
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
                     ctx.strokeStyle = "rgba(255,255,255,0.1)";
+                    if (activeStage.length === 0) // エディタ描画中
                     ctx.strokeRect(x*cw, y*ch, cw, ch);
                     if(editorGrid[y][x]) drawTile(ctx, x, y, cw, ch, editorGrid[y][x], time);
                 }
@@ -1748,16 +1769,33 @@
                 ctx.textAlign = "center";
                 ctx.fillText("S", x*cw + cw/2, y*ch + ch*0.3);
             } else if(type === 'G') {
+                const isLocked = activeStage.length > 0 && activeCheckpoints.size < totalCheckpoints;
                 // ゴールゲート
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
-                ctx.strokeStyle = "#d32f2f";
+                ctx.strokeStyle = isLocked ? "#777" : "#d32f2f";
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
-                ctx.fillStyle = "#fff";
-                ctx.font = `bold ${ch*0.3}px sans-serif`;
-                ctx.textAlign = "center";
-                ctx.fillText("G", x*cw + cw/2, y*ch + ch*0.4);
+                
+                if (isLocked) {
+                    // ロック状態の表示
+                    ctx.strokeStyle = "#ffeb3b";
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + cw*0.2, y*ch + ch*0.3);
+                    ctx.lineTo(x*cw + cw*0.8, y*ch + ch*0.7);
+                    ctx.moveTo(x*cw + cw*0.8, y*ch + ch*0.3);
+                    ctx.lineTo(x*cw + cw*0.2, y*ch + ch*0.7);
+                    ctx.stroke();
+                    ctx.fillStyle = "#ffeb3b";
+                    ctx.font = `bold ${ch*0.2}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText("LOCK", x*cw + cw/2, y*ch + ch*0.9);
+                } else {
+                    ctx.fillStyle = "#fff";
+                    ctx.font = `bold ${ch*0.3}px sans-serif`;
+                    ctx.textAlign = "center";
+                    ctx.fillText("G", x*cw + cw/2, y*ch + ch*0.4);
+                }
             } else if(type === 'K') {
                 // スパイク
                 ctx.fillStyle = "#78909c";
@@ -1846,6 +1884,62 @@
                 ctx.fillStyle = "#fff";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
+            } else if(type === '>') {
+                // 一方通行（右）
+                ctx.fillStyle = "rgba(0,0,0,0.5)";
+                ctx.fillRect(x*cw, y*ch, cw, ch);
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.3, y*ch + ch*0.2);
+                ctx.lineTo(x*cw + cw*0.7, y*ch + ch*0.5);
+                ctx.lineTo(x*cw + cw*0.3, y*ch + ch*0.8);
+                ctx.stroke();
+            } else if(type === '<') {
+                // 一方通行（左）
+                ctx.fillStyle = "rgba(0,0,0,0.5)";
+                ctx.fillRect(x*cw, y*ch, cw, ch);
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.7, y*ch + ch*0.2);
+                ctx.lineTo(x*cw + cw*0.3, y*ch + ch*0.5);
+                ctx.lineTo(x*cw + cw*0.7, y*ch + ch*0.8);
+                ctx.stroke();
+            } else if(type === 'v') {
+                // 一方通行（下）
+                ctx.fillStyle = "rgba(0,0,0,0.5)";
+                ctx.fillRect(x*cw, y*ch, cw, ch);
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.2, y*ch + ch*0.3);
+                ctx.lineTo(x*cw + cw*0.5, y*ch + ch*0.7);
+                ctx.lineTo(x*cw + cw*0.8, y*ch + ch*0.3);
+                ctx.stroke();
+            } else if(type === 'C') {
+                // チェックポイント（ゴールゲートの色違い版）
+                const isDone = activeStage.length > 0 && activeCheckpoints.has(`${x},${y}`);
+                ctx.fillStyle = "#000";
+                ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
+                ctx.strokeStyle = "#ffeb3b"; // 黄色の縁
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
+                
+                ctx.fillStyle = isDone ? "#4caf50" : "#fff";
+                ctx.font = `bold ${ch*0.3}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText("C", x*cw + cw/2, y*ch + ch*0.6);
+                
+                if (isDone) {
+                    ctx.strokeStyle = "#4caf50"; // 通過後は緑のチェック
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + cw*0.35, y*ch + ch*0.6);
+                    ctx.lineTo(x*cw + cw*0.45, y*ch + ch*0.75);
+                    ctx.lineTo(x*cw + cw*0.7, y*ch + ch*0.45);
+                    ctx.stroke();
+                }
             } else if(type === '!') {
                 // ON/OFFスイッチ
                 ctx.fillStyle = isSwitchOn ? "#ff5252" : "#448aff";
@@ -1980,6 +2074,7 @@
 
             filterMyStages = document.getElementById('filter-my-stages').checked;
             filterFavorites = document.getElementById('filter-favorites').checked;
+            filterUnplayed = document.getElementById('filter-unplayed').checked;
             filterCreatorName = document.getElementById('filter-creator').value.toLowerCase();
             currentSort = document.getElementById('sort-criteria').value;
             
@@ -1992,8 +2087,10 @@
             let filtered = cachedStages.filter(s => {
                 const matchMine = !filterMyStages || s.creator === CONFIG.USERNAME;
                 const matchFav = !filterFavorites || favoriteStages.includes(s.id || s.name);
+                const isCleared = s.leaderboard && s.leaderboard.some(r => r.name === CONFIG.USERNAME);
+                const matchUnplayed = !filterUnplayed || !isCleared;
                 const matchCreator = !filterCreatorName || s.creator.toLowerCase().includes(filterCreatorName);
-                return matchMine && matchFav && matchCreator;
+                return matchMine && matchFav && matchCreator && matchUnplayed;
             });
 
             // ソート処理
@@ -2186,6 +2283,8 @@
             frameCount = 0;
             isCountingDown = true;
             startTime = 0;
+            totalCheckpoints = 0;
+            activeCheckpoints.clear();
             countdownStartTime = Date.now();
             currentGhostData = [];
             document.getElementById('btn-upvote').style.opacity = "1";
@@ -2196,6 +2295,7 @@
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
+                    if(activeStage[y][x] === 'C') totalCheckpoints++;
                     if(activeStage[y][x] === 'M') {
                         enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false});
                         activeStage[y][x] = null; // スポーン後はグリッドから削除
@@ -2257,6 +2357,10 @@
             // タイムを小数第三位まで計算
             const now = Date.now();
             const clearTime = (startTime > 0) ? Number(((now - startTime) / 1000).toFixed(3)) : 0.001;
+            
+            // タイムが保存されない問題を防止するため、キャッシュを先にクリアして再取得を強制する
+            cachedStages = null;
+            cancelAnimationFrame(gameLoopId);
 
             // ゴール到達時の位置を最後に記録
             currentGhostData.push({
@@ -2287,13 +2391,11 @@
                 okBtn.innerText = "SAVING...";
             }
 
-            cancelAnimationFrame(gameLoopId);
-
             // 通信の競合を防ぐため、順序立てて保存を実行
             try {
                 if (stageId) {
                     // 最優先：タイムとクリア情報の記録
-                    await callApi('recordClear', { 
+                    const res = await callApi('recordClear', { 
                         stageId: stageId, 
                         username: CONFIG.USERNAME, 
                         time: clearTime || 0.001, 
@@ -2304,7 +2406,9 @@
                         gold: userGold,
                         purchasedSkins: purchasedSkins // 1回の通信で全ての状態を更新
                     });
-                    cachedStages = null; // タイム更新を確実に反映させるためキャッシュをクリア
+                    if (!res || !res.success) {
+                        console.error("保存失敗:", res ? res.message : "レスポンスなし");
+                    }
                 }
             } catch (e) {
                 console.error("通信エラー:", e);
@@ -2442,7 +2546,24 @@
 
             // X衝突
             let nextX = player.x + player.vx;
-            if(!isCollide(nextX, player.y)) {
+            let collidedX = isCollide(nextX, player.y);
+            
+            // 一方通行壁（横方向）の判定
+            if (!collidedX) {
+                if (player.vx > 0) { // 右移動中：左向き壁'<'にぶつかるか
+                    let ix = Math.floor(nextX + player.w), iy1 = Math.floor(player.y + 0.1), iy2 = Math.floor(player.y + player.h - 0.1);
+                    if ((activeStage[iy1] && activeStage[iy1][ix] === '<') || (activeStage[iy2] && activeStage[iy2][ix] === '<')) {
+                        if (player.x + player.w <= ix) { collidedX = true; nextX = ix - player.w; }
+                    }
+                } else if (player.vx < 0) { // 左移動中：右向き壁'>'にぶつかるか
+                    let ix = Math.floor(nextX), iy1 = Math.floor(player.y + 0.1), iy2 = Math.floor(player.y + player.h - 0.1);
+                    if ((activeStage[iy1] && activeStage[iy1][ix] === '>') || (activeStage[iy2] && activeStage[iy2][ix] === '>')) {
+                        if (player.x >= ix + 1) { collidedX = true; nextX = ix + 1; }
+                    }
+                }
+            }
+
+            if(!collidedX) {
                 player.x = nextX;
             } else {
                 if(isTouchingType(nextX, player.y, 'X')) player.vx = (player.vx > 0 ? -0.5 : 0.5);
@@ -2461,6 +2582,15 @@
                 if (activeStage[iy] && activeStage[iy][ix] === 'H' && footY <= iy + 0.1) {
                     collidedY = true;
                     nextY = iy - player.h;
+                }
+            }
+            // 一方通行（下 'v'）の判定：上への移動をブロック
+            if (!collidedY && player.vy < 0) {
+                let headY = nextY;
+                let ix = Math.floor(player.x + player.w/2), iy = Math.floor(headY);
+                if (activeStage[iy] && activeStage[iy][ix] === 'v' && player.y >= iy + 0.9) {
+                    collidedY = true;
+                    nextY = iy + 1;
                 }
             }
 
@@ -2595,7 +2725,7 @@
 
             // ゴール判定
             const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
-            if(!isGoalTriggered && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G') {
+            if(!isGoalTriggered && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G' && activeCheckpoints.size >= totalCheckpoints) {
                 isGoalTriggered = true;
                 player.vx = 0; player.vy = 0;
                 
@@ -2625,6 +2755,10 @@
 
             // 重なりによるスイッチ判定（念のため残すが、基本は衝突時判定が優先）
             if (tile !== '!') player.onSwitch = false;
+
+            if (tile === 'C') {
+                activeCheckpoints.add(`${gx},${gy}`);
+            }
 
             if (tile === 'K' || footTile === 'K') handlePlayerDeath();
             if (isSwitchOn && (tile === 'k' || footTile === 'k')) handlePlayerDeath();
