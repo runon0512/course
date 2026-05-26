@@ -1245,10 +1245,27 @@
                 }
             });
 
-            const sorted = Object.entries(userWins).sort((a, b) => b[1] - a[1]);
-            title.innerText = "CROWN RANKING (1st Places)";
-            sorted.forEach(([name, count], idx) => {
-                body.innerHTML += `<tr style="border-bottom: 0.1cqw solid #444;"><td style="padding: 1.5cqh;">${idx+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${name}</td><td style="padding: 1.5cqh; text-align: right;">${count} Stages</td></tr>`;
+            const userGods = {};
+            cachedStages.forEach(s => {
+                const crNum = s.attempts >= 5 ? ((s.clears || 0) / s.attempts * 100) : 100;
+                if (s.attempts >= 5 && crNum <= 1) {
+                    userGods[s.creator] = (userGods[s.creator] || 0) + 1;
+                }
+            });
+
+            const allUsers = Array.from(new Set([...Object.keys(userWins), ...Object.keys(userGods)]));
+            const sorted = allUsers.sort((a, b) => (userWins[b] || 0) - (userWins[a] || 0));
+
+            title.innerText = "GLOBAL RANKING";
+            body.parentElement.querySelector('tr').innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th><th style="padding: 1cqh; text-align: right;">GODS</th>`;
+            
+            sorted.forEach((name, idx) => {
+                body.innerHTML += `<tr style="border-bottom: 0.1cqw solid #444;">
+                    <td style="padding: 1.5cqh;">${idx+1}</td>
+                    <td style="padding: 1.5cqh; color: var(--primary-color);">${name}</td>
+                    <td style="padding: 1.5cqh; text-align: right;">${userWins[name] || 0}</td>
+                    <td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${userGods[name] || 0}</td>
+                </tr>`;
             });
         }
 
@@ -2001,36 +2018,41 @@
                 const isPickUp = s.creator === 'SYSTEM';
                 const escapedId = sId.replace(/'/g, "\\'");
             
-                // クリア率に応じた難易度バッジの計算 (5回以上プレイ時のみ)
-                const crNum = s.attempts >= 5 ? ((s.clears || 0) / s.attempts * 100) : 100;
+                // 難易度バッジと枠線スタイルの計算
                 let diffBadge = "";
-                let isUnknown = false;
-                if (s.attempts >= 5) {
+                let customFrameStyle = "";
+
+                if (s.attempts < 5) {
+                    // 新風: プレイ数5以下
+                    diffBadge = '<span style="background:linear-gradient(45deg, #4caf50, #ffffff); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">新風</span>';
+                    customFrameStyle = "border-color: #4caf50; box-shadow: inset 0 0 10px rgba(76, 175, 80, 0.3);";
+                } else {
+                    const crNum = (s.clears || 0) / s.attempts * 100;
                     if (crNum <= 0.1) {
-                    // 未知の領域: 黒背景に赤枠
-                    isUnknown = true;
-                    diffBadge = '<span style="background:#000; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000; margin-right:0.5cqw;">未知</span>';
+                        // 未知
+                        diffBadge = '<span style="background:#000; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000; margin-right:0.5cqw;">未知</span>';
+                        customFrameStyle = "background: #000; border-color: #ff0000; box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.4);";
                     } else if (crNum <= 1) {
-                        // 神: 白と黄色
+                        // 神
                         diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">神</span>';
+                        customFrameStyle = "border-color: #ffff00; box-shadow: inset 0 0 15px rgba(255, 255, 0, 0.4);";
                     } else if (crNum <= 3) {
-                        // 鬼: 赤黒
+                        // 鬼
                         diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #000000); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; border:1px solid #ff0000; margin-right:0.5cqw;">鬼</span>';
+                        customFrameStyle = "border-color: #ff0000; box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.4);";
                     } else if (crNum <= 10) {
-                        // 超難関: 赤と紫
+                        // 超難関
                         diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #800080); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">超難関</span>';
+                        customFrameStyle = "border-color: #e91e63; box-shadow: inset 0 0 10px rgba(233, 30, 99, 0.3);";
                     } else if (crNum <= 25) {
-                        // 難関: 紫
+                        // 難関
                         diffBadge = '<span style="background:#800080; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">難関</span>';
+                        customFrameStyle = "border-color: #9c27b0; box-shadow: inset 0 0 10px rgba(156, 39, 176, 0.3);";
                     }
                 }
 
-            if (isUnknown) {
-                div.style.background = "#000";
-                div.style.borderColor = "#ff0000";
-                div.style.boxShadow = "inset 0 0 20px rgba(255, 0, 0, 0.4)";
-            }
-                if (isPickUp && !isUnknown) div.style.borderColor = '#ffc107';
+                if (customFrameStyle) div.style.cssText += customFrameStyle;
+                else if (isPickUp) div.style.borderColor = '#ffc107';
             
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
