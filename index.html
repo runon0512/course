@@ -639,6 +639,11 @@
         <div id="leaderboard-overlay" class="screen" style="z-index: 150; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; display: none;">
             <div class="auth-box" style="width: 70%; max-height: 80cqh;">
                 <h2 id="lb-title" style="font-size: 2cqw; color: #ffc107; margin-bottom: 2cqh;">LEADERBOARD</h2>
+                <div id="lb-tabs" style="display:none; gap:1cqw; margin-bottom:2cqh; justify-content:center;">
+                    <button class="pixel-btn small" onclick="showGlobalRanking('player')" style="min-width:12cqw;">Player</button>
+                    <button class="pixel-btn small" onclick="showGlobalRanking('gods')" style="min-width:12cqw;">Gods</button>
+                    <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
+                </div>
                 <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 1.2cqw;">
                         <thead>
@@ -665,8 +670,10 @@
                 <select id="sort-criteria" class="filter-control" onchange="openStageSelect()">
                     <option value="newest">新着順</option>
                     <option value="clears">クリア数順</option>
+                    <option value="plays">プレイ数順</option>
+                    <option value="easy">易しい順</option>
                     <option value="upvotes">高評価順</option>
-                    <option value="reward">報酬が高い順</option>
+                    <option value="reward">難しい順</option>
                 </select>
                 <label class="remember-wrap" style="font-size: 1cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid var(--primary-color);">
                     <input type="checkbox" id="filter-my-stages" onchange="openStageSelect()">
@@ -1066,32 +1073,34 @@
         /**
          * GAS APIへの通信を共通化
          */
-        async function callApi(action, payload) {
-            try {
-                const response = await fetch(CONFIG.DEPLOY_URL, {
-                    method: 'POST',
-                    mode: 'cors', 
-                    cache: 'no-cache',
-                    redirect: 'follow',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8' 
-                    },
-                    body: JSON.stringify({
-                        action: action,
-                        ...payload 
-                    })
-                });
+        async function callApi(action, payload, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(CONFIG.DEPLOY_URL, {
+                        method: 'POST',
+                        mode: 'cors', 
+                        cache: 'no-cache',
+                        redirect: 'follow',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8' 
+                        },
+                        body: JSON.stringify({
+                            action: action,
+                            ...payload 
+                        })
+                    });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
-            } catch (error) {
-                console.error('Fetch Error Details:', error);
-                // Failed to fetch の場合、多くはデプロイ設定の問題
-                const errorMsg = "通信エラーが発生しました。GASのデプロイ設定が「全員(Anyone)」になっているか確認してください。";
-                // if (error.name === 'TypeError') {
-                //     alert(errorMsg); // ユーザーの要望によりアラートを無効化
-                // }
-                return { success: false, message: errorMsg };
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    console.warn(`API Attempt ${i + 1} failed (${action}):`, error);
+                    if (i === retries - 1) {
+                        console.error('Final API failure:', error);
+                        return { success: false, message: "通信エラーが発生しました。インターネット接続を確認してください。" };
+                    }
+                    // 指数バックオフ: 1秒, 2秒, 3秒...と待機時間を増やす
+                    await new Promise(res => setTimeout(res, 1000 * (i + 1)));
+                }
             }
         }
 
@@ -1237,13 +1246,15 @@
         }
 
         // --- グローバルランキング（1位獲得数） ---
-        async function showGlobalRanking() {
+        async function showGlobalRanking(tab = 'player') {
             const overlay = document.getElementById('leaderboard-overlay');
             const title = document.getElementById('lb-title');
             const body = document.getElementById('lb-body');
-            
+            const tabs = document.getElementById('lb-tabs');
+
             title.innerText = "LOADING...";
             body.innerHTML = "";
+            tabs.style.display = 'flex';
             overlay.style.display = 'flex';
 
             if (!cachedStages) {
@@ -1251,38 +1262,59 @@
                 cachedStages = res.stages || [];
             }
 
-            const userWins = {};
+            const stats = {}; // { username: { crowns: 0, gods: 0, plays: 0 } }
             cachedStages.forEach(s => {
+                const creator = s.creator;
+                if (!stats[creator]) stats[creator] = { crowns: 0, gods: 0, plays: 0 };
+                
+                // 1. Crowns (1位保有数)
                 const lb = s.leaderboard || [];
                 if (lb.length > 0) {
                     const topTime = lb[0].time;
                     const winners = lb.filter(r => r.time === topTime);
-                    winners.forEach(w => { userWins[w.name] = (userWins[w.name] || 0) + 1; });
+                    winners.forEach(w => {
+                        if (!stats[w.name]) stats[w.name] = { crowns: 0, gods: 0, plays: 0 };
+                        stats[w.name].crowns++;
+                    });
                 }
-            });
-
-            const userGods = {};
-            cachedStages.forEach(s => {
+                
+                // 2. Gods (神難度保有数: クリア率1%以下かつ5プレイ以上)
                 const crNum = s.attempts >= 5 ? ((s.clears || 0) / s.attempts * 100) : 100;
                 if (s.attempts >= 5 && crNum <= 1) {
-                    userGods[s.creator] = (userGods[s.creator] || 0) + 1;
+                    stats[creator].gods++;
                 }
+
+                // 3. Creator Total Plays (総プレイ数)
+                stats[creator].plays += (s.attempts || 0);
             });
 
-            const allUsers = Array.from(new Set([...Object.keys(userWins), ...Object.keys(userGods)]));
-            const sorted = allUsers.sort((a, b) => (userWins[b] || 0) - (userWins[a] || 0));
+            const users = Object.keys(stats);
+            let sorted = [], headerHtml = "", rowFunc = null;
 
-            title.innerText = "GLOBAL RANKING";
-            body.parentElement.querySelector('tr').innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th><th style="padding: 1cqh; text-align: right;">GODS</th>`;
-            
-            sorted.forEach((name, idx) => {
-                body.innerHTML += `<tr style="border-bottom: 0.1cqw solid #444;">
-                    <td style="padding: 1.5cqh;">${idx+1}</td>
-                    <td style="padding: 1.5cqh; color: var(--primary-color);">${name}</td>
-                    <td style="padding: 1.5cqh; text-align: right;">${userWins[name] || 0}</td>
-                    <td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${userGods[name] || 0}</td>
-                </tr>`;
-            });
+            if (tab === 'player') {
+                title.innerText = "RANK: CROWNS";
+                sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
+                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].crowns}</td>`;
+            } else if (tab === 'gods') {
+                title.innerText = "RANK: GODS";
+                sorted = users.filter(u => stats[u].gods > 0).sort((a, b) => stats[b].gods - stats[a].gods);
+                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">GODS</th>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${u}</td><td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${stats[u].gods}</td>`;
+            } else {
+                title.innerText = "RANK: TOTAL PLAYS";
+                sorted = users.filter(u => stats[u].plays > 0).sort((a, b) => stats[b].plays - stats[a].plays);
+                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">PLAYS</th>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].plays}</td>`;
+            }
+
+            const headerRow = body.parentElement.querySelector('thead tr');
+            if (headerRow) headerRow.innerHTML = headerHtml;
+
+            body.innerHTML = sorted.map((u, i) => `
+                <tr style="border-bottom: 0.1cqw solid #444;">
+                    ${rowFunc(u, i)}
+                </tr>`).join('');
         }
 
         // --- レースモード関連 ---
@@ -1379,9 +1411,14 @@
             const overlay = document.getElementById('leaderboard-overlay');
             const title = document.getElementById('lb-title');
             const body = document.getElementById('lb-body');
-            
+            const tabs = document.getElementById('lb-tabs');
+
+            tabs.style.display = 'none';
             title.innerText = `TOP RACERS: ${stage.name}`;
             body.innerHTML = "";
+            const headerRow = body.parentElement.querySelector('thead tr');
+            if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">TIME</th>`;
+
             const sortedRecords = (stage.leaderboard || []).sort((a, b) => a.time - b.time);
             
             let currentRank = 0;
@@ -1611,6 +1648,7 @@
 
         // --- エディタ関連 ---
         function startEditor() {
+            activeStage = [];
             document.getElementById('editor-screen').style.display = 'block';
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -1744,8 +1782,7 @@
             
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
-                    ctx.strokeStyle = "rgba(255,255,255,0.1)";
-                    if (activeStage.length === 0) // エディタ描画中
+                    ctx.strokeStyle = "rgba(255,255,255,0.3)";
                     ctx.strokeRect(x*cw, y*ch, cw, ch);
                     if(editorGrid[y][x]) drawTile(ctx, x, y, cw, ch, editorGrid[y][x], time);
                 }
@@ -2099,6 +2136,18 @@
             // ソート処理
             filtered.sort((a, b) => {
                 if (currentSort === 'clears') return (b.clears || 0) - (a.clears || 0);
+                if (currentSort === 'plays') return (b.attempts || 0) - (a.attempts || 0);
+                if (currentSort === 'easy') {
+                    const aClearRate = (a.attempts > 0) ? (a.clears || 0) / a.attempts : -1; // -1 for unplayed, puts them at the end
+                    const bClearRate = (b.attempts > 0) ? (b.clears || 0) / b.attempts : -1;
+                    if (aClearRate !== bClearRate) {
+                        return bClearRate - aClearRate; // Higher clear rate is easier
+                    }
+                    // Secondary sort for same clear rate: more attempts means it's probably easier if many people tried and cleared it
+                    // Or, if both unplayed (-1 clear rate), sort by name
+                    if (aClearRate === -1) return (a.name || '').localeCompare(b.name || '');
+                    return (b.attempts || 0) - (a.attempts || 0);
+                }
                 if (currentSort === 'upvotes') return (b.upvotes || 0) - (a.upvotes || 0);
                 if (currentSort === 'reward') return calculateStageRewardValue(b, CONFIG.USERNAME) - calculateStageRewardValue(a, CONFIG.USERNAME);
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
@@ -2207,7 +2256,7 @@
                         ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span>
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
@@ -2366,6 +2415,7 @@
             return Math.max(10, Math.min(1000, rewardGold));
         }
 
+        let rewardAlreadyAdded = false;
         async function showReward() {
             // タイムを小数第三位まで計算
             const now = Date.now();
@@ -2389,8 +2439,11 @@
                 rewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
             }
             
-            userGold += rewardGold;
-            updateGoldDisplay();
+            if (!rewardAlreadyAdded) {
+                userGold += rewardGold;
+                updateGoldDisplay();
+                rewardAlreadyAdded = true;
+            }
 
             // UIを即座に更新して表示
             document.getElementById('reward-amount').innerText = `${rewardGold} G`;
@@ -2402,7 +2455,12 @@
             if (okBtn) {
                 okBtn.disabled = true;
                 okBtn.innerText = "SAVING...";
+                okBtn.onclick = null;
             }
+
+            // タイムがトップ5に入る可能性がある場合のみゴーストデータを送信する
+            // （サーバー側の負荷軽減と、データ肥大化による送信失敗を防ぐため）
+            const isTop5Candidate = (playbackGhosts.length < 5 || clearTime <= (playbackGhosts[playbackGhosts.length - 1]?.time || Infinity));
 
             // 通信の競合を防ぐため、順序立てて保存を実行
             try {
@@ -2412,24 +2470,32 @@
                         stageId: stageId, 
                         username: CONFIG.USERNAME, 
                         time: clearTime || 0.001, 
-                        ghost: currentGhostData.slice(0, 1500), // データ肥大化による送信失敗（5万文字制限等）を防止
+                        ghost: isTop5Candidate ? currentGhostData.slice(0, 1500) : null, // ランキング圏外ならゴーストは送らない
                         skin: equippedSkin,
                         color: equippedColor,
                         customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
                         gold: userGold,
                         purchasedSkins: purchasedSkins // 1回の通信で全ての状態を更新
-                    });
-                    if (!res || !res.success) {
-                        console.error("保存失敗:", res ? res.message : "レスポンスなし");
+                    }, 5); // クリア記録は重要度が高いため最大5回まで自動リトライ
+
+                    if (res && res.success) {
+                        okBtn.innerText = "OK";
+                        okBtn.disabled = false;
+                        okBtn.onclick = closeReward;
+                    } else {
+                        throw new Error(res ? res.message : "保存失敗");
                     }
+                } else {
+                    okBtn.innerText = "OK";
+                    okBtn.disabled = false;
+                    okBtn.onclick = closeReward;
                 }
             } catch (e) {
                 console.error("通信エラー:", e);
-            } finally {
-                if (okBtn) {
-                    okBtn.disabled = false;
-                    okBtn.innerText = "OK";
-                }
+                okBtn.innerText = "再試行 (RETRY)";
+                okBtn.disabled = false;
+                okBtn.onclick = () => showReward();
+                alert("保存に失敗しました。ネット環境を確認し、「再試行」を押してください。");
             }
         }
 
@@ -2449,6 +2515,7 @@
         }
 
         function closeReward() {
+            rewardAlreadyAdded = false;
             document.getElementById('reward-overlay').style.display = 'none';
             exitGame();
         }
