@@ -2379,7 +2379,7 @@
             currentGhostData.push({
                 x: Math.round(player.x * 100) / 100, 
                 y: Math.round(player.y * 100) / 100, 
-                f: player.facing
+                f: player.facing === 'right' ? 'r' : 'l'
             });
 
             let rewardGold = 100;
@@ -2412,7 +2412,7 @@
                         stageId: stageId, 
                         username: CONFIG.USERNAME, 
                         time: clearTime || 0.001, 
-                        ghost: currentGhostData.slice(0, 1500), // データ肥大化による送信失敗（5万文字制限等）を防止
+                        ghost: currentGhostData.slice(0, 800), // データ容量制限対策: 送信ポイント数を削減
                         skin: equippedSkin,
                         color: equippedColor,
                         customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
@@ -2512,7 +2512,7 @@
                     currentGhostData.push({
                         x: Math.round(player.x * 100) / 100, 
                         y: Math.round(player.y * 100) / 100, 
-                        f: player.facing
+                        f: player.facing === 'right' ? 'r' : 'l'
                     });
                 keys = {}; // 全ての先行入力をリセット
                 return; // 最初のフレームは初期化のみで終了し、次フレームから物理演算を開始
@@ -2536,10 +2536,10 @@
 
             // ゴースト用の記録（5フレームに1回）
             // 通信量を減らすため、座標の精度を小数点第2位までに抑える
-            if (frameCount % 5 === 0) currentGhostData.push({
+            if (frameCount % 10 === 0) currentGhostData.push({
                 x: Math.round(player.x * 100) / 100, 
                 y: Math.round(player.y * 100) / 100, 
-                f: player.facing
+                f: player.facing === 'right' ? 'r' : 'l'
             });
 
             // 風の処理
@@ -2901,10 +2901,10 @@
                 ctx.globalAlpha = 0.5;
                 playbackGhosts.forEach(ghost => {
                     if (ghost.ghost) {
-                        const frameIdx = Math.floor(frameCount / 5);
+                        const frameIdx = Math.floor(frameCount / 10);
                         const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
                         if (pos) {
-                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, pos.f || 'right');
+                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, pos.f === 'l' ? 'left' : 'right');
                             // 名前のラベル表示
                             ctx.save();
                             ctx.globalAlpha = 1.0;
