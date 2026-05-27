@@ -2694,6 +2694,7 @@
             checkGimmicks();
 
             // 敵の更新
+            const isFalling = player.vy >= 0;
             enemies.forEach(en => {
                 if(en.dead) return;
 
@@ -2768,8 +2769,9 @@
 
                 const px = player.x + player.w/2, py = player.y + player.h/2;
                 const ex = en.x + 0.5, ey = en.y + 0.5;
-                if (Math.abs(px - ex) < 0.7 && Math.abs(py - ey) < 0.7) {
-                    if (player.vy > 0 && player.y + player.h < en.y + 0.5) {
+                if (Math.abs(px - ex) < 0.8 && Math.abs(py - ey) < 0.8) {
+                    // 踏みつけ判定: 落下中かつ、プレイヤーの足元が敵の下部2割（地面から0.2ブロック分）より高い位置にある場合
+                    if (isFalling && (player.y + player.h) < (en.y + 0.8)) {
                         en.dead = true; player.vy = -0.3; // 踏んで跳ねる
                     } else {
                         handlePlayerDeath();
