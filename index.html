@@ -797,10 +797,11 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxRhvLm8tIRWQuqWhmoI7kM6N6EChF_Woc0r0WsVYuy1KkC1xi9Q_FO8rj-icKwj0I5/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx79xbEeIruwYgz07sfSdW2NnRgZcuKjtz4tMRt82W4hmh9FE4coltqEniIsFaS2XXX/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
+        const APP_VERSION = "2.0.3";
         let userGold = 0;
         let userCP = 0;
         let purchasedSkins = ['default', 'girl'];
@@ -2311,10 +2312,26 @@
             btn.innerText = "投稿中...";
             btn.disabled = true;
 
-            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid });
+            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, version: APP_VERSION });
             btn.innerText = oldText;
             btn.disabled = false;
             alert("投稿完了！プレイメニューから遊べます。");
+        }
+
+        /**
+         * バージョン比較ヘルパー
+         * v1 > v2 : 1, v1 < v2 : -1, v1 == v2 : 0
+         */
+        function compareVersion(v1, v2) {
+            const a = String(v1).split('.').map(Number);
+            const b = String(v2).split('.').map(Number);
+            for (let i = 0; i < Math.max(a.length, b.length); i++) {
+                const n1 = a[i] || 0;
+                const n2 = b[i] || 0;
+                if (n1 > n2) return 1;
+                if (n1 < n2) return -1;
+            }
+            return 0;
         }
 
         // --- プレイ・ゲームロジック ---
@@ -2450,6 +2467,9 @@
                 
                 const currentStageReward = calculateStageRewardValue(s, CONFIG.USERNAME);
 
+                // バージョンチェック
+                const isCompatible = compareVersion(APP_VERSION, s.version) >= 0;
+
                 const favBtn = `<span onclick="toggleFavorite('${sId}', event)" style="cursor:pointer; font-size:2cqw; color:${isFav ? '#e91e63' : '#666'}; line-height:1;">${isFav ? '★' : '☆'}</span>`;
 
                 const info = document.createElement('div');
@@ -2467,11 +2487,15 @@
                         ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span>
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span> Ver:<span class="stat-val">${s.version}</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
-                        <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
-                            onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
+                        ${isCompatible ? 
+                            `<button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
+                                onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>` :
+                            `<button class="pixel-btn small" style="background:#444; color:#888; cursor:not-allowed;" 
+                                onclick="event.stopPropagation(); alert('アプリのアップデートが必要です（このステージのVer: ${s.version}）')">⚠️要アプデ</button>`
+                        }
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
                             onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
                         ${(CONFIG.USERNAME === 'Runon' || s.creator === CONFIG.USERNAME) ? `
