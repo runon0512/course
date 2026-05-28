@@ -356,6 +356,15 @@
             box-shadow: 0px 0px 0px transparent;
         }
 
+        /* モバイル操作ボタンの半透明化 */
+        #mobile-controls .pixel-btn {
+            opacity: 0.5;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        #mobile-controls .pixel-btn:active {
+            opacity: 0.9;
+        }
+
         /* エディタ・ゲーム共通画面 */
         .screen {
             position: absolute;
@@ -539,6 +548,9 @@
         <!-- グローバルランキングボタン -->
         <button id="global-rank-btn" class="pixel-btn small" onclick="showGlobalRanking()" style="position: absolute; top: 1cqh; left: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
 
+        <!-- クリエイターズロードボタン -->
+        <button id="creators-road-btn" class="pixel-btn small" onclick="openCreatorsRoad()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none; background: linear-gradient(45deg, #ff00ff, #00ffff); color: #fff; border-color: #fff;">💎 Creator Road</button>
+
         <!-- 認証画面 -->
         <div id="auth-overlay">
             <div class="auth-box">
@@ -617,6 +629,21 @@
                 </div>
             </div>
             <button class="pixel-btn small" onclick="closeLocker()" style="margin-top: 4cqh;">戻る</button>
+        </div>
+
+        <!-- クリエイターズロード画面 -->
+        <div id="creators-road-overlay" class="screen" style="z-index: 160; flex-direction: column; align-items: center; padding: 2cqh 5cqw; overflow-y: auto;">
+            <h2 style="font-size: 2.5cqw; color: #ff00ff; margin-bottom: 1cqh;">CREATORS ROAD</h2>
+            <div style="background: rgba(0,0,0,0.5); padding: 1.5cqw; border: 0.3cqw solid #fff; width: 60%; margin-bottom: 1.5cqh; flex-shrink: 0;">
+                <div style="font-size: 1.5cqw; margin-bottom: 1cqh;">YOUR CP: <span id="road-current-cp" style="color: var(--primary-color);">0</span></div>
+                <div id="road-progress-bar-container" style="width: 100%; height: 3cqh; background: #333; border: 0.2cqw solid #fff; position: relative;">
+                    <div id="road-progress-bar" style="height: 100%; background: linear-gradient(90deg, #ff00ff, #00ffff); width: 0%; transition: width 0.5s;"></div>
+                </div>
+            </div>
+            <div id="road-milestones" style="width: 80%; display: flex; flex-direction: column; gap: 1cqh; flex-grow: 1;">
+                <!-- Milestones injected here -->
+            </div>
+            <button class="pixel-btn small" onclick="closeCreatorsRoad()" style="margin-top: 2cqh; flex-shrink: 0;">戻る</button>
         </div>
 
         <!-- カスタムスキンエディタ -->
@@ -723,15 +750,19 @@
                     <div class="tool-btn tool-speed" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-bridge" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-enemy" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-switch" onclick="setTool('!', this)" title="ON/OFF SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-red" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-blue" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-switch" id="btn-tool-!" onclick="setTool('!', this)" title="ON/OFF SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-red" id="btn-tool-r" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-blue" id="btn-tool-b" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-oneway-r" onclick="setTool('>', this)" title="ONEWAY RIGHT"><canvas id="icon-owr" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-oneway-l" onclick="setTool('<', this)" title="ONEWAY LEFT"><canvas id="icon-owl" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-oneway-d" onclick="setTool('v', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-checkpoint" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-red-spike" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-blue-spike" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-red-spike" id="btn-tool-k" onclick="setTool('k', this)" title="RED SPIKE"> <canvas id="icon-k" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-blue-spike" id="btn-tool-q" onclick="setTool('q', this)" title="BLUE SPIKE"> <canvas id="icon-q" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-sticky" id="btn-tool-Y" onclick="setTool('Y', this)" title="STICKY BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-downdraft" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-rb-wind" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-jumper-enemy" id="btn-tool-j" onclick="setTool('j', this)" title="JUMPER ENEMY" style="display:none;"><canvas id="icon-j" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
                 </div>
             </div>
@@ -746,6 +777,7 @@
                     <input type="checkbox" id="toggle-ghosts" checked onchange="showGhosts = this.checked">
                     <span>GHOSTS</span>
                 </label>
+                <div id="game-timer" style="color: #fff; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff; font-size: 1.2cqw; min-width: 12cqw;">TIME: 100.0</div>
             </div>
             <!-- モバイル操作用ボタン -->
             <div id="mobile-controls" style="display:none; position:absolute; bottom:5cqh; left:0; width:100%; pointer-events:none; z-index:100;">
@@ -765,7 +797,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzmAkY0roUQMYmOwx838LelUxxf-3tUAgP-lixveQ7QMKkkrE_EhNVo2FE_qTxDjBTc/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxRhvLm8tIRWQuqWhmoI7kM6N6EChF_Woc0r0WsVYuy1KkC1xi9Q_FO8rj-icKwj0I5/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -775,6 +807,19 @@
         let equippedSkin = 'default';
         let equippedColor = 'default';
         
+        // クリエイターズロード用
+        const CREATORS_ROAD_MILESTONES = [
+            { id: 2, cp: 1000, gold: 500 }, // Gはゲームの基本要素なのでアンロック対象から除外
+            { id: 3, cp: 2000, unlock: 'Y', text: "粘着ブロック" },
+            { id: 4, cp: 3000, gold: 200 },
+            { id: 1, cp: 5000, gold: 1000 }, // 元の5000CP報酬
+            { id: 5, cp: 10000, gold: 800 },
+            { id: 6, cp: 15000, unlock: 'J', text: "R/B風" }, // Jを15000CPの報酬に
+            { id: 7, cp: 20000, unlock: 'd', text: "下降気流" },
+            { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" }
+        ];
+        let claimedRoadRewards = [];
+
         // カスタムスキンデータ保存用
         let customSpriteStore = { 'custom': null, 'custom2': null, 'custom3': null };
         const CUSTOM_PALETTE = [
@@ -787,7 +832,7 @@
         let editorGrid = [];
         let currentTool = 'B';
         const GRID_W = 20, GRID_H = 10;
-        let isDrawing = false;
+        let isDrawing = false; // エディタでの描画中フラグ
         let gameLoopId = null;
         let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false };
         let isSwitchOn = true;
@@ -806,7 +851,7 @@
         let playbackGhosts = [];
         let showGhosts = true;
         let isMobileMode = false;
-        let currentGhostData = [];
+        let currentGhostData = []; // ゴーストデータはフレームごとに記録
         let startTime = 0;
         let frameCount = 0;
         let totalCheckpoints = 0;
@@ -1156,6 +1201,7 @@
                                 purchasedSkins = res.purchasedSkins || ['default', 'girl'];
                                 equippedSkin = res.equippedSkin || 'default';
                                 equippedColor = res.equippedColor || 'default';
+                                claimedRoadRewards = res.claimedRoadRewards || [];
                                 
                                 // カスタムスキンデータの読み込み
                                 callApi('load', { username: res.username, key: 'custom_skins' })
@@ -1169,6 +1215,7 @@
                                 document.getElementById('main-menu').classList.add('active');
                                 document.getElementById('user-info').style.display = 'block';
                                 document.getElementById('global-rank-btn').style.display = 'block';
+                                document.getElementById('creators-road-btn').style.display = 'block';
                                 document.getElementById('current-user').innerText = res.username;
                                 // Initialize sort/filter UI on login
                                 document.getElementById('sort-criteria').value = currentSort;
@@ -1243,6 +1290,99 @@
                 equippedColor: equippedColor
             });
             openShop();
+        }
+
+        // --- クリエイターズロード関連 ---
+        function openCreatorsRoad() {
+            document.getElementById('creators-road-overlay').style.display = 'flex';
+            updateRoadProgress();
+            renderMilestones();
+        }
+
+        function updateRoadProgress() {
+            document.getElementById('road-current-cp').innerText = userCP;
+            const maxCP = 20000; // 最大CPを20000に調整
+            const progress = Math.min(100, (userCP / maxCP) * 100);
+            document.getElementById('road-progress-bar').style.width = `${progress}%`;
+        }
+
+        function closeCreatorsRoad() {
+            document.getElementById('creators-road-overlay').style.display = 'none';
+        }
+
+        function renderMilestones() {
+            const container = document.getElementById('road-milestones');
+            container.innerHTML = '';
+            
+            CREATORS_ROAD_MILESTONES.forEach(m => {
+                const isReached = userCP >= m.cp;
+                const isClaimed = claimedRoadRewards.includes(m.id);
+                
+                const rewardLabel = m.gold ? `${m.gold} G` : m.text;
+
+                const div = document.createElement('div');
+                div.style.cssText = "background: #252538; border: 0.3cqw solid #fff; padding: 2cqw; display: flex; justify-content: space-between; align-items: center;";
+                
+                div.innerHTML = `
+                    <div style="text-align: left;">
+                        <div style="font-size: 1.5cqw; color: #ff00ff; margin-bottom:0.5cqh;">${m.cp} CP</div>
+                        <div style="font-size: 1.2cqw; color: #f1c40f;">報酬: ${rewardLabel}</div>
+                    </div>
+                `;
+                
+                const btn = document.createElement('button');
+                btn.className = 'pixel-btn small';
+                if (isClaimed) {
+                    btn.innerText = "CLAIMED"; btn.disabled = true; btn.style.opacity = "0.5";
+                } else if (isReached) {
+                    btn.innerText = "CLAIM!"; btn.style.background = "var(--primary-color)"; btn.style.color = "#000";
+                    btn.onclick = (e) => claimRoadReward(m, e.target);
+                } else {
+                    btn.innerText = "LOCKED"; btn.disabled = true; btn.style.opacity = "0.5";
+                }
+                
+                div.appendChild(btn);
+                container.appendChild(div);
+            });
+        }
+
+        async function claimRoadReward(milestone, btn) {
+            if (claimedRoadRewards.includes(milestone.id)) return;
+
+            const oldText = btn.innerText;
+            btn.innerText = "獲得中...";
+            btn.disabled = true;
+
+            try {
+                const newClaimed = [...claimedRoadRewards, milestone.id];
+                const nextGold = milestone.gold ? userGold + milestone.gold : userGold;
+                // 進捗と所持金を一括で保存
+                const res = await callApi('updateSkins', {
+                    username: CONFIG.USERNAME,
+                    gold: nextGold,
+                    purchasedSkins: purchasedSkins,
+                    equippedSkin: equippedSkin,
+                    equippedColor: equippedColor,
+                    claimedRoadRewards: newClaimed
+                });
+
+                if (res && res.success) {
+                    userGold = nextGold;
+                    claimedRoadRewards = newClaimed;
+                    updateGoldDisplay();
+                    if (milestone.gold) alert(`${milestone.gold} G 獲得しました！`);
+                    if (milestone.unlock) alert(`${milestone.text} をアンロックしました！`);
+                } else {
+                    throw new Error(res ? res.message : "Save failed");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("報酬の受け取りに失敗しました。");
+                btn.innerText = oldText;
+                btn.disabled = false;
+            } finally {
+                renderMilestones();
+            }
         }
 
         // --- グローバルランキング（1位獲得数） ---
@@ -1650,6 +1790,23 @@
         function startEditor() {
             activeStage = [];
             document.getElementById('editor-screen').style.display = 'block';
+            
+            // ロード報酬のアンロック状況を反映
+            // R/Bスイッチ系は常に表示 (デフォルトでアンロック)
+            ['!', 'r', 'b', 'k', 'q'].forEach(t => {
+                const btn = document.getElementById('btn-tool-' + t);
+                if (btn) btn.style.display = 'flex'; // Always visible
+            });
+
+            // 粘着ブロック
+            document.getElementById('btn-tool-Y').style.display = claimedRoadRewards.includes(3) ? 'flex' : 'none';
+            // 昇降リフト
+            document.getElementById('btn-tool-d').style.display = claimedRoadRewards.includes(7) ? 'flex' : 'none';
+            // トグルスイッチ
+            document.getElementById('btn-tool-J').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(6)) ? 'flex' : 'none';
+            // ジャンプする敵
+            document.getElementById('btn-tool-j').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(8)) ? 'flex' : 'none';
+
             resizeCanvas('editor-canvas');
             drawEditor();
             renderToolIcons();
@@ -1666,7 +1823,7 @@
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, 
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
-                {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'E', id:'icon-E'}
+                {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, {type:'j', id:'icon-j'}, {type:'E', id:'icon-E'}
             ];
             toolList.forEach(tool => {
                 const canvas = document.getElementById(tool.id);
@@ -2056,6 +2213,60 @@
                     ctx.lineWidth = 1;
                     ctx.setLineDash([]);
                 }
+            } else if(type === 'Y') {
+                // 粘着ブロック (Sticky Block)
+                ctx.fillStyle = "#4a148c"; // 紫色
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#7b1fa2";
+                // 粘着質のつぶつぶ模様
+                for(let i=0; i<3; i++) {
+                    ctx.fillRect(x*cw + cw*(0.2+i*0.25), y*ch + ch*0.3, 3, 3);
+                    ctx.fillRect(x*cw + cw*(0.3+i*0.25), y*ch + ch*0.6, 3, 3);
+                }
+            } else if(type === 'd') {
+                // 下降気流 (Downdraft)
+                ctx.save();
+                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
+                ctx.strokeStyle = "rgba(100, 100, 255, 0.8)";
+                ctx.lineWidth = 3;
+                let drift = (time * 100) % ch;
+                for(let i=0; i<4; i++) {
+                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch + drift);
+                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch + drift - ch*0.6); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch + drift + ch);
+                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch + drift + ch - ch*0.6); ctx.stroke();
+                }
+                ctx.restore();
+            } else if(type === 'J') {
+                // R/B風 (R/B Wind)
+                ctx.save();
+                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
+                ctx.strokeStyle = isSwitchOn ? "rgba(255, 82, 82, 0.7)" : "rgba(68, 138, 255, 0.7)";
+                ctx.lineWidth = 3;
+                let drift = (time * 100) % cw;
+                if (isSwitchOn) { // 右向き（R）
+                    for(let i=0; i<4; i++) {
+                        ctx.beginPath(); ctx.moveTo(x*cw + drift - cw, y*ch + (i+1)*ch/5);
+                        ctx.lineTo(x*cw + drift - cw + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(x*cw + drift, y*ch + (i+1)*ch/5);
+                        ctx.lineTo(x*cw + drift + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                    }
+                } else { // 左向き（B）
+                    for(let i=0; i<4; i++) {
+                        ctx.beginPath(); ctx.moveTo(x*cw + cw - drift, y*ch + (i+1)*ch/5);
+                        ctx.lineTo(x*cw + cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(x*cw - drift, y*ch + (i+1)*ch/5);
+                        ctx.lineTo(x*cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                    }
+                }
+                ctx.restore();
+            } else if(type === 'j') {
+                // ジャンプする敵 (Jumper Enemy) - 青色
+                ctx.fillStyle = "#2196f3";
+                ctx.fillRect(x*cw + cw*0.1, y*ch + ch*0.2, cw*0.8, ch*0.8);
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
+                ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
             }
         }
 
@@ -2353,8 +2564,12 @@
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
                     if(activeStage[y][x] === 'C') totalCheckpoints++;
                     if(activeStage[y][x] === 'M') {
-                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false});
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false});
                         activeStage[y][x] = null; // スポーン後はグリッドから削除
+                    }
+                    if(activeStage[y][x] === 'j') {
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: true});
+                        activeStage[y][x] = null;
                     }
                 }
             }
@@ -2524,7 +2739,7 @@
             const display = document.getElementById('user-gold');
             if (display) display.innerText = userGold;
             const cpDisplay = document.getElementById('user-cp');
-            if (cpDisplay) cpDisplay.innerText = userCP;
+            if (cpDisplay) cpDisplay.innerText = (CONFIG.USERNAME === 'Runon') ? "∞" : userCP;
         }
 
         function testPlay() {
@@ -2586,13 +2801,40 @@
                 }
             }
 
-            const speed = 0.015; // 加速を遅く設定
+            // タイムアップ判定
+            if (!isCountingDown && startTime > 0) {
+                const elapsed = (Date.now() - startTime) / 1000;
+                if (elapsed >= 100) {
+                    isGoalTriggered = true;
+                    showMessage("TIME UP", "時間切れです！", true);
+                    return;
+                }
+            }
+
+            let currentSpeed = 0.015; // デフォルトの加速
             const gravity = 0.015;
             const jumpForce = -0.3;
 
-            if (keys['ArrowLeft']) { player.vx -= speed; player.facing = 'left'; }
-            if (keys['ArrowRight']) { player.vx += speed; player.facing = 'right'; }
-            if (keys['Space'] && player.onGround) { player.vy = jumpForce; player.onGround = false; }
+            // 粘着ブロックの足元判定
+            const footY_sticky = Math.floor(player.y + player.h);
+            const gx_sticky = Math.floor(player.x + player.w/2);
+            if (activeStage[footY_sticky] && activeStage[footY_sticky][gx_sticky] === 'Y') {
+                currentSpeed *= 0.5; // 速度（加速）が1/2
+            }
+
+            if (keys['ArrowLeft']) { player.vx -= currentSpeed; player.facing = 'left'; }
+            if (keys['ArrowRight']) { player.vx += currentSpeed; player.facing = 'right'; }
+            if (keys['Space'] && player.onGround) {
+                player.vy = jumpForce;
+                player.onGround = false;
+                // ジャンプする敵（j）を同時にジャンプさせる
+                enemies.forEach(en => {
+                    if (!en.dead && en.jumper && en.onGround) {
+                        en.vy = jumpForce;
+                        en.onGround = false;
+                    }
+                });
+            }
             
             // キーによるオンオフ切り替え
             if (keys['KeyR']) isSwitchOn = true;
@@ -2616,6 +2858,11 @@
                 if(tile === 'W') player.vx += 0.012;
                 if(tile === 'L') player.vx -= 0.012;
                 if(tile === 'U') player.vy -= 0.025; // 重力(0.015)を打ち消して浮き上がる
+                if(tile === 'd') player.vy += 0.025; // 下降気流
+                if(tile === 'J') {
+                    if (isSwitchOn) player.vx += 0.012;
+                    else player.vx -= 0.012;
+                }
             }
 
             // 奈落判定
@@ -2685,8 +2932,9 @@
                     if (activeStage[headY] && activeStage[headY][gx] === '!') {
                         if (!player.onSwitch) { isSwitchOn = !isSwitchOn; player.onSwitch = true; }
                     }
+                } else if (player.vy > 0) {
+                    player.onGround = true;
                 }
-                if(player.vy > 0) player.onGround = true;
                 player.vy = 0;
             }
 
@@ -2753,7 +3001,10 @@
                         }
                     }
                     // 落下中に衝突した場合は地面の上に正しくスナップ (0.9は敵のサイズ)
-                    if (en.vy > 0) en.y = isBridge ? nextY : Math.floor(nextY + 0.9) - 0.9;
+                    if (en.vy > 0) {
+                        en.y = isBridge ? nextY : Math.floor(nextY + 0.9) - 0.9;
+                        en.onGround = true;
+                    }
                     en.vy = 0;
                 } else {
                     // スイッチ状態リセット
@@ -2761,6 +3012,7 @@
                     const egy = Math.floor(en.y + 0.45);
                     if (!activeStage[egy] || activeStage[egy][egx] !== '!') en.onSwitch = false;
                     en.y = nextY;
+                    en.onGround = false;
                 }
                 
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
@@ -2779,7 +3031,7 @@
                 }
             });
 
-            // 矢の生成と更新
+            // 矢の生成
             if (frameCount % 120 === 0) {
                 for(let y=0; y<GRID_H; y++) {
                     for(let x=0; x<GRID_W; x++) {
@@ -2787,12 +3039,15 @@
                     }
                 }
             }
+
+            // 矢の更新
             arrows.forEach((a, i) => {
                 // 矢にも風の影響を適用
                 const ax_tile = Math.floor(a.x), ay_tile = Math.floor(a.y);
                 if(activeStage[ay_tile]) {
                     const tile = activeStage[ay_tile][ax_tile];
                     if(tile === 'U') a.vy -= 0.005;
+                    if(tile === 'd') a.vy += 0.005;
                 }
                 
                 a.x += a.vx; a.y += a.vy;
@@ -2863,8 +3118,8 @@
                 if(iy < 0) return false;
                 if(iy >= GRID_H) return false;
 
-                const tile = activeStage[iy][ix];
-                if(tile === 'B' || tile === 'X' || tile === '!' || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
+                const tile = activeStage[iy][ix]; // 壁判定から V を削除
+                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
             }
             return false;
         }
@@ -2923,6 +3178,19 @@
             const cw = canvas.width / GRID_W;
             const ch = canvas.height / GRID_H;
             
+            // タイマーUIの更新
+            const timerEl = document.getElementById('game-timer');
+            if (timerEl) {
+                if (isCountingDown) {
+                    timerEl.innerText = `TIME: 100.0`;
+                    timerEl.style.color = "#fff";
+                } else if (!isGoalTriggered && startTime > 0) {
+                    const remaining = Math.max(0, 100 - (Date.now() - startTime) / 1000);
+                    timerEl.innerText = `TIME: ${remaining.toFixed(1)}`;
+                    timerEl.style.color = remaining < 10 ? "#ff5252" : "#fff";
+                }
+            }
+
             const time = Date.now() * 0.002;
             ctx.fillStyle = "#70a1ff";
             ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -2936,7 +3204,8 @@
             // 敵の描画
             enemies.forEach(en => {
                 if(!en.dead) {
-                    ctx.fillStyle = "#f44336";
+                    // jumperフラグによって色を変える
+                    ctx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
                     ctx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
                     ctx.fillStyle = "#fff";
                     ctx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
@@ -3114,4 +3383,4 @@
         });
     </script>
 </body>
-</html>
+</html>     
