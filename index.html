@@ -797,7 +797,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxd3_eWkeC64u5KvJhl--IndQhIe4fDxE2K-8GX3Yu9UiWaIenjBGaiGBgjrcg_Z5mL/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxRhvLm8tIRWQuqWhmoI7kM6N6EChF_Woc0r0WsVYuy1KkC1xi9Q_FO8rj-icKwj0I5/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -1073,7 +1073,7 @@
 
         const SKINS = {
             'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE, recolorIndex: '2' },
-            'girl': { name: 'GIRL', price: 0, sprite: GIRL_SPRITE, recolorIndex: '7' },
+            'girl': { name: 'GIRL', price: 0, sprite: GIRL_SPRITE, recolorIndex: '2' },
             'snowman': { name: 'SNOWMAN', price: 5000, sprite: SNOWMAN_SPRITE, recolorIndex: '7' },
             'halloween': { name: 'PUMPKIN', price: 5000, sprite: HALLOWEEN_SPRITE, recolorIndex: '9' },
             'robot': { name: 'ROBOT', price: 8000, sprite: ROBOT_SPRITE, recolorIndex: 'b' },
@@ -2311,26 +2311,10 @@
             btn.innerText = "投稿中...";
             btn.disabled = true;
 
-            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, version: APP_VERSION });
+            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid });
             btn.innerText = oldText;
             btn.disabled = false;
             alert("投稿完了！プレイメニューから遊べます。");
-        }
-
-        /**
-         * バージョン比較ヘルパー
-         * v1 > v2 : 1, v1 < v2 : -1, v1 == v2 : 0
-         */
-        function compareVersion(v1, v2) {
-            const a = String(v1).split('.').map(Number);
-            const b = String(v2).split('.').map(Number);
-            for (let i = 0; i < Math.max(a.length, b.length); i++) {
-                const n1 = a[i] || 0;
-                const n2 = b[i] || 0;
-                if (n1 > n2) return 1;
-                if (n1 < n2) return -1;
-            }
-            return 0;
         }
 
         // --- プレイ・ゲームロジック ---
@@ -2483,7 +2467,7 @@
                         ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span>
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span> Ver:<span class="stat-val">${s.version}</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
