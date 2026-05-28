@@ -797,11 +797,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx79xbEeIruwYgz07sfSdW2NnRgZcuKjtz4tMRt82W4hmh9FE4coltqEniIsFaS2XXX/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxd3_eWkeC64u5KvJhl--IndQhIe4fDxE2K-8GX3Yu9UiWaIenjBGaiGBgjrcg_Z5mL/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
-        const APP_VERSION = "2.0.3";
         let userGold = 0;
         let userCP = 0;
         let purchasedSkins = ['default', 'girl'];
@@ -874,22 +873,22 @@
 
         // キャラクターの16x16ドットデータ
         const PLAYER_SPRITE = [
-            "      5555      ",
-            "     555555     ",
-            "    55555555    ",
-            "    55111155    ",
-            "    51111115    ",
-            "    51411415    ",
-            "    11111111    ",
-            "     111111     ",
-            "   2222222222   ",
-            "  222222222222  ",
-            "  222222222222  ",
-            "  222222222222  ",
-            "    333   333   ",
-            "    333   333   ",
-            " 66666666666666 ",
-            "  666666666666  "
+            "   5555555      ",
+            "    5555555     ",
+            "   555555555    ",
+            "  5555511155    ",
+            "   555171175    ",
+            "  5555141141    ",
+            "   5151111111   ",
+            "  5561111111    ",
+            "   22222222222  ",
+            "  22222222222222",
+            "  22222222222222",
+            " 222222222222222",
+            " 222244   44222 ",
+            " 222444   44422 ",
+            " 666666666666666",
+            "  6666666666666 "
         ];
 
         const SNOWMAN_SPRITE = [
@@ -964,21 +963,21 @@
 
         const GIRL_SPRITE = [
             "      eeee      ",
-            "     eeeeee     ",
-            "    eeeeeeee    ",
-            "    ee1111ee    ",
-            "    e111111e    ",
-            "    e141141e    ",
-            "    11111111    ",
-            "     111111     ",
-            "   2222222222   ",
-            "  222222222222  ",
-            "  ffffffffffff  ",
-            "  ffffffffffff  ",
-            "    fff   fff   ",
-            "    fff   fff   ",
-            " 444444   444444",
-            "  44444   44444 "
+            "    eeeeeee     ",
+            "   eeeeeeeee    ",
+            "   eeeeeee1e    ",
+            "  eeee17117e    ",
+            "  eeee141141    ",
+            "  ee1e111111    ",
+            "  eee111111     ",
+            "  eee77777777   ",
+            "   ee777777777  ",
+            "  7eee71111177  ",
+            "  77eeffffff177 ",
+            "    ff1   fff   ",
+            "    444   444   ",
+            " 777777777777777",
+            "  77777777777777"
         ];
 
         const KNIGHT_SPRITE = [
@@ -2467,9 +2466,6 @@
                 
                 const currentStageReward = calculateStageRewardValue(s, CONFIG.USERNAME);
 
-                // バージョンチェック
-                const isCompatible = compareVersion(APP_VERSION, s.version) >= 0;
-
                 const favBtn = `<span onclick="toggleFavorite('${sId}', event)" style="cursor:pointer; font-size:2cqw; color:${isFav ? '#e91e63' : '#666'}; line-height:1;">${isFav ? '★' : '☆'}</span>`;
 
                 const info = document.createElement('div');
@@ -2487,15 +2483,11 @@
                         ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span> Ver:<span class="stat-val">${s.version}</span>
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
-                        ${isCompatible ? 
-                            `<button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
-                                onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>` :
-                            `<button class="pixel-btn small" style="background:#444; color:#888; cursor:not-allowed;" 
-                                onclick="event.stopPropagation(); alert('アプリのアップデートが必要です（このステージのVer: ${s.version}）')">⚠️要アプデ</button>`
-                        }
+                        <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
+                            onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
                             onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
                         ${(CONFIG.USERNAME === 'Runon' || s.creator === CONFIG.USERNAME) ? `
@@ -3407,4 +3399,4 @@
         });
     </script>
 </body>
-</html>     
+</html>
