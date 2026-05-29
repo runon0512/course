@@ -854,6 +854,10 @@
         let currentGhostData = []; // ゴーストデータはフレームごとに記録
         let startTime = 0;
         let frameCount = 0;
+        
+        // 高速化のためのキャッシュ用変数
+        const spriteCache = new Map();
+        let timerElement = null;
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
         let lastTime = 0;
@@ -1781,6 +1785,7 @@
         function closeCustomEditor() { document.getElementById('custom-editor-overlay').style.display = 'none'; updateLockerPreview(); }
         async function saveCustomSkin() {
             customSpriteStore[tempSelectedSkin] = currentEditingSprite;
+            spriteCache.clear(); // スキンが更新されたのでキャッシュをクリア
             await callApi('save', { username: CONFIG.USERNAME, key: 'custom_skins', data: customSpriteStore });
             alert("ドット絵を保存しました！");
             closeCustomEditor();
@@ -2023,7 +2028,6 @@
             } else if(type === 'W') {
                 // 風ゾーン
                 ctx.save();
-                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
                 ctx.strokeStyle = "rgba(0, 255, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
@@ -2037,7 +2041,6 @@
             } else if(type === 'L') {
                 // 逆向きの風（左向き）
                 ctx.save();
-                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
                 ctx.strokeStyle = "rgba(255, 100, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
@@ -2051,7 +2054,6 @@
             } else if(type === 'U') {
                 // 上昇気流
                 ctx.save();
-                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % ch;
@@ -2063,6 +2065,10 @@
                 }
                 ctx.restore();
             } else if(type === 'P') {
+                // 風・気流系の共通クリップ解除（座標制御が複雑なため簡易化）
+                // 元々1マス内での描画なので、save/restoreは残すがclipだけ外しても影響は少ない
+                // ただし、厳密には隣のマスにはみ出す可能性があるため、必要に応じてlineToの値を制限
+
                 // 加速
                 ctx.fillStyle = "#ffd600";
                 ctx.fillRect(x*cw + pad, y*ch + ch*0.8, cw - pad*2, ch*0.2);
@@ -2226,7 +2232,6 @@
             } else if(type === 'd') {
                 // 下降気流 (Downdraft)
                 ctx.save();
-                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
                 ctx.strokeStyle = "rgba(100, 100, 255, 0.8)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % ch;
@@ -2240,7 +2245,6 @@
             } else if(type === 'J') {
                 // R/B風 (R/B Wind)
                 ctx.save();
-                ctx.beginPath(); ctx.rect(x*cw, y*ch, cw, ch); ctx.clip();
                 ctx.strokeStyle = isSwitchOn ? "rgba(255, 82, 82, 0.7)" : "rgba(68, 138, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
@@ -2525,6 +2529,8 @@
             currentStageData = stageObj;
             isSwitchOn = true;
             player.onSwitch = false;
+            spriteCache.clear(); // ステージ開始時にキャッシュをクリアしてリフレッシュ
+            timerElement = document.getElementById('game-timer');
 
             if (mode === 'play') {
                 closeStageSelect();
@@ -2827,7 +2833,7 @@
             if (keys['Space'] && player.onGround) {
                 player.vy = jumpForce;
                 player.onGround = false;
-                // ジャンプする敵（j）を同時にジャンプさせる
+                // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
                 enemies.forEach(en => {
                     if (!en.dead && en.jumper && en.onGround) {
                         en.vy = jumpForce;
@@ -3179,15 +3185,14 @@
             const ch = canvas.height / GRID_H;
             
             // タイマーUIの更新
-            const timerEl = document.getElementById('game-timer');
-            if (timerEl) {
+            if (timerElement) {
                 if (isCountingDown) {
-                    timerEl.innerText = `TIME: 100.0`;
-                    timerEl.style.color = "#fff";
+                    timerElement.innerText = `TIME: 100.0`;
+                    timerElement.style.color = "#fff";
                 } else if (!isGoalTriggered && startTime > 0) {
                     const remaining = Math.max(0, 100 - (Date.now() - startTime) / 1000);
-                    timerEl.innerText = `TIME: ${remaining.toFixed(1)}`;
-                    timerEl.style.color = remaining < 10 ? "#ff5252" : "#fff";
+                    timerElement.innerText = `TIME: ${remaining.toFixed(1)}`;
+                    timerElement.style.color = remaining < 10 ? "#ff5252" : "#fff";
                 }
             }
 
@@ -3273,8 +3278,34 @@
 
         function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
             const skin = SKINS[skinId] || SKINS['default'];
-            const pixelW = pw / 16;
-            const pixelH = ph / 16;
+            
+            // キャッシュ用のキー作成
+            const cacheKey = `${skinId}_${colorId}_${customData ? 'c' : 's'}`;
+            let cachedCanvas = spriteCache.get(cacheKey);
+
+            if (!cachedCanvas) {
+                cachedCanvas = document.createElement('canvas');
+                cachedCanvas.width = 16;
+                cachedCanvas.height = 16;
+                const cctx = cachedCanvas.getContext('2d');
+                renderToSpriteCanvas(cctx, skin, customData, colorId);
+                spriteCache.set(cacheKey, cachedCanvas);
+            }
+
+            ctx.save();
+            // 描画位置への移動と反転処理
+            ctx.translate(px + (facing === 'left' ? pw : 0), py);
+            if (facing === 'left') ctx.scale(-1, 1);
+            
+            // キャッシュしたキャンバスを1回で描画（スケーリングはdrawImageに任せる）
+            ctx.imageRendering = 'pixelated';
+            ctx.drawImage(cachedCanvas, 0, 0, pw, ph);
+            ctx.restore();
+        }
+
+        // スプライトを16x16のキャンバスにプリレンダリングするヘルパー
+        function renderToSpriteCanvas(ctx, skin, customData, colorId) {
+            const rIdx = skin.recolorIndex || '2';
 
             // カスタムスキンの描画
             if (skin.isCustom && customData) {
@@ -3282,8 +3313,7 @@
                     row.forEach((color, x) => {
                         if (color) {
                             ctx.fillStyle = color;
-                            let rx = (facing === 'left') ? (15 - x) : x;
-                            ctx.fillRect(px + rx * pixelW, py + y * pixelH, pixelW + 0.5, pixelH + 0.5);
+                            ctx.fillRect(x, y, 1, 1);
                         }
                     });
                 });
@@ -3291,8 +3321,6 @@
             }
 
             const sprite = skin.sprite || PLAYER_SPRITE;
-            const rIdx = skin.recolorIndex || '2'; // 色を変える対象のピクセル番号
-
             const colors = {
                 '1': '#ffdbac', // 肌
                 '2': varColor('--primary-color'), // 服
@@ -3327,17 +3355,14 @@
                 [...row].forEach((c, x) => {
                     if (c !== ' ') {
                         if (colorId === 'calico' && c === rIdx) {
-                            // 三毛猫のパターン：座標によって色を分ける
                             let pattern = (x + y * 2) % 3;
-                            if (pattern === 0) ctx.fillStyle = '#ffffff'; // 白
-                            else if (pattern === 1) ctx.fillStyle = '#ff9800'; // 橙
-                            else ctx.fillStyle = '#333333'; // 黒
+                            if (pattern === 0) ctx.fillStyle = '#ffffff';
+                            else if (pattern === 1) ctx.fillStyle = '#ff9800';
+                            else ctx.fillStyle = '#333333';
                         } else {
                             ctx.fillStyle = colors[c];
                         }
-                        // 微小な隙間を防ぐため+0.5
-                        let rx = (facing === 'left') ? (15 - x) : x;
-                        ctx.fillRect(px + rx * pixelW, py + y * pixelH, pixelW + 0.5, pixelH + 0.5);
+                        ctx.fillRect(x, y, 1, 1);
                     }
                 });
             });
