@@ -518,6 +518,26 @@
             from { background-position: 0 0; }
             to { background-position: 100% 0; }
         }
+
+        /* クリエイターズロード通知用の赤丸 */
+        #creators-road-btn.has-reward::after {
+            content: '';
+            position: absolute;
+            top: -0.8cqw;
+            right: -0.8cqw;
+            width: 1.6cqw;
+            height: 1.6cqw;
+            background: #ff5252;
+            border: 0.2cqw solid #fff;
+            border-radius: 50%;
+            z-index: 20;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7); }
+            70% { transform: scale(1.2); box-shadow: 0 0 0 0.5cqw rgba(255, 82, 82, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
+        }
     </style>
 </head>
 <body>
@@ -610,6 +630,7 @@
 
         <!-- ショップ画面 -->
         <div id="shop-overlay" class="screen">
+            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
             <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
             <div class="shop-grid" id="shop-container"></div>
             <button class="pixel-btn small" onclick="closeShop()" style="margin-top: 4cqh;">戻る</button>
@@ -763,6 +784,10 @@
                     <div class="tool-btn tool-downdraft" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-rb-wind" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-jumper-enemy" id="btn-tool-j" onclick="setTool('j', this)" title="JUMPER ENEMY" style="display:none;"><canvas id="icon-j" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-gun-up" id="btn-tool-ug" onclick="setTool('ug', this)" title="UP GUN" style="display:none;"><canvas id="icon-ug" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-gun-down" id="btn-tool-dg" onclick="setTool('dg', this)" title="DOWN GUN" style="display:none;"><canvas id="icon-dg" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-gun-right" id="btn-tool-rg" onclick="setTool('rg', this)" title="RIGHT GUN" style="display:none;"><canvas id="icon-rg" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-ice" id="btn-tool-I" onclick="setTool('I', this)" title="ICE BLOCK" style="display:none;"><canvas id="icon-I" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
                 </div>
             </div>
@@ -806,7 +831,6 @@
         let purchasedSkins = ['default', 'girl'];
         let equippedSkin = 'default';
         let equippedColor = 'default';
-        
         // クリエイターズロード用
         const CREATORS_ROAD_MILESTONES = [
             { id: 2, cp: 1000, gold: 500 }, // Gはゲームの基本要素なのでアンロック対象から除外
@@ -816,7 +840,9 @@
             { id: 5, cp: 10000, gold: 800 },
             { id: 6, cp: 15000, unlock: 'J', text: "R/B風" }, // Jを15000CPの報酬に
             { id: 7, cp: 20000, unlock: 'd', text: "下降気流" },
-            { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" }
+            { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" },
+            { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
+            { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック" }
         ];
         let claimedRoadRewards = [];
 
@@ -856,6 +882,8 @@
         let frameCount = 0;
         
         // 高速化のためのキャッシュ用変数
+        const stageCacheCanvas = document.createElement('canvas');
+        const stageCacheCtx = stageCacheCanvas.getContext('2d');
         const spriteCache = new Map();
         let timerElement = null;
         let totalCheckpoints = 0;
@@ -1119,11 +1147,35 @@
             container.classList.add(bgs[currentBgIndex]);
         }
 
+        // ステージの静的なタイル（ブロック等）を事前に1枚の絵に描画する
+        function updateStageCache() {
+            const canvas = document.getElementById('game-canvas');
+            if (!canvas || activeStage.length === 0) return;
+            stageCacheCanvas.width = canvas.width;
+            stageCacheCanvas.height = canvas.height;
+            const cw = stageCacheCanvas.width / GRID_W;
+            const ch = stageCacheCanvas.height / GRID_H;
+            
+            stageCacheCtx.imageSmoothingEnabled = false;
+            stageCacheCtx.clearRect(0, 0, stageCacheCanvas.width, stageCacheCanvas.height);
+            for(let y=0; y<GRID_H; y++){
+                for(let x=0; x<GRID_W; x++){
+                    const type = activeStage[y][x];
+                    // 風や上昇気流などの動的なエフェクト以外をキャッシュに描き込む
+                    if(type && !['W', 'L', 'U', 'd', 'J'].includes(type)) {
+                        drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
+                    }
+                }
+            }
+        }
+
         /**
          * GAS APIへの通信を共通化
          */
-        async function callApi(action, payload, retries = 3) {
+        async function callApi(action, payload, retries = 3, timeoutMs = 20000) {
             for (let i = 0; i < retries; i++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
                 try {
                     const response = await fetch(CONFIG.DEPLOY_URL, {
                         method: 'POST',
@@ -1133,15 +1185,18 @@
                         headers: {
                             'Content-Type': 'text/plain;charset=utf-8' 
                         },
+                        signal: controller.signal,
                         body: JSON.stringify({
                             action: action,
                             ...payload 
                         })
                     });
+                    clearTimeout(timeoutId);
 
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return await response.json();
                 } catch (error) {
+                    clearTimeout(timeoutId);
                     console.warn(`API Attempt ${i + 1} failed (${action}):`, error);
                     if (i === retries - 1) {
                         console.error('Final API failure:', error);
@@ -1244,39 +1299,41 @@
                 const skin = SKINS[id];
                 const isPurchased = purchasedSkins.includes(id);
                 const isEquipped = equippedSkin === id;
-
-                const item = document.createElement('div');
-                item.className = 'shop-item';
-                item.style.borderColor = isEquipped ? 'var(--primary-color)' : '#fff';
-
-                const canvas = document.createElement('canvas');
-                canvas.width = 64; canvas.height = 64;
-                drawPlayer(canvas.getContext('2d'), 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
-
-                item.innerHTML = `
-                    <div style="font-size:1cqw; margin-bottom:1cqh;">${skin.name}</div>
-                `;
-                item.prepend(canvas);
-
-                const btn = document.createElement('button');
-                btn.className = 'pixel-btn small';
-                btn.style.width = '100%';
-                if (isPurchased) {
-                    btn.innerText = 'BOUGHT';
-                    btn.disabled = true;
-                    item.style.opacity = '0.5';
-                } else {
-                    btn.innerText = `${skin.price} G`;
-                    btn.onclick = (e) => buySkin(id, skin.price, e.target);
-                }
-                item.appendChild(btn);
-                container.appendChild(item);
+                createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target));
             });
+        }
+
+        function createShopItem(container, id, data, isPurchased, isEquipped, onBuy) {
+            const item = document.createElement('div');
+            item.className = 'shop-item';
+            item.style.borderColor = isEquipped ? 'var(--primary-color)' : '#fff';
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
+
+            item.innerHTML = `<div style="font-size:1cqw; margin-bottom:1cqh;">${data.name}</div>`;
+            item.prepend(canvas);
+
+            const btn = document.createElement('button');
+            btn.className = 'pixel-btn small';
+            btn.style.width = '100%';
+            if (isPurchased) {
+                btn.innerText = 'BOUGHT';
+                btn.disabled = true;
+                item.style.opacity = '0.5';
+            } else {
+                btn.innerText = `${data.price} G`;
+                btn.onclick = onBuy;
+            }
+            item.appendChild(btn);
+            container.appendChild(item);
         }
 
         function closeShop() { document.getElementById('shop-overlay').style.display = 'none'; }
 
-        async function buySkin(id, price, btn) {
+        async function buyItem(id, price, btn) {
             if (userGold < price) { alert("Gが足りません！"); return; }
             
             const originalText = btn.innerText;
@@ -1285,6 +1342,7 @@
 
             userGold -= price;
             purchasedSkins.push(id);
+
             updateGoldDisplay();
             await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
@@ -1365,8 +1423,10 @@
                     username: CONFIG.USERNAME,
                     gold: nextGold,
                     purchasedSkins: purchasedSkins,
+                    purchasedTracers: purchasedTracers,
                     equippedSkin: equippedSkin,
                     equippedColor: equippedColor,
+                    equippedTracer: equippedTracer,
                     claimedRoadRewards: newClaimed
                 });
 
@@ -1632,11 +1692,8 @@
             // カラーパレット描画
             const palette = document.getElementById('color-palette');
             palette.innerHTML = '';
-            if (SKINS[tempSelectedSkin].isCustom) {
-                palette.innerHTML = '<div style="font-size:0.8cqw; color:#aaa;">(カスタムスキンはパレット無効)</div>';
-                return;
-            }
-
+            
+            if (!SKINS[tempSelectedSkin].isCustom) {
             Object.keys(COLORS).forEach(cId => {
                 const div = document.createElement('div');
                 div.className = `color-swatch ${tempSelectedColor === cId ? 'active' : ''}`;
@@ -1652,6 +1709,7 @@
                 };
                 palette.appendChild(div);
             });
+            }
         }
 
         async function confirmEquip(btn) {
@@ -1811,6 +1869,12 @@
             document.getElementById('btn-tool-J').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(6)) ? 'flex' : 'none';
             // ジャンプする敵
             document.getElementById('btn-tool-j').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(8)) ? 'flex' : 'none';
+            // 銃セット (上/下/右)
+            const hasGuns = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(9));
+            ['ug', 'dg', 'rg'].forEach(t => { if(document.getElementById('btn-tool-' + t)) document.getElementById('btn-tool-' + t).style.display = hasGuns ? 'flex' : 'none'; });
+            // 氷ブロック
+            const hasIce = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(10));
+            if(document.getElementById('btn-tool-I')) document.getElementById('btn-tool-I').style.display = hasIce ? 'flex' : 'none';
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -1830,7 +1894,9 @@
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, {type:'j', id:'icon-j'}, {type:'E', id:'icon-E'}
             ];
-            toolList.forEach(tool => {
+            const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
+            const iceTool = {type:'I', id:'icon-I'};
+            [...toolList, ...gunTools, iceTool].forEach(tool => {
                 const canvas = document.getElementById(tool.id);
                 if (!canvas) return;
                 canvas.width = 60;
@@ -2012,6 +2078,30 @@
                 ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
                 ctx.fillStyle = "#ff5722";
                 ctx.fillRect(x*cw, y*ch + ch*0.4, cw*0.3, ch*0.2);
+            } else if(type === 'ug') {
+                // 上向き銃
+                ctx.fillStyle = "#455a64";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#ff5722";
+                ctx.fillRect(x*cw + cw*0.4, y*ch, cw*0.2, ch*0.3);
+            } else if(type === 'dg') {
+                // 下向き銃
+                ctx.fillStyle = "#455a64";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#ff5722";
+                ctx.fillRect(x*cw + cw*0.4, y*ch + ch*0.7, cw*0.2, ch*0.3);
+            } else if(type === 'rg') {
+                // 右向き銃
+                ctx.fillStyle = "#455a64";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#e040fb";
+                ctx.fillRect(x*cw + cw*0.7, y*ch + ch*0.4, cw*0.3, ch*0.2);
+            } else if(type === 'I') {
+                // 氷ブロック (Ice)
+                ctx.fillStyle = "#81d4fa";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#e1f5fe";
+                ctx.fillRect(x*cw + pad + 2, y*ch + pad + 2, cw*0.4, 2);
             } else if(type === 'T') {
                 // トランポリン
                 ctx.fillStyle = "#fb8c00";
@@ -2028,6 +2118,9 @@
             } else if(type === 'W') {
                 // 風ゾーン
                 ctx.save();
+                ctx.beginPath();
+                ctx.rect(x*cw, y*ch, cw, ch);
+                ctx.clip();
                 ctx.strokeStyle = "rgba(0, 255, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
@@ -2041,6 +2134,9 @@
             } else if(type === 'L') {
                 // 逆向きの風（左向き）
                 ctx.save();
+                ctx.beginPath();
+                ctx.rect(x*cw, y*ch, cw, ch);
+                ctx.clip();
                 ctx.strokeStyle = "rgba(255, 100, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
@@ -2054,6 +2150,9 @@
             } else if(type === 'U') {
                 // 上昇気流
                 ctx.save();
+                ctx.beginPath();
+                ctx.rect(x*cw, y*ch, cw, ch);
+                ctx.clip();
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % ch;
@@ -2232,6 +2331,9 @@
             } else if(type === 'd') {
                 // 下降気流 (Downdraft)
                 ctx.save();
+                ctx.beginPath();
+                ctx.rect(x*cw, y*ch, cw, ch);
+                ctx.clip();
                 ctx.strokeStyle = "rgba(100, 100, 255, 0.8)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % ch;
@@ -2245,6 +2347,9 @@
             } else if(type === 'J') {
                 // R/B風 (R/B Wind)
                 ctx.save();
+                ctx.beginPath();
+                ctx.rect(x*cw, y*ch, cw, ch);
+                ctx.clip();
                 ctx.strokeStyle = isSwitchOn ? "rgba(255, 82, 82, 0.7)" : "rgba(68, 138, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
@@ -2531,6 +2636,8 @@
             player.onSwitch = false;
             spriteCache.clear(); // ステージ開始時にキャッシュをクリアしてリフレッシュ
             timerElement = document.getElementById('game-timer');
+            const gCanvas = document.getElementById('game-canvas');
+            if (gCanvas) gCanvas.getContext('2d').imageSmoothingEnabled = false;
 
             if (mode === 'play') {
                 closeStageSelect();
@@ -2582,9 +2689,12 @@
             
             player.vx = 0; player.vy = 0;
             
+            playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
+            updateStageCache();
             arrows = [];
             isGoalTriggered = false;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
+            rewardAlreadyAdded = false;
             lastTime = 0;
             gameLoopId = requestAnimationFrame(gameLoop);
         }
@@ -2696,7 +2806,6 @@
                         color: equippedColor,
                         customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
                         gold: userGold,
-                        purchasedSkins: purchasedSkins // 1回の通信で全ての状態を更新
                     }, 5); // クリア記録は重要度が高いため最大5回まで自動リトライ
 
                     if (res && res.success) {
@@ -2746,6 +2855,16 @@
             if (display) display.innerText = userGold;
             const cpDisplay = document.getElementById('user-cp');
             if (cpDisplay) cpDisplay.innerText = (CONFIG.USERNAME === 'Runon') ? "∞" : userCP;
+
+            // クリエイターズロードの通知（赤丸）更新
+            const hasUnclaimed = CREATORS_ROAD_MILESTONES.some(m => 
+                userCP >= m.cp && !claimedRoadRewards.includes(m.id)
+            );
+            const roadBtn = document.getElementById('creators-road-btn');
+            if (roadBtn) {
+                if (hasUnclaimed) roadBtn.classList.add('has-reward');
+                else roadBtn.classList.remove('has-reward');
+            }
         }
 
         function testPlay() {
@@ -2761,9 +2880,9 @@
         function gameLoop(timestamp) {
             gameLoopId = requestAnimationFrame(gameLoop);
 
-            if (!lastTime) lastTime = timestamp;
+            if (lastTime === 0) { lastTime = timestamp; return; }
             let elapsed = timestamp - lastTime;
-            const frameTime = 16.66; // 60FPSの1フレームあたりのミリ秒
+            const frameTime = 16; // 60FPSの1フレームあたりのミリ秒 (精度の都合上16.66より少し小さく設定)
             let updates = 0;
 
             // タブの切り替えなどで長時間放置された場合のスパイク対策（最大200ms分まで）
@@ -2802,7 +2921,6 @@
                         y: Math.round(player.y * 100) / 100, 
                         f: player.facing
                     });
-                keys = {}; // 全ての先行入力をリセット
                 return; // 最初のフレームは初期化のみで終了し、次フレームから物理演算を開始
                 }
             }
@@ -2835,7 +2953,7 @@
                 player.onGround = false;
                 // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
                 enemies.forEach(en => {
-                    if (!en.dead && en.jumper && en.onGround) {
+                    if (!en.dead && en.jumper) {
                         en.vy = jumpForce;
                         en.onGround = false;
                     }
@@ -2847,7 +2965,10 @@
             if (keys['KeyB']) isSwitchOn = false;
 
             player.vy += gravity;
-            player.vx *= 0.9; // 摩擦を少し弱めて慣性を出す
+
+            let friction = 0.9;
+            if (activeStage[footY_sticky] && activeStage[footY_sticky][gx_sticky] === 'I') friction = 0.99; // 氷は滑る
+            player.vx *= friction;
 
             // ゴースト用の記録（5フレームに1回）
             // 通信量を減らすため、座標の精度を小数点第2位までに抑える
@@ -2936,7 +3057,12 @@
                     const gx = Math.floor(player.x + player.w/2);
                     const headY = Math.floor(nextY);
                     if (activeStage[headY] && activeStage[headY][gx] === '!') {
-                        if (!player.onSwitch) { isSwitchOn = !isSwitchOn; player.onSwitch = true; }
+                        if (!player.onSwitch) { 
+                            isSwitchOn = !isSwitchOn; 
+                            player.onSwitch = true; 
+                            // スイッチでブロックの状態が変わるのでキャッシュ更新
+                            updateStageCache();
+                        }
                     }
                 } else if (player.vy > 0) {
                     player.onGround = true;
@@ -2969,7 +3095,6 @@
                 if (!isEnemyCollide(nextX, en.y)) {
                     en.x = nextX;
                 } else {
-                    // 壁に当たったら反転。Xブロックの場合は弾かれる。
                     const egx = Math.floor(en.x + (en.vx > 0 ? 0.9 : 0));
                     const egy = Math.floor(en.y + 0.5);
                     if (activeStage[egy] && activeStage[egy][egx] === 'X') {
@@ -2979,46 +3104,59 @@
                     }
                 }
 
-                // 垂直移動
-                en.vy += 0.015;
+                // 垂直移動 (接地判定の改善)
+                if (en.onGround) {
+                    // 接地継続チェック: 足元が固形ブロックか橋かを確認
+                    const belowSolid = isEnemyCollide(en.x, en.y + 0.1);
+                    let onBridge = false;
+                    if (!belowSolid) {
+                        const ix = Math.floor(en.x + 0.45), iy = Math.floor(en.y + 0.9 + 0.05);
+                        if (activeStage[iy] && activeStage[iy][ix] === 'H') onBridge = true;
+                    }
+                    if (!belowSolid && !onBridge) en.onGround = false;
+                    en.vy = 0;
+                }
+
+                if (!en.onGround) en.vy += 0.015;
+
                 let nextY = en.y + en.vy;
                 let collidedY = isEnemyCollide(en.x, nextY);
                 let isBridge = false;
 
-                // 橋（下から抜けられる足場）の判定
                 if (!collidedY && en.vy >= 0) {
                     let footY = en.y + 0.9;
                     let nextFootY = nextY + 0.9;
                     let ix = Math.floor(en.x + 0.45), iy = Math.floor(nextFootY);
                     if (activeStage[iy] && activeStage[iy][ix] === 'H' && footY <= iy + 0.1) {
                         collidedY = true;
-                        nextY = iy - 0.9;
+                        nextY = iy - 0.899; // 埋まり防止の微調整
                         isBridge = true;
                     }
                 }
 
                 if (collidedY) {
-                    // スイッチ判定（頭をぶつけた時）
                     if (en.vy < 0) {
                         const egx = Math.floor(en.x + 0.45);
                         const eheadY = Math.floor(nextY);
                         if (activeStage[eheadY] && activeStage[eheadY][egx] === '!') {
-                            if (!en.onSwitch) { isSwitchOn = !isSwitchOn; en.onSwitch = true; }
+                            if (!en.onSwitch) { 
+                                isSwitchOn = !isSwitchOn; 
+                                en.onSwitch = true; 
+                                updateStageCache();
+                            }
                         }
                     }
-                    // 落下中に衝突した場合は地面の上に正しくスナップ (0.9は敵のサイズ)
                     if (en.vy > 0) {
                         en.y = isBridge ? nextY : Math.floor(nextY + 0.9) - 0.9;
                         en.onGround = true;
                     }
                     en.vy = 0;
                 } else {
-                    // スイッチ状態リセット
                     const egx = Math.floor(en.x + 0.45);
                     const egy = Math.floor(en.y + 0.45);
                     if (!activeStage[egy] || activeStage[egy][egx] !== '!') en.onSwitch = false;
                     en.y = nextY;
-                    en.onGround = false;
+                    if (en.vy !== 0) en.onGround = false;
                 }
                 
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
@@ -3041,7 +3179,11 @@
             if (frameCount % 120 === 0) {
                 for(let y=0; y<GRID_H; y++) {
                     for(let x=0; x<GRID_W; x++) {
-                        if(activeStage[y][x] === 'A') arrows.push({x: x, y: y + 0.4, vx: -0.15, vy: 0});
+                        const tile = activeStage[y][x];
+                        if(tile === 'A') arrows.push({x: x, y: y + 0.4, vx: -0.15, vy: 0, color: '#ff5722'});
+                        if(tile === 'rg') arrows.push({x: x + 0.7, y: y + 0.4, vx: 0.15, vy: 0, color: '#e040fb'});
+                        if(tile === 'ug') arrows.push({x: x + 0.4, y: y, vx: 0, vy: -0.15, color: '#e040fb'});
+                        if(tile === 'dg') arrows.push({x: x + 0.4, y: y + 0.9, vx: 0, vy: 0.15, color: '#e040fb'});
                     }
                 }
             }
@@ -3100,7 +3242,10 @@
             if (tile !== '!') player.onSwitch = false;
 
             if (tile === 'C') {
-                activeCheckpoints.add(`${gx},${gy}`);
+                if (!activeCheckpoints.has(`${gx},${gy}`)) {
+                    activeCheckpoints.add(`${gx},${gy}`);
+                    updateStageCache(); // チェックポイント通過で見た目が変わるので更新
+                }
             }
 
             if (tile === 'K' || footTile === 'K') handlePlayerDeath();
@@ -3125,7 +3270,7 @@
                 if(iy >= GRID_H) return false;
 
                 const tile = activeStage[iy][ix]; // 壁判定から V を削除
-                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
+                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
             }
             return false;
         }
@@ -3184,6 +3329,11 @@
             const cw = canvas.width / GRID_W;
             const ch = canvas.height / GRID_H;
             
+            // サイズが不一致（リサイズ等）の場合にキャッシュを更新してコース消失を防ぐ
+            if (stageCacheCanvas.width !== canvas.width || stageCacheCanvas.height !== canvas.height) {
+                updateStageCache();
+            }
+
             // タイマーUIの更新
             if (timerElement) {
                 if (isCountingDown) {
@@ -3200,9 +3350,16 @@
             ctx.fillStyle = "#70a1ff";
             ctx.fillRect(0,0,canvas.width, canvas.height);
 
+            // キャッシュされた静的レイヤーを一度に描画
+            ctx.drawImage(stageCacheCanvas, 0, 0);
+
+            // アニメーションが必要なタイル（風など）のみ個別に描画
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
-                    if(activeStage[y][x]) drawTile(ctx, x, y, cw, ch, activeStage[y][x], time);
+                    const type = activeStage[y][x];
+                    if(type && ['W', 'L', 'U', 'd', 'J'].includes(type)) {
+                        drawTile(ctx, x, y, cw, ch, type, time);
+                    }
                 }
             }
 
@@ -3219,10 +3376,10 @@
             });
 
             // 矢の描画
-            ctx.fillStyle = "#37474f";
             arrows.forEach(a => {
+                ctx.fillStyle = "#37474f";
                 ctx.fillRect(a.x * cw, a.y * ch, cw * 0.4, ch * 0.1);
-                ctx.fillStyle = "#ff5722";
+                ctx.fillStyle = a.color || "#ff5722";
                 ctx.fillRect(a.x * cw, a.y * ch, cw * 0.1, ch * 0.1);
             });
             
@@ -3230,7 +3387,7 @@
             if (isGoalTriggered) ctx.globalAlpha = 0.5;
 
             // 死亡地点の描画 (カウントダウン中のみ)
-            if (isCountingDown && currentStageData && currentStageData.deaths) {
+            if (isCountingDown && currentStageData && Array.isArray(currentStageData.deaths)) {
                 ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
                 ctx.font = `bold ${ch * 0.4}px sans-serif`;
                 ctx.textAlign = "center";
@@ -3261,7 +3418,6 @@
                 });
             }
             ctx.globalAlpha = 1.0;
-
             drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing);
 
             // カウントダウンの描画
@@ -3292,13 +3448,12 @@
                 spriteCache.set(cacheKey, cachedCanvas);
             }
 
+            ctx.imageSmoothingEnabled = false;
             ctx.save();
             // 描画位置への移動と反転処理
             ctx.translate(px + (facing === 'left' ? pw : 0), py);
             if (facing === 'left') ctx.scale(-1, 1);
             
-            // キャッシュしたキャンバスを1回で描画（スケーリングはdrawImageに任せる）
-            ctx.imageRendering = 'pixelated';
             ctx.drawImage(cachedCanvas, 0, 0, pw, ph);
             ctx.restore();
         }
