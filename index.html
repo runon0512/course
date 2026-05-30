@@ -298,6 +298,13 @@
             align-items: center;
             padding: 5cqh;
         }
+        #explanation-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 5cqh;
+            overflow-y: auto;
+        }
         .shop-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -571,6 +578,9 @@
         <!-- クリエイターズロードボタン -->
         <button id="creators-road-btn" class="pixel-btn small" onclick="openCreatorsRoad()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none; background: linear-gradient(45deg, #ff00ff, #00ffff); color: #fff; border-color: #fff;">💎 Creator Road</button>
 
+        <!-- 全ブロック解説ボタン -->
+        <button id="explanation-btn" class="pixel-btn small" onclick="openExplanation()" style="position: absolute; top: 13cqh; right: 2cqw; z-index: 15; display: none; background: #607d8b; color: #fff; border-color: #fff;">📖 全ブロック解説</button>
+
         <!-- 認証画面 -->
         <div id="auth-overlay">
             <div class="auth-box">
@@ -634,6 +644,15 @@
             <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
             <div class="shop-grid" id="shop-container"></div>
             <button class="pixel-btn small" onclick="closeShop()" style="margin-top: 4cqh;">戻る</button>
+        </div>
+
+        <!-- 全ブロック解説画面 -->
+        <div id="explanation-overlay" class="screen">
+            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">BLOCK GUIDE</h2>
+            <div id="explanation-list" style="width: 85%; display: flex; flex-direction: column; gap: 2cqh; background: rgba(0,0,0,0.5); padding: 2cqw; border: 0.3cqw solid #fff; overflow-y: auto; max-height: 60cqh;">
+                <!-- 内容はJSで動的に生成 -->
+            </div>
+            <button class="pixel-btn small" onclick="closeExplanation()" style="margin-top: 4cqh;">戻る</button>
         </div>
 
         <!-- ロッカー画面 -->
@@ -784,6 +803,7 @@
                     <div class="tool-btn tool-downdraft" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-rb-wind" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-jumper-enemy" id="btn-tool-j" onclick="setTool('j', this)" title="JUMPER ENEMY" style="display:none;"><canvas id="icon-j" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-yspike" id="btn-tool-y" onclick="setTool('y', this)" title="YELLOW SPIKE" style="display:none;"><canvas id="icon-y" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-gun-up" id="btn-tool-ug" onclick="setTool('ug', this)" title="UP GUN" style="display:none;"><canvas id="icon-ug" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-gun-down" id="btn-tool-dg" onclick="setTool('dg', this)" title="DOWN GUN" style="display:none;"><canvas id="icon-dg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-gun-right" id="btn-tool-rg" onclick="setTool('rg', this)" title="RIGHT GUN" style="display:none;"><canvas id="icon-rg" class="tool-canvas"></canvas></div>
@@ -842,7 +862,8 @@
             { id: 7, cp: 20000, unlock: 'd', text: "下降気流" },
             { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" },
             { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
-            { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック" }
+            { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック" },
+            { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" }
         ];
         let claimedRoadRewards = [];
 
@@ -1275,6 +1296,7 @@
                                 document.getElementById('user-info').style.display = 'block';
                                 document.getElementById('global-rank-btn').style.display = 'block';
                                 document.getElementById('creators-road-btn').style.display = 'block';
+                                document.getElementById('explanation-btn').style.display = 'block';
                                 document.getElementById('current-user').innerText = res.username;
                                 // Initialize sort/filter UI on login
                                 document.getElementById('sort-criteria').value = currentSort;
@@ -1353,6 +1375,29 @@
             });
             openShop();
         }
+
+        function openExplanation() {
+            const overlay = document.getElementById('explanation-overlay');
+            const list = document.getElementById('explanation-list');
+            list.innerHTML = '';
+            overlay.style.display = 'flex';
+            
+            Object.entries(TILE_EXPLANATIONS).forEach(([type, text]) => {
+                const item = document.createElement('div');
+                item.style.cssText = "display: flex; align-items: center; gap: 2cqw; border-bottom: 0.1cqw solid #444; padding: 1cqh 0;";
+                const canvas = document.createElement('canvas');
+                canvas.width = 40; canvas.height = 40;
+                canvas.style.width = "4cqw"; canvas.style.height = "4cqw";
+                drawTile(canvas.getContext('2d'), 0, 0, 40, 40, type);
+                const desc = document.createElement('div');
+                desc.style.fontSize = "1.2cqw";
+                desc.innerText = text;
+                item.appendChild(canvas);
+                item.appendChild(desc);
+                list.appendChild(item);
+            });
+        }
+        function closeExplanation() { document.getElementById('explanation-overlay').style.display = 'none'; }
 
         // --- クリエイターズロード関連 ---
         function openCreatorsRoad() {
@@ -1875,6 +1920,9 @@
             // 氷ブロック
             const hasIce = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(10));
             if(document.getElementById('btn-tool-I')) document.getElementById('btn-tool-I').style.display = hasIce ? 'flex' : 'none';
+            // 黄色トゲセット
+            const hasYSpikes = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(11));
+            if(document.getElementById('btn-tool-y')) document.getElementById('btn-tool-y').style.display = hasYSpikes ? 'flex' : 'none';
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -1895,8 +1943,9 @@
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, {type:'j', id:'icon-j'}, {type:'E', id:'icon-E'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
+            const yellowSpike = {type:'y', id:'icon-y'};
             const iceTool = {type:'I', id:'icon-I'};
-            [...toolList, ...gunTools, iceTool].forEach(tool => {
+            [...toolList, ...gunTools, yellowSpike, iceTool].forEach(tool => {
                 const canvas = document.getElementById(tool.id);
                 if (!canvas) return;
                 canvas.width = 60;
@@ -2090,6 +2139,14 @@
                 ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
                 ctx.fillStyle = "#ff5722";
                 ctx.fillRect(x*cw + cw*0.4, y*ch + ch*0.7, cw*0.2, ch*0.3);
+            } else if(type === 'y') {
+                // 黄色いトゲ (Yellow Spike) - プレイヤーも敵も死ぬ
+                ctx.fillStyle = "#ffeb3b";
+                ctx.beginPath();
+                ctx.moveTo(x*cw + pad, y*ch + ch - pad);
+                ctx.lineTo(x*cw + cw/2, y*ch + pad);
+                ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                ctx.fill();
             } else if(type === 'rg') {
                 // 右向き銃
                 ctx.fillStyle = "#455a64";
@@ -2953,7 +3010,7 @@
                 player.onGround = false;
                 // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
                 enemies.forEach(en => {
-                    if (!en.dead && en.jumper) {
+                    if (!en.dead && en.jumper && en.onGround) {
                         en.vy = jumpForce;
                         en.onGround = false;
                     }
@@ -3103,6 +3160,11 @@
                         en.vx *= -1;
                     }
                 }
+                
+                // ギミックによる敵の死亡判定 (黄色いトゲ)
+                const ex_check = Math.floor(en.x + 0.45), ey_check = Math.floor(en.y + 0.45);
+                const en_tile = activeStage[ey_check] ? activeStage[ey_check][ex_check] : null;
+                if (en_tile === 'y') en.dead = true;
 
                 // 垂直移動 (接地判定の改善)
                 if (en.onGround) {
@@ -3251,6 +3313,7 @@
             if (tile === 'K' || footTile === 'K') handlePlayerDeath();
             if (isSwitchOn && (tile === 'k' || footTile === 'k')) handlePlayerDeath();
             if (!isSwitchOn && (tile === 'q' || footTile === 'q')) handlePlayerDeath();
+            if (tile === 'y' || footTile === 'y') handlePlayerDeath();
             if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
             if (footTile === 'P') player.vx *= 1.15; // 加速
         }
