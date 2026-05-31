@@ -3569,9 +3569,7 @@
 
             ctx.imageSmoothingEnabled = false;
             ctx.save();
-            // 描画位置への移動と反転処理
-            ctx.translate(px + (facing === 'left' ? pw : 0), py);
-            if (facing === 'left') ctx.scale(-1, 1);
+            ctx.translate(px, py);
             
             ctx.drawImage(cachedCanvas, 0, 0, pw, ph);
             ctx.restore();
