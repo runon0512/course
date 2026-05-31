@@ -3200,6 +3200,11 @@
                 if(current_tile === 'W') en.vx += 0.01;
                 if(current_tile === 'L') en.vx -= 0.01;
                 if(current_tile === 'U') en.vy -= 0.025;
+                if(current_tile === 'd') en.vy += 0.025;
+                if(current_tile === 'J') {
+                    if (isSwitchOn) en.vx += 0.01;
+                    else en.vx -= 0.01;
+                }
                 if(current_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); // トロールの中で跳ねる
                 if(foot_tile === 'T' && en.vy > 0) en.vy = -0.4; // トランポリン
 
