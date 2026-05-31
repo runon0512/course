@@ -776,6 +776,7 @@
                 <div class="editor-top-bar">
                     <button class="pixel-btn small" style="margin-top:0; background:#5d4037; color:#fff;" onclick="setTool('B', document.querySelector('.tool-block') || this)">🧱ブロック</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#ff80ab; color:#000;" onclick="setTool('E', document.querySelector('.tool-eraser') || this)">🧹消しゴム</button>
+                    <button class="pixel-btn small" style="margin-top:0; background:#f44336; color:#fff;" onclick="clearStage()">🗑️全消去</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="cycleBackground()">🌆背景</button>
@@ -1986,6 +1987,14 @@
 
         function exitEditor() {
             document.getElementById('editor-screen').style.display = 'none';
+        }
+
+        function clearStage() {
+            if (confirm("ステージ内のすべてのオブジェクトを削除しますか？")) {
+                initGrid();
+                isClearChecked = false;
+                drawEditor();
+            }
         }
 
         function renderToolIcons() {
@@ -3199,6 +3208,7 @@
                 // 風・ギミックの影響
                 if(current_tile === 'W') en.vx += 0.01;
                 if(current_tile === 'L') en.vx -= 0.01;
+                // 風・ギミックの影響 (垂直方向)
                 if(current_tile === 'U') en.vy -= 0.025;
                 if(current_tile === 'd') en.vy += 0.025;
                 if(current_tile === 'J') {
@@ -3285,6 +3295,14 @@
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
                 en.vx *= 0.98;
                 if(Math.abs(en.vx) < 0.04) en.vx = (en.vx >= 0 ? 0.04 : -0.04);
+
+                // 横方向の風の影響を適用 (ベース速度維持の後に足すことで効果を出す)
+                if(current_tile === 'W') en.vx += 0.012;
+                if(current_tile === 'L') en.vx -= 0.012;
+                if(current_tile === 'J') {
+                    if (isSwitchOn) en.vx += 0.012;
+                    else en.vx -= 0.012;
+                }
 
                 const px = player.x + player.w/2, py = player.y + player.h/2;
                 const ex = en.x + 0.5, ey = en.y + 0.5;
@@ -3574,7 +3592,8 @@
 
             ctx.imageSmoothingEnabled = false;
             ctx.save();
-            ctx.translate(px, py);
+            ctx.translate(px + (facing === 'left' ? pw : 0), py);
+            if (facing === 'left') ctx.scale(-1, 1);
             
             ctx.drawImage(cachedCanvas, 0, 0, pw, ph);
             ctx.restore();
