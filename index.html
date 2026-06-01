@@ -920,6 +920,8 @@
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
         let lastTime = 0;
+        let dynamicTiles = []; // 動的ギミックのキャッシュ用
+        const colorVarCache = {}; // CSS変数のキャッシュ
         let currentBgIndex = 0;
         let countdown = 3;
         let isCountingDown = false;
@@ -1184,6 +1186,7 @@
             if (!canvas || activeStage.length === 0) return;
             stageCacheCanvas.width = canvas.width;
             stageCacheCanvas.height = canvas.height;
+            dynamicTiles = [];
             const cw = stageCacheCanvas.width / GRID_W;
             const ch = stageCacheCanvas.height / GRID_H;
             
@@ -1192,8 +1195,11 @@
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
                     const type = activeStage[y][x];
-                    // 風や上昇気流などの動的なエフェクト以外をキャッシュに描き込む
-                    if(type && !['W', 'L', 'U', 'd', 'J'].includes(type)) {
+                    if (!type) continue;
+                    
+                    if(['W', 'L', 'U', 'd', 'J'].includes(type)) {
+                        dynamicTiles.push({x, y, type});
+                    } else {
                         drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
                     }
                 }
@@ -2780,7 +2786,6 @@
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             resizeCanvas('game-canvas');
-            
             // 状態リセット
             frameCount = 0;
             isCountingDown = true;
@@ -3597,6 +3602,13 @@
             
             ctx.drawImage(cachedCanvas, 0, 0, pw, ph);
             ctx.restore();
+        }
+
+        function varColor(name) {
+            if (!colorVarCache[name]) {
+                colorVarCache[name] = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            }
+            return colorVarCache[name];
         }
 
         // スプライトを16x16のキャンバスにプリレンダリングするヘルパー
