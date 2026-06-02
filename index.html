@@ -3075,7 +3075,7 @@
 
             if (keys['ArrowLeft']) { player.vx -= currentSpeed; player.facing = 'left'; }
             if (keys['ArrowRight']) { player.vx += currentSpeed; player.facing = 'right'; }
-            if (keys['Space'] && player.onGround) {
+            if (keys['Space'] && player.onGround && frameCount > 10) {
                 player.vy = jumpForce;
                 player.onGround = false;
                 // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
@@ -3356,7 +3356,7 @@
 
             // ゴール判定
             const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
-            if(!isGoalTriggered && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G' && activeCheckpoints.size >= totalCheckpoints) {
+            if(!isGoalTriggered && frameCount > 60 && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G' && activeCheckpoints.size >= totalCheckpoints) {
                 isGoalTriggered = true;
                 player.vx = 0; player.vy = 0;
                 
