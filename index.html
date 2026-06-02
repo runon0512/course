@@ -2630,7 +2630,7 @@
                 div.className = 'stage-item';
                 const isFav = favoriteStages.includes(s._idStr);
                 const isPickUp = s.creator === 'SYSTEM';
-                const escapedId = sId.replace(/'/g, "\\'");
+                const escapedId = s._idStr.replace(/'/g, "\\'");
             
                 // 難易度バッジと枠線スタイルの計算
                 let diffBadge = "";
@@ -2940,6 +2940,13 @@
             // タイムがトップ5に入る可能性がある場合のみゴーストデータを送信する
             // （サーバー側の負荷軽減と、データ肥大化による送信失敗を防ぐため）
             const isTop5Candidate = (playbackGhosts.length < 5 || clearTime <= (playbackGhosts[playbackGhosts.length - 1]?.time || Infinity));
+            
+            // 通信量を削減するため、座標データを配列形式 [x, y, facing] に圧縮 (1=right, 0=left)
+            const compressedGhost = isTop5Candidate ? currentGhostData.slice(0, 1500).map(p => [
+                Math.round(p.x * 100) / 100, 
+                Math.round(p.y * 100) / 100, 
+                p.f === 'right' ? 1 : 0
+            ]) : null;
 
             // 通信の競合を防ぐため、順序立てて保存を実行
             try {
@@ -2949,12 +2956,13 @@
                         stageId: stageId, 
                         username: CONFIG.USERNAME, 
                         time: clearTime || 0.001, 
-                        ghost: isTop5Candidate ? currentGhostData.slice(0, 1500) : null, // ランキング圏外ならゴーストは送らない
+                        ghost: compressedGhost, // 軽量化したゴーストデータ
                         skin: equippedSkin,
                         color: equippedColor,
-                        customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
-                        gold: userGold,
-                    }, 5); // クリア記録は重要度が高いため最大5回まで自動リトライ
+                        // カスタムスキンは記録更新時のみ送信してさらに軽量化
+                        customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
+                        gold: userGold
+                    }, 5, 30000); // タイムアウトを30秒に延長
 
                     if (res && res.success) {
                         okBtn.innerText = "OK";
@@ -3560,11 +3568,22 @@
                     const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
                     if (!pos) continue;
 
-                    // ゴースト描画（名前をuniqueIdとして渡すことで個別キャッシュ）
-                    drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, pos.f || 'right', ghost.name);
+                    // 旧形式(オブジェクト)と新形式(配列)の両方に対応
+                    let gx, gy, gf;
+                    if (Array.isArray(pos)) {
+                        gx = pos[0];
+                        gy = pos[1];
+                        gf = pos[2] === 1 ? 'right' : 'left';
+                    } else {
+                        gx = pos.x;
+                        gy = pos.y;
+                        gf = pos.f || 'right';
+                    }
+
+                    drawPlayer(ctx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
                     
                     ctx.fillStyle = "#fff";
-                    ctx.fillText(ghost.name, (pos.x + player.w/2) * cw, pos.y * ch - 10);
+                    ctx.fillText(ghost.name, (gx + player.w/2) * cw, gy * ch - 10);
                 }
                 ctx.restore();
             }
