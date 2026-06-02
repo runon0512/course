@@ -629,7 +629,10 @@
                     <button id="btn-downvote" class="pixel-btn small" onclick="voteStage('down')" style="background:#d32f2f;">👎 BAD</button>
                 </div>
                 <div style="font-size: 1.5cqw; margin: 2cqh 0;">TOTAL: <span id="reward-total-gold">0</span> G</div>
-                <button class="pixel-btn small" onclick="closeReward()" style="width: 80%;">OK</button>
+                <div style="display: flex; gap: 2cqw; justify-content: center; width: 100%;">
+                    <button id="reward-retry-btn" class="pixel-btn small" onclick="retryGame()" style="flex: 1; background: #546e7a;">RETRY</button>
+                    <button id="reward-ok-btn" class="pixel-btn small" onclick="closeReward()" style="flex: 1;">OK</button>
+                </div>
             </div>
         </div>
 
@@ -764,7 +767,7 @@
                     <input type="checkbox" id="filter-unplayed" onchange="openStageSelect()">
                     <span>未プレイのみ</span>
                 </label>
-                <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" onkeyup="openStageSelect()">
+                <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" onkeyup="debouncedStageSelect()">
             </div>
             <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box;"></div>
         </div>
@@ -827,7 +830,10 @@
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.5cqw; display: flex; align-items: center; gap: 2cqw;">
-                <span>ARROWS: MOVE | SPACE: JUMP | <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span></span>
+                <span>ARROWS: MOVE | SPACE: JUMP | 
+                    <span onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw;">RETRY</span>
+                    <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span>
+                </span>
                 <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
                     <input type="checkbox" id="toggle-ghosts" checked onchange="showGhosts = this.checked">
                     <span>GHOSTS</span>
@@ -926,6 +932,7 @@
         let countdown = 3;
         let isCountingDown = false;
         let countdownStartTime = 0;
+        let stageSearchTimeout = null;
 
         let isClearChecked = false;
 
@@ -2517,6 +2524,11 @@
             else { alert("保存データが見つかりません。"); }
         }
 
+        function debouncedStageSelect() {
+            clearTimeout(stageSearchTimeout);
+            stageSearchTimeout = setTimeout(() => openStageSelect(), 300);
+        }
+
         async function deletePublishedStage(stageId, creator) {
             if (CONFIG.USERNAME !== 'Runon' && creator !== CONFIG.USERNAME) {
                 alert("自分の投稿したステージ、または管理者のみ削除できます。");
@@ -2569,6 +2581,17 @@
                 container.innerHTML = "LOADING STAGES...";
                 const res = await callApi('getPublished', {});
                 cachedStages = res.stages || [];
+                
+                // 高速化のためにメタデータを事前計算
+                cachedStages.forEach(s => {
+                    const lb = s.leaderboard || [];
+                    s._cr = s.attempts > 0 ? (s.clears || 0) / s.attempts : -1;
+                    s._reward = calculateStageRewardValue(s, CONFIG.USERNAME);
+                    s._topTime = lb.length > 0 ? lb[0].time : null;
+                    s._topPlayers = lb.filter(r => r.time === s._topTime);
+                    s._myRec = lb.find(r => r.name === CONFIG.USERNAME);
+                    s._idStr = String(s.id || s.name);
+                });
             }
 
             let filtered = cachedStages.filter(s => {
@@ -2585,18 +2608,14 @@
                 if (currentSort === 'clears') return (b.clears || 0) - (a.clears || 0);
                 if (currentSort === 'plays') return (b.attempts || 0) - (a.attempts || 0);
                 if (currentSort === 'easy') {
-                    const aClearRate = (a.attempts > 0) ? (a.clears || 0) / a.attempts : -1; // -1 for unplayed, puts them at the end
-                    const bClearRate = (b.attempts > 0) ? (b.clears || 0) / b.attempts : -1;
-                    if (aClearRate !== bClearRate) {
-                        return bClearRate - aClearRate; // Higher clear rate is easier
+                    if (a._cr !== b._cr) {
+                        return b._cr - a._cr; 
                     }
-                    // Secondary sort for same clear rate: more attempts means it's probably easier if many people tried and cleared it
-                    // Or, if both unplayed (-1 clear rate), sort by name
-                    if (aClearRate === -1) return (a.name || '').localeCompare(b.name || '');
+                    if (a._cr === -1) return (a.name || '').localeCompare(b.name || '');
                     return (b.attempts || 0) - (a.attempts || 0);
                 }
                 if (currentSort === 'upvotes') return (b.upvotes || 0) - (a.upvotes || 0);
-                if (currentSort === 'reward') return calculateStageRewardValue(b, CONFIG.USERNAME) - calculateStageRewardValue(a, CONFIG.USERNAME);
+                if (currentSort === 'reward') return b._reward - a._reward;
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
 
@@ -2606,11 +2625,10 @@
             const sortedStages = [...systemStages, ...otherStages];
 
             container.innerHTML = "";
-            sortedStages.forEach(s => {
+            sortedStages.forEach((s, idx) => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
-                const sId = String(s.id || s.name);
-                const isFav = favoriteStages.includes(sId);
+                const isFav = favoriteStages.includes(s._idStr);
                 const isPickUp = s.creator === 'SYSTEM';
                 const escapedId = sId.replace(/'/g, "\\'");
             
@@ -2657,24 +2675,22 @@
                 
                 const clearRate = s.attempts > 0 ? ((s.clears || 0) / s.attempts * 100).toFixed(1) : "0.0";
                 
-                // 順位表示ロジックの改善
-                const lb = s.leaderboard || [];
-                const topTime = lb.length > 0 ? lb[0].time : null;
-                const topPlayers = lb.filter(r => r.time === topTime);
-                const myRec = lb.find(r => r.name === CONFIG.USERNAME);
+                const topTime = s._topTime;
+                const topPlayers = s._topPlayers;
+                const myRec = s._myRec;
                 
                 let myRankDisp = "未クリア";
                 if (myRec) {
                     if (topTime !== null && myRec.time === topTime) {
                         myRankDisp = "1位";
                     } else {
-                        const betterCount = lb.filter(r => r.time < myRec.time).length;
+                        const betterCount = (s.leaderboard || []).filter(r => r.time < myRec.time).length;
                         myRankDisp = (betterCount + 1) + "位";
                     }
                 }
 
                 let bestRecordHtml = "";
-                if (lb.length > 0) {
+                if (topTime !== null) {
                     const namesStr = topPlayers.length > 1 ? `${topPlayers[0].name} 他${topPlayers.length - 1}名` : topPlayers[0].name;
                     bestRecordHtml = `<div style="font-size:0.85cqw; color:#f1c40f; margin-top:0.5cqh;">🏆 1st: ${topTime.toFixed(3)}s`;
                     if (topPlayers.length > 1) {
@@ -2684,9 +2700,7 @@
                 }
                 const myRecordHtml = `<div style="font-size:0.85cqw; color:#00ff41; margin-top:0.2cqh;">🚩 Your Rank: ${myRankDisp}${myRec ? ` (${myRec.time.toFixed(3)}s)` : ''}</div>`;
                 
-                const currentStageReward = calculateStageRewardValue(s, CONFIG.USERNAME);
-
-                const favBtn = `<span onclick="toggleFavorite('${sId}', event)" style="cursor:pointer; font-size:2cqw; color:${isFav ? '#e91e63' : '#666'}; line-height:1;">${isFav ? '★' : '☆'}</span>`;
+                const favBtn = `<span onclick="toggleFavorite('${s._idStr}', event)" style="cursor:pointer; font-size:2cqw; color:${isFav ? '#e91e63' : '#666'}; line-height:1;">${isFav ? '★' : '☆'}</span>`;
 
                 const info = document.createElement('div');
                 info.style.cssText = "flex: 1; display: flex; flex-direction: column; gap: 0.5cqh; min-width: 0;";
@@ -2703,7 +2717,7 @@
                         ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${currentStageReward}G</span> Ver:<span class="stat-val">${s.version}</span>
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span> Ver:<span class="stat-val">${s.version}</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
@@ -2722,8 +2736,9 @@
                 div.appendChild(info);
                 div.onclick = () => startGame(s);
                 container.appendChild(div);
-                
-                renderPreview(canvas, s.data);
+
+                // プレビュー描画を少しずつ遅延させてUIのフリーズを防ぐ
+                setTimeout(() => { if(document.contains(canvas)) renderPreview(canvas, s.data); }, idx * 20);
             });
         }
 
@@ -2908,12 +2923,18 @@
             document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(3)}s)`;
             
             const rewardOverlay = document.getElementById('reward-overlay');
-            const okBtn = rewardOverlay.querySelector('button[onclick="closeReward()"]');
+            const okBtn = document.getElementById('reward-ok-btn');
+            const retryBtn = document.getElementById('reward-retry-btn');
             rewardOverlay.style.display = 'flex';
+
             if (okBtn) {
                 okBtn.disabled = true;
                 okBtn.innerText = "SAVING...";
                 okBtn.onclick = null;
+            }
+            if (retryBtn) {
+                retryBtn.disabled = true;
+                retryBtn.style.opacity = "0.5";
             }
 
             // タイムがトップ5に入る可能性がある場合のみゴーストデータを送信する
@@ -2939,6 +2960,10 @@
                         okBtn.innerText = "OK";
                         okBtn.disabled = false;
                         okBtn.onclick = closeReward;
+                        if (retryBtn) {
+                            retryBtn.disabled = false;
+                            retryBtn.style.opacity = "1";
+                        }
                     } else {
                         throw new Error(res ? res.message : "保存失敗");
                     }
@@ -2946,6 +2971,7 @@
                     okBtn.innerText = "OK";
                     okBtn.disabled = false;
                     okBtn.onclick = closeReward;
+                    if (retryBtn) { retryBtn.disabled = false; retryBtn.style.opacity = "1"; }
                 }
             } catch (e) {
                 console.error("通信エラー:", e);
@@ -3210,16 +3236,7 @@
                 const current_tile = activeStage[ey_tile] ? activeStage[ey_tile][ex_tile] : null;
                 const foot_tile = activeStage[Math.floor(en.y + 1)] ? activeStage[Math.floor(en.y + 1)][ex_tile] : null;
 
-                // 風・ギミックの影響
-                if(current_tile === 'W') en.vx += 0.01;
-                if(current_tile === 'L') en.vx -= 0.01;
-                // 風・ギミックの影響 (垂直方向)
-                if(current_tile === 'U') en.vy -= 0.025;
-                if(current_tile === 'd') en.vy += 0.025;
-                if(current_tile === 'J') {
-                    if (isSwitchOn) en.vx += 0.01;
-                    else en.vx -= 0.01;
-                }
+                // 特殊ブロックの即時反映
                 if(current_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); // トロールの中で跳ねる
                 if(foot_tile === 'T' && en.vy > 0) en.vy = -0.4; // トランポリン
 
@@ -3242,20 +3259,10 @@
                 const en_tile = activeStage[ey_check] ? activeStage[ey_check][ex_check] : null;
                 if (en_tile === 'y') en.dead = true;
 
-                // 垂直移動 (接地判定の改善)
-                if (en.onGround) {
-                    // 接地継続チェック: 足元が固形ブロックか橋かを確認
-                    const belowSolid = isEnemyCollide(en.x, en.y + 0.1);
-                    let onBridge = false;
-                    if (!belowSolid) {
-                        const ix = Math.floor(en.x + 0.45), iy = Math.floor(en.y + 0.9 + 0.05);
-                        if (activeStage[iy] && activeStage[iy][ix] === 'H') onBridge = true;
-                    }
-                    if (!belowSolid && !onBridge) en.onGround = false;
-                    en.vy = 0;
-                }
-
-                if (!en.onGround) en.vy += 0.015;
+                // 垂直方向の物理演算（重力 + 垂直風）
+                en.vy += 0.015; 
+                if(current_tile === 'U') en.vy -= 0.035; // 上昇気流（敵も浮くように調整）
+                if(current_tile === 'd') en.vy += 0.025; // 下降気流
 
                 let nextY = en.y + en.vy;
                 let collidedY = isEnemyCollide(en.x, nextY);
@@ -3301,12 +3308,12 @@
                 en.vx *= 0.98;
                 if(Math.abs(en.vx) < 0.04) en.vx = (en.vx >= 0 ? 0.04 : -0.04);
 
-                // 横方向の風の影響を適用 (ベース速度維持の後に足すことで効果を出す)
-                if(current_tile === 'W') en.vx += 0.012;
-                if(current_tile === 'L') en.vx -= 0.012;
+                // 横方向の風の影響を適用 (ベース速度に加算)
+                if(current_tile === 'W') en.vx += 0.015;
+                if(current_tile === 'L') en.vx -= 0.015;
                 if(current_tile === 'J') {
-                    if (isSwitchOn) en.vx += 0.012;
-                    else en.vx -= 0.012;
+                    if (isSwitchOn) en.vx += 0.015;
+                    else en.vx -= 0.015;
                 }
 
                 const px = player.x + player.w/2, py = player.y + player.h/2;
@@ -3497,17 +3504,13 @@
             ctx.fillStyle = "#70a1ff";
             ctx.fillRect(0,0,canvas.width, canvas.height);
 
-            // キャッシュされた静的レイヤーを一度に描画
+            // キャッシュされた静的レイヤー（ブロック等）を描画
             ctx.drawImage(stageCacheCanvas, 0, 0);
 
-            // アニメーションが必要なタイル（風など）のみ個別に描画
-            for(let y=0; y<GRID_H; y++){
-                for(let x=0; x<GRID_W; x++){
-                    const type = activeStage[y][x];
-                    if(type && ['W', 'L', 'U', 'd', 'J'].includes(type)) {
-                        drawTile(ctx, x, y, cw, ch, type, time);
-                    }
-                }
+            // 動的なタイル（風など）のみをリストから高速に描画
+            for (let i = 0; i < dynamicTiles.length; i++) {
+                const t = dynamicTiles[i];
+                drawTile(ctx, t.x, t.y, cw, ch, t.type, time);
             }
 
             // 敵の描画
@@ -3544,28 +3547,29 @@
             }
 
             // ゴーストの描画
-            if (!isCountingDown && showGhosts) {
-                ctx.globalAlpha = 0.5;
-                playbackGhosts.forEach(ghost => {
-                    if (ghost.ghost) {
-                        const frameIdx = Math.floor(frameCount / 5);
-                        const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
-                        if (pos) {
-                            drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, pos.f || 'right');
-                            // 名前のラベル表示
-                            ctx.save();
-                            ctx.globalAlpha = 1.0;
-                            ctx.fillStyle = "#fff";
-                            ctx.font = `${ch * 0.3}px sans-serif`;
-                            ctx.textAlign = "center";
-                            ctx.fillText(ghost.name, (pos.x + player.w/2) * cw, pos.y * ch - 10);
-                            ctx.restore();
-                        }
-                    }
-                });
+            if (!isCountingDown && showGhosts && playbackGhosts.length > 0) {
+                ctx.save();
+                ctx.globalAlpha = 0.5; // 透明度を一括設定
+                ctx.font = `${ch * 0.3}px sans-serif`; // フォント設定をループの外へ
+                ctx.textAlign = "center";
+                const frameIdx = Math.floor(frameCount / 5);
+                
+                for (let i = 0; i < playbackGhosts.length; i++) {
+                    const ghost = playbackGhosts[i];
+                    if (!ghost.ghost) continue;
+                    const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
+                    if (!pos) continue;
+
+                    // ゴースト描画（名前をuniqueIdとして渡すことで個別キャッシュ）
+                    drawPlayer(ctx, pos.x * cw, pos.y * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, pos.f || 'right', ghost.name);
+                    
+                    ctx.fillStyle = "#fff";
+                    ctx.fillText(ghost.name, (pos.x + player.w/2) * cw, pos.y * ch - 10);
+                }
+                ctx.restore();
             }
             ctx.globalAlpha = 1.0;
-            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing);
+            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing, CONFIG.USERNAME);
 
             // カウントダウンの描画
             if (isCountingDown) {
@@ -3675,8 +3679,6 @@
                 });
             });
         }
-
-        function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
         function setupMobileControls() {
             const btns = { 'btn-left': 'ArrowLeft', 'btn-right': 'ArrowRight', 'btn-jump': 'Space' };
