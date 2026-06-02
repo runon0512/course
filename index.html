@@ -831,7 +831,7 @@
             <canvas id="game-canvas"></canvas>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.5cqw; display: flex; align-items: center; gap: 2cqw;">
                 <span>ARROWS: MOVE | SPACE: JUMP | 
-                    <span onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw;">RETRY</span>
+                    <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw; opacity: 0.5; pointer-events: none;">RETRY</span>
                     <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span>
                 </span>
                 <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
@@ -3505,6 +3505,27 @@
                     const remaining = Math.max(0, 100 - (Date.now() - startTime) / 1000);
                     timerElement.innerText = `TIME: ${remaining.toFixed(1)}`;
                     timerElement.style.color = remaining < 10 ? "#ff5252" : "#fff";
+                }
+            }
+
+            // Retryボタンの状態更新 (開始から15秒制限)
+            const gameRetryBtn = document.getElementById('game-retry-btn');
+            if (gameRetryBtn) {
+                if (!isCountingDown && !isGoalTriggered && startTime > 0) {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    if (elapsed < 15) {
+                        gameRetryBtn.style.opacity = "0.5";
+                        gameRetryBtn.style.pointerEvents = "none";
+                        gameRetryBtn.innerText = `RETRY(${Math.ceil(15 - elapsed)})`;
+                    } else {
+                        gameRetryBtn.style.opacity = "1";
+                        gameRetryBtn.style.pointerEvents = "auto";
+                        gameRetryBtn.innerText = "RETRY";
+                    }
+                } else {
+                    gameRetryBtn.style.opacity = "0.5";
+                    gameRetryBtn.style.pointerEvents = "none";
+                    gameRetryBtn.innerText = "RETRY";
                 }
             }
 
