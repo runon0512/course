@@ -2564,22 +2564,6 @@
             stageSearchTimeout = setTimeout(() => openStageSelect(), 300);
         }
 
-        async function deletePublishedStage(stageId, creator) {
-            if (CONFIG.USERNAME !== 'Runon' && creator !== CONFIG.USERNAME) {
-                alert("自分の投稿したステージ、または管理者のみ削除できます。");
-                return;
-            }
-            if (!confirm("本当にこのステージを削除しますか？")) return;
-            
-            const res = await callApi('deleteStage', { stageId: stageId });
-            if (res.success) {
-                alert("削除しました。");
-                openStageSelect(true);
-            } else {
-                alert("エラー: " + res.message);
-            }
-        }
-
         async function publishStage() {
             if (!isClearChecked) {
                 showQuickMsg("先にクリアチェックが必要です！", "var(--secondary-color)");
@@ -2759,10 +2743,6 @@
                             onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
                             onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
-                        ${(CONFIG.USERNAME === 'Runon' || s.creator === CONFIG.USERNAME) ? `
-                            <button class="pixel-btn small" style="background:#f44336; color:#fff;" 
-                                onclick="event.stopPropagation(); deletePublishedStage('${escapedId}', '${s.creator}')">🗑️削除</button>
-                        ` : ''}
                     </div>
                     <div style="display:flex; flex-direction:column;">${bestRecordHtml}${myRecordHtml}</div>
                 `;
