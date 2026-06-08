@@ -2005,8 +2005,25 @@
             activeStage = [];
             // エディタ背景をリセット
             const container = document.querySelector('.container');
-            container.classList.remove('bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora');
-            container.classList.add('bg-city');
+            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora');
+            container.classList.add('bg-sky');
+
+            // プレイ画面同様、ホームの要素を非表示にする
+            document.querySelector('h1').style.display = 'none';
+            document.getElementById('subtitle').style.display = 'none';
+            document.getElementById('home-character-canvas').style.display = 'none';
+            document.getElementById('home-bg-canvas').style.display = 'none';
+            if (homeBgAnimationId) {
+                cancelAnimationFrame(homeBgAnimationId);
+                homeBgAnimationId = null;
+            }
+            document.getElementById('main-menu').classList.remove('active');
+            if (document.getElementById('user-info').style.display !== 'none') {
+                document.getElementById('user-info').style.display = 'none';
+            }
+            document.getElementById('global-rank-btn').style.display = 'none';
+            document.getElementById('creators-road-btn').style.display = 'none';
+            document.getElementById('explanation-btn').style.display = 'none';
 
             document.getElementById('editor-screen').style.display = 'block';
             
@@ -2044,6 +2061,21 @@
 
         function exitEditor() {
             document.getElementById('editor-screen').style.display = 'none';
+            // ホーム画面の要素を再表示
+            document.querySelector('h1').style.display = 'block';
+            document.getElementById('subtitle').style.display = 'block';
+            document.getElementById('home-character-canvas').style.display = 'block';
+            document.getElementById('main-menu').classList.add('active');
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('home-bg-canvas').style.display = 'block';
+            startHomeBackgroundEffect();
+            document.getElementById('global-rank-btn').style.display = 'block';
+            document.getElementById('creators-road-btn').style.display = 'block';
+            document.getElementById('explanation-btn').style.display = 'block';
+            
+            const container = document.querySelector('.container');
+            container.classList.remove('bg-sky');
+            container.classList.add('bg-city');
         }
 
         function clearStage() {
