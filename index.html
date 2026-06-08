@@ -835,10 +835,10 @@
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.5cqw; display: flex; align-items: center; gap: 2cqw;">
                 <span>ARROWS: MOVE | SPACE: JUMP | 
                     <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw; opacity: 0.5; pointer-events: none;">RETRY</span>
-                    <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span>
+                    <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span> 
                 </span>
                 <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
-                    <input type="checkbox" id="toggle-ghosts" checked onchange="showGhosts = this.checked">
+                    <input type="checkbox" id="toggle-ghosts">
                     <span>GHOSTS</span>
                 </label>
                 <div id="game-timer" style="color: #fff; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff; font-size: 1.2cqw; min-width: 12cqw;">TIME: 100.0</div>
@@ -900,7 +900,7 @@
         let editorGrid = [];
         let currentTool = 'B';
         const GRID_W = 20, GRID_H = 10;
-        let isDrawing = false; // エディタでの描画中フラグ
+        let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
         let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false };
         let isSwitchOn = true;
@@ -910,7 +910,7 @@
         let cachedStages = null;    // ステージリストのキャッシュ
         let currentSort = 'newest'; // デフォルトのソート順
         let filterMyStages = false;
-        let filterFavorites = false;
+        let filterFavorites = false; 
         let filterUnplayed = false;
         let filterCreatorName = '';
         let favoriteStages = [];
@@ -918,7 +918,7 @@
         let enemies = [];
         let playbackGhosts = [];
         let showGhosts = true;
-        let isMobileMode = false;
+        let isMobileMode = false; 
         let currentGhostData = []; // ゴーストデータはフレームごとに記録
         let startTime = 0;
         let frameCount = 0;
@@ -937,7 +937,7 @@
         let countdown = 3;
         let isCountingDown = false;
         let countdownStartTime = 0;
-        let selectedColorBlockColor = '#ffffff';
+        let selectedColorBlockColor = '#ffffff'; 
         const COLOR_BLOCK_COLORS = ['#ffffff', '#ffdbac', '#ff0000', '#800080', '#0000ff', '#00ff00', '#ffff00', '#ff9800', '#ffc0cb', '#795548', '#9e9e9e', '#000000'];
         let stageSearchTimeout = null;
 
@@ -3771,6 +3771,19 @@
             document.getElementById('mobile-mode').checked = isMobile;
             isMobileMode = isMobile;
             setupMobileControls();
+
+            // ゴースト表示設定の読み込みと適用
+            const toggleGhostsCheckbox = document.getElementById('toggle-ghosts');
+            const savedShowGhosts = localStorage.getItem('pixel_stages_show_ghosts');
+            if (savedShowGhosts !== null) {
+                showGhosts = JSON.parse(savedShowGhosts);
+                toggleGhostsCheckbox.checked = showGhosts;
+            } else {
+                // 保存された設定がない場合、デフォルトでゴーストを非表示にする
+                showGhosts = false;
+                toggleGhostsCheckbox.checked = false;
+            }
+            toggleGhostsCheckbox.onchange = function() { showGhosts = this.checked; localStorage.setItem('pixel_stages_show_ghosts', this.checked); };
             
             document.querySelector('.container').classList.add('bg-city');
 
