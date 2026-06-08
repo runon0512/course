@@ -574,8 +574,8 @@
         <div id="user-info">
             USER: <span id="current-user">-</span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
-            <span style="color:#00ffff;">💎: <span id="user-diamonds">0</span></span> | 
-            <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span>
+            <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> |
+            <span style="color:#00ffff;">D: <span id="user-diamond">0</span></span>
         </div>
 
         <!-- グローバルランキングボタン -->
@@ -861,13 +861,13 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbygLmEHBLnQbAu6NUZ1O0oWdGrFxD3OfiP09OwpTgNJwhYgngz0hmrQuhe6_XRhHUaK/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxRhvLm8tIRWQuqWhmoI7kM6N6EChF_Woc0r0WsVYuy1KkC1xi9Q_FO8rj-icKwj0I5/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
         let userGold = 0;
-        let userDiamonds = 0;
         let userCP = 0;
+        let userDiamond = 0;
         let purchasedSkins = ['default', 'girl'];
         let equippedSkin = 'default';
         let equippedColor = 'default';
@@ -883,9 +883,8 @@
             { id: 7, cp: 20000, unlock: 'd', text: "下降気流" },
             { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" },
             { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
-            { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック + 💎x1", diamond: 1 },
-            { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" },
-            { id: 13, cp: 100000, diamond: 1, text: "ダイヤモンド" }
+            { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック" },
+            { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" }
         ];
         let claimedRoadRewards = [];
 
@@ -1368,8 +1367,8 @@
                                 CONFIG.IS_LOGGED_IN = true;
                                 CONFIG.USERNAME = res.username;
                                 userGold = res.gold || 0;
-                                userDiamonds = res.diamonds || 0;
                                 userCP = res.cp || 0;
+                                userDiamond = res.diamond || 0;
                                 purchasedSkins = res.purchasedSkins || ['default', 'girl'];
                                 equippedSkin = res.equippedSkin || 'default';
                                 equippedColor = res.equippedColor || 'default';
@@ -1463,10 +1462,10 @@
             await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
-                diamonds: userDiamonds,
                 purchasedSkins: purchasedSkins,
                 equippedSkin: equippedSkin,
-                equippedColor: equippedColor
+                equippedColor: equippedColor,
+                diamond: userDiamond
             });
             openShop();
         }
@@ -1505,7 +1504,7 @@
                 const isReached = userCP >= m.cp;
                 const isClaimed = claimedRoadRewards.includes(m.id);
                 
-                const rewardLabel = m.gold ? `${m.gold} G` : (m.diamond ? `${m.text}` : m.text);
+                const rewardLabel = m.gold ? `${m.gold} G` : m.text;
 
                 const div = document.createElement('div');
                 div.style.cssText = "background: #252538; border: 0.3cqw solid #fff; padding: 2cqw; display: flex; justify-content: space-between; align-items: center;";
@@ -1543,25 +1542,23 @@
             try {
                 const newClaimed = [...claimedRoadRewards, milestone.id];
                 const nextGold = milestone.gold ? userGold + milestone.gold : userGold;
-                const nextDiamonds = milestone.diamond ? userDiamonds + milestone.diamond : userDiamonds;
                 // 進捗と所持金を一括で保存
                 const res = await callApi('updateSkins', {
                     username: CONFIG.USERNAME,
                     gold: nextGold,
-                    diamonds: nextDiamonds,
                     purchasedSkins: purchasedSkins,
                     equippedSkin: equippedSkin,
                     equippedColor: equippedColor,
+                    diamond: userDiamond,
                     claimedRoadRewards: newClaimed
                 });
 
                 if (res && res.success) {
                     userGold = nextGold;
-                    userDiamonds = nextDiamonds;
                     claimedRoadRewards = newClaimed;
                     updateGoldDisplay();
                     if (milestone.gold) alert(`${milestone.gold} G 獲得しました！`);
-                    if (milestone.unlock || milestone.diamond) alert(`${milestone.text} を獲得しました！`);
+                    if (milestone.unlock) alert(`${milestone.text} をアンロックしました！`);
                 } else {
                     throw new Error(res ? res.message : "Save failed");
                 }
@@ -1849,10 +1846,10 @@
             await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
-                diamonds: userDiamonds,
                 purchasedSkins: purchasedSkins,
                 equippedSkin: equippedSkin,
-                equippedColor: equippedColor
+                equippedColor: equippedColor,
+                diamond: userDiamond
             });
             updateHomeCharacter();
 
@@ -2643,23 +2640,7 @@
                     return (b.attempts || 0) - (a.attempts || 0);
                 }
                 if (currentSort === 'upvotes') return (b.upvotes || 0) - (a.upvotes || 0);
-                if (currentSort === 'reward') {
-                    // 優先度の判定: 未知(2) > 超新星(1) > その他(0)
-                    const getPriority = s => {
-                        const crVal = s.attempts > 0 ? (s.clears || 0) / s.attempts * 100 : 0;
-                        if (s.attempts >= 500 && crVal <= 0.2) return 2; // 未知: 500プレイ以上かつ0.2%以下
-                        if (s.attempts >= 5 && s.clears === 0) return 1; // 超新星
-                        return 0;
-                    };
-                    const pA = getPriority(a), pB = getPriority(b);
-                    if (pA !== pB) return pB - pA;
-                    
-                    // 同じ優先度内での比較
-                    const crA = a._cr === -1 ? 1.1 : a._cr; // 未プレイは便宜上110%として末尾へ
-                    const crB = b._cr === -1 ? 1.1 : b._cr;
-                    if (crA !== crB) return crA - crB; // クリア率が低い順（難しい順）
-                    return (b.attempts || 0) - (a.attempts || 0); // 同じクリア率ならプレイ数が多い順
-                }
+                if (currentSort === 'reward') return b._reward - a._reward;
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
 
@@ -2684,14 +2665,10 @@
                     // 新風: プレイ数5以下
                     diffBadge = '<span style="background:linear-gradient(45deg, #4caf50, #ffffff); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">新風</span>';
                     customFrameStyle = "border-color: #4caf50; box-shadow: inset 0 0 10px rgba(76, 175, 80, 0.3);";
-                } else if (s.clears === 0) {
-                    // 超新星: 5プレイ以上かつクリア者なし
-                    diffBadge = '<span style="background:linear-gradient(45deg, #00ffff, #ffffff); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">超新星</span>';
-                    customFrameStyle = "border-color: #00ffff; box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);";
                 } else {
                     const crNum = (s.clears || 0) / s.attempts * 100;
-                    if (s.attempts >= 500 && crNum < 0.1) {
-                        // 未知: 500プレイ以上かつクリア率0.1%未満
+                    if (crNum <= 0.1) {
+                        // 未知
                         diffBadge = '<span style="background:#000; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000; margin-right:0.5cqw;">未知</span>';
                         customFrameStyle = "background: #000; border-color: #ff0000; box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.4);";
                     } else if (crNum <= 1) {
@@ -2721,10 +2698,7 @@
                 canvas.width = 200; // プレビュー解像度
                 canvas.height = 100;
                 
-                const crVal = s.attempts > 0 ? (s.clears || 0) / s.attempts * 100 : 0;
-                // 未知判定（500回以上かつ0.2%以下）
-                const isUnknown = s.attempts >= 500 && crVal <= 0.2;
-                const clearRate = s.attempts > 0 ? (isUnknown ? crVal.toFixed(3) : crVal.toFixed(1)) : "0.0";
+                const clearRate = s.attempts > 0 ? ((s.clears || 0) / s.attempts * 100).toFixed(1) : "0.0";
                 
                 const topTime = s._topTime;
                 const topPlayers = s._topPlayers;
@@ -2824,6 +2798,7 @@
             currentStageData = stageObj;
             isSwitchOn = true;
             player.onSwitch = false;
+            spriteCache.clear(); // ステージ開始時にキャッシュをクリアしてリフレッシュ
             timerElement = document.getElementById('game-timer');
             const gCanvas = document.getElementById('game-canvas');
             if (gCanvas) gCanvas.getContext('2d').imageSmoothingEnabled = false;
@@ -2877,17 +2852,7 @@
             
             player.vx = 0; player.vy = 0;
             
-            // ゴーストデータの形式を事前に正規化して描画ループを高速化
-            playbackGhosts.forEach(g => {
-                if (g.ghost && Array.isArray(g.ghost)) {
-                    g.ghost = g.ghost.map(pos => {
-                        if (Array.isArray(pos)) {
-                            return { x: pos[0], y: pos[1], f: pos[2] === 1 ? 'right' : 'left' };
-                        }
-                        return pos;
-                    });
-                }
-            });
+            playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
             updateStageCache();
             arrows = [];
             isGoalTriggered = false;
@@ -2981,17 +2946,6 @@
             const rewardOverlay = document.getElementById('reward-overlay');
             const okBtn = document.getElementById('reward-ok-btn');
             const retryBtn = document.getElementById('reward-retry-btn');
-
-            // 未知判定（称号判定）をクライアント側で行い、ダイヤモンドを付与
-            if (currentStageData && currentStageData.attempts >= 500) {
-                const crVal = (currentStageData.clears || 0) / currentStageData.attempts * 100;
-                if (crVal <= 0.2) {
-                    userDiamonds += 1;
-                    updateGoldDisplay();
-                    alert("未知のステージをクリア！ダイヤモンドを1つ獲得しました！");
-                }
-            }
-
             rewardOverlay.style.display = 'flex';
 
             if (okBtn) {
@@ -3026,10 +2980,10 @@
                         ghost: compressedGhost, // 軽量化したゴーストデータ
                         skin: equippedSkin,
                         color: equippedColor,
-                        // カスタムスキンは記録更新時のみ送信してさらに軽量化
+                        diamond: userDiamond, // ダイヤモンドも送信
+                        // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                         customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
-                        gold: userGold,
-                        diamonds: userDiamonds
+                        gold: userGold
                     }, 5, 30000); // タイムアウトを30秒に延長
 
                     if (res && res.success) {
@@ -3082,10 +3036,10 @@
         function updateGoldDisplay() {
             const display = document.getElementById('user-gold');
             if (display) display.innerText = userGold;
-            const dDisplay = document.getElementById('user-diamonds');
-            if (dDisplay) dDisplay.innerText = userDiamonds;
             const cpDisplay = document.getElementById('user-cp');
-            if (cpDisplay) cpDisplay.innerText = userCP;
+            if (cpDisplay) cpDisplay.innerText = (CONFIG.USERNAME === 'Runon') ? "∞" : userCP;
+            const diamondDisplay = document.getElementById('user-diamond');
+            if (diamondDisplay) diamondDisplay.innerText = userDiamond;
 
             // クリエイターズロードの通知（赤丸）更新
             const hasUnclaimed = CREATORS_ROAD_MILESTONES.some(m => 
@@ -3343,16 +3297,17 @@
                 if(current_tile === 'd') en.vy += 0.025; // 下降気流
 
                 let nextY = en.y + en.vy;
-                let collidedY = isEnemyCollide(en.x, nextY);
+                // 地面との接触判定を少し深く（+0.05）して、歩行中の浮遊感を解消する
+                let collidedY = isEnemyCollide(en.x, nextY + (en.vy > 0 ? 0.05 : 0));
                 let isBridge = false;
 
                 if (!collidedY && en.vy >= 0) {
                     let footY = en.y + 0.9;
-                    let nextFootY = nextY + 0.9;
+                    let nextFootY = nextY + 0.9 + 0.05; // 橋の判定も同様に深く
                     let ix = Math.floor(en.x + 0.45), iy = Math.floor(nextFootY);
                     if (activeStage[iy] && activeStage[iy][ix] === 'H' && footY <= iy + 0.1) {
                         collidedY = true;
-                        nextY = iy - 0.899; // 埋まり防止の微調整
+                        nextY = iy - 0.9; // 地面に密着させる
                         isBridge = true;
                     }
                 }
@@ -3370,7 +3325,8 @@
                         }
                     }
                     if (en.vy > 0) {
-                        en.y = isBridge ? nextY : Math.floor(nextY + 0.9) - 0.9;
+                        // スナップ計算時も判定の深さを考慮して正確な座標に配置
+                        en.y = isBridge ? nextY : Math.floor(nextY + 0.9 + 0.05) - 0.9;
                         en.onGround = true;
                     }
                     en.vy = 0;
@@ -3451,10 +3407,10 @@
                     callApi('updateSkins', { // テストクリア時は基本情報のみ保存
                         username: CONFIG.USERNAME,
                         gold: userGold,
-                        diamonds: userDiamonds,
                         purchasedSkins: purchasedSkins,
                         equippedSkin: equippedSkin,
-                        equippedColor: equippedColor
+                        equippedColor: equippedColor,
+                        diamond: userDiamond
                     });
                 } else {
                     showReward();
@@ -3660,11 +3616,19 @@
                     const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
                     if (!pos) continue;
 
-                    const gx = pos.x;
-                    const gy = pos.y;
-                    const gf = pos.f || 'right';
+                    // 旧形式(オブジェクト)と新形式(配列)の両方に対応
+                    let gx, gy, gf;
+                    if (Array.isArray(pos)) {
+                        gx = pos[0];
+                        gy = pos[1];
+                        gf = pos[2] === 1 ? 'right' : 'left';
+                    } else {
+                        gx = pos.x;
+                        gy = pos.y;
+                        gf = pos.f || 'right';
+                    }
 
-                    drawPlayer(ctx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, gf);
+                    drawPlayer(ctx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
                     
                     ctx.fillStyle = "#fff";
                     ctx.fillText(ghost.name, (gx + player.w/2) * cw, gy * ch - 10);
