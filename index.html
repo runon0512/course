@@ -45,6 +45,42 @@
         .container.bg-sky  { background: #e1f5fe; }
         .container.bg-night { background: #0b1026; }
 
+        /* 難易度別の新背景 */
+        .container.bg-cloudy { background: #90a4ae; } /* 難関: 曇り */
+        .container.bg-sunset { background: linear-gradient(#ff7043, #3f51b5); } /* 超難関: 夕方 */
+        .container.bg-hell   { background: linear-gradient(#000, #b71c1c); } /* 鬼: 地獄 */
+        .container.bg-heaven { background: linear-gradient(#e3f2fd, #ffffff); } /* 神: 天国 */
+        .container.bg-bw     { background: #ffffff; } /* 未知: 白黒 */
+        .container.bg-aurora { background: #050510; } /* 新次元: オーロラ */
+
+        /* 各背景でのレイヤー調整 */
+        .container.bg-bw .mountains { filter: grayscale(1) brightness(0); }
+        .container.bg-bw .clouds { filter: grayscale(1) brightness(0); opacity: 0.2; }
+        .container.bg-hell .clouds { display: none; }
+        .container.bg-hell .mountains { filter: brightness(0.2) sepia(1) saturate(5) hue-rotate(-50deg); }
+        .container.bg-heaven .mountains { filter: brightness(2) opacity(0.5); }
+        .container.bg-cloudy .clouds { filter: brightness(0.7); opacity: 0.8; }
+
+        /* オーロラレイヤー */
+        .aurora-layer {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 200%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0,255,150,0.3), rgba(160,32,240,0.3), transparent);
+            filter: blur(40px);
+            animation: auroraMove 15s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .container.bg-aurora .aurora-layer { display: block; }
+        .container.bg-aurora .mountains { filter: brightness(0.2); }
+
+        @keyframes auroraMove {
+            0% { transform: translateX(-50%) rotate(-5deg); }
+            50% { transform: translateX(0%) rotate(5deg); }
+            100% { transform: translateX(-50%) rotate(-5deg); }
+        }
+
         .container.bg-night .mountains { filter: brightness(0.3) saturate(0.5); }
         .container.bg-night .clouds { opacity: 0.3; }
         .container.bg-sky .mountains { display: none; }
@@ -70,14 +106,6 @@
             background: 
                 conic-gradient(from 135deg at 50% 100%, #546e7a 0 90%, transparent 0) 0 65% / 40% 20% repeat-x,
                 conic-gradient(from 135deg at 50% 100%, #78909c 0 90%, transparent 0) 20% 70% / 30% 15% repeat-x;
-        }
-
-        .ground {
-            top: 75%;
-            height: 25%;
-            background: repeating-conic-gradient(#1a1a2e 0% 25%, #16213e 0% 50%) 0 0 / 4cqw 4cqw;
-            border-top: 0.5cqw solid #1b5e20;
-            display: none; /* 奈落にするため非表示 */
         }
 
         /* 走査線エフェクト（レトロ感） */
@@ -385,14 +413,14 @@
             height: 100%;
             display: none;
             z-index: 30;
-            background: rgba(30, 30, 46, 0.95);
+            background: transparent;
         }
 
         #canvas-container {
             position: relative;
             width: 100%;
             height: 100%;
-            background: #70a1ff;
+            background: transparent;
             cursor: crosshair;
         }
 
@@ -557,7 +585,7 @@
         <!-- 背景レイヤー -->
         <div class="bg-layer clouds"></div>
         <div class="bg-layer mountains"></div>
-        <div class="bg-layer ground"></div>
+        <div class="bg-layer aurora-layer"></div>
         <div class="bg-layer scanlines"></div>
 
         <!-- 共通通知オーバーレイ -->
@@ -574,8 +602,8 @@
         <div id="user-info">
             USER: <span id="current-user">-</span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
-            <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> |
-            <span style="color:#00ffff;">D: <span id="user-diamond">0</span></span>
+            <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
+            <span style="color:#e0f7fa;">AS: <span id="user-as">0</span></span>
         </div>
 
         <!-- グローバルランキングボタン -->
@@ -622,7 +650,10 @@
         <div id="reward-overlay" class="screen" style="z-index: 110; flex-direction: column; justify-content: center; align-items: center; display: none;">
             <div class="auth-box" style="text-align: center; width: 40%;">
                 <h2 style="color: var(--primary-color); font-size: 3cqw; margin-bottom: 2cqh;">STAGE CLEAR!</h2>
-                <div style="font-size: 2cqw; margin: 2cqh 0;">GET: <span id="reward-amount" style="color: #f1c40f;">0 G</span></div>
+                <div style="font-size: 2cqw; margin: 2cqh 0;">
+                    GET: <span id="reward-amount" style="color: #f1c40f;">0 G</span>
+                    <span id="reward-as-wrap" style="display:none; color: #00ffff;"> + <span id="reward-as">0</span> AS</span>
+                </div>
                 <hr style="border: 0.1cqw solid #444; width: 100%;">
                 <div style="margin: 2cqh 0;">
                     <p style="font-size: 1cqw;">RATE THIS STAGE:</p>
@@ -783,7 +814,6 @@
                     <button class="pixel-btn small" style="margin-top:0; background:#f44336; color:#fff;" onclick="clearStage()">🗑️全消去</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
-                    <button class="pixel-btn small" style="margin-top:0" onclick="cycleBackground()">🌆背景</button>
                     <button id="editor-switch-btn" class="pixel-btn small" style="margin-top:0; background:#ff5252; color:#fff;" onclick="toggleEditorSwitch()">R/B: ON</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
@@ -861,7 +891,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxRhvLm8tIRWQuqWhmoI7kM6N6EChF_Woc0r0WsVYuy1KkC1xi9Q_FO8rj-icKwj0I5/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx-GFAdZsm28L7bQO9VRyWfHtE4r0ebw1E623On2eh094-V9s0mlIK_8PCDAMYkxjME/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -880,11 +910,12 @@
             { id: 5, cp: 10000, gold: 800 },
             { id: 12, cp: 15000, unlock: 'Z', text: "カラーブロック" },
             { id: 6, cp: 15000, unlock: 'J', text: "R/B風" }, // Jを15000CPの報酬に
-            { id: 7, cp: 20000, unlock: 'd', text: "下降気流" },
+            { id: 7, cp: 20000, unlock: 'd', auroraStone: 1, text: "下降気流" },
             { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" },
             { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
-            { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック" },
-            { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" }
+            { id: 10, cp: 50000, unlock: 'ICE', auroraStone: 1, text: "氷ブロック" },
+            { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" },
+            { id: 13, cp: 100000, auroraStone: 1, text: "オーロラストーン 1個" }
         ];
         let claimedRoadRewards = [];
 
@@ -933,7 +964,6 @@
         let lastTime = 0;
         let dynamicTiles = []; // 動的ギミックのキャッシュ用
         const colorVarCache = {}; // CSS変数のキャッシュ
-        let currentBgIndex = 0;
         let countdown = 3;
         let isCountingDown = false;
         let countdownStartTime = 0;
@@ -1186,14 +1216,6 @@
         }
         initGrid();
 
-        function cycleBackground() {
-            const bgs = ['bg-city', 'bg-sky', 'bg-night'];
-            currentBgIndex = (currentBgIndex + 1) % bgs.length;
-            const container = document.querySelector('.container');
-            bgs.forEach(bg => container.classList.remove(bg));
-            container.classList.add(bgs[currentBgIndex]);
-        }
-
         // ステージの静的なタイル（ブロック等）を事前に1枚の絵に描画する
         function updateStageCache() {
             const canvas = document.getElementById('game-canvas');
@@ -1323,7 +1345,6 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (CONFIG.IS_LOGGED_IN) {
-                document.querySelector('.ground').style.display = 'block';
                 startHomeBackgroundEffect();
                 drawPlayer(ctx, 0, 0, 256, 256, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin]);
                 canvas.style.display = 'block';
@@ -1368,7 +1389,7 @@
                                 CONFIG.USERNAME = res.username;
                                 userGold = res.gold || 0;
                                 userCP = res.cp || 0;
-                                userDiamond = res.diamond || 0;
+                                userAS = res.auroraStones || 0;
                                 purchasedSkins = res.purchasedSkins || ['default', 'girl'];
                                 equippedSkin = res.equippedSkin || 'default';
                                 equippedColor = res.equippedColor || 'default';
@@ -1465,7 +1486,6 @@
                 purchasedSkins: purchasedSkins,
                 equippedSkin: equippedSkin,
                 equippedColor: equippedColor,
-                diamond: userDiamond
             });
             openShop();
         }
@@ -1487,7 +1507,7 @@
 
         function updateRoadProgress() {
             document.getElementById('road-current-cp').innerText = userCP;
-            const maxCP = 20000; // 最大CPを20000に調整
+            const maxCP = 100000; // 最大CPを100000に調整
             const progress = Math.min(100, (userCP / maxCP) * 100);
             document.getElementById('road-progress-bar').style.width = `${progress}%`;
         }
@@ -1504,7 +1524,10 @@
                 const isReached = userCP >= m.cp;
                 const isClaimed = claimedRoadRewards.includes(m.id);
                 
-                const rewardLabel = m.gold ? `${m.gold} G` : m.text;
+                let rewardLabel = m.text;
+                if (m.gold && m.auroraStone) rewardLabel = `${m.gold} G + ${m.auroraStone} AS`;
+                else if (m.gold) rewardLabel = `${m.gold} G`;
+                else if (m.auroraStone && !m.unlock) rewardLabel = `${m.auroraStone} AS`;
 
                 const div = document.createElement('div');
                 div.style.cssText = "background: #252538; border: 0.3cqw solid #fff; padding: 2cqw; display: flex; justify-content: space-between; align-items: center;";
@@ -1542,22 +1565,25 @@
             try {
                 const newClaimed = [...claimedRoadRewards, milestone.id];
                 const nextGold = milestone.gold ? userGold + milestone.gold : userGold;
+                const nextAS = milestone.auroraStone ? userAS + milestone.auroraStone : userAS;
                 // 進捗と所持金を一括で保存
                 const res = await callApi('updateSkins', {
                     username: CONFIG.USERNAME,
                     gold: nextGold,
+                    auroraStones: nextAS,
                     purchasedSkins: purchasedSkins,
                     equippedSkin: equippedSkin,
                     equippedColor: equippedColor,
-                    diamond: userDiamond,
                     claimedRoadRewards: newClaimed
                 });
 
                 if (res && res.success) {
                     userGold = nextGold;
+                    userAS = nextAS;
                     claimedRoadRewards = newClaimed;
                     updateGoldDisplay();
                     if (milestone.gold) alert(`${milestone.gold} G 獲得しました！`);
+                    if (milestone.auroraStone) alert(`${milestone.auroraStone} AS 獲得しました！`);
                     if (milestone.unlock) alert(`${milestone.text} をアンロックしました！`);
                 } else {
                     throw new Error(res ? res.message : "Save failed");
@@ -1977,6 +2003,11 @@
         // --- エディタ関連 ---
         function startEditor() {
             activeStage = [];
+            // エディタ背景をリセット
+            const container = document.querySelector('.container');
+            container.classList.remove('bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora');
+            container.classList.add('bg-city');
+
             document.getElementById('editor-screen').style.display = 'block';
             
             // ロード報酬のアンロック状況を反映
@@ -2160,8 +2191,7 @@
             const cw = editorCanvas.width / GRID_W;
             const ch = editorCanvas.height / GRID_H;
             ctx.clearRect(0,0,editorCanvas.width, editorCanvas.height);
-            ctx.fillStyle = "#70a1ff";
-            ctx.fillRect(0,0,editorCanvas.width, editorCanvas.height);
+            // 背景はCSSのレイヤーを表示するため、キャンバス内は透明にクリアするのみ
             const time = Date.now() * 0.002;
             
             for(let y=0; y<GRID_H; y++){
@@ -2660,17 +2690,24 @@
                 // 難易度バッジと枠線スタイルの計算
                 let diffBadge = "";
                 let customFrameStyle = "";
+                const crNum = s.attempts > 0 ? (s.clears || 0) / s.attempts * 100 : 100;
+                const isNewDimension = (s.attempts >= 500 && crNum <= 0.1);
 
                 if (s.attempts < 5) {
                     // 新風: プレイ数5以下
                     diffBadge = '<span style="background:linear-gradient(45deg, #4caf50, #ffffff); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">新風</span>';
                     customFrameStyle = "border-color: #4caf50; box-shadow: inset 0 0 10px rgba(76, 175, 80, 0.3);";
                 } else {
-                    const crNum = (s.clears || 0) / s.attempts * 100;
                     if (crNum <= 0.1) {
-                        // 未知
-                        diffBadge = '<span style="background:#000; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000; margin-right:0.5cqw;">未知</span>';
-                        customFrameStyle = "background: #000; border-color: #ff0000; box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.4);";
+                        if (isNewDimension) {
+                            // 新次元
+                            diffBadge = '<span style="background:linear-gradient(45deg, #00ffff, #ff00ff); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #fff; text-shadow: 0 0 10px #00ffff; margin-right:0.5cqw;">新次元</span>';
+                            customFrameStyle = "background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3)); border-color: #00ffff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), inset 0 0 30px rgba(255, 0, 255, 0.5);";
+                        } else {
+                            // 未知
+                            diffBadge = '<span style="background:#000; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000; margin-right:0.5cqw;">未知</span>';
+                            customFrameStyle = "background: #000; border-color: #ff0000; box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.4);";
+                        }
                     } else if (crNum <= 1) {
                         // 神
                         diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">神</span>';
@@ -2742,7 +2779,7 @@
                         ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span> Ver:<span class="stat-val">${s.version}</span>
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''} Ver:<span class="stat-val">${s.version}</span>
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
@@ -2779,8 +2816,7 @@
             const ctx = canvas.getContext('2d');
             const cw = canvas.width / GRID_W;
             const ch = canvas.height / GRID_H;
-            ctx.fillStyle = "#70a1ff";
-            ctx.fillRect(0,0,canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
                     if(data[y][x]) drawTile(ctx, x, y, cw, ch, data[y][x]);
@@ -2790,11 +2826,21 @@
 
         function closeStageSelect() {
             document.getElementById('stage-list-overlay').style.display = 'none';
+            // メインメニューに戻る際にホーム画面の要素を再表示
+            document.querySelector('h1').style.display = 'block';
+            document.getElementById('subtitle').style.display = 'block';
+            document.getElementById('home-character-canvas').style.display = 'block';
+            document.getElementById('main-menu').classList.add('active');
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('home-bg-canvas').style.display = 'block';
+            startHomeBackgroundEffect();
+            document.getElementById('global-rank-btn').style.display = 'block';
+            document.getElementById('creators-road-btn').style.display = 'block';
+            document.getElementById('explanation-btn').style.display = 'block';
         }
 
         function startGame(stageObj, mode = 'play') {
             gameMode = mode;
-            document.querySelector('.ground').style.display = 'none';
             currentStageData = stageObj;
             isSwitchOn = true;
             player.onSwitch = false;
@@ -2815,6 +2861,23 @@
                 document.getElementById('editor-screen').style.display = 'none';
             }
 
+            // プレイ画面ではホームのボタンやキャラ、タイトルは無しにする
+            document.querySelector('h1').style.display = 'none';
+            document.getElementById('subtitle').style.display = 'none';
+            document.getElementById('home-character-canvas').style.display = 'none';
+            document.getElementById('home-bg-canvas').style.display = 'none';
+            if (homeBgAnimationId) {
+                cancelAnimationFrame(homeBgAnimationId);
+                homeBgAnimationId = null;
+            }
+            document.getElementById('main-menu').classList.remove('active');
+            if (document.getElementById('user-info').style.display !== 'none') { // ログイン中の場合のみ非表示
+                document.getElementById('user-info').style.display = 'none';
+            }
+            document.getElementById('global-rank-btn').style.display = 'none';
+            document.getElementById('creators-road-btn').style.display = 'none';
+            document.getElementById('explanation-btn').style.display = 'none';
+
             activeStage = JSON.parse(JSON.stringify(stageObj.data));
             // 確実にタイムが速い順にソートしてから上位5件を取得
             playbackGhosts = [...(stageObj.leaderboard || [])]
@@ -2822,7 +2885,27 @@
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             resizeCanvas('game-canvas');
-            // 状態リセット
+            
+            // 背景の切り替え
+            const container = document.querySelector('.container');
+            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora');
+            
+            if (mode === 'play' && stageObj && stageObj.attempts >= 5) {
+                const att = stageObj.attempts;
+                const cr = (stageObj.clears || 0) / att * 100;
+                
+                if (att >= 500 && cr <= 0.1) container.classList.add('bg-aurora'); // 新次元
+                else if (cr <= 0.1) container.classList.add('bg-bw'); // 未知
+                else if (cr <= 1) container.classList.add('bg-heaven'); // 神
+                else if (cr <= 3) container.classList.add('bg-hell'); // 鬼
+                else if (cr <= 10) container.classList.add('bg-sunset'); // 超難関
+                else if (cr <= 25) container.classList.add('bg-cloudy'); // 難関
+                else container.classList.add('bg-sky'); // 通常
+            } else {
+                container.classList.add('bg-sky');
+            }
+
+            // 状態リセット 
             frameCount = 0;
             isCountingDown = true;
             startTime = 0;
@@ -2941,6 +3024,7 @@
 
             // UIを即座に更新して表示
             document.getElementById('reward-amount').innerText = `${rewardGold} G`;
+            document.getElementById('reward-as-wrap').style.display = 'none';
             document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(3)}s)`;
             
             const rewardOverlay = document.getElementById('reward-overlay');
@@ -2980,13 +3064,19 @@
                         ghost: compressedGhost, // 軽量化したゴーストデータ
                         skin: equippedSkin,
                         color: equippedColor,
-                        diamond: userDiamond, // ダイヤモンドも送信
+                        auroraStones: userAS, // オーロラストーンも送信
                         // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                         customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
                         gold: userGold
                     }, 5, 30000); // タイムアウトを30秒に延長
 
                     if (res && res.success) {
+                        if (res.auroraStoneAwarded) {
+                            userAS++;
+                            updateGoldDisplay();
+                            document.getElementById('reward-as-wrap').style.display = 'inline';
+                            document.getElementById('reward-as').innerText = "1";
+                        }
                         okBtn.innerText = "OK";
                         okBtn.disabled = false;
                         okBtn.onclick = closeReward;
@@ -3038,8 +3128,8 @@
             if (display) display.innerText = userGold;
             const cpDisplay = document.getElementById('user-cp');
             if (cpDisplay) cpDisplay.innerText = (CONFIG.USERNAME === 'Runon') ? "∞" : userCP;
-            const diamondDisplay = document.getElementById('user-diamond');
-            if (diamondDisplay) diamondDisplay.innerText = userDiamond;
+            const asDisplay = document.getElementById('user-as');
+            if (asDisplay) asDisplay.innerText = userAS;
 
             // クリエイターズロードの通知（赤丸）更新
             const hasUnclaimed = CREATORS_ROAD_MILESTONES.some(m => 
@@ -3409,8 +3499,7 @@
                         gold: userGold,
                         purchasedSkins: purchasedSkins,
                         equippedSkin: equippedSkin,
-                        equippedColor: equippedColor,
-                        diamond: userDiamond
+                        equippedColor: equippedColor
                     });
                 } else {
                     showReward();
@@ -3557,8 +3646,7 @@
             }
 
             const time = Date.now() * 0.002;
-            ctx.fillStyle = "#70a1ff";
-            ctx.fillRect(0,0,canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // キャッシュされた静的レイヤー（ブロック等）を描画
             ctx.drawImage(stageCacheCanvas, 0, 0);
