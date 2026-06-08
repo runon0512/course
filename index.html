@@ -54,11 +54,8 @@
         .container.bg-aurora { background: #050510; } /* 新次元: オーロラ */
 
         /* 各背景でのレイヤー調整 */
-        .container.bg-bw .mountains { filter: grayscale(1) brightness(0); }
         .container.bg-bw .clouds { filter: grayscale(1) brightness(0); opacity: 0.2; }
         .container.bg-hell .clouds { display: none; }
-        .container.bg-hell .mountains { filter: brightness(0.2) sepia(1) saturate(5) hue-rotate(-50deg); }
-        .container.bg-heaven .mountains { filter: brightness(2) opacity(0.5); }
         .container.bg-cloudy .clouds { filter: brightness(0.7); opacity: 0.8; }
 
         /* オーロラレイヤー */
@@ -73,7 +70,6 @@
             pointer-events: none;
         }
         .container.bg-aurora .aurora-layer { display: block; }
-        .container.bg-aurora .mountains { filter: brightness(0.2); }
 
         @keyframes auroraMove {
             0% { transform: translateX(-50%) rotate(-5deg); }
@@ -81,9 +77,7 @@
             100% { transform: translateX(-50%) rotate(-5deg); }
         }
 
-        .container.bg-night .mountains { filter: brightness(0.3) saturate(0.5); }
         .container.bg-night .clouds { opacity: 0.3; }
-        .container.bg-sky .mountains { display: none; }
 
         /* 背景レイヤー */
         .bg-layer {
@@ -100,12 +94,6 @@
                 radial-gradient(circle at 50% 15%, #fff 3%, transparent 3.1%),
                 radial-gradient(circle at 80% 25%, #fff 2.5%, transparent 2.6%);
             animation: cloudScroll 60s linear infinite;
-        }
-
-        .mountains {
-            background: 
-                conic-gradient(from 135deg at 50% 100%, #546e7a 0 90%, transparent 0) 0 65% / 40% 20% repeat-x,
-                conic-gradient(from 135deg at 50% 100%, #78909c 0 90%, transparent 0) 20% 70% / 30% 15% repeat-x;
         }
 
         /* 走査線エフェクト（レトロ感） */
@@ -584,7 +572,6 @@
     <div class="container">
         <!-- 背景レイヤー -->
         <div class="bg-layer clouds"></div>
-        <div class="bg-layer mountains"></div>
         <div class="bg-layer aurora-layer"></div>
         <div class="bg-layer scanlines"></div>
 
