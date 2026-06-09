@@ -956,6 +956,9 @@
         let countdownStartTime = 0;
         let selectedColorBlockColor = '#ffffff'; 
         const COLOR_BLOCK_COLORS = ['#ffffff', '#ffdbac', '#ff0000', '#800080', '#0000ff', '#00ff00', '#ffff00', '#ff9800', '#ffc0cb', '#795548', '#9e9e9e', '#000000'];
+        
+        let cachedGameCanvas = null;
+        let cachedGameCtx = null;
         let stageSearchTimeout = null;
 
         let isClearChecked = false;
@@ -2689,7 +2692,12 @@
                     return (b.attempts || 0) - (a.attempts || 0);
                 }
                 if (currentSort === 'upvotes') return (b.upvotes || 0) - (a.upvotes || 0);
-                if (currentSort === 'reward') return b._reward - a._reward;
+                if (currentSort === 'reward') {
+                    if (a._cr === -1 && b._cr === -1) return 0;
+                    if (a._cr === -1) return 1;
+                    if (b._cr === -1) return -1;
+                    return a._cr - b._cr;
+                }
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
 
@@ -2754,7 +2762,7 @@
                 canvas.width = 200; // プレビュー解像度
                 canvas.height = 100;
                 
-                const clearRate = s.attempts > 0 ? ((s.clears || 0) / s.attempts * 100).toFixed(1) : "0.0";
+                const clearRate = s.attempts > 0 ? crNum.toFixed(isNewDimension ? 3 : 1) : "0.0";
                 
                 const topTime = s._topTime;
                 const topPlayers = s._topPlayers;
@@ -2863,10 +2871,11 @@
             currentStageData = stageObj;
             isSwitchOn = true;
             player.onSwitch = false;
-            spriteCache.clear(); // ステージ開始時にキャッシュをクリアしてリフレッシュ
+            // spriteCache.clear(); // パフォーマンス向上のため全削除を廃止
             timerElement = document.getElementById('game-timer');
-            const gCanvas = document.getElementById('game-canvas');
-            if (gCanvas) gCanvas.getContext('2d').imageSmoothingEnabled = false;
+            cachedGameCanvas = document.getElementById('game-canvas');
+            cachedGameCtx = cachedGameCanvas.getContext('2d');
+            cachedGameCtx.imageSmoothingEnabled = false;
 
             if (mode === 'play') {
                 closeStageSelect();
@@ -2961,6 +2970,9 @@
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             rewardAlreadyAdded = false;
             lastTime = 0;
+
+            // ループ開始前に初回描画を行い、初期化待ちのラグを視覚的に解消する
+            drawGame();
             gameLoopId = requestAnimationFrame(gameLoop);
         }
 
@@ -2998,17 +3010,30 @@
 
         // 報酬計算用ヘルパー関数（ソート、表示、報酬付与で共通利用）
         function calculateStageRewardValue(stageObj, username) {
-            let rewardGold = 100;
             const s = stageObj;
+            const att = s.attempts || 0;
+            const clr = s.clears || 0;
+            const crNum = att > 0 ? (clr / att * 100) : 100;
 
-            if (s.attempts <= 5) {
+            let rewardGold = 100;
+
+            if (att >= 5 && crNum <= 0.1) {
+                // 未知 または 新次元 (クリア率 0.1% 以下)
+                if (att >= 500) {
+                    rewardGold = 5000; // 新次元
+                } else {
+                    // 未知: プレイ数 5 で 100G、500 で 2000G となるよう計算
+                    rewardGold = Math.round(100 + (att - 5) * (1900 / 495));
+                }
+            } else if (att <= 5) {
                 rewardGold = 50;
             } else {
-                const rate = (s.clears || 0) / s.attempts;
+                const rate = clr / att;
                 rewardGold = Math.round(1000 - (rate * 990)); // クリア率0%で1000G、100%で10G
             }
+            
             if (s.creator === username) rewardGold = Math.floor(rewardGold / 2);
-            return Math.max(10, Math.min(1000, rewardGold));
+            return Math.max(10, rewardGold);
         }
 
         let rewardAlreadyAdded = false;
@@ -3174,13 +3199,10 @@
         function gameLoop(timestamp) {
             gameLoopId = requestAnimationFrame(gameLoop);
 
-            if (lastTime === 0) { lastTime = timestamp; return; }
+            if (lastTime === 0) { lastTime = timestamp; drawGame(); return; }
             let elapsed = timestamp - lastTime;
             const frameTime = 16; // 60FPSの1フレームあたりのミリ秒 (精度の都合上16.66より少し小さく設定)
             let updates = 0;
-
-            // タブの切り替えなどで長時間放置された場合のスパイク対策（最大200ms分まで）
-            if (elapsed > 200) { lastTime = timestamp; elapsed = 0; }
 
             // 経過した時間分だけ物理演算を回して追いつく（最大5回まで）
             while (elapsed >= frameTime && updates < 5) {
@@ -3189,6 +3211,11 @@
                 elapsed -= frameTime;
                 lastTime += frameTime;
                 updates++;
+            }
+            
+            // 大幅な遅延（タブ切り替え等）が発生した場合は同期をリセット
+            if (elapsed > 200) {
+                lastTime = timestamp;
             }
 
             // 物理演算が1回でも行われたら描画を更新
@@ -3621,13 +3648,12 @@
         }
 
         function drawGame() {
-            const canvas = document.getElementById('game-canvas');
-            const ctx = canvas.getContext('2d');
-            const cw = canvas.width / GRID_W;
-            const ch = canvas.height / GRID_H;
+            if (!cachedGameCanvas || !cachedGameCtx) return;
+            const cw = cachedGameCanvas.width / GRID_W;
+            const ch = cachedGameCanvas.height / GRID_H;
             
             // サイズが不一致（リサイズ等）の場合にキャッシュを更新してコース消失を防ぐ
-            if (stageCacheCanvas.width !== canvas.width || stageCacheCanvas.height !== canvas.height) {
+            if (stageCacheCanvas.width !== cachedGameCanvas.width || stageCacheCanvas.height !== cachedGameCanvas.height) {
                 updateStageCache();
             }
 
@@ -3665,56 +3691,56 @@
             }
 
             const time = Date.now() * 0.002;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            cachedGameCtx.clearRect(0, 0, cachedGameCanvas.width, cachedGameCanvas.height);
 
             // キャッシュされた静的レイヤー（ブロック等）を描画
-            ctx.drawImage(stageCacheCanvas, 0, 0);
+            cachedGameCtx.drawImage(stageCacheCanvas, 0, 0);
 
             // 動的なタイル（風など）のみをリストから高速に描画
             for (let i = 0; i < dynamicTiles.length; i++) {
                 const t = dynamicTiles[i];
-                drawTile(ctx, t.x, t.y, cw, ch, t.type, time);
+                drawTile(cachedGameCtx, t.x, t.y, cw, ch, t.type, time);
             }
 
             // 敵の描画
             enemies.forEach(en => {
                 if(!en.dead) {
                     // jumperフラグによって色を変える
-                    ctx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
-                    ctx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
-                    ctx.fillStyle = "#fff";
-                    ctx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
-                    ctx.fillRect(en.x * cw + cw*0.55, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
+                    cachedGameCtx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
+                    cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
+                    cachedGameCtx.fillStyle = "#fff";
+                    cachedGameCtx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
+                    cachedGameCtx.fillRect(en.x * cw + cw*0.55, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
                 }
             });
 
             // 矢の描画
             arrows.forEach(a => {
-                ctx.fillStyle = "#37474f";
-                ctx.fillRect(a.x * cw, a.y * ch, cw * 0.4, ch * 0.1);
-                ctx.fillStyle = a.color || "#ff5722";
-                ctx.fillRect(a.x * cw, a.y * ch, cw * 0.1, ch * 0.1);
+                cachedGameCtx.fillStyle = "#37474f";
+                cachedGameCtx.fillRect(a.x * cw, a.y * ch, cw * 0.4, ch * 0.1);
+                cachedGameCtx.fillStyle = a.color || "#ff5722";
+                cachedGameCtx.fillRect(a.x * cw, a.y * ch, cw * 0.1, ch * 0.1);
             });
             
             // ゴール時は描画のみ継続してプレイヤーを止める
-            if (isGoalTriggered) ctx.globalAlpha = 0.5;
+            if (isGoalTriggered) cachedGameCtx.globalAlpha = 0.5;
 
             // 死亡地点の描画 (カウントダウン中のみ)
             if (isCountingDown && currentStageData && Array.isArray(currentStageData.deaths)) {
-                ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
-                ctx.font = `bold ${ch * 0.4}px sans-serif`;
-                ctx.textAlign = "center";
+                cachedGameCtx.fillStyle = "rgba(255, 0, 0, 0.7)";
+                cachedGameCtx.font = `bold ${ch * 0.4}px sans-serif`;
+                cachedGameCtx.textAlign = "center";
                 currentStageData.deaths.forEach(d => {
-                    ctx.fillText("X", d.x * cw + (cw/2), d.y * ch + (ch/2));
+                    cachedGameCtx.fillText("X", d.x * cw + (cw/2), d.y * ch + (ch/2));
                 });
             }
 
             // ゴーストの描画
             if (!isCountingDown && showGhosts && playbackGhosts.length > 0) {
-                ctx.save();
-                ctx.globalAlpha = 0.5; // 透明度を一括設定
-                ctx.font = `${ch * 0.3}px sans-serif`; // フォント設定をループの外へ
-                ctx.textAlign = "center";
+                cachedGameCtx.save();
+                cachedGameCtx.globalAlpha = 0.5; // 透明度を一括設定
+                cachedGameCtx.font = `${ch * 0.3}px sans-serif`; // フォント設定をループの外へ
+                cachedGameCtx.textAlign = "center";
                 const frameIdx = Math.floor(frameCount / 5);
                 
                 for (let i = 0; i < playbackGhosts.length; i++) {
@@ -3735,26 +3761,26 @@
                         gf = pos.f || 'right';
                     }
 
-                    drawPlayer(ctx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
+                    drawPlayer(cachedGameCtx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
                     
-                    ctx.fillStyle = "#fff";
-                    ctx.fillText(ghost.name, (gx + player.w/2) * cw, gy * ch - 10);
+                    cachedGameCtx.fillStyle = "#fff";
+                    cachedGameCtx.fillText(ghost.name, (gx + player.w/2) * cw, gy * ch - 10);
                 }
-                ctx.restore();
+                cachedGameCtx.restore();
             }
-            ctx.globalAlpha = 1.0;
-            drawPlayer(ctx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing, CONFIG.USERNAME);
+            cachedGameCtx.globalAlpha = 1.0;
+            drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing, CONFIG.USERNAME);
 
             // カウントダウンの描画
             if (isCountingDown) {
-                ctx.fillStyle = "rgba(0,0,0,0.3)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#fff";
-                ctx.font = `bold ${ch * 2}px 'Press Start 2P'`;
-                ctx.textAlign = "center";
-                ctx.fillText(countdown, canvas.width/2, canvas.height/2 + ch/2);
+                cachedGameCtx.fillStyle = "rgba(0,0,0,0.3)";
+                cachedGameCtx.fillRect(0, 0, cachedGameCanvas.width, cachedGameCanvas.height);
+                cachedGameCtx.fillStyle = "#fff";
+                cachedGameCtx.font = `bold ${ch * 2}px 'Press Start 2P'`;
+                cachedGameCtx.textAlign = "center";
+                cachedGameCtx.fillText(countdown, cachedGameCanvas.width/2, cachedGameCanvas.height/2 + ch/2);
             }
-            ctx.globalAlpha = 1.0;
+            cachedGameCtx.globalAlpha = 1.0;
         }
 
         function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
