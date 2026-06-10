@@ -3105,8 +3105,8 @@
             // 通信の競合を防ぐため、順序立てて保存を実行
             try {
                 if (stageId) {
-                    // 最優先：タイムとクリア情報の記録
-                    const res = await callApi('recordClear', { 
+                    // 1回目：ゴーストデータやカスタムスキンを含めてフルデータで送信試行
+                    let res = await callApi('recordClear', { 
                         stageId: stageId, 
                         username: CONFIG.USERNAME, 
                         time: clearTime || 0.001, 
@@ -3117,7 +3117,23 @@
                         // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                         customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
                         gold: userGold
-                    }, 5, 60000); // タイムアウトを60秒に延長
+                    }, 3, 40000);
+
+                    // 通信エラーやデータサイズ制限で失敗した場合、重いデータ（ゴースト・カスタムスキン）を除外して「タイムのみ」で再送
+                    if (!res || !res.success) {
+                        console.warn("フルデータの送信に失敗しました。タイムのみの再送を試みます...");
+                        res = await callApi('recordClear', {
+                            stageId: stageId,
+                            username: CONFIG.USERNAME,
+                            time: clearTime || 0.001,
+                            ghost: null,        // ゴーストデータを除外
+                            skin: equippedSkin,
+                            color: equippedColor,
+                            auroraStones: userAS,
+                            customSprite: null, // カスタムスキンデータを除外
+                            gold: userGold
+                        }, 3, 20000);
+                    }
 
                     if (res && res.success) {
                         if (res.auroraStoneAwarded) {
