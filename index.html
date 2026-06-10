@@ -951,6 +951,7 @@
         let lastTime = 0;
         let dynamicTiles = []; // 動的ギミックのキャッシュ用
         const colorVarCache = {}; // CSS変数のキャッシュ
+        let recordedClearTime = 0;
         let countdown = 3;
         let isCountingDown = false;
         let countdownStartTime = 0;
@@ -2696,7 +2697,8 @@
                     if (a._cr === -1 && b._cr === -1) return 0;
                     if (a._cr === -1) return 1;
                     if (b._cr === -1) return -1;
-                    return a._cr - b._cr;
+                    if (a._cr !== b._cr) return a._cr - b._cr;
+                    return (b.attempts || 0) - (a.attempts || 0);
                 }
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
@@ -3039,19 +3041,22 @@
         let rewardAlreadyAdded = false;
         async function showReward() {
             // タイムを小数第三位まで計算
-            const now = Date.now();
-            const clearTime = (startTime > 0) ? Number(((now - startTime) / 1000).toFixed(3)) : 0.001;
+            if (recordedClearTime === 0) {
+                const now = Date.now();
+                recordedClearTime = (startTime > 0) ? Number(((now - startTime) / 1000).toFixed(3)) : 0.001;
+
+                // ゴール到達時の位置を最後に記録
+                currentGhostData.push({
+                    x: Math.round(player.x * 100) / 100, 
+                    y: Math.round(player.y * 100) / 100, 
+                    f: player.facing
+                });
+            }
+            const clearTime = recordedClearTime;
             
             // タイムが保存されない問題を防止するため、キャッシュを先にクリアして再取得を強制する
             cachedStages = null;
             cancelAnimationFrame(gameLoopId);
-
-            // ゴール到達時の位置を最後に記録
-            currentGhostData.push({
-                x: Math.round(player.x * 100) / 100, 
-                y: Math.round(player.y * 100) / 100, 
-                f: player.facing
-            });
 
             let rewardGold = 100;
             const stageId = currentStageData ? (currentStageData.id || currentStageData.name) : null;
@@ -3112,7 +3117,7 @@
                         // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                         customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
                         gold: userGold
-                    }, 5, 30000); // タイムアウトを30秒に延長
+                    }, 5, 60000); // タイムアウトを60秒に延長
 
                     if (res && res.success) {
                         if (res.auroraStoneAwarded) {
