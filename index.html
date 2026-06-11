@@ -1760,6 +1760,20 @@
             tabs.style.display = 'none';
             title.innerText = `TOP RACERS: ${stage.name}`;
             body.innerHTML = "";
+
+            // Runon専用：手動追加ボタンの制御
+            const existingBtn = document.getElementById('manual-add-btn');
+            if (existingBtn) existingBtn.remove();
+            if (CONFIG.USERNAME === 'Runon') {
+                const addBtn = document.createElement('button');
+                addBtn.id = 'manual-add-btn';
+                addBtn.className = 'pixel-btn small';
+                addBtn.innerText = "+ 手動追加";
+                addBtn.style.marginBottom = "2cqh";
+                addBtn.onclick = () => addManualRecord(stage.id || stage.name);
+                tabs.parentElement.insertBefore(addBtn, tabs.nextSibling);
+            }
+
             const headerRow = body.parentElement.querySelector('thead tr');
             if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">TIME</th>`;
 
@@ -1780,6 +1794,31 @@
                     </tr>`;
             });
             overlay.style.display = 'flex';
+        }
+
+        async function addManualRecord(stageId) {
+            const name = prompt("追加するプレイヤー名を入力してください:");
+            if (!name) return;
+            const timeStr = prompt("タイム(秒)を入力してください (例: 12.345):");
+            if (!timeStr) return;
+            const time = parseFloat(timeStr);
+            if (isNaN(time)) {
+                alert("有効な数値を入力してください。");
+                return;
+            }
+
+            if (confirm(`${name} さんを ${time.toFixed(3)}s でランキングに追加しますか？`)) {
+                const res = await callApi('recordClear', {
+                    stageId: stageId,
+                    username: name,
+                    time: time,
+                    skin: 'default',
+                    color: 'default'
+                });
+                alert(res.message);
+                cachedStages = null; // キャッシュをクリアして再取得を促す
+                document.getElementById('leaderboard-overlay').style.display = 'none';
+            }
         }
 
         // --- ロッカー関連 ---
@@ -3042,17 +3081,22 @@
         async function showReward() {
             // タイムを小数第三位まで計算
             if (recordedClearTime === 0) {
-                const now = Date.now();
-                recordedClearTime = (startTime > 0) ? Number(((now - startTime) / 1000).toFixed(3)) : 0.001;
-
-                // ゴール到達時の位置を最後に記録
-                currentGhostData.push({
-                    x: Math.round(player.x * 100) / 100, 
-                    y: Math.round(player.y * 100) / 100, 
-                    f: player.facing
-                });
+                recordedClearTime = (startTime > 0) ? Number(((Date.now() - startTime) / 1000).toFixed(3)) : 0.001;
             }
-            const clearTime = recordedClearTime;
+            let clearTime = recordedClearTime;
+            let submitUsername = CONFIG.USERNAME;
+
+            // 名前がRunonの場合、登録名とタイムを上書きできるようにする
+            if (CONFIG.USERNAME === 'Runon') {
+                const customName = prompt("ランキングに登録する名前を指定してください:", submitUsername);
+                if (customName !== null) submitUsername = customName || submitUsername;
+
+                const customTimeStr = prompt("ランキングに登録するタイム(秒)を指定してください:", clearTime);
+                if (customTimeStr !== null && customTimeStr !== "") {
+                    const parsedTime = parseFloat(customTimeStr);
+                    if (!isNaN(parsedTime)) clearTime = parsedTime;
+                }
+            }
             
             // タイムが保存されない問題を防止するため、キャッシュを先にクリアして再取得を強制する
             cachedStages = null;
@@ -3108,7 +3152,7 @@
                     // 1回目：ゴーストデータやカスタムスキンを含めてフルデータで送信試行
                     let res = await callApi('recordClear', { 
                         stageId: stageId, 
-                        username: CONFIG.USERNAME, 
+                        username: submitUsername, 
                         time: clearTime || 0.001, 
                         ghost: compressedGhost, // 軽量化したゴーストデータ
                         skin: equippedSkin,
@@ -3124,7 +3168,7 @@
                         console.warn("フルデータの送信に失敗しました。タイムのみの再送を試みます...");
                         res = await callApi('recordClear', {
                             stageId: stageId,
-                            username: CONFIG.USERNAME,
+                            username: submitUsername,
                             time: clearTime || 0.001,
                             ghost: null,        // ゴーストデータを除外
                             skin: equippedSkin,
@@ -3556,6 +3600,14 @@
             const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
             if(!isGoalTriggered && frameCount > 60 && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G' && activeCheckpoints.size >= totalCheckpoints) {
                 isGoalTriggered = true;
+                // ゴールした瞬間のタイムを即座に記録
+                recordedClearTime = (startTime > 0) ? Number(((Date.now() - startTime) / 1000).toFixed(3)) : 0.001;
+                // ゴール到達時の位置を最後に記録
+                currentGhostData.push({
+                    x: Math.round(player.x * 100) / 100, 
+                    y: Math.round(player.y * 100) / 100, 
+                    f: player.facing
+                });
                 player.vx = 0; player.vy = 0;
                 
                 if (gameMode === 'test') {
