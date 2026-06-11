@@ -1621,13 +1621,20 @@
             else timeAttacker = (myFirsts / baseline) * 50;
             timeAttacker = Math.round(Math.max(1, timeAttacker));
 
-            // 3. StageQuality (平均プレイ数)
-            let maxAvgPlays = 1;
-            Object.values(allUsers).forEach(u => {
-                if (u.stageCount > 0) maxAvgPlays = Math.max(maxAvgPlays, u.totalPlays / u.stageCount);
-            });
+            // 3. StageQuality (平均プレイ数: 全体平均を50、1位を100とした相対評価)
+            const totalPlaysOverall = cachedStages.reduce((sum, s) => sum + (s.attempts || 0), 0);
+            const globalAvgPlays = totalPlaysOverall / totalStages;
+            const maxAvgPlays = Math.max(...Object.values(allUsers).map(u => u.stageCount > 0 ? u.totalPlays / u.stageCount : 0), 1);
             const myAvgPlays = (allUsers[targetUser]?.stageCount > 0) ? (allUsers[targetUser].totalPlays / allUsers[targetUser].stageCount) : 0;
-            const stageQuality = Math.round(Math.max(1, (myAvgPlays / maxAvgPlays) * 100));
+            
+            let qualityScore = 1;
+            if (myAvgPlays >= globalAvgPlays) {
+                const denom = maxAvgPlays - globalAvgPlays;
+                qualityScore = 50 + (denom > 0 ? ((myAvgPlays - globalAvgPlays) / denom) * 50 : 50);
+            } else {
+                qualityScore = 1 + (globalAvgPlays > 0 ? (myAvgPlays / globalAvgPlays) * 49 : 0);
+            }
+            const stageQuality = Math.round(Math.max(1, Math.min(100, qualityScore)));
 
             // 4. Contribution (クリア数 + 投稿数)
             let maxCont = 1;
