@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pixel Stages</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0e0e1a;
             --primary-color: #00ff41;
-            --secondary-color: #ff00ff;
+            --secondary-color: #00bfff; /* クールな青に変更 */
             --text-color: #ffffff;
             --pixel-size: 4px;
         }
@@ -22,7 +23,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Press Start 2P', cursive;
+            font-family: 'Roboto', 'Noto Sans JP', sans-serif;
             color: var(--text-color);
             overflow: hidden;
         }
@@ -41,7 +42,7 @@
         }
 
         /* テーマ別の背景色 */
-        .container.bg-city { background: #4fc3f7; }
+        .container.bg-city { background: #050510; } /* ホームの背景を宇宙色に */
         .container.bg-sky  { background: #e1f5fe; }
         .container.bg-night { background: #0b1026; }
 
@@ -89,11 +90,6 @@
         }
 
         .clouds {
-            background: 
-                radial-gradient(circle at 20% 30%, #fff 2%, transparent 2.1%),
-                radial-gradient(circle at 50% 15%, #fff 3%, transparent 3.1%),
-                radial-gradient(circle at 80% 25%, #fff 2.5%, transparent 2.6%);
-            animation: cloudScroll 60s linear infinite;
         }
 
         /* 走査線エフェクト（レトロ感） */
@@ -107,26 +103,25 @@
 
         h1 {
             position: absolute;
-            top: 8cqh;
-            left: 5cqw;
-            width: auto;
+            top: 4cqh;
+            left: 0;
+            width: 100%;
             margin: 0;
-            text-align: left;
-            font-size: 5cqw;
+            text-align: center;
+            font-size: 10cqw;
             text-transform: uppercase;
-            letter-spacing: 0.5cqw;
             padding-left: 0.5cqw;
             box-sizing: border-box;
             color: #fff;
-            text-shadow: 0.5cqw 0.5cqw 0px var(--secondary-color);
+            text-shadow: none;
             opacity: 0;
             animation: stylishEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             z-index: 5;
         }
 
-        @keyframes stylishEntrance {
-            from { transform: translateX(-100px); opacity: 0; filter: blur(10px); }
-            to { transform: translateX(0); opacity: 1; filter: blur(0); }
+        @keyframes stylishEntrance { /* タイトルアニメーションを調整 */
+            from { transform: translateY(-80px); opacity: 0; filter: blur(10px); }
+            to { transform: translateY(0); opacity: 1; filter: blur(0); }
         }
 
         /* 通知用オーバーレイ */
@@ -171,13 +166,15 @@
             position: absolute;
             top: 1cqh;
             right: 2cqw;
-            font-size: 1cqw;
+            font-size: 1.6cqw;
             color: #fff;
             background: rgba(0,0,0,0.5);
             padding: 0.5cqw 1cqw;
             border: 0.1cqw solid var(--primary-color);
             z-index: 15;
             display: none;
+            align-items: center;
+            gap: 1cqw;
         }
 
         /* 認証画面のスタイル */
@@ -263,16 +260,45 @@
 
         .menu {
             position: absolute;
-            top: 30cqh;
+            top: 35cqh;
             left: 5cqw;
             display: flex;
             flex-direction: column;
-            gap: 2cqw; 
+            gap: 2.5cqh; 
             align-items: flex-start;
-            justify-content: center;
-            width: 95%;
+            justify-content: flex-start;
+            width: 35cqw;
             z-index: 5;
             display: none; /* ログインまで非表示 */
+        }
+
+        /* プロフィール画面 */
+        #profile-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 5cqh;
+            background: rgba(10, 10, 30, 0.95);
+            z-index: 180;
+        }
+        .profile-container {
+            display: flex;
+            gap: 4cqw;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+            height: 70cqh;
+        }
+        .ovr-box {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2cqw;
+            border: 0.5cqw solid var(--primary-color);
+            min-width: 15cqw;
+        }
+
+        .cursive-font {
+            font-family: 'Dancing Script', cursive;
         }
 
         .menu.active {
@@ -283,21 +309,21 @@
             background-color: #000;
             border: 0.5cqw solid #fff;
             border: 0.3cqw solid #fff;
-            color: var(--text-color);
+            color: var(--text-color); /* Keep this for contrast */
             padding: 2% 5%;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1.6cqw; 
+            font-family: 'Roboto', sans-serif;
+            font-size: 2.5cqw;
             cursor: pointer;
             position: relative;
             transition: all 0.1s;
-            width: auto;
+            width: 100%;
             min-width: 18cqw;
             box-shadow: 0.8cqw 0.8cqw 0px rgba(0, 0, 0, 0.5);
             box-shadow: none;
         }
 
         .pixel-btn.small {
-            font-size: 1.1cqw;
+            font-size: 1.3cqw;
             width: auto;
             margin: 0;
             padding: 1cqh 1.2cqw;
@@ -325,7 +351,7 @@
             padding: 5cqh;
             overflow-y: auto;
         }
-        .shop-grid {
+        .shop-grid { /* ロッカーとショップのグリッドサイズ調整 */
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 2cqw;
@@ -431,8 +457,8 @@
         }
         
         .editor-top-bar .pixel-btn.small {
-            padding: 0.8cqh 0.5cqw;
-            font-size: 0.9cqw;
+            padding: 1cqh 0.7cqw;
+            font-size: 1.1cqw;
             min-width: 6cqw;
         }
 
@@ -456,7 +482,7 @@
 
         .toolbar-label {
             color: #fff;
-            font-size: 1cqw;
+            font-size: 1.2cqw;
             display: flex;
             align-items: center;
             margin-right: 1cqw;
@@ -470,7 +496,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1cqw;
+            font-size: 1.2cqw;
             color: white;
             padding: 0.2cqw;
             box-sizing: border-box;
@@ -513,7 +539,7 @@
             margin-bottom: 1cqh;
             cursor: pointer;
             text-align: left;
-            font-size: 1.5cqw;
+            font-size: 1.8cqw;
             display: flex;
             align-items: center;
             gap: 2cqw;
@@ -521,7 +547,7 @@
         .stage-item:hover { background: #444; }
         .stage-stats {
             font-size: 0.8cqw;
-            color: #aaa;
+            color: #bbb;
             margin-top: 0.5cqh;
             display: flex;
             gap: 1cqw;
@@ -621,10 +647,6 @@
                     <input type="checkbox" id="mobile-mode" onchange="isMobileMode = this.checked; localStorage.setItem('pixel_stages_mobile', this.checked)">
                     <span>Smartphone操作</span>
                 </label>
-                <label class="remember-wrap">
-                    <input type="checkbox" id="original-mode" onchange="toggleTitle(this.checked)">
-                    <span>オリジナル版で表示</span>
-                </label>
                 <div style="display: flex; gap: 2cqw; justify-content: center;">
                     <button class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
                     <button class="pixel-btn small" onclick="handleAuth('register')">新規登録</button>
@@ -658,8 +680,10 @@
         <!-- コンテンツ -->
         <canvas id="home-bg-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.4; pointer-events: none;"></canvas>
         
-        <h1>Pixel Stages</h1>
-        <div id="subtitle" style="position: absolute; top: 20cqh; left: 5.5cqw; width: auto; text-align: left; font-size: 1cqw; color: #fff; z-index: 5; opacity: 0.8; display: none;">Created by Ajitama chi ̄ taka shioshio shioshio toppingu Aji-to Aji-to</div>
+        <h1>
+            <span class="cursive-font" style="text-transform: none;">Pixel Stages</span>
+        </h1>
+        <div id="subtitle" class="cursive-font" style="position: absolute; top: 18cqh; left: 0; width: 100%; text-align: center; font-size: 3.5cqw; color: var(--secondary-color); z-index: 5; opacity: 0.9; display: none;">Season 2 ~Astral~</div>
         
         <canvas id="home-character-canvas" width="256" height="256" style="position: absolute; right: 10cqw; top: 55%; transform: translateY(-50%); width: 35cqw; height: 35cqw; image-rendering: pixelated; pointer-events: none; z-index: 4; display: none;"></canvas>
 
@@ -672,14 +696,14 @@
 
         <!-- ショップ画面 -->
         <div id="shop-overlay" class="screen">
-            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
+            <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
             <button class="pixel-btn small" onclick="closeShop()" style="margin-bottom: 2cqh;">戻る</button>
             <div class="shop-grid" id="shop-container"></div>
         </div>
 
         <!-- 全ブロック解説画面 -->
         <div id="explanation-overlay" class="screen">
-            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">BLOCK GUIDE</h2>
+            <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">BLOCK GUIDE</h2>
             <button class="pixel-btn small" onclick="closeExplanation()" style="margin-bottom: 2cqh;">戻る</button>
             <div id="explanation-list" style="width: 85%; display: flex; flex-direction: column; gap: 2cqh; background: rgba(0,0,0,0.5); padding: 2cqw; border: 0.3cqw solid #fff; overflow-y: auto; max-height: 60cqh;">
                 <!-- 内容はJSで動的に生成 -->
@@ -688,13 +712,13 @@
 
         <!-- ロッカー画面 -->
         <div id="locker-overlay" class="screen">
-            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">PIXEL LOCKER</h2>
+            <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">PIXEL LOCKER</h2>
             <button class="pixel-btn small" onclick="closeLocker()" style="margin-bottom: 2cqh;">戻る</button>
             <div style="display: flex; width: 90%; height: 60cqh; gap: 2cqw;">
                 <div class="shop-grid" id="locker-container" style="flex: 1;"></div>
                 <div id="locker-preview-box" style="flex: 0.4; background: #222; border: 0.3cqw solid #fff; padding: 2cqw; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                     <canvas id="locker-preview-canvas" width="128" height="128" style="image-rendering: pixelated; width: 15cqw; height: 15cqw;"></canvas>
-                    <div id="locker-skin-name" style="margin-top: 2cqh; font-size: 1.5cqw;">-</div>
+                    <div id="locker-skin-name" style="margin-top: 2cqh; font-size: 1.8cqw;">-</div>
                     <div class="color-palette" id="color-palette"></div>
                     <button id="edit-custom-btn" class="pixel-btn small" style="margin-top: 2cqh; width: 100%; display:none; background:#ffc107; color:#000;" onclick="openCustomEditor()">ペイントする</button>
                     <button id="equip-confirm-btn" class="pixel-btn small" style="margin-top: 4cqh; width: 100%;" onclick="confirmEquip(this)">装備する</button>
@@ -702,12 +726,29 @@
             </div>
         </div>
 
+        <!-- プロフィール画面 -->
+        <div id="profile-overlay" class="screen">
+            <h2 id="profile-title" style="font-size: 3.5cqw; margin-bottom: 2cqh;">USER PROFILE</h2>
+            <button class="pixel-btn small" onclick="closeProfile()" style="margin-bottom: 2cqh;">戻る</button>
+            <div class="profile-container">
+                <div class="ovr-box">
+                    <div style="font-size: 1.8cqw; color: #aaa;">OVR</div>
+                    <div id="profile-ovr" style="font-size: 7cqw; color: var(--primary-color); font-weight: bold;">0</div>
+                    <canvas id="profile-skin-canvas" width="128" height="128" style="image-rendering: pixelated; width: 10cqw; height: 10cqw; margin-top: 2cqh;"></canvas>
+                    <div id="profile-username" style="margin-top: 1cqh; font-size: 1.5cqw;">-</div>
+                </div>
+                <div style="position: relative;">
+                    <canvas id="radar-chart" width="400" height="400" style="width: 35cqw; height: 35cqw;"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- クリエイターズロード画面 -->
         <div id="creators-road-overlay" class="screen" style="z-index: 160; flex-direction: column; align-items: center; padding: 2cqh 5cqw; overflow-y: auto;">
-            <h2 style="font-size: 2.5cqw; color: #ff00ff; margin-bottom: 1cqh;">CREATORS ROAD</h2>
+            <h2 style="font-size: 3cqw; color: var(--secondary-color); margin-bottom: 1cqh;">CREATORS ROAD</h2>
             <button class="pixel-btn small" onclick="closeCreatorsRoad()" style="margin-bottom: 2cqh; flex-shrink: 0;">戻る</button>
             <div style="background: rgba(0,0,0,0.5); padding: 1.5cqw; border: 0.3cqw solid #fff; width: 60%; margin-bottom: 1.5cqh; flex-shrink: 0;">
-                <div style="font-size: 1.5cqw; margin-bottom: 1cqh;">YOUR CP: <span id="road-current-cp" style="color: var(--primary-color);">0</span></div>
+                <div style="font-size: 1.8cqw; margin-bottom: 1cqh;">YOUR CP: <span id="road-current-cp" style="color: var(--primary-color);">0</span></div>
                 <div id="road-progress-bar-container" style="width: 100%; height: 3cqh; background: #333; border: 0.2cqw solid #fff; position: relative;">
                     <div id="road-progress-bar" style="height: 100%; background: linear-gradient(90deg, #ff00ff, #00ffff); width: 0%; transition: width 0.5s;"></div>
                 </div>
@@ -719,7 +760,7 @@
 
         <!-- カスタムスキンエディタ -->
         <div id="custom-editor-overlay" class="screen">
-            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">SKIN EDITOR</h2>
+            <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">SKIN EDITOR</h2>
             <div style="display: flex; gap: 4cqw; align-items: flex-start;">
                 <canvas id="custom-edit-canvas" width="256" height="256" style="border: 0.5cqw solid #fff; image-rendering: pixelated; width: 30cqw; height: 30cqw; cursor: crosshair;"></canvas>
                 <div style="display: flex; flex-direction: column; align-items: center;">
@@ -736,7 +777,7 @@
         <!-- 順位表オーバーレイ -->
         <div id="leaderboard-overlay" class="screen" style="z-index: 150; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; display: none;">
             <div class="auth-box" style="width: 70%; max-height: 80cqh;">
-                <h2 id="lb-title" style="font-size: 2cqw; color: #ffc107; margin-bottom: 2cqh;">LEADERBOARD</h2>
+                <h2 id="lb-title" style="font-size: 2.5cqw; color: #ffc107; margin-bottom: 2cqh;">LEADERBOARD</h2>
                 <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin-bottom: 2cqh; width: 100%;">閉じる</button>
                 <div id="lb-tabs" style="display:none; gap:1cqw; margin-bottom:2cqh; justify-content:center;">
                     <button class="pixel-btn small" onclick="showGlobalRanking('player')" style="min-width:12cqw;">Player</button>
@@ -744,7 +785,7 @@
                     <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
                 </div>
                 <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 1.2cqw;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 1.5cqw;">
                         <thead>
                             <tr style="border-bottom: 0.2cqw solid #fff;">
                                 <th style="padding: 1cqh; text-align: left;">RANK</th>
@@ -762,7 +803,7 @@
 
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
-            <h2 style="font-size: 3cqw;">PUBLISHED STAGES</h2>
+            <h2 style="font-size: 3.5cqw;">PUBLISHED STAGES</h2>
             <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%;">
                 <button class="pixel-btn small" onclick="closeStageSelect()" style="background: #f44336; color: #fff;">戻る</button>
                 <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
@@ -774,15 +815,15 @@
                     <option value="upvotes">高評価順</option>
                     <option value="reward">難しい順</option>
                 </select>
-                <label class="remember-wrap" style="font-size: 1cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid var(--primary-color);">
+                <label class="remember-wrap" style="font-size: 1.2cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid var(--primary-color);">
                     <input type="checkbox" id="filter-my-stages" onchange="openStageSelect()">
                     <span>自分のステージのみ</span>
                 </label>
-                <label class="remember-wrap" style="font-size: 1cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid #e91e63;">
+                <label class="remember-wrap" style="font-size: 1.2cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid var(--secondary-color);">
                     <input type="checkbox" id="filter-favorites" onchange="openStageSelect()">
                     <span>お気に入りのみ</span>
                 </label>
-                <label class="remember-wrap" style="font-size: 1cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid #4caf50;">
+                <label class="remember-wrap" style="font-size: 1.2cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid #4caf50;">
                     <input type="checkbox" id="filter-unplayed" onchange="openStageSelect()">
                     <span>未プレイのみ</span>
                 </label>
@@ -849,12 +890,12 @@
         <!-- ゲーム画面 -->
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
-            <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.5cqw; display: flex; align-items: center; gap: 2cqw;">
+            <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
                 <span>ARROWS: MOVE | SPACE: JUMP | 
                     <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw; opacity: 0.5; pointer-events: none;">RETRY</span>
                     <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span> 
                 </span>
-                <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
+                <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1.2cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
                     <input type="checkbox" id="toggle-ghosts">
                     <span>GHOSTS</span>
                 </label>
@@ -863,11 +904,11 @@
             <!-- モバイル操作用ボタン -->
             <div id="mobile-controls" style="display:none; position:absolute; bottom:5cqh; left:0; width:100%; pointer-events:none; z-index:100;">
                 <div style="position:absolute; bottom:0; left:5cqw; display:flex; gap:2cqw; pointer-events:auto;">
-                    <button id="btn-left" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:4cqw;">◀</button>
-                    <button id="btn-right" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:4cqw;">▶</button>
+                    <button id="btn-left" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:5cqw;">◀</button>
+                    <button id="btn-right" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:5cqw;">▶</button>
                 </div>
                 <div style="position:absolute; bottom:0; right:5cqw; pointer-events:auto;">
-                    <button id="btn-jump" class="pixel-btn" style="width:15cqw; height:15cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:2cqw;">JUMP</button>
+                    <button id="btn-jump" class="pixel-btn" style="width:15cqw; height:15cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:2.5cqw;">JUMP</button>
                 </div>
             </div>
         </div>
@@ -964,10 +1005,6 @@
 
         let isClearChecked = false;
 
-        function toggleTitle(isOriginal) {
-            const h1 = document.querySelector('h1');
-            h1.innerText = isOriginal ? "コース作り" : "Pixel Stages";
-        }
         let isGoalTriggered = false;
         let gameMode = 'play';
 
@@ -1294,36 +1331,32 @@
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
 
-            const tiles = ['B', 'K', 'T', 'A', 'M', '!', 'P', 'H'];
-            let scrollX = 0;
-            const cw = canvas.width / 20;
-            const ch = canvas.height / 10;
-
-            // ランダムな背景グリッドを生成
-            const bgData = Array(10).fill().map(() => Array(30).fill(null).map(() => 
-                Math.random() < 0.1 ? tiles[Math.floor(Math.random() * tiles.length)] : null
-            ));
+            const starCount = 100;
+            const stars = Array(starCount).fill().map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 1,
+                speed: Math.random() * 0.5 + 0.2,
+                opacity: Math.random()
+            }));
 
             function animate() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                scrollX += 1.5;
-                if (scrollX > cw * 10) scrollX = 0;
-
-                ctx.globalAlpha = 0.3;
-                for (let y = 0; y < 10; y++) {
-                    for (let x = 0; x < 30; x++) {
-                        if (bgData[y][x]) {
-                            const posX = x * cw - scrollX;
-                            if (posX > -cw && posX < canvas.width) {
-                                // ネオン風に描画
-                                ctx.shadowBlur = 10;
-                                ctx.shadowColor = "#00ffff";
-                                drawTile(ctx, posX / cw, y, cw, ch, bgData[y][x], Date.now() * 0.002);
-                                ctx.shadowBlur = 0;
-                            }
-                        }
+                stars.forEach(s => {
+                    s.x -= s.speed;
+                    if (s.x < 0) {
+                        s.x = canvas.width;
+                        s.y = Math.random() * canvas.height;
                     }
-                }
+                    ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 星の瞬き
+                    s.opacity += (Math.random() - 0.5) * 0.05;
+                    s.opacity = Math.max(0.2, Math.min(1, s.opacity));
+                });
                 homeBgAnimationId = requestAnimationFrame(animate);
             }
             if (homeBgAnimationId) cancelAnimationFrame(homeBgAnimationId);
@@ -1398,11 +1431,11 @@
                                 document.getElementById('auth-overlay').style.display = 'none';
                                 document.getElementById('main-menu').classList.add('active');
                                 document.getElementById('subtitle').style.display = 'block';
-                                document.getElementById('user-info').style.display = 'block';
+            document.getElementById('user-info').style.display = 'block'; // Ensure user-info is displayed on login
                                 document.getElementById('global-rank-btn').style.display = 'block';
                                 document.getElementById('creators-road-btn').style.display = 'block';
                                 document.getElementById('explanation-btn').style.display = 'block';
-                                document.getElementById('current-user').innerText = res.username;
+                                document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${res.username}</span>`;
                                 // Initialize sort/filter UI on login
                                 document.getElementById('sort-criteria').value = currentSort;
                                 document.getElementById('filter-my-stages').checked = filterMyStages;
@@ -1449,7 +1482,7 @@
             if (isPurchased) {
                 btn.innerText = 'BOUGHT';
                 btn.disabled = true;
-                item.style.opacity = '0.5';
+                item.style.opacity = '0.7'; /* 購入済みアイテムの視認性を少し上げる */
             } else {
                 btn.innerText = `${data.price} G`;
                 btn.onclick = onBuy;
@@ -1489,6 +1522,187 @@
         }
         function closeExplanation() { document.getElementById('explanation-overlay').style.display = 'none'; }
 
+        // --- プロフィール関連 ---
+        async function openProfile(targetUser = CONFIG.USERNAME) {
+            const overlay = document.getElementById('profile-overlay');
+            overlay.style.display = 'flex';
+            
+            if (!cachedStages) {
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+            }
+
+            const stats = calculateProfileStats(targetUser);
+            drawRadarChart(stats);
+            
+            document.getElementById('profile-ovr').innerText = stats.ovr;
+            document.getElementById('profile-username').innerText = targetUser;
+            document.getElementById('profile-title').innerText = targetUser === CONFIG.USERNAME ? "MY PROFILE" : targetUser + "'S PROFILE";
+            
+            const skinCanvas = document.getElementById('profile-skin-canvas');
+            const sCtx = skinCanvas.getContext('2d');
+            sCtx.clearRect(0, 0, 128, 128);
+            drawPlayer(sCtx, 0, 0, 128, 128, stats.skin, false, stats.color, stats.customSprite);
+        }
+
+        function closeProfile() {
+            document.getElementById('profile-overlay').style.display = 'none';
+        }
+
+        function calculateProfileStats(targetUser) {
+            const allUsers = {}; // 全ユーザーの集計用
+            
+            // ステージを難易度順（クリア率昇順）にソート
+            const sortedByDifficulty = [...cachedStages].sort((a, b) => {
+                const crA = a.attempts > 0 ? a.clears / a.attempts : 1;
+                const crB = b.attempts > 0 ? b.clears / b.attempts : 1;
+                return crA - crB;
+            });
+
+            const userHardestClearedRank = {}; 
+
+            cachedStages.forEach(s => {
+                const stageRank = sortedByDifficulty.findIndex(st => (st.id || st.name) === (s.id || s.name)) + 1;
+                
+                const registerUser = (name, skin = 'default', color = 'default', custom = null) => {
+                    if (!allUsers[name]) {
+                        allUsers[name] = { clears: 0, posts: 0, cp: 0, firsts: 0, totalPlays: 0, stageCount: 0, skin, color, customSprite: custom };
+                    } else if (skin !== 'default') {
+                        allUsers[name].skin = skin;
+                        allUsers[name].color = color;
+                        allUsers[name].customSprite = custom;
+                    }
+                };
+
+                registerUser(s.creator);
+
+                allUsers[s.creator].posts++;
+                allUsers[s.creator].totalPlays += (s.attempts || 0);
+                allUsers[s.creator].stageCount++;
+                allUsers[s.creator].cp += (s.attempts || 0) + (s.upvotes || 0) * 10;
+
+                const lb = s.leaderboard || [];
+                if (lb.length > 0) {
+                    const topTime = lb[0].time;
+                    lb.forEach((rec, idx) => {
+                        registerUser(rec.name, rec.skin, rec.color, rec.customSprite);
+                        allUsers[rec.name].clears++;
+                        if (rec.time === topTime) allUsers[rec.name].firsts++;
+                        if (!userHardestClearedRank[rec.name] || stageRank < userHardestClearedRank[rec.name]) {
+                            userHardestClearedRank[rec.name] = stageRank;
+                        }
+                        allUsers[rec.name].cp += 10;
+                    });
+                }
+            });
+            
+            if (allUsers[CONFIG.USERNAME]) {
+                allUsers[CONFIG.USERNAME].skin = equippedSkin;
+                allUsers[CONFIG.USERNAME].color = equippedColor;
+                allUsers[CONFIG.USERNAME].customSprite = customSpriteStore[equippedSkin];
+                allUsers[CONFIG.USERNAME].cp = userCP;
+            }
+ 
+            // 各種計算
+            const totalStages = cachedStages.length || 1;
+            const totalUserCount = Object.keys(allUsers).length || 1;
+ 
+            // 1. Leader (難しいステージをクリアしたか)
+            const hcr = userHardestClearedRank[targetUser] || totalStages;
+            const leader = Math.round(Math.max(1, (1 - (hcr / totalStages)) * 100));
+
+            // 2. TimeAttacker
+            const myFirsts = allUsers[targetUser]?.firsts || 0;
+            const baseline = totalStages / totalUserCount;
+            let timeAttacker = 50;
+            const maxFirsts = Math.max(...Object.values(allUsers).map(u => u.firsts), 1);
+            if (myFirsts >= maxFirsts) timeAttacker = 100;
+            else if (myFirsts > baseline) timeAttacker = 50 + (myFirsts - baseline) * (50 / (maxFirsts - baseline));
+            else timeAttacker = (myFirsts / baseline) * 50;
+            timeAttacker = Math.round(Math.max(1, timeAttacker));
+
+            // 3. StageQuality (平均プレイ数)
+            let maxAvgPlays = 1;
+            Object.values(allUsers).forEach(u => {
+                if (u.stageCount > 0) maxAvgPlays = Math.max(maxAvgPlays, u.totalPlays / u.stageCount);
+            });
+            const myAvgPlays = (allUsers[targetUser]?.stageCount > 0) ? (allUsers[targetUser].totalPlays / allUsers[targetUser].stageCount) : 0;
+            const stageQuality = Math.round(Math.max(1, (myAvgPlays / maxAvgPlays) * 100));
+
+            // 4. Contribution (クリア数 + 投稿数)
+            let maxCont = 1;
+            Object.values(allUsers).forEach(u => maxCont = Math.max(maxCont, u.clears + u.posts));
+            const myCont = (allUsers[targetUser]?.clears || 0) + (allUsers[targetUser]?.posts || 0);
+            const contribution = Math.round(Math.max(1, (myCont / maxCont) * 100));
+
+            // 5. Creator (自作ステージの総プレイ数: 1位のプレイヤーを100とした相対評価)
+            const maxTotalPlays = Math.max(...Object.values(allUsers).map(u => u.totalPlays), 1);
+            const targetTotalPlays = allUsers[targetUser]?.totalPlays || 0;
+            const creator = Math.round(Math.max(1, Math.min(100, (targetTotalPlays / maxTotalPlays) * 100)));
+ 
+            const ovr = Math.round((leader + timeAttacker + stageQuality + contribution + creator) / 5);
+
+            return { 
+                leader, timeAttacker, stageQuality, contribution, creator, ovr,
+                skin: allUsers[targetUser]?.skin || 'default',
+                color: allUsers[targetUser]?.color || 'default',
+                customSprite: allUsers[targetUser]?.customSprite || null
+            };
+        }
+
+        function drawRadarChart(stats) {
+            const canvas = document.getElementById('radar-chart');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 150;
+            const labels = ["Leader", "TimeAttacker", "Quality", "Contrib.", "Creator"];
+            const values = [stats.leader, stats.timeAttacker, stats.stageQuality, stats.contribution, stats.creator];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 背景の五角形
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            ctx.lineWidth = 1;
+            for (let j = 1; j <= 5; j++) {
+                ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                    const r = (radius / 5) * j;
+                    ctx.lineTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
+                }
+                ctx.closePath();
+                ctx.stroke();
+            }
+
+            // データの描画
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(0, 255, 65, 0.4)";
+            ctx.strokeStyle = varColor('--primary-color');
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                const r = (radius * values[i] / 100);
+                ctx.lineTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // ラベルの描画
+            ctx.fillStyle = "#fff";
+            ctx.font = "16px 'Roboto', sans-serif"; /* フォントサイズを少し大きく */
+            ctx.textAlign = "center";
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                const labelR = radius + 40;
+                const lx = centerX + labelR * Math.cos(angle);
+                const ly = centerY + labelR * Math.sin(angle);
+                ctx.fillText(labels[i], lx, ly);
+                ctx.fillText(values[i], lx, ly + 20);
+            }
+        }
+
         // --- クリエイターズロード関連 ---
         function openCreatorsRoad() {
             document.getElementById('creators-road-overlay').style.display = 'flex';
@@ -1515,7 +1729,7 @@
                 const isReached = userCP >= m.cp;
                 const isClaimed = claimedRoadRewards.includes(m.id);
                 
-                let rewardLabel = m.text;
+                let rewardLabel = m.text || '';
                 if (m.gold && m.auroraStone) rewardLabel = `${m.gold} G + ${m.auroraStone} AS`;
                 else if (m.gold) rewardLabel = `${m.gold} G`;
                 else if (m.auroraStone && !m.unlock) rewardLabel = `${m.auroraStone} AS`;
@@ -1525,8 +1739,8 @@
                 
                 div.innerHTML = `
                     <div style="text-align: left;">
-                        <div style="font-size: 1.5cqw; color: #ff00ff; margin-bottom:0.5cqh;">${m.cp} CP</div>
-                        <div style="font-size: 1.2cqw; color: #f1c40f;">報酬: ${rewardLabel}</div>
+                        <div style="font-size: 1.8cqw; color: var(--secondary-color); margin-bottom:0.5cqh;">${m.cp} CP</div>
+                        <div style="font-size: 1.5cqw; color: #f1c40f;">報酬: ${rewardLabel}</div>
                     </div>
                 `;
                 
@@ -1639,17 +1853,17 @@
                 title.innerText = "RANK: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].crowns}</td>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].crowns}</td>`;
             } else if (tab === 'gods') {
                 title.innerText = "RANK: GODS";
                 sorted = users.filter(u => stats[u].gods > 0).sort((a, b) => stats[b].gods - stats[a].gods);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">GODS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${u}</td><td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${stats[u].gods}</td>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</td><td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${stats[u].gods}</td>`;
             } else {
                 title.innerText = "RANK: TOTAL PLAYS";
                 sorted = users.filter(u => stats[u].plays > 0).sort((a, b) => stats[b].plays - stats[a].plays);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">PLAYS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color);">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].plays}</td>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].plays}</td>`;
             }
 
             const headerRow = body.parentElement.querySelector('thead tr');
@@ -1761,18 +1975,7 @@
             title.innerText = `TOP RACERS: ${stage.name}`;
             body.innerHTML = "";
 
-            // Runon専用：手動追加ボタンの制御
-            const existingBtn = document.getElementById('manual-add-btn');
-            if (existingBtn) existingBtn.remove();
-            if (CONFIG.USERNAME === 'Runon') {
-                const addBtn = document.createElement('button');
-                addBtn.id = 'manual-add-btn';
-                addBtn.className = 'pixel-btn small';
-                addBtn.innerText = "+ 手動追加";
-                addBtn.style.marginBottom = "2cqh";
-                addBtn.onclick = () => addManualRecord(stage.id || stage.name);
-                tabs.parentElement.insertBefore(addBtn, tabs.nextSibling);
-            }
+            // Runonの手動追加ボタンの制御を削除
 
             const headerRow = body.parentElement.querySelector('thead tr');
             if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">TIME</th>`;
@@ -1789,7 +1992,7 @@
                 body.innerHTML += `
                     <tr style="border-bottom: 0.1cqw solid #444;">
                         <td style="padding: 1.5cqh;">${currentRank}</td>
-                        <td style="padding: 1.5cqh; color: var(--primary-color);">${rec.name}</td>
+                        <td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
                     </tr>`;
             });
@@ -2095,7 +2298,7 @@
             document.querySelector('h1').style.display = 'block';
             document.getElementById('subtitle').style.display = 'block';
             document.getElementById('home-character-canvas').style.display = 'block';
-            document.getElementById('main-menu').classList.add('active');
+            document.getElementById('main-menu').classList.add('active'); // Ensure main menu is active when closing stage select
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('home-bg-canvas').style.display = 'block';
             startHomeBackgroundEffect();
@@ -2898,7 +3101,7 @@
             document.querySelector('h1').style.display = 'block';
             document.getElementById('subtitle').style.display = 'block';
             document.getElementById('home-character-canvas').style.display = 'block';
-            document.getElementById('main-menu').classList.add('active');
+            document.getElementById('main-menu').classList.add('active'); // Ensure main menu is active when exiting editor
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('home-bg-canvas').style.display = 'block';
             startHomeBackgroundEffect();
@@ -3081,22 +3284,11 @@
         async function showReward() {
             // タイムを小数第三位まで計算
             if (recordedClearTime === 0) {
-                recordedClearTime = (startTime > 0) ? Number(((Date.now() - startTime) / 1000).toFixed(3)) : 0.001;
+                recordedClearTime = Number((frameCount / 60).toFixed(3));
             }
             let clearTime = recordedClearTime;
             let submitUsername = CONFIG.USERNAME;
-
-            // 名前がRunonの場合、登録名とタイムを上書きできるようにする
-            if (CONFIG.USERNAME === 'Runon') {
-                const customName = prompt("ランキングに登録する名前を指定してください:", submitUsername);
-                if (customName !== null) submitUsername = customName || submitUsername;
-
-                const customTimeStr = prompt("ランキングに登録するタイム(秒)を指定してください:", clearTime);
-                if (customTimeStr !== null && customTimeStr !== "") {
-                    const parsedTime = parseFloat(customTimeStr);
-                    if (!isNaN(parsedTime)) clearTime = parsedTime;
-                }
-            }
+            // Runonのクリア時名前・タイム手動変更機能を削除
             
             // タイムが保存されない問題を防止するため、キャッシュを先にクリアして再取得を強制する
             cachedStages = null;
@@ -3235,8 +3427,8 @@
         function updateGoldDisplay() {
             const display = document.getElementById('user-gold');
             if (display) display.innerText = userGold;
-            const cpDisplay = document.getElementById('user-cp');
-            if (cpDisplay) cpDisplay.innerText = (CONFIG.USERNAME === 'Runon') ? "∞" : userCP;
+            const cpDisplay = document.getElementById('user-cp'); // RunonのCP∞表示を削除
+            if (cpDisplay) cpDisplay.innerText = userCP;
             const asDisplay = document.getElementById('user-as');
             if (asDisplay) asDisplay.innerText = userAS;
 
@@ -3313,7 +3505,7 @@
 
             // タイムアップ判定
             if (!isCountingDown && startTime > 0) {
-                const elapsed = (Date.now() - startTime) / 1000;
+                const elapsed = frameCount / 60;
                 if (elapsed >= 100) {
                     isGoalTriggered = true;
                     showMessage("TIME UP", "時間切れです！", true);
@@ -3569,9 +3761,9 @@
                     for(let x=0; x<GRID_W; x++) {
                         const tile = activeStage[y][x];
                         if(tile === 'A') arrows.push({x: x, y: y + 0.4, vx: -0.15, vy: 0, color: '#ff5722'});
-                        if(tile === 'rg') arrows.push({x: x + 0.7, y: y + 0.4, vx: 0.15, vy: 0, color: '#e040fb'});
-                        if(tile === 'ug') arrows.push({x: x + 0.4, y: y, vx: 0, vy: -0.15, color: '#e040fb'});
-                        if(tile === 'dg') arrows.push({x: x + 0.4, y: y + 0.9, vx: 0, vy: 0.15, color: '#e040fb'});
+                        if(tile === 'rg') arrows.push({x: x + 0.7, y: y + 0.4, vx: 0.15, vy: 0, color: varColor('--secondary-color')});
+                        if(tile === 'ug') arrows.push({x: x + 0.4, y: y, vx: 0, vy: -0.15, color: varColor('--secondary-color')});
+                        if(tile === 'dg') arrows.push({x: x + 0.4, y: y + 0.9, vx: 0, vy: 0.15, color: varColor('--secondary-color')});
                     }
                 }
             }
@@ -3600,8 +3792,8 @@
             const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
             if(!isGoalTriggered && frameCount > 60 && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G' && activeCheckpoints.size >= totalCheckpoints) {
                 isGoalTriggered = true;
-                // ゴールした瞬間のタイムを即座に記録
-                recordedClearTime = (startTime > 0) ? Number(((Date.now() - startTime) / 1000).toFixed(3)) : 0.001;
+                // フレーム数に基づいた正確なタイムを計算（1秒=60フレーム）
+                recordedClearTime = Number((frameCount / 60).toFixed(3));
                 // ゴール到達時の位置を最後に記録
                 currentGhostData.push({
                     x: Math.round(player.x * 100) / 100, 
@@ -3736,7 +3928,7 @@
                     timerElement.innerText = `TIME: 100.0`;
                     timerElement.style.color = "#fff";
                 } else if (!isGoalTriggered && startTime > 0) {
-                    const remaining = Math.max(0, 100 - (Date.now() - startTime) / 1000);
+                    const remaining = Math.max(0, 100 - frameCount / 60);
                     timerElement.innerText = `TIME: ${remaining.toFixed(1)}`;
                     timerElement.style.color = remaining < 10 ? "#ff5252" : "#fff";
                 }
@@ -3923,7 +4115,7 @@
                 'e': '#ffd700',  // 金髪
                 'f': '#3f51b5',  // ジーパン
                 'g': '#90a4ae',  // 銀
-                'h': '#6a1b9a',  // 紫（忍者頭巾）
+                'h': '#4682b4',  // スチールブルー（忍者頭巾）
                 'i': '#ffcc80',  // 茶トラ
                 'j': '#e0f7fa',  // ゴースト
                 'k': '#d32f2f',  // 赤（デーモン）
