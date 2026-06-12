@@ -343,6 +343,7 @@
             flex-direction: column;
             align-items: center;
             padding: 5cqh;
+            background: rgba(10, 10, 30, 0.9);
         }
         #explanation-overlay {
             display: none;
@@ -350,6 +351,7 @@
             align-items: center;
             padding: 5cqh;
             overflow-y: auto;
+            background: rgba(10, 10, 30, 0.9);
         }
         .shop-grid { /* ロッカーとショップのグリッドサイズ調整 */
             display: grid;
@@ -365,6 +367,10 @@
             flex-direction: column;
             align-items: center;
             padding: 5cqh;
+            background: rgba(10, 10, 30, 0.9);
+        }
+        #creators-road-overlay {
+            background: rgba(10, 10, 30, 0.9);
         }
         .shop-item {
             background: #35354e;
@@ -881,6 +887,8 @@
                     <div class="tool-btn tool-gun-right" id="btn-tool-rg" onclick="setTool('rg', this)" title="RIGHT GUN" style="display:none;"><canvas id="icon-rg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-ice" id="btn-tool-I" onclick="setTool('I', this)" title="ICE BLOCK" style="display:none;"><canvas id="icon-I" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-color-block" id="btn-tool-Z" onclick="setTool('Z', this)" title="COLOR BLOCK" style="display:none;"><canvas id="icon-Z" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-key" id="btn-tool-o" onclick="setTool('o', this)" title="KEY" style="display:none;"><canvas id="icon-o" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-door" id="btn-tool-D" onclick="setTool('D', this)" title="KEY BLOCK" style="display:none;"><canvas id="icon-D" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
                 </div>
@@ -926,6 +934,7 @@
         let userGold = 0;
         let userCP = 0;
         let userDiamond = 0;
+        let userAS = 0;
         let purchasedSkins = ['default', 'girl'];
         let equippedSkin = 'default';
         let equippedColor = 'default';
@@ -961,7 +970,7 @@
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
-        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false };
+        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0 };
         let isSwitchOn = true;
         let keys = {};
         let activeStage = [];
@@ -1220,6 +1229,7 @@
             'cat': { name: 'CAT', price: 18000, sprite: CAT_SPRITE, recolorIndex: 'i' },
             'ghost': { name: 'GHOST', price: 20000, sprite: GHOST_SPRITE, recolorIndex: '4' },
             'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: 'k' },
+            'key_set': { name: 'KEY SET', price: 25000, isBlockSet: true, sprite: null },
             'custom': { name: 'CUSTOM 1', price: 30000, sprite: null, isCustom: true },
             'custom2': { name: 'CUSTOM 2', price: 50000, sprite: null, isCustom: true },
             'custom3': { name: 'CUSTOM 3', price: 75000, sprite: null, isCustom: true }
@@ -1422,7 +1432,7 @@
                                 // カスタムスキンデータの読み込み
                                 callApi('load', { username: res.username, key: 'custom_skins' })
                                     .then(loadRes => {
-                                        if (loadRes && loadRes.data) customSpriteStore = loadRes.data;
+                                        if (loadRes && loadRes.data) customSpriteStore = { ...customSpriteStore, ...loadRes.data };
                                         updateHomeCharacter();
                                     });
 
@@ -1471,7 +1481,12 @@
             const canvas = document.createElement('canvas');
             canvas.width = 64; canvas.height = 64;
             const ctx = canvas.getContext('2d');
-            drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
+
+            if (data.isBlockSet) {
+                drawTile(ctx, 0, 0, 64, 64, 'o'); // プレビューとして鍵を描画
+            } else {
+                drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
+            }
 
             item.innerHTML = `<div style="font-size:1cqw; margin-bottom:1cqh;">${data.name}</div>`;
             item.prepend(canvas);
@@ -1566,7 +1581,7 @@
                 
                 const registerUser = (name, skin = 'default', color = 'default', custom = null) => {
                     if (!allUsers[name]) {
-                        allUsers[name] = { clears: 0, posts: 0, cp: 0, firsts: 0, totalPlays: 0, stageCount: 0, skin, color, customSprite: custom };
+                        allUsers[name] = { clears: 0, posts: 0, cp: 0, firsts: 0, totalPlays: 0, stageCount: 0, skin, color, customSprite: custom, stagePlays: [] };
                     } else if (skin !== 'default') {
                         allUsers[name].skin = skin;
                         allUsers[name].color = color;
@@ -1579,6 +1594,7 @@
                 allUsers[s.creator].posts++;
                 allUsers[s.creator].totalPlays += (s.attempts || 0);
                 allUsers[s.creator].stageCount++;
+                allUsers[s.creator].stagePlays.push(s.attempts || 0);
                 allUsers[s.creator].cp += (s.attempts || 0) + (s.upvotes || 0) * 10;
 
                 const lb = s.leaderboard || [];
@@ -1607,9 +1623,10 @@
             const totalStages = cachedStages.length || 1;
             const totalUserCount = Object.keys(allUsers).length || 1;
  
-            // 1. Leader (難しいステージをクリアしたか)
-            const hcr = userHardestClearedRank[targetUser] || totalStages;
-            const leader = Math.round(Math.max(1, (1 - (hcr / totalStages)) * 100));
+            // 1. Leader (クリアしたステージ数: 1位のプレイヤーを100とした相対評価)
+            const maxClears = Math.max(...Object.values(allUsers).map(u => u.clears), 1);
+            const myClears = allUsers[targetUser]?.clears || 0;
+            const leader = Math.round(Math.max(1, Math.min(100, (myClears / maxClears) * 100)));
 
             // 2. TimeAttacker
             const myFirsts = allUsers[targetUser]?.firsts || 0;
@@ -1621,11 +1638,18 @@
             else timeAttacker = (myFirsts / baseline) * 50;
             timeAttacker = Math.round(Math.max(1, timeAttacker));
 
-            // 3. StageQuality (平均プレイ数: 全体平均を50、1位を100とした相対評価)
+            // 3. StageQuality (上位5ステージの平均プレイ数: 全体平均を50、1位を100とした相対評価)
+            const getUserTop5Avg = (u) => {
+                if (!u || !u.stagePlays || u.stagePlays.length === 0) return 0;
+                const sorted = [...u.stagePlays].sort((a, b) => b - a);
+                const top5 = sorted.slice(0, 5);
+                return top5.reduce((a, b) => a + b, 0) / top5.length;
+            };
+
             const totalPlaysOverall = cachedStages.reduce((sum, s) => sum + (s.attempts || 0), 0);
             const globalAvgPlays = totalPlaysOverall / totalStages;
-            const maxAvgPlays = Math.max(...Object.values(allUsers).map(u => u.stageCount > 0 ? u.totalPlays / u.stageCount : 0), 1);
-            const myAvgPlays = (allUsers[targetUser]?.stageCount > 0) ? (allUsers[targetUser].totalPlays / allUsers[targetUser].stageCount) : 0;
+            const maxAvgPlays = Math.max(...Object.values(allUsers).map(u => getUserTop5Avg(u)), 1);
+            const myAvgPlays = getUserTop5Avg(allUsers[targetUser]);
             
             let qualityScore = 1;
             if (myAvgPlays >= globalAvgPlays) {
@@ -2293,6 +2317,10 @@
             // 黄色トゲセット
             const hasYSpikes = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(11));
             if(document.getElementById('btn-tool-y')) document.getElementById('btn-tool-y').style.display = hasYSpikes ? 'flex' : 'none';
+            // 鍵セット
+            const hasKeySet = purchasedSkins.includes('key_set');
+            if(document.getElementById('btn-tool-o')) document.getElementById('btn-tool-o').style.display = hasKeySet ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-D')) document.getElementById('btn-tool-D').style.display = hasKeySet ? 'flex' : 'none';
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -2333,7 +2361,8 @@
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, 
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
-                {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'E', id:'icon-E'}
+                {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
+                {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, {type:'E', id:'icon-E'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -2794,6 +2823,18 @@
                     ctx.fillRect(x*cw + cw*(0.2+i*0.25), y*ch + ch*0.3, 3, 3);
                     ctx.fillRect(x*cw + cw*(0.3+i*0.25), y*ch + ch*0.6, 3, 3);
                 }
+            } else if(type === 'o') {
+                ctx.fillStyle = "#ffd600";
+                ctx.fillRect(x*cw + cw*0.3, y*ch + ch*0.3, cw*0.4, ch*0.2); // 持つ所
+                ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.3, cw*0.1, ch*0.5); // 棒
+                ctx.fillRect(x*cw + cw*0.5, y*ch + ch*0.6, cw*0.1, ch*0.1); // ギザギザ
+                ctx.fillRect(x*cw + cw*0.5, y*ch + ch*0.75, cw*0.1, ch*0.1);
+            } else if(type === 'D') {
+                ctx.fillStyle = "#78909c";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#000";
+                ctx.fillRect(x*cw + cw*0.45, y*ch + ch*0.3, cw*0.1, ch*0.3); // 鍵穴
+                ctx.beginPath(); ctx.arc(x*cw + cw*0.5, y*ch + ch*0.35, cw*0.1, 0, Math.PI*2); ctx.fill();
             } else if(type === 'd') {
                 // 下降気流 (Downdraft)
                 ctx.save();
@@ -3212,7 +3253,7 @@
                 }
             }
             
-            player.vx = 0; player.vy = 0;
+            player.vx = 0; player.vy = 0; player.hasKey = 0;
             
             playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
             updateStageCache();
@@ -3545,15 +3586,13 @@
                 });
             }
             
-            // キーによるオンオフ切り替え
-            if (keys['KeyR']) isSwitchOn = true;
-            if (keys['KeyB']) isSwitchOn = false;
-
             player.vy += gravity;
 
             let friction = 0.9;
             if (activeStage[footY_sticky] && activeStage[footY_sticky][gx_sticky] === 'I') friction = 0.99; // 氷は滑る
             player.vx *= friction;
+            
+            if (Math.abs(player.vx) < 0.001) player.vx = 0;
 
             // ゴースト用の記録（5フレームに1回）
             // 通信量を減らすため、座標の精度を小数点第2位までに抑える
@@ -3585,7 +3624,7 @@
 
             // X衝突
             let nextX = player.x + player.vx;
-            let collidedX = isCollide(nextX, player.y);
+            let collidedX = isCollide(nextX, player.y, true);
             
             // 一方通行壁（横方向）の判定
             if (!collidedX) {
@@ -3611,7 +3650,7 @@
 
             // Y衝突
             let nextY = player.y + player.vy;
-            let collidedY = isCollide(player.x, nextY);
+            let collidedY = isCollide(player.x, nextY, true);
             
             // 橋（下から抜けられる足場）の特殊判定
             if (!collidedY && player.vy >= 0) {
@@ -3842,6 +3881,12 @@
                     updateStageCache(); // チェックポイント通過で見た目が変わるので更新
                 }
             }
+            
+            if (tile === 'o') {
+                player.hasKey++;
+                activeStage[gy][gx] = null;
+                updateStageCache();
+            }
 
             if (tile === 'K' || footTile === 'K') handlePlayerDeath();
             if (isSwitchOn && (tile === 'k' || footTile === 'k')) handlePlayerDeath();
@@ -3851,7 +3896,7 @@
             if (footTile === 'P') player.vx *= 1.15; // 加速
         }
 
-        function isCollideAt(x, y, w, h) {
+        function isCollideAt(x, y, w, h, isPlayer = false) {
             const inset = 0.05;
             const collisionPoints = [
                 [x + inset, y + inset], 
@@ -3867,16 +3912,26 @@
 
                 const tile = activeStage[iy][ix]; // 壁判定から V を削除
                 if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
+                
+                if (tile === 'D') {
+                    if (isPlayer && player.hasKey > 0) {
+                        player.hasKey--;
+                        activeStage[iy][ix] = null;
+                        updateStageCache();
+                        return false;
+                    }
+                    return true;
+                }
             }
             return false;
         }
 
-        function isCollide(x, y) {
-            return isCollideAt(x, y, player.w, player.h);
+        function isCollide(x, y, isPlayer = false) {
+            return isCollideAt(x, y, player.w, player.h, isPlayer);
         }
 
         function isEnemyCollide(x, y) {
-            return isCollideAt(x, y, 0.9, 0.9);
+            return isCollideAt(x, y, 0.9, 0.9, false);
         }
 
         function isTouchingType(x, y, type) {
@@ -3932,11 +3987,11 @@
             // タイマーUIの更新
             if (timerElement) {
                 if (isCountingDown) {
-                    timerElement.innerText = `TIME: 100.0`;
+                    timerElement.innerText = `TIME: 100.0 | KEYS: 0`;
                     timerElement.style.color = "#fff";
                 } else if (!isGoalTriggered && startTime > 0) {
                     const remaining = Math.max(0, 100 - frameCount / 60);
-                    timerElement.innerText = `TIME: ${remaining.toFixed(1)}`;
+                    timerElement.innerText = `TIME: ${remaining.toFixed(1)} | KEYS: ${player.hasKey}`;
                     timerElement.style.color = remaining < 10 ? "#ff5252" : "#fff";
                 }
             }
@@ -4059,7 +4114,7 @@
             const skin = SKINS[skinId] || SKINS['default'];
             
             // キャッシュ用のキー作成
-            const cacheKey = `${skinId}_${colorId}_${customData ? 'c' : 's'}`;
+            const cacheKey = (skin.isCustom && customData) ? customData : `${skinId}_${colorId}`;
             let cachedCanvas = spriteCache.get(cacheKey);
 
             if (!cachedCanvas) {
@@ -4092,16 +4147,18 @@
             const rIdx = skin.recolorIndex || '2';
 
             // カスタムスキンの描画
-            if (skin.isCustom && customData) {
-                customData.forEach((row, y) => {
-                    row.forEach((color, x) => {
-                        if (color) {
-                            ctx.fillStyle = color;
-                            ctx.fillRect(x, y, 1, 1);
-                        }
+            if (skin.isCustom) {
+                if (customData) {
+                    customData.forEach((row, y) => {
+                        row.forEach((color, x) => {
+                            if (color) {
+                                ctx.fillStyle = color;
+                                ctx.fillRect(x, y, 1, 1);
+                            }
+                        });
                     });
-                });
-                return;
+                }
+                return; // カスタムスキンの場合はここで終了（デフォルトへのフォールバックを防止）
             }
 
             const sprite = skin.sprite || PLAYER_SPRITE;
