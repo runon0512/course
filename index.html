@@ -4098,6 +4098,14 @@
             cachedGameCtx.globalAlpha = 1.0;
             drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing, CONFIG.USERNAME);
 
+            // プレイヤーの右上に所持鍵数を表示
+            if (player.hasKey > 0) {
+                cachedGameCtx.fillStyle = "#ffd600";
+                cachedGameCtx.font = `bold ${ch * 0.4}px sans-serif`;
+                cachedGameCtx.textAlign = "left";
+                cachedGameCtx.fillText("🔑" + player.hasKey, (player.x + player.w) * cw + 2, player.y * ch);
+            }
+
             // カウントダウンの描画
             if (isCountingDown) {
                 cachedGameCtx.fillStyle = "rgba(0,0,0,0.3)";
