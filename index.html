@@ -936,9 +936,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyiGejlWxLlOYL3YfPojz4Noh1xz2-r2q3KsmtIi34PVfsCHbq4xk_NR_6Qpg94DZUt/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzNfV6kDjlmeVwLxaita1KOKaOqzUvgT8pg2zfOQtXw18MjHxHOuA3Xc94M0-kQb641/exec",
             IS_LOGGED_IN: false,
-            USERNAME: ""
+            USERNAME: "",
+            VERSION: "2.1.2"
         };
         let userGold = 0;
         let userCP = 0;
@@ -1425,7 +1426,7 @@
             msg.innerText = "通信中...";
 
             // google.script.run ではなく、定義済みの callApi を使用します
-            callApi(type, { username: user, password: pass })
+            callApi(type, { username: user, password: pass, version: CONFIG.VERSION })
                 .then((res) => {
                     msg.innerText = res.message;
                     if (res.success) {
