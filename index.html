@@ -345,6 +345,11 @@
             padding: 5cqh;
             background: rgba(10, 10, 30, 0.9);
         }
+        .shop-tabs {
+            display: flex;
+            gap: 1cqw;
+            margin-bottom: 2cqh;
+        }
         #explanation-overlay {
             display: none;
             flex-direction: column;
@@ -703,7 +708,11 @@
         <!-- ショップ画面 -->
         <div id="shop-overlay" class="screen">
             <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
-            <button class="pixel-btn small" onclick="closeShop()" style="margin-bottom: 2cqh;">戻る</button>
+            <div class="shop-tabs">
+                <button id="shop-tab-skins" class="pixel-btn small" onclick="openShop('skins')">SKINS</button>
+                <button id="shop-tab-blocks" class="pixel-btn small" onclick="openShop('blocks')">BLOCKS</button>
+                <button class="pixel-btn small" onclick="closeShop()" style="background: #f44336; color: #fff;">戻る</button>
+            </div>
             <div class="shop-grid" id="shop-container"></div>
         </div>
 
@@ -927,7 +936,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx-GFAdZsm28L7bQO9VRyWfHtE4r0ebw1E623On2eh094-V9s0mlIK_8PCDAMYkxjME/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyiGejlWxLlOYL3YfPojz4Noh1xz2-r2q3KsmtIi34PVfsCHbq4xk_NR_6Qpg94DZUt/exec",
             IS_LOGGED_IN: false,
             USERNAME: ""
         };
@@ -938,6 +947,7 @@
         let purchasedSkins = ['default', 'girl'];
         let equippedSkin = 'default';
         let equippedColor = 'default';
+        let currentShopTab = 'skins';
         // クリエイターズロード用
         const CREATORS_ROAD_MILESTONES = [
             { id: 2, cp: 1000, gold: 500 }, // Gはゲームの基本要素なのでアンロック対象から除外
@@ -1254,6 +1264,20 @@
         }
         initGrid();
 
+        // ステージデータを規定のサイズ(GRID_H x GRID_W)に整形し、欠損を補完する
+        function normalizeGrid(data) {
+            const grid = Array(GRID_H).fill().map(() => Array(GRID_W).fill(null));
+            if (!data || !Array.isArray(data)) return grid;
+            for (let y = 0; y < Math.min(GRID_H, data.length); y++) {
+                if (data[y] && Array.isArray(data[y])) {
+                    for (let x = 0; x < Math.min(GRID_W, data[y].length); x++) {
+                        grid[y][x] = data[y][x] || null;
+                    }
+                }
+            }
+            return grid;
+        }
+
         // ステージの静的なタイル（ブロック等）を事前に1枚の絵に描画する
         function updateStageCache() {
             const canvas = document.getElementById('game-canvas');
@@ -1460,16 +1484,33 @@
         }
 
         // --- ショップ関連 ---
-        function openShop() {
+        function openShop(tab = currentShopTab) {
+            currentShopTab = tab;
             document.getElementById('shop-overlay').style.display = 'flex';
             const container = document.getElementById('shop-container');
             container.innerHTML = '';
 
+            // タブのボタン状態更新
+            const btnSkins = document.getElementById('shop-tab-skins');
+            const btnBlocks = document.getElementById('shop-tab-blocks');
+            if (btnSkins) {
+                btnSkins.style.backgroundColor = tab === 'skins' ? 'var(--primary-color)' : '#000';
+                btnSkins.style.color = tab === 'skins' ? '#000' : '#fff';
+            }
+            if (btnBlocks) {
+                btnBlocks.style.backgroundColor = tab === 'blocks' ? 'var(--primary-color)' : '#000';
+                btnBlocks.style.color = tab === 'blocks' ? '#000' : '#fff';
+            }
+
             Object.keys(SKINS).forEach(id => {
                 const skin = SKINS[id];
-                const isPurchased = purchasedSkins.includes(id);
-                const isEquipped = equippedSkin === id;
-                createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target));
+                const isBlock = !!skin.isBlockSet;
+                
+                if ((tab === 'blocks' && isBlock) || (tab === 'skins' && !isBlock)) {
+                    const isPurchased = purchasedSkins.includes(id);
+                    const isEquipped = equippedSkin === id;
+                    createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target));
+                }
             });
         }
 
@@ -1526,7 +1567,7 @@
                 equippedSkin: equippedSkin,
                 equippedColor: equippedColor,
             });
-            openShop();
+            openShop(currentShopTab);
         }
 
         function openExplanation() {
@@ -2499,7 +2540,7 @@
                 for(let x=0; x<GRID_W; x++){
                     ctx.strokeStyle = "rgba(255,255,255,0.3)";
                     ctx.strokeRect(x*cw, y*ch, cw, ch);
-                    if(editorGrid[y][x]) drawTile(ctx, x, y, cw, ch, editorGrid[y][x], time);
+                    if(editorGrid[y] && editorGrid[y][x]) drawTile(ctx, x, y, cw, ch, editorGrid[y][x], time);
                 }
             }
         }
@@ -2904,7 +2945,7 @@
 
         async function loadSavedStage() {
             const res = await callApi('load', { username: CONFIG.USERNAME, key: 'my_stage' });
-            if (res && res.data) { editorGrid = res.data; drawEditor(); alert("保存データを読み込みました。"); }
+            if (res && res.data) { editorGrid = normalizeGrid(res.data); drawEditor(); alert("保存データを読み込みました。"); }
             else { alert("保存データが見つかりません。"); }
         }
 
@@ -2948,11 +2989,11 @@
             if (!cachedStages || forceRefresh) {
                 container.innerHTML = "LOADING STAGES...";
                 const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
+                cachedStages = (res.stages || []).filter(s => s && s.data); // 無効なデータを事前に除外
                 
                 // 高速化のためにメタデータを事前計算
                 cachedStages.forEach(s => {
-                    const lb = s.leaderboard || [];
+                    const lb = Array.isArray(s.leaderboard) ? s.leaderboard : [];
                     s._cr = s.attempts > 0 ? (s.clears || 0) / s.attempts : -1;
                     s._reward = calculateStageRewardValue(s, CONFIG.USERNAME);
                     s._topTime = lb.length > 0 ? lb[0].time : null;
@@ -3098,7 +3139,7 @@
                         ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''} Ver:<span class="stat-val">${s.version}</span>
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''}
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
@@ -3136,7 +3177,9 @@
             const cw = canvas.width / GRID_W;
             const ch = canvas.height / GRID_H;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!data || !Array.isArray(data)) return; // データの型チェックを強化
             for(let y=0; y<GRID_H; y++){
+                if (!data[y] || !Array.isArray(data[y])) continue; // 行が配列でない場合は飛ばす
                 for(let x=0; x<GRID_W; x++){
                     if(data[y][x]) drawTile(ctx, x, y, cw, ch, data[y][x]);
                 }
@@ -3194,11 +3237,11 @@
             if (document.getElementById('user-info').style.display !== 'none') { // ログイン中の場合のみ非表示
                 document.getElementById('user-info').style.display = 'none';
             }
-            document.getElementById('global-rank-btn').style.display = 'none';
+            if (document.getElementById('global-rank-btn')) document.getElementById('global-rank-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
 
-            activeStage = JSON.parse(JSON.stringify(stageObj.data));
+            activeStage = normalizeGrid(stageObj.data);
             // 確実にタイムが速い順にソートしてから上位5件を取得
             playbackGhosts = [...(stageObj.leaderboard || [])]
                 .sort((a, b) => a.time - b.time).slice(0, 5);
