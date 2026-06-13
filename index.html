@@ -358,6 +358,48 @@
             overflow-y: auto;
             background: rgba(10, 10, 30, 0.9);
         }
+        /* チャット用スタイル */
+        #chat-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 3cqh 5cqw;
+            background: rgba(10, 10, 30, 0.95);
+            z-index: 170;
+            box-sizing: border-box;
+            max-height: 100cqh;
+        }
+        .chat-msg-list {
+            width: 90%;
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 2cqh;
+            display: flex;
+            flex-direction: column;
+            gap: 1cqh;
+        }
+        .chat-msg-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1cqw;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 1.5cqw;
+            text-align: left;
+            font-size: 1.2cqw;
+        }
+        .chat-stage-link {
+            margin-top: 0.5cqh;
+            padding: 0.5cqw 1cqw;
+            background: var(--primary-color);
+            color: #000;
+            font-size: 1cqw;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            display: inline-block;
+            font-weight: bold;
+        }
         .shop-grid { /* ロッカーとショップのグリッドサイズ調整 */
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -639,6 +681,9 @@
         <!-- 全ブロック解説ボタン -->
         <button id="explanation-btn" class="pixel-btn small" onclick="openExplanation()" style="position: absolute; top: 19cqh; right: 2cqw; z-index: 15; display: none; background: #607d8b; color: #fff; border-color: #fff;">📖 全ブロック解説</button>
 
+        <!-- チャットボタン -->
+        <button id="chat-btn" class="pixel-btn small" onclick="openChat()" style="position: absolute; top: 25cqh; right: 2cqw; z-index: 15; display: none; background: #3f51b5; color: #fff; border-color: #fff;">💬 チャット</button>
+
         <!-- 認証画面 -->
         <div id="auth-overlay">
             <div class="auth-box">
@@ -755,6 +800,37 @@
                 <div style="position: relative;">
                     <canvas id="radar-chart" width="400" height="400" style="width: 35cqw; height: 35cqw;"></canvas>
                 </div>
+            </div>
+        </div>
+
+        <!-- チャット画面 -->
+        <div id="chat-overlay" class="screen">
+            <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">GLOBAL CHAT</h2>
+            <div style="display:flex; gap:1cqw; margin-bottom: 2cqh;">
+                <button class="pixel-btn small" onclick="closeChat()">戻る</button>
+                <button id="chat-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleStageSearch()">📎 ステージを添付</button>
+            </div>
+
+            <!-- ステージ検索エリア -->
+            <div id="chat-stage-search" style="display:none; width: 90%; background: rgba(0,0,0,0.8); border: 0.2cqw solid #fff; padding: 1cqw; margin-bottom: 2cqh; flex-direction: column; gap: 1cqh; z-index: 10;">
+                <div style="display:flex; gap:1cqw;">
+                    <input type="text" id="chat-stage-input" placeholder="ステージ名で検索..." style="flex:1; background:#111; color:#fff; border:0.1cqw solid #fff; padding:0.5cqw;" onkeyup="searchStagesForChat()">
+                    <button class="pixel-btn small" onclick="toggleStageSearch()">閉じる</button>
+                </div>
+                <div id="chat-stage-results" style="max-height: 20cqh; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5cqh;"></div>
+            </div>
+
+            <div id="selected-stage-info" style="display:none; width:90%; background:var(--primary-color); color:#000; padding:0.5cqw; font-size:1.2cqw; margin-bottom:1cqh; justify-content:space-between; align-items:center;">
+                <span>添付中: <span id="attached-name" style="font-weight:bold;"></span></span>
+                <button onclick="clearAttachedStage()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.5cqw;">✕</button>
+            </div>
+
+            <div id="chat-list" class="chat-msg-list">
+                <!-- 内容はJSで生成 -->
+            </div>
+            <div style="width: 90%; display: flex; gap: 1cqw;">
+                <input type="text" id="chat-input" maxlength="50" placeholder="メッセージを入力..." style="flex: 1; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.5cqw;">
+                <button class="pixel-btn small" style="width: 15cqw;" onclick="sendChat()">送信</button>
             </div>
         </div>
 
@@ -936,10 +1012,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzNfV6kDjlmeVwLxaita1KOKaOqzUvgT8pg2zfOQtXw18MjHxHOuA3Xc94M0-kQb641/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz2wFKWQ9z_whU64d7qYI9Z_GBFCe0kwF2FlfytUoyIsrIw1OV6QQSTaaUuR3i0NJme/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.1.2"
+            VERSION: "2.2.0"
         };
         let userGold = 0;
         let userCP = 0;
@@ -1470,6 +1546,8 @@
                                 document.getElementById('global-rank-btn').style.display = 'block';
                                 document.getElementById('creators-road-btn').style.display = 'block';
                                 document.getElementById('explanation-btn').style.display = 'block';
+                                document.getElementById('chat-btn').style.display = 'block';
+                                refreshChat(); // ログイン時に新着チェック
                                 document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${res.username}</span>`;
                                 // Initialize sort/filter UI on login
                                 document.getElementById('sort-criteria').value = currentSort;
@@ -1578,6 +1656,167 @@
             list.innerHTML = '<div style="font-size: 2cqw; text-align: center; width: 100%; padding: 5cqh 0;">近日追加予定</div>';
         }
         function closeExplanation() { document.getElementById('explanation-overlay').style.display = 'none'; }
+
+        // --- チャット関連 ---
+        let chatRefreshId = null;
+        async function openChat() {
+            document.getElementById('chat-overlay').style.display = 'flex';
+            clearAttachedStage();
+            document.getElementById('chat-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
+            await refreshChat();
+            if (chatRefreshId) clearInterval(chatRefreshId);
+            chatRefreshId = setInterval(refreshChat, 10000); 
+        }
+        function closeChat() {
+            document.getElementById('chat-overlay').style.display = 'none';
+            document.getElementById('chat-stage-search').style.display = 'none';
+            // 閉じてもバックグラウンドで新着通知を確認するためにインターバルは維持
+        }
+        async function refreshChat() {
+            const res = await callApi('getChat', {});
+            if (!res.success) return;
+
+            const lastSeen = localStorage.getItem('pixel_chat_last_time');
+            const latestTime = res.messages.length > 0 ? new Date(res.messages[0].time).getTime() : 0;
+            const isChatOpen = document.getElementById('chat-overlay').style.display === 'flex';
+
+            // 通知処理
+            if (!lastSeen) {
+                if (CONFIG.IS_LOGGED_IN) showQuickMsg("チャットの履歴情報がありません。通知を有効にします。", "var(--secondary-color)");
+                localStorage.setItem('pixel_chat_last_time', "0");
+            } else if (latestTime > parseInt(lastSeen)) {
+                if (!isChatOpen) {
+                    showQuickMsg("新着メッセージがあります！", "var(--primary-color)");
+                    document.getElementById('chat-btn').innerText = "💬 チャット (新着!)";
+                    document.getElementById('chat-btn').style.borderColor = "var(--primary-color)";
+                }
+            }
+
+            if (!isChatOpen) return;
+
+            // チャット画面が開いている場合は既読にする
+            localStorage.setItem('pixel_chat_last_time', latestTime.toString());
+            document.getElementById('chat-btn').innerText = "💬 チャット";
+            document.getElementById('chat-btn').style.borderColor = "#fff";
+
+            const container = document.getElementById('chat-list');
+            container.innerHTML = '';
+            res.messages.forEach(m => {
+                const item = document.createElement('div');
+                item.className = 'chat-msg-item';
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 48; canvas.height = 48;
+                drawPlayer(canvas.getContext('2d'), 0, 0, 48, 48, m.skin, false, m.color, m.customSprite);
+                
+                item.appendChild(canvas);
+                const content = document.createElement('div');
+                const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
+                content.innerHTML = `
+                    <div class="chat-user" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</div>
+                    <div style="word-break: break-all;">${m.message}</div>
+                    ${stageBtn}
+                `;
+                item.appendChild(content);
+                container.appendChild(item);
+            });
+        }
+
+        let attachedStageId = null;
+        let attachedStageName = null;
+
+        async function sendChat() {
+            const input = document.getElementById('chat-input');
+            const sendBtn = input.nextElementSibling;
+            const msg = input.value.trim() || (attachedStageId ? "このステージを遊んでみて！" : "");
+            if (!msg && !attachedStageId) return;
+            
+            input.disabled = true;
+            sendBtn.disabled = true;
+            const originalText = sendBtn.innerText;
+            sendBtn.innerText = "送信中...";
+
+            try {
+                await callApi('postChat', {
+                    username: CONFIG.USERNAME,
+                    message: msg,
+                    skin: equippedSkin,
+                    color: equippedColor,
+                    customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
+                    attachedStageId: attachedStageId,
+                    attachedStageName: attachedStageName
+                });
+                input.value = '';
+                clearAttachedStage();
+                await refreshChat();
+            } finally {
+                input.disabled = false;
+                sendBtn.disabled = false;
+                sendBtn.innerText = originalText;
+            }
+        }
+
+        function toggleStageSearch() {
+            const div = document.getElementById('chat-stage-search');
+            div.style.display = div.style.display === 'none' ? 'flex' : 'none';
+            if (div.style.display === 'flex') {
+                document.getElementById('chat-stage-input').focus();
+                searchStagesForChat();
+            }
+        }
+
+        async function searchStagesForChat() {
+            const query = document.getElementById('chat-stage-input').value.toLowerCase();
+            const resultsDiv = document.getElementById('chat-stage-results');
+            resultsDiv.innerHTML = "";
+
+            if (!cachedStages) {
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+            }
+
+            const filtered = cachedStages.filter(s => s.name.toLowerCase().includes(query)).slice(0, 10);
+            filtered.forEach(s => {
+                const btn = document.createElement('div');
+                btn.style.cssText = "background:#222; border:0.1cqw solid #fff; padding:0.5cqw; cursor:pointer; font-size:1.2cqw; color:var(--primary-color);";
+                btn.innerText = `${s.name} (by ${s.creator})`;
+                btn.onclick = () => {
+                    attachedStageId = s.id || s.name;
+                    attachedStageName = s.name;
+                    document.getElementById('attached-name').innerText = s.name;
+                    document.getElementById('selected-stage-info').style.display = 'flex';
+                    toggleStageSearch();
+                };
+                resultsDiv.appendChild(btn);
+            });
+        }
+
+        function clearAttachedStage() {
+            attachedStageId = null;
+            attachedStageName = null;
+            document.getElementById('selected-stage-info').style.display = 'none';
+        }
+
+        async function playAttachedStage(stageId) {
+            if (!cachedStages) {
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+            }
+            const stage = cachedStages.find(s => String(s.id || s.name) === String(stageId));
+            if (stage) {
+                closeChat();
+                startGame(stage, 'play');
+            } else {
+                alert("ステージが見つかりませんでした。再読み込みします。");
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+                const stageRetry = cachedStages.find(s => String(s.id || s.name) === String(stageId));
+                if (stageRetry) {
+                    closeChat();
+                    startGame(stageRetry, 'play');
+                }
+            }
+        }
 
         // --- プロフィール関連 ---
         async function openProfile(targetUser = CONFIG.USERNAME) {
@@ -2382,6 +2621,7 @@
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
+            document.getElementById('chat-btn').style.display = 'block';
             
             const container = document.querySelector('.container');
             container.classList.remove('bg-sky');
@@ -3200,6 +3440,7 @@
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
+            document.getElementById('chat-btn').style.display = 'block';
         }
 
         function startGame(stageObj, mode = 'play') {
@@ -3241,6 +3482,7 @@
             if (document.getElementById('global-rank-btn')) document.getElementById('global-rank-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
+            document.getElementById('chat-btn').style.display = 'none';
 
             activeStage = normalizeGrid(stageObj.data);
             // 確実にタイムが速い順にソートしてから上位5件を取得
@@ -3953,17 +4195,11 @@
                 if(ix < 0 || ix >= GRID_W) return true;
                 if(iy < 0) return false;
                 if(iy >= GRID_H) return false;
-
                 const tile = activeStage[iy][ix]; // 壁判定から V を削除
                 if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
-                
                 if (tile === 'D') {
-                    if (isPlayer && player.hasKey > 0) {
-                        player.hasKey--;
-                        activeStage[iy][ix] = null;
-                        updateStageCache();
-                        return false;
-                    }
+                    // 鍵を持っていれば通行を許可する（実際の消費と消去は checkGimmicks で行う）
+                    if (isPlayer && player.hasKey > 0) continue; 
                     return true;
                 }
             }
