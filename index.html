@@ -1122,6 +1122,7 @@
                     <div class="tool-btn tool-color-block" id="btn-tool-Z" onclick="setTool('Z', this)" title="COLOR BLOCK" style="display:none;"><canvas id="icon-Z" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-key" id="btn-tool-o" onclick="setTool('o', this)" title="KEY" style="display:none;"><canvas id="icon-o" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-door" id="btn-tool-D" onclick="setTool('D', this)" title="KEY BLOCK" style="display:none;"><canvas id="icon-D" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-wiremesh" id="btn-tool-#" onclick="setTool('#', this)" title="WIRE MESH" style="display:none;"><canvas id="icon-#" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
                 </div>
@@ -1163,7 +1164,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzEi_T0q6Xq8_a0VODlmCfwZDRVzevnZQ_F1dzIkFFiauZeTDb2ABSFBoeZd5-vpoZM/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.3.0"
+            VERSION: "2.3.3"
         };
         let userGold = 0;
         let userCP = 0;
@@ -1472,6 +1473,7 @@
             'ghost': { name: 'GHOST', price: 20000, sprite: GHOST_SPRITE, recolorIndex: '4' },
             'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: 'k' },
             'key_set': { name: 'KEY SET', price: 25000, isBlockSet: true, sprite: null },
+            'wire_mesh': { name: 'WIRE MESH', price: 50000, isBlockSet: true, sprite: null },
             'custom': { name: 'CUSTOM 1', price: 30000, sprite: null, isCustom: true },
             'custom2': { name: 'CUSTOM 2', price: 50000, sprite: null, isCustom: true },
             'custom3': { name: 'CUSTOM 3', price: 75000, sprite: null, isCustom: true }
@@ -1757,7 +1759,9 @@
             const ctx = canvas.getContext('2d');
 
             if (data.isBlockSet) {
-                drawTile(ctx, 0, 0, 64, 64, 'o'); // プレビューとして鍵を描画
+                let previewType = 'o';
+                if (id === 'wire_mesh') previewType = '#';
+                drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
             }
@@ -3362,6 +3366,9 @@
             if(document.getElementById('btn-tool-o')) document.getElementById('btn-tool-o').style.display = hasKeySet ? 'flex' : 'none';
             if(document.getElementById('btn-tool-D')) document.getElementById('btn-tool-D').style.display = hasKeySet ? 'flex' : 'none';
 
+            // 金網セット
+            if(document.getElementById('btn-tool-#')) document.getElementById('btn-tool-#').style.display = purchasedSkins.includes('wire_mesh') ? 'flex' : 'none';
+
             resizeCanvas('editor-canvas');
             drawEditor();
             renderToolIcons();
@@ -3404,7 +3411,7 @@
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, 
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
-                {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, {type:'E', id:'icon-E'}
+                {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, {type:'#', id:'icon-#'}, {type:'E', id:'icon-E'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -3877,6 +3884,16 @@
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.45, y*ch + ch*0.3, cw*0.1, ch*0.3); // 鍵穴
                 ctx.beginPath(); ctx.arc(x*cw + cw*0.5, y*ch + ch*0.35, cw*0.1, 0, Math.PI*2); ctx.fill();
+            } else if(type === '#') {
+                // 金網 (Wire Mesh)
+                ctx.strokeStyle = "#78909c";
+                ctx.lineWidth = 1;
+                for(let i=1; i<4; i++) {
+                    ctx.beginPath(); ctx.moveTo(x*cw + i*cw/4, y*ch); ctx.lineTo(x*cw + i*cw/4, y*ch + ch); ctx.stroke();
+                }
+                for(let i=1; i<4; i++) {
+                    ctx.beginPath(); ctx.moveTo(x*cw, y*ch + i*ch/4); ctx.lineTo(x*cw + cw, y*ch + i*ch/4); ctx.stroke();
+                }
             } else if(type === 'd') {
                 // 下降気流 (Downdraft)
                 ctx.save();
@@ -4672,7 +4689,7 @@
 
             // X衝突
             let nextX = player.x + player.vx;
-            let collidedX = isCollide(nextX, player.y, true);
+            let collidedX = isCollide(nextX, player.y, true, 'x');
             
             // 一方通行壁（横方向）の判定
             if (!collidedX) {
@@ -4698,7 +4715,7 @@
 
             // Y衝突
             let nextY = player.y + player.vy;
-            let collidedY = isCollide(player.x, nextY, true);
+            let collidedY = isCollide(player.x, nextY, true, 'y');
             
             // 橋（下から抜けられる足場）の特殊判定
             if (!collidedY && player.vy >= 0) {
@@ -4761,7 +4778,7 @@
 
                 // 横移動
                 let nextX = en.x + en.vx;
-                if (!isEnemyCollide(nextX, en.y)) {
+                if (!isEnemyCollide(nextX, en.y, 'x')) {
                     en.x = nextX;
                 } else {
                     const egx = Math.floor(en.x + (en.vx > 0 ? 0.9 : 0));
@@ -4785,7 +4802,7 @@
 
                 let nextY = en.y + en.vy;
                 // 地面との接触判定を少し深く（+0.05）して、歩行中の浮遊感を解消する
-                let collidedY = isEnemyCollide(en.x, nextY + (en.vy > 0 ? 0.05 : 0));
+                let collidedY = isEnemyCollide(en.x, nextY + (en.vy > 0 ? 0.05 : 0), 'y');
                 let isBridge = false;
 
                 if (!collidedY && en.vy >= 0) {
@@ -4957,7 +4974,7 @@
             if (footTile === 'P') player.vx *= 1.15; // 加速
         }
 
-        function isCollideAt(x, y, w, h, isPlayer = false) {
+        function isCollideAt(x, y, w, h, isPlayer = false, axis = null) {
             const inset = 0.05;
             const collisionPoints = [
                 [x + inset, y + inset], 
@@ -4971,7 +4988,7 @@
                 if(iy < 0) return false;
                 if(iy >= GRID_H) return false;
                 const tile = activeStage[iy][ix]; // 壁判定から V を削除
-                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn)) return true;
+                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) || (tile === '#' && axis === 'x')) return true;
                 if (tile === 'D') {
                     // 鍵を持っていれば通行を許可する（実際の消費と消去は checkGimmicks で行う）
                     if (isPlayer && player.hasKey > 0) continue; 
@@ -4981,12 +4998,12 @@
             return false;
         }
 
-        function isCollide(x, y, isPlayer = false) {
-            return isCollideAt(x, y, player.w, player.h, isPlayer);
+        function isCollide(x, y, isPlayer = false, axis = null) {
+            return isCollideAt(x, y, player.w, player.h, isPlayer, axis);
         }
 
-        function isEnemyCollide(x, y) {
-            return isCollideAt(x, y, 0.9, 0.9, false);
+        function isEnemyCollide(x, y, axis = null) {
+            return isCollideAt(x, y, 0.9, 0.9, false, axis);
         }
 
         function isTouchingType(x, y, type) {
