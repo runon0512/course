@@ -2118,11 +2118,25 @@
                 div.appendChild(cvs);
                 div.appendChild(textInfo);
 
-                if (userGuild !== g.name) {
-                    const btn = document.createElement('button');
-                    btn.className = 'pixel-btn small';
+                const btn = document.createElement('button');
+                btn.className = 'pixel-btn small';
+                btn.style.width = '100%';
+
+                const alreadyInGuild = userGuild && userGuild !== "" && userGuild !== "null";
+
+                if (userGuild === g.name) {
+                    div.style.borderColor = 'var(--primary-color)';
+                    btn.innerText = '所属中';
+                    btn.onclick = () => showMyGuild();
+                } else if (alreadyInGuild) {
+                    // すでに他のギルドに所属している場合はメンバー確認ボタンを表示
+                    btn.innerText = 'メンバーを確認';
+                    btn.onclick = () => {
+                        alert(`ギルド「${g.name}」のメンバー一覧:\n\n${g.members.join('\n')}`);
+                    };
+                } else {
+                    // どこにも所属していない場合は入会ボタンを表示
                     btn.innerText = '入会';
-                    btn.style.width = '100%';
                     btn.onclick = async () => {
                         const joinRes = await callApi('joinGuild', { username: CONFIG.USERNAME, guildName: g.name });
                         if (joinRes.success) {
@@ -2131,10 +2145,8 @@
                         }
                         alert(joinRes.message);
                     };
-                    div.appendChild(btn);
-                } else {
-                    div.style.borderColor = 'var(--primary-color)';
                 }
+                div.appendChild(btn);
                 container.appendChild(div);
             });
         }
