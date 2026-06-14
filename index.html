@@ -1021,6 +1021,7 @@
                     <button class="pixel-btn small" onclick="showGlobalRanking('player')" style="min-width:12cqw;">Player</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('gods')" style="min-width:12cqw;">Gods</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
+                    <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
                 </div>
                 <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 1.5cqw;">
@@ -2841,6 +2842,41 @@
                 cachedStages = res.stages || [];
             }
 
+        if (tab === 'guild') {
+            title.innerText = "RANK: GUILD OVR";
+            const guildRes = await callApi('getGuilds', {});
+            const guilds = guildRes.guilds || [];
+            
+            const memberOvrs = {};
+            guilds.forEach(g => {
+                g.members.forEach(m => {
+                    if (!memberOvrs[m]) memberOvrs[m] = calculateProfileStats(m).ovr;
+                });
+                g.totalOvr = g.members.reduce((sum, m) => sum + (memberOvrs[m] || 0), 0);
+            });
+
+            const sortedGuilds = guilds.filter(g => g.totalOvr > 0).sort((a, b) => b.totalOvr - a.totalOvr);
+            
+            const headerRow = body.parentElement.querySelector('thead tr');
+            if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">GUILD</th><th style="padding: 1cqh; text-align: right;">TOTAL OVR</th>`;
+
+            body.innerHTML = sortedGuilds.map((g, i) => `
+                <tr style="border-bottom: 0.1cqw solid #444;">
+                    <td style="padding: 1.5cqh;">${i+1}</td>
+                    <td style="padding: 1.5cqh; display: flex; align-items: center; gap: 1cqw;">
+                        <canvas id="lb-guild-icon-${i}" width="32" height="32" style="image-rendering: pixelated; width: 3cqw; height: 3cqw;"></canvas>
+                        <span style="color: var(--primary-color);">${g.name}</span>
+                    </td>
+                    <td style="padding: 1.5cqh; text-align: right;">${g.totalOvr}</td>
+                </tr>`).join('');
+
+            sortedGuilds.forEach((g, i) => {
+                const cvs = document.getElementById(`lb-guild-icon-${i}`);
+                if (cvs) drawPlayer(cvs.getContext('2d'), 0, 0, 32, 32, g.icon);
+            });
+            return;
+        }
+
             const stats = {}; // { username: { crowns: 0, gods: 0, plays: 0 } }
             cachedStages.forEach(s => {
                 const creator = s.creator;
@@ -3278,6 +3314,8 @@
             document.getElementById('global-rank-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
+            document.getElementById('chat-btn').style.display = 'none';
+            document.getElementById('guild-btn').style.display = 'none';
 
             document.getElementById('editor-screen').style.display = 'block';
             
