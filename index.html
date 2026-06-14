@@ -1891,8 +1891,7 @@
             } else if (latestTime > parseInt(lastSeen)) {
                 if (!isChatOpen) {
                     showQuickMsg("新着メッセージがあります！", "var(--primary-color)");
-                    document.getElementById('chat-btn').innerText = "💬 チャット (新着!)";
-                    document.getElementById('chat-btn').style.borderColor = "var(--primary-color)";
+                    document.getElementById('chat-btn').classList.add('has-notification');
                 }
             }
 
@@ -1900,8 +1899,7 @@
 
             // チャット画面が開いている場合は既読にする
             localStorage.setItem('pixel_chat_last_time', latestTime.toString());
-            document.getElementById('chat-btn').innerText = "💬 チャット";
-            document.getElementById('chat-btn').style.borderColor = "#fff";
+            document.getElementById('chat-btn').classList.remove('has-notification');
 
             const container = document.getElementById('chat-list');
             container.innerHTML = '';
@@ -4886,6 +4884,19 @@
                 player.hasKey++;
                 activeStage[gy][gx] = null;
                 updateStageCache();
+            }
+
+            // 鍵ブロック(D)の消費処理
+            if (player.hasKey > 0) {
+                if (tile === 'D') {
+                    player.hasKey--;
+                    activeStage[gy][gx] = null;
+                    updateStageCache();
+                } else if (footTile === 'D') {
+                    player.hasKey--;
+                    activeStage[footY][gx] = null;
+                    updateStageCache();
+                }
             }
 
             if (tile === 'K' || footTile === 'K') handlePlayerDeath();
