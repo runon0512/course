@@ -1109,6 +1109,9 @@
                     <div class="tool-btn tool-speed" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-bridge" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-enemy" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-red-bridge" id="btn-tool-hr" onclick="setTool('hr', this)" title="RED BRIDGE" style="display:none;"><canvas id="icon-hr" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-blue-bridge" id="btn-tool-hb" onclick="setTool('hb', this)" title="BLUE BRIDGE" style="display:none;"><canvas id="icon-hb" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-sync-enemy" id="btn-tool-e" onclick="setTool('e', this)" title="SYNC ENEMY" style="display:none;"><canvas id="icon-e" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-switch" id="btn-tool-!" onclick="setTool('!', this)" title="ON/OFF SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-red" id="btn-tool-r" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-blue" id="btn-tool-b" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
@@ -1196,14 +1199,15 @@
             { id: 4, cp: 3000, gold: 200 },
             { id: 1, cp: 5000, gold: 1000 }, // 元の5000CP報酬
             { id: 5, cp: 10000, gold: 800 },
-            { id: 12, cp: 15000, unlock: 'Z', text: "カラーブロック" },
             { id: 6, cp: 15000, unlock: 'J', text: "R/B風" }, // Jを15000CPの報酬に
+            { id: 12, cp: 15000, unlock: 'Z', text: "カラーブロック" },
             { id: 7, cp: 20000, unlock: 'd', auroraStone: 1, text: "下降気流" },
             { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" },
+            { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" },
             { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
             { id: 10, cp: 50000, unlock: 'ICE', auroraStone: 1, text: "氷ブロック" },
-            { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" },
-            { id: 13, cp: 100000, auroraStone: 1, text: "オーロラストーン 1個" }
+            { id: 14, cp: 75000, unlock: 'RB_BRIDGE', text: "R/B橋" },
+            { id: 13, cp: 100000, unlock: 'SYNC_ENEMY', auroraStone: 1, text: "シンクロ敵 + AS" }
         ];
         let claimedRoadRewards = [];
 
@@ -3385,6 +3389,12 @@
             if(document.getElementById('btn-tool-I')) document.getElementById('btn-tool-I').style.display = hasIce ? 'flex' : 'none';
             // カラーブロック
             if(document.getElementById('btn-tool-Z')) document.getElementById('btn-tool-Z').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(12)) ? 'flex' : 'none';
+            // R/B橋
+            const hasRBBridge = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(14));
+            if(document.getElementById('btn-tool-hr')) document.getElementById('btn-tool-hr').style.display = hasRBBridge ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-hb')) document.getElementById('btn-tool-hb').style.display = hasRBBridge ? 'flex' : 'none';
+            // シンクロ敵
+            if(document.getElementById('btn-tool-e')) document.getElementById('btn-tool-e').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(13)) ? 'flex' : 'none';
             // 黄色トゲセット
             const hasYSpikes = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(11));
             if(document.getElementById('btn-tool-y')) document.getElementById('btn-tool-y').style.display = hasYSpikes ? 'flex' : 'none';
@@ -3438,7 +3448,8 @@
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, 
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
-                {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, {type:'#', id:'icon-#'}, {type:'E', id:'icon-E'}
+                {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
+                {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'E', id:'icon-E'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -3750,6 +3761,18 @@
                 ctx.fillRect(x*cw, y*ch, cw, ch*0.2);
                 ctx.fillStyle = "#5d4037";
                 ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.1);
+            } else if(type === 'hr') {
+                // 赤い橋
+                ctx.fillStyle = isSwitchOn ? "#ff5252" : "rgba(255, 82, 82, 0.3)";
+                ctx.fillRect(x*cw, y*ch, cw, ch*0.2);
+                ctx.fillStyle = isSwitchOn ? "#b71c1c" : "rgba(183, 28, 28, 0.3)";
+                ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.1);
+            } else if(type === 'hb') {
+                // 青い橋
+                ctx.fillStyle = !isSwitchOn ? "#448aff" : "rgba(68, 138, 255, 0.3)";
+                ctx.fillRect(x*cw, y*ch, cw, ch*0.2);
+                ctx.fillStyle = !isSwitchOn ? "#0d47a1" : "rgba(13, 71, 161, 0.3)";
+                ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.1);
             } else if(type === 'M') {
                 // 敵（アイコン用）
                 ctx.fillStyle = "#f44336";
@@ -3978,6 +4001,13 @@
                 ctx.fillStyle = "#2196f3";
                 ctx.fillRect(x*cw + cw*0.1, y*ch + ch*0.2, cw*0.8, ch*0.8);
                 ctx.fillStyle = "#fff";
+                ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
+                ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
+            } else if(type === 'e') {
+                // シンクロ敵 (Sync Enemy) - 黄色
+                ctx.fillStyle = "#ffeb3b";
+                ctx.fillRect(x*cw + cw*0.1, y*ch + ch*0.2, cw*0.8, ch*0.8);
+                ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
             }
@@ -4335,11 +4365,15 @@
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
                     if(activeStage[y][x] === 'C') totalCheckpoints++;
                     if(activeStage[y][x] === 'M') {
-                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false});
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false});
                         activeStage[y][x] = null; // スポーン後はグリッドから削除
                     }
                     if(activeStage[y][x] === 'j') {
-                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: true});
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: true, sync: false});
+                        activeStage[y][x] = null;
+                    }
+                    if(activeStage[y][x] === 'e') {
+                        enemies.push({x: x, y: y, vx: 0, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: true});
                         activeStage[y][x] = null;
                     }
                 }
@@ -4755,7 +4789,9 @@
                 let footY = player.y + player.h;
                 let nextFootY = nextY + player.h;
                 let ix = Math.floor(player.x + player.w/2), iy = Math.floor(nextFootY);
-                if (activeStage[iy] && activeStage[iy][ix] === 'H' && footY <= iy + 0.1) {
+                const tileBelow = activeStage[iy] ? activeStage[iy][ix] : null;
+                const isSolidBridge = (tileBelow === 'H' || (tileBelow === 'hr' && isSwitchOn) || (tileBelow === 'hb' && !isSwitchOn));
+                if (isSolidBridge && footY <= iy + 0.1) {
                     collidedY = true;
                     nextY = iy - player.h;
                 }
@@ -4803,24 +4839,35 @@
                 const ex_tile = Math.floor(en.x + 0.5);
                 const ey_tile = Math.floor(en.y + 0.5);
                 const current_tile = activeStage[ey_tile] ? activeStage[ey_tile][ex_tile] : null;
-                const foot_tile = activeStage[Math.floor(en.y + 1)] ? activeStage[Math.floor(en.y + 1)][ex_tile] : null;
 
                 // 特殊ブロックの即時反映
                 if(current_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); // トロールの中で跳ねる
+                
+                // 足元のタイルを取得
+                const foot_y_idx = Math.floor(en.y + 1);
+                const foot_tile = activeStage[foot_y_idx] ? activeStage[foot_y_idx][ex_tile] : null;
                 if(foot_tile === 'T' && en.vy > 0) en.vy = -0.4; // トランポリン
 
                 // 横移動
+                if (en.sync) {
+                    en.vx = 0;
+                    if (keys['ArrowLeft']) en.vx = -0.04;
+                    if (keys['ArrowRight']) en.vx = 0.04;
+                }
+
                 let nextX = en.x + en.vx;
                 if (!isEnemyCollide(nextX, en.y, 'x')) {
                     en.x = nextX;
                 } else {
-                    const egx = Math.floor(en.x + (en.vx > 0 ? 0.9 : 0));
-                    const egy = Math.floor(en.y + 0.5);
-                    if (activeStage[egy] && activeStage[egy][egx] === 'X') {
-                        en.vx = (en.vx > 0 ? -0.5 : 0.5);
-                    } else {
-                        en.vx *= -1;
-                    }
+                    if (!en.sync) {
+                        const egx = Math.floor(en.x + (en.vx > 0 ? 0.9 : 0));
+                        const egy = Math.floor(en.y + 0.5);
+                        if (activeStage[egy] && activeStage[egy][egx] === 'X') {
+                            en.vx = (en.vx > 0 ? -0.5 : 0.5);
+                        } else {
+                            en.vx *= -1;
+                        }
+                    } else { en.vx = 0; }
                 }
                 
                 // ギミックによる敵の死亡判定 (黄色いトゲ)
@@ -4841,10 +4888,12 @@
                 if (!collidedY && en.vy >= 0) {
                     let footY = en.y + 0.9;
                     let nextFootY = nextY + 0.9 + 0.05; // 橋の判定も同様に深く
-                    let ix = Math.floor(en.x + 0.45), iy = Math.floor(nextFootY);
-                    if (activeStage[iy] && activeStage[iy][ix] === 'H' && footY <= iy + 0.1) {
+                    let ix = Math.floor(en.x + 0.45), iy_idx = Math.floor(nextFootY);
+                    const enTileBelow = activeStage[iy_idx] ? activeStage[iy_idx][ix] : null;
+                    const isEnSolidBridge = (enTileBelow === 'H' || (enTileBelow === 'hr' && isSwitchOn) || (enTileBelow === 'hb' && !isSwitchOn));
+                    if (isEnSolidBridge && footY <= iy_idx + 0.1) {
                         collidedY = true;
-                        nextY = iy - 0.9; // 地面に密着させる
+                        nextY = iy_idx - 0.9; // 地面に密着させる
                         isBridge = true;
                     }
                 }
@@ -4876,8 +4925,10 @@
                 }
                 
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
-                en.vx *= 0.98;
-                if(Math.abs(en.vx) < 0.04) en.vx = (en.vx >= 0 ? 0.04 : -0.04);
+                if (!en.sync) {
+                    en.vx *= 0.98;
+                    if(Math.abs(en.vx) < 0.04) en.vx = (en.vx >= 0 ? 0.04 : -0.04);
+                }
 
                 // 横方向の風の影響を適用 (ベース速度に加算)
                 if(current_tile === 'W') en.vx += 0.015;
@@ -5137,8 +5188,8 @@
             // 敵の描画
             enemies.forEach(en => {
                 if(!en.dead) {
-                    // jumperフラグによって色を変える
-                    cachedGameCtx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
+                    if (en.sync) cachedGameCtx.fillStyle = "#ffeb3b"; // シンクロ敵は黄色
+                    else cachedGameCtx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
                     cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
                     cachedGameCtx.fillStyle = "#fff";
                     cachedGameCtx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
