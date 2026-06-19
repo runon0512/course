@@ -695,6 +695,112 @@
             70% { transform: scale(1.2); box-shadow: 0 0 0 0.5cqw rgba(255, 82, 82, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
         }
+
+        /* ログインボーナス用スタイル */
+        #login-bonus-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 5cqh;
+            background: rgba(10, 10, 30, 0.95);
+            z-index: 185;
+        }
+        .calendar-container {
+            display: flex;
+            gap: 1.5cqw;
+            justify-content: center;
+            width: 90%;
+            margin: 3cqh 0;
+        }
+        .bonus-card {
+            background: #252538;
+            border: 0.3cqw solid #444;
+            border-radius: 8px;
+            padding: 2cqh 1cqw;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5cqh;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-sizing: border-box;
+            min-height: 25cqh;
+        }
+        .bonus-card.past-claimed {
+            border-color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+            opacity: 0.8;
+        }
+        .bonus-card.past-missed {
+            border-color: #f44336;
+            background: rgba(244, 67, 54, 0.15);
+            opacity: 0.7;
+        }
+        .bonus-card.today {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.15);
+            transform: scale(1.08);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+            z-index: 5;
+        }
+        .bonus-card.today.claimed {
+            border-color: #4caf50;
+            background: rgba(76, 175, 80, 0.15);
+            box-shadow: none;
+            transform: none;
+            z-index: 1;
+        }
+        .bonus-card.future {
+            border-color: #555;
+            background: #111;
+            opacity: 0.5;
+        }
+        .bonus-card .day-name {
+            font-size: 1.4cqw;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+        }
+        .bonus-card .bonus-amount {
+            font-size: 1.8cqw;
+            color: #ffd700;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.3cqw;
+        }
+        .bonus-card .status-label {
+            font-size: 1.1cqw;
+            font-weight: bold;
+            padding: 0.4cqh 0.8cqw;
+            border-radius: 4px;
+            text-align: center;
+            width: 80%;
+        }
+        .bonus-card.past-claimed .status-label {
+            background: #2e7d32;
+            color: #fff;
+        }
+        .bonus-card.past-missed .status-label {
+            background: #c62828;
+            color: #fff;
+        }
+        .bonus-card.today .status-label {
+            background: #ffd700;
+            color: #000;
+            animation: pulse 1.5s infinite;
+        }
+        .bonus-card.today.claimed .status-label {
+            background: #2e7d32;
+            color: #fff;
+            animation: none;
+        }
+        .bonus-card.future .status-label {
+            background: #333;
+            color: #888;
+        }
     </style>
 </head>
 <body>
@@ -733,6 +839,9 @@
 
         <!-- チャットボタン -->
         <button id="chat-btn" class="pixel-btn small" onclick="openChat()" style="position: absolute; top: 25cqh; right: 2cqw; z-index: 15; display: none; background: #3f51b5; color: #fff; border-color: #fff;">💬 チャット</button>
+
+        <!-- ログインボーナスボタン -->
+        <button id="login-bonus-btn" class="pixel-btn small" onclick="openLoginBonus()" style="position: absolute; top: 31cqh; right: 2cqw; z-index: 15; display: none; background: #e0a905; color: #fff; border-color: #fff;">🎁 ボーナス</button>
 
         <!-- ギルドボタン -->
         <button id="guild-btn" class="pixel-btn small" onclick="openGuild()" style="position: absolute; bottom: 2cqh; right: 2cqw; z-index: 15; display: none; background: #795548; color: #fff; border-color: #fff;">🛡️ ギルド</button>
@@ -1020,6 +1129,21 @@
             </div>
         </div>
 
+        <!-- デイリーログインボーナス画面 -->
+        <div id="login-bonus-overlay" class="screen">
+            <h2 style="font-size: 3.5cqw; color: #ffd700; margin-bottom: 1cqh; text-shadow: 0 0 10px rgba(255,215,0,0.5);">DAILY LOGIN BONUS</h2>
+            <p style="font-size: 1.3cqw; color: #aaa; margin: 0 0 3cqh 0;">毎日ログインしてゴールドを獲得しよう！</p>
+            
+            <div class="calendar-container" id="login-bonus-calendar">
+                <!-- 動的に生成 -->
+            </div>
+            
+            <div style="display: flex; gap: 2cqw; justify-content: center; width: 100%; margin-top: 2cqh;">
+                <button id="claim-bonus-btn" class="pixel-btn" style="background: linear-gradient(45deg, #ffd700, #ff9800); color: #000; border-color: #fff; width: 25cqw; font-size: 1.8cqw; display: none;" onclick="claimDailyBonus()">受け取る</button>
+                <button class="pixel-btn small" onclick="closeLoginBonus()" style="background: #546e7a;">閉じる</button>
+            </div>
+        </div>
+
         <!-- 順位表オーバーレイ -->
         <div id="leaderboard-overlay" class="screen" style="z-index: 150; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; display: none;">
             <div class="auth-box" style="width: 70%; max-height: 80cqh;">
@@ -1133,6 +1257,7 @@
                     <div class="tool-btn tool-color-block" id="btn-tool-Z" onclick="setTool('Z', this)" title="COLOR BLOCK" style="display:none;"><canvas id="icon-Z" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-key" id="btn-tool-o" onclick="setTool('o', this)" title="KEY" style="display:none;"><canvas id="icon-o" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-door" id="btn-tool-D" onclick="setTool('D', this)" title="KEY BLOCK" style="display:none;"><canvas id="icon-D" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-aurora-block" id="btn-tool-V" onclick="setTool('V', this)" title="AURORA BLOCK" style="display:none;"><canvas id="icon-V" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-wiremesh" id="btn-tool-#" onclick="setTool('#', this)" title="WIRE MESH" style="display:none;"><canvas id="icon-#" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
                     <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
@@ -1172,10 +1297,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzEi_T0q6Xq8_a0VODlmCfwZDRVzevnZQ_F1dzIkFFiauZeTDb2ABSFBoeZd5-vpoZM/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwJS3xeUEQ1m4jOjysXiy6gx2lpsVxcz3OpSdXnB0uetMHI2ccQi6a8XQXrR6xah0kc/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.3.3"
+            VERSION: "2.3.4"
         };
         let userGold = 0;
         let userCP = 0;
@@ -1186,6 +1311,7 @@
         let equippedSkin = 'default';
         let equippedColor = 'default';
         let currentShopTab = 'skins';
+        let loginBonusHistory = [];
         
         // 各種リフレッシュIDとグローバル状態
         let chatRefreshId = null;
@@ -1507,6 +1633,7 @@
             'demon': { name: 'DEMON', price: 25000, sprite: DEMON_SPRITE, recolorIndex: 'k' },
             'key_set': { name: 'KEY SET', price: 25000, isBlockSet: true, sprite: null },
             'wire_mesh': { name: 'WIRE MESH', price: 50000, isBlockSet: true, sprite: null },
+            'aurora_block': { name: 'AURORA BLOCK', price: 1, isAS: true, isBlockSet: true, sprite: null },
             'custom': { name: 'CUSTOM 1', price: 30000, sprite: null, isCustom: true },
             'custom2': { name: 'CUSTOM 2', price: 50000, sprite: null, isCustom: true },
             'custom3': { name: 'CUSTOM 3', price: 75000, sprite: null, isCustom: true }
@@ -1777,7 +1904,7 @@
                 if ((tab === 'blocks' && isBlock) || (tab === 'skins' && !isBlock)) {
                     const isPurchased = purchasedSkins.includes(id);
                     const isEquipped = equippedSkin === id;
-                    createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target));
+                    createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target, skin.isAS));
                 }
             });
         }
@@ -1794,6 +1921,7 @@
             if (data.isBlockSet) {
                 let previewType = 'o';
                 if (id === 'wire_mesh') previewType = '#';
+                if (id === 'aurora_block') previewType = 'V';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -1810,7 +1938,7 @@
                 btn.disabled = true;
                 item.style.opacity = '0.7'; /* 購入済みアイテムの視認性を少し上げる */
             } else {
-                btn.innerText = `${data.price} G`;
+                btn.innerText = `${data.price} ${data.isAS ? 'AS' : 'G'}`;
                 btn.onclick = onBuy;
             }
             item.appendChild(btn);
@@ -1819,20 +1947,24 @@
 
         function closeShop() { document.getElementById('shop-overlay').style.display = 'none'; }
 
-        async function buyItem(id, price, btn) {
-            if (userGold < price) { alert("Gが足りません！"); return; }
+        async function buyItem(id, price, btn, isAS = false) {
+            if (!isAS && userGold < price) { alert("Gが足りません！"); return; }
+            if (isAS && userAS < price) { alert("ASが足りません！クリア報酬などで獲得してください。"); return; }
             
             const originalText = btn.innerText;
             btn.innerText = "通信中...";
             btn.disabled = true;
 
-            userGold -= price;
+            if (isAS) userAS -= price;
+            else userGold -= price;
+
             purchasedSkins.push(id);
 
             updateGoldDisplay();
             await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
+                auroraStones: userAS,
                 purchasedSkins: purchasedSkins,
                 equippedSkin: equippedSkin,
                 equippedColor: equippedColor,
@@ -1893,11 +2025,129 @@
             document.getElementById('explanation-btn').style.display = 'block';
             document.getElementById('chat-btn').style.display = 'block';
             document.getElementById('guild-btn').style.display = 'block';
+            document.getElementById('login-bonus-btn').style.display = 'block';
+            loginBonusHistory = res.loginBonusHistory || [];
             document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
             
             updateHomeCharacter();
             refreshChat();
             updateGoldDisplay();
+
+            // 今日まだボーナスを受け取っていなければ、自動的にポップアップ表示する
+            const todayStr = getJstDateString();
+            if (!loginBonusHistory.includes(todayStr)) {
+                setTimeout(() => {
+                    openLoginBonus(true);
+                }, 1000);
+            }
+        }
+
+        // --- ログインボーナス関連 ---
+        function getJstDateString(date = new Date()) {
+            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+            const jstDate = new Date(utc + (3600000 * 9));
+            const yyyy = jstDate.getFullYear();
+            const mm = String(jstDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(jstDate.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function openLoginBonus(autoOpen = false) {
+            document.getElementById('login-bonus-overlay').style.display = 'flex';
+            
+            // JSTの現在日付
+            const today = new Date();
+            const utc = today.getTime() + (today.getTimezoneOffset() * 60000);
+            const jstToday = new Date(utc + (3600000 * 9));
+            const currentDay = jstToday.getDay(); // 0:日, 1:月, 2:火, 3:水, 4:木, 5:金, 6:土
+            
+            // 今週の月曜日の日付を求める (日曜日なら6日引く、月曜なら0日引く、火曜なら1日引く...)
+            const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1;
+            const mondayJst = new Date(jstToday.getTime() - distanceToMonday * 24 * 60 * 60 * 1000);
+            
+            const dayLabels = ["月", "火", "水", "木", "金", "土", "日"];
+            const defaultAmounts = [1000, 1000, 1000, 1000, 2000, 3000, 3000];
+            const todayStr = getJstDateString(jstToday);
+            
+            const calendar = document.getElementById('login-bonus-calendar');
+            calendar.innerHTML = '';
+            
+            let todayClaimed = false;
+
+            for (let i = 0; i < 7; i++) {
+                const cardDate = new Date(mondayJst.getTime() + i * 24 * 60 * 60 * 1000);
+                const dateStr = getJstDateString(cardDate);
+                const isClaimed = loginBonusHistory.includes(dateStr);
+                const isToday = (dateStr === todayStr);
+                
+                let cardClass = "future";
+                let statusText = "未到達";
+                
+                if (isToday) {
+                    cardClass = isClaimed ? "today claimed" : "today";
+                    statusText = isClaimed ? "獲得済み" : "今日獲得！";
+                    if (isClaimed) todayClaimed = true;
+                } else if (cardDate < jstToday) {
+                    cardClass = isClaimed ? "past-claimed" : "past-missed";
+                    statusText = isClaimed ? "獲得済み" : "未獲得";
+                } else {
+                    cardClass = "future";
+                    statusText = "未到達";
+                }
+                
+                const card = document.createElement('div');
+                card.className = `bonus-card ${cardClass}`;
+                card.innerHTML = `
+                    <div class="day-name">${dayLabels[i]}曜日</div>
+                    <div style="font-size: 0.8cqw; color: #888;">${cardDate.getMonth() + 1}/${cardDate.getDate()}</div>
+                    <div class="bonus-amount">${defaultAmounts[i]}G</div>
+                    <div class="status-label">${statusText}</div>
+                `;
+                calendar.appendChild(card);
+            }
+            
+            // 今日のボーナスが未獲得の場合は受け取るボタンを表示
+            const claimBtn = document.getElementById('claim-bonus-btn');
+            if (claimBtn) {
+                claimBtn.style.display = todayClaimed ? 'none' : 'block';
+                claimBtn.disabled = false;
+                claimBtn.innerText = "受け取る";
+            }
+        }
+
+        function closeLoginBonus() {
+            document.getElementById('login-bonus-overlay').style.display = 'none';
+        }
+
+        async function claimDailyBonus() {
+            const btn = document.getElementById('claim-bonus-btn');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.innerText = "通信中...";
+            
+            try {
+                const res = await callApi('claimDailyBonus', { username: CONFIG.USERNAME });
+                if (res && res.success) {
+                    userGold = res.gold;
+                    loginBonusHistory = res.loginBonusHistory || [];
+                    updateGoldDisplay();
+                    
+                    // 獲得演出メッセージ
+                    showQuickMsg(`ログインボーナス ${res.rewardGold}G を獲得しました！`, "var(--primary-color)");
+                    
+                    // カレンダーを再描画
+                    openLoginBonus();
+                } else {
+                    alert(res ? res.message : "ログインボーナスの獲得に失敗しました。");
+                    btn.disabled = false;
+                    btn.innerText = "受け取る";
+                }
+            } catch(e) {
+                console.error(e);
+                alert("通信エラーが発生しました。");
+                btn.disabled = false;
+                btn.innerText = "受け取る";
+            }
         }
 
         // --- チャット関連 ---
@@ -3403,6 +3653,9 @@
             if(document.getElementById('btn-tool-o')) document.getElementById('btn-tool-o').style.display = hasKeySet ? 'flex' : 'none';
             if(document.getElementById('btn-tool-D')) document.getElementById('btn-tool-D').style.display = hasKeySet ? 'flex' : 'none';
 
+            // オーロラブロック
+            if(document.getElementById('btn-tool-V')) document.getElementById('btn-tool-V').style.display = purchasedSkins.includes('aurora_block') ? 'flex' : 'none';
+
             // 金網セット
             if(document.getElementById('btn-tool-#')) document.getElementById('btn-tool-#').style.display = purchasedSkins.includes('wire_mesh') ? 'flex' : 'none';
 
@@ -3445,7 +3698,7 @@
                 {type:'B', id:'icon-B'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
-                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, 
+                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
@@ -3761,6 +4014,18 @@
                 ctx.fillRect(x*cw, y*ch, cw, ch*0.2);
                 ctx.fillStyle = "#5d4037";
                 ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.1);
+            } else if(type === 'hr') {
+            } else if(type === 'V') {
+                // オーロラブロック (Aurora Block)
+                const grad = ctx.createLinearGradient(x*cw, y*ch, x*cw+cw, y*ch+ch);
+                grad.addColorStop(0, "rgba(0, 255, 255, 0.8)");
+                grad.addColorStop(0.5, "rgba(160, 32, 240, 0.8)");
+                grad.addColorStop(1, "rgba(0, 255, 150, 0.8)");
+                ctx.fillStyle = grad;
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
             } else if(type === 'hr') {
                 // 赤い橋
                 ctx.fillStyle = isSwitchOn ? "#ff5252" : "rgba(255, 82, 82, 0.3)";
@@ -4791,6 +5056,7 @@
                 let ix = Math.floor(player.x + player.w/2), iy = Math.floor(nextFootY);
                 const tileBelow = activeStage[iy] ? activeStage[iy][ix] : null;
                 const isSolidBridge = (tileBelow === 'H' || (tileBelow === 'hr' && isSwitchOn) || (tileBelow === 'hb' && !isSwitchOn));
+                
                 if (isSolidBridge && footY <= iy + 0.1) {
                     collidedY = true;
                     nextY = iy - player.h;
@@ -5072,7 +5338,7 @@
                 if(iy < 0) return false;
                 if(iy >= GRID_H) return false;
                 const tile = activeStage[iy][ix]; // 壁判定から V を削除
-                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) || (tile === '#' && axis === 'x')) return true;
+                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || tile === 'V' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) || (tile === '#' && axis === 'x')) return true;
                 if (tile === 'D') {
                     // 鍵を持っていれば通行を許可する（実際の消費と消去は checkGimmicks で行う）
                     if (isPlayer && player.hasKey > 0) continue; 
