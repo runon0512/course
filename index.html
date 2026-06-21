@@ -568,8 +568,8 @@
         .editor-bottom-bar {
             position: absolute;
             bottom: 2cqh;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 2cqw;
+            right: calc(6.5cqw + 4cqw);
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -579,8 +579,9 @@
             padding: 1cqw;
             border: 0.2cqw solid #fff;
             z-index: 40;
-            max-width: 95%;
+            max-width: calc(100% - 10.5cqw);
             overflow-x: auto;
+            box-sizing: border-box;
         }
 
         .toolbar-label {
@@ -592,6 +593,7 @@
         }
 
         .tool-btn {
+            position: relative;
             width: 4.5cqw;
             height: 4.5cqw;
             border: 0.2cqw solid #fff;
@@ -603,12 +605,109 @@
             color: white;
             padding: 0.2cqw;
             box-sizing: border-box;
-            transition: transform 0.1s;
+            transition: transform 0.1s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
             flex-shrink: 0;
+            background: rgba(0,0,0,0.4);
         }
 
-        .tool-btn.active { border-color: var(--primary-color); background: #333; }
+        .tool-btn.active {
+            border-color: var(--primary-color);
+            background: rgba(255,255,0,0.4);
+            box-shadow: 0 0 1.1cqw rgba(255,255,255,0.45);
+            transform: scale(1.1);
+        }
+
         .tool-btn:hover { transform: scale(1.1); z-index: 45; }
+        .tool-btn.basic { border-color: #81d4fa; background: rgba(129,212,250,0.15); }
+        .tool-btn.basic.active { background: rgba(255,255,0,0.4); }
+        .tool-btn.rank-common { border-color: #2ecc71; }
+        .tool-btn.rank-rare { border-color: #2196f3; }
+        .tool-btn.rank-epic { border-color: #ff9800; }
+        .tool-btn.rank-legendary { border-color: #9c27b0; }
+
+        .editor-right-bar {
+            position: absolute;
+            top: 10cqh;
+            right: 1.5cqw;
+            width: 6.5cqw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8cqw;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 1cqw;
+            border: 0.2cqw solid #fff;
+            border-radius: 1cqw;
+            z-index: 40;
+            box-sizing: border-box;
+        }
+
+        .editor-right-bar .toolbar-label {
+            width: 100%;
+            text-align: center;
+            font-size: 1.1cqw;
+            font-weight: bold;
+            color: #000;
+            background: #81d4fa;
+            padding: 0.8cqw 0.5cqw;
+            border-radius: 0.8cqw;
+            border: 0.1cqw solid #4fc3f7;
+        }
+
+        .editor-right-bar .tool-btn {
+            width: 5.5cqw;
+            height: 5.5cqw;
+        }
+
+        .tool-description {
+            width: 100%;
+            min-height: 10cqh;
+            background: rgba(255,255,255,0.08);
+            border: 0.1cqw solid rgba(255,255,255,0.2);
+            border-radius: 0.8cqw;
+            padding: 0.8cqw;
+            color: #ffffff;
+            font-size: 1.0cqw;
+            line-height: 1.3;
+            text-align: left;
+            box-sizing: border-box;
+            margin-top: 0.5cqw;
+        }
+
+        .tool-description .description-title {
+            font-weight: bold;
+            margin-bottom: 0.4cqw;
+            color: #ffeb3b;
+        }
+
+        .tool-description .description-text {
+            white-space: normal;
+        }
+
+        .explanation-item {
+            display: grid;
+            grid-template-columns: 6cqw auto;
+            gap: 0.8cqw;
+            padding: 1cqw;
+            background: rgba(255,255,255,0.08);
+            border: 0.1cqw solid rgba(255,255,255,0.2);
+            border-radius: 0.8cqw;
+            align-items: center;
+        }
+
+        .explanation-icon {
+            width: 6cqw;
+            height: 6cqw;
+            background: rgba(0,0,0,0.12);
+            border: 0.1cqw solid rgba(255,255,255,0.2);
+            border-radius: 0.8cqw;
+            image-rendering: pixelated;
+        }
+
+        .explanation-item .explanation-text {
+            font-size: 1.0cqw;
+            line-height: 1.4;
+        }
 
         .tool-canvas {
             width: 100%;
@@ -823,6 +922,7 @@
         <!-- ユーザー情報 -->
         <div id="user-info">
             USER: <span id="current-user">-</span> | 
+            <span style="color:#2ecc71;">ON: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
             <span style="color:#e0f7fa;">AS: <span id="user-as">0</span></span>
@@ -1218,50 +1318,53 @@
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                 </div>
+                <div class="editor-right-bar">
+                    <div class="toolbar-label basic-label">Basic</div>
+                    <div class="tool-btn tool-block basic" id="btn-tool-B" onclick="setTool('B', this)" title="BLOCK"><canvas id="icon-B" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-start basic" id="btn-tool-S" onclick="setTool('S', this)" title="START"><canvas id="icon-S" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-goal basic" id="btn-tool-G" onclick="setTool('G', this)" title="GOAL"><canvas id="icon-G" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-spike basic" id="btn-tool-K" onclick="setTool('K', this)" title="SPIKE"><canvas id="icon-K" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-enemy basic" id="btn-tool-M" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn tool-eraser basic" id="btn-tool-E" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
+                </div>
                 <div class="editor-bottom-bar">
                     <span class="toolbar-label">ITEMS:</span>
-                    <div class="tool-btn tool-block active" onclick="setTool('B', this)" title="BLOCK"><canvas id="icon-B" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-start" onclick="setTool('S', this)" title="START"><canvas id="icon-S" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-goal" onclick="setTool('G', this)" title="GOAL"><canvas id="icon-G" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-spike" onclick="setTool('K', this)" title="SPIKE"><canvas id="icon-K" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-arrow" onclick="setTool('A', this)" title="ARROW LAUNCHER"><canvas id="icon-A" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-trampoline" onclick="setTool('T', this)" title="TRAMPOLINE"><canvas id="icon-T" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-troll" onclick="setTool('X', this)" title="TROLL BLOCK"><canvas id="icon-X" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-wind" onclick="setTool('W', this)" title="WIND ZONE"><canvas id="icon-W" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-wind-left" onclick="setTool('L', this)" title="WIND LEFT"><canvas id="icon-L" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-updraft" onclick="setTool('U', this)" title="UPDRAFT"><canvas id="icon-U" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-speed" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-bridge" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-enemy" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-red-bridge" id="btn-tool-hr" onclick="setTool('hr', this)" title="RED BRIDGE" style="display:none;"><canvas id="icon-hr" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-blue-bridge" id="btn-tool-hb" onclick="setTool('hb', this)" title="BLUE BRIDGE" style="display:none;"><canvas id="icon-hb" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-sync-enemy" id="btn-tool-e" onclick="setTool('e', this)" title="SYNC ENEMY" style="display:none;"><canvas id="icon-e" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-switch" id="btn-tool-!" onclick="setTool('!', this)" title="ON/OFF SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-red" id="btn-tool-r" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-blue" id="btn-tool-b" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-oneway-r" onclick="setTool('>', this)" title="ONEWAY RIGHT"><canvas id="icon-owr" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-oneway-l" onclick="setTool('<', this)" title="ONEWAY LEFT"><canvas id="icon-owl" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-oneway-d" onclick="setTool('v', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-checkpoint" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-red-spike" id="btn-tool-k" onclick="setTool('k', this)" title="RED SPIKE"> <canvas id="icon-k" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-blue-spike" id="btn-tool-q" onclick="setTool('q', this)" title="BLUE SPIKE"> <canvas id="icon-q" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-sticky" id="btn-tool-Y" onclick="setTool('Y', this)" title="STICKY BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-downdraft" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-rb-wind" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-jumper-enemy" id="btn-tool-j" onclick="setTool('j', this)" title="JUMPER ENEMY" style="display:none;"><canvas id="icon-j" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-yspike" id="btn-tool-y" onclick="setTool('y', this)" title="YELLOW SPIKE" style="display:none;"><canvas id="icon-y" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-gun-up" id="btn-tool-ug" onclick="setTool('ug', this)" title="UP GUN" style="display:none;"><canvas id="icon-ug" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-gun-down" id="btn-tool-dg" onclick="setTool('dg', this)" title="DOWN GUN" style="display:none;"><canvas id="icon-dg" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-gun-right" id="btn-tool-rg" onclick="setTool('rg', this)" title="RIGHT GUN" style="display:none;"><canvas id="icon-rg" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-ice" id="btn-tool-I" onclick="setTool('I', this)" title="ICE BLOCK" style="display:none;"><canvas id="icon-I" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-color-block" id="btn-tool-Z" onclick="setTool('Z', this)" title="COLOR BLOCK" style="display:none;"><canvas id="icon-Z" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-key" id="btn-tool-o" onclick="setTool('o', this)" title="KEY" style="display:none;"><canvas id="icon-o" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-door" id="btn-tool-D" onclick="setTool('D', this)" title="KEY BLOCK" style="display:none;"><canvas id="icon-D" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-aurora-block" id="btn-tool-V" onclick="setTool('V', this)" title="AURORA BLOCK" style="display:none;"><canvas id="icon-V" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-wiremesh" id="btn-tool-#" onclick="setTool('#', this)" title="WIRE MESH" style="display:none;"><canvas id="icon-#" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn tool-spawner" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('A', this)" title="ARROW LAUNCHER"><canvas id="icon-A" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('T', this)" title="TRAMPOLINE"><canvas id="icon-T" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('X', this)" title="TROLL BLOCK"><canvas id="icon-X" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('W', this)" title="WIND ZONE"><canvas id="icon-W" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('L', this)" title="WIND LEFT"><canvas id="icon-L" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('U', this)" title="UPDRAFT"><canvas id="icon-U" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('>', this)" title="ONEWAY RIGHT"><canvas id="icon-owr" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('<', this)" title="ONEWAY LEFT"><canvas id="icon-owl" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('v', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" id="btn-tool-q" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" id="btn-tool-k" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" id="btn-tool-r" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" id="btn-tool-b" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" id="btn-tool-!" onclick="setTool('!', this)" title="R/B SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-Y" onclick="setTool('Y', this)" title="STICKY BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-j" onclick="setTool('j', this)" title="JUMPER ENEMY" style="display:none;"><canvas id="icon-j" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-y" onclick="setTool('y', this)" title="YELLOW SPIKE" style="display:none;"><canvas id="icon-y" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-ug" onclick="setTool('ug', this)" title="UP GUN" style="display:none;"><canvas id="icon-ug" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-dg" onclick="setTool('dg', this)" title="DOWN GUN" style="display:none;"><canvas id="icon-dg" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-rg" onclick="setTool('rg', this)" title="RIGHT GUN" style="display:none;"><canvas id="icon-rg" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-I" onclick="setTool('I', this)" title="ICE BLOCK" style="display:none;"><canvas id="icon-I" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-Z" onclick="setTool('Z', this)" title="COLOR BLOCK" style="display:none;"><canvas id="icon-Z" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-o" onclick="setTool('o', this)" title="KEY" style="display:none;"><canvas id="icon-o" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-D" onclick="setTool('D', this)" title="KEY BLOCK" style="display:none;"><canvas id="icon-D" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-epic" id="btn-tool-hr" onclick="setTool('hr', this)" title="RED BRIDGE" style="display:none;"><canvas id="icon-hr" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-epic" id="btn-tool-hb" onclick="setTool('hb', this)" title="BLUE BRIDGE" style="display:none;"><canvas id="icon-hb" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-epic" id="btn-tool-e" onclick="setTool('e', this)" title="SYNC ENEMY" style="display:none;"><canvas id="icon-e" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-epic" id="btn-tool-#" onclick="setTool('#', this)" title="WIRE MESH" style="display:none;"><canvas id="icon-#" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-V" onclick="setTool('V', this)" title="AURORA BLOCK" style="display:none;"><canvas id="icon-V" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
-                    <div class="tool-btn tool-eraser" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
                 </div>
             </div>
         </div>
@@ -1272,7 +1375,7 @@
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
                 <span>ARROWS: MOVE | SPACE: JUMP | 
                     <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw; opacity: 0.5; pointer-events: none;">RETRY</span>
-                    <span onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span> 
+                    <span id="game-exit-btn" onclick="exitGame()" style="cursor:pointer; text-decoration: underline; opacity: 0.5; pointer-events: none;">EXIT</span> 
                 </span>
                 <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1.2cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
                     <input type="checkbox" id="toggle-ghosts">
@@ -1298,7 +1401,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwJS3xeUEQ1m4jOjysXiy6gx2lpsVxcz3OpSdXnB0uetMHI2ccQi6a8XQXrR6xah0kc/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzRP574gg9QA8i0pWJg9kf48Xe1qkUf29Mq-e65k8waDDVIvZXB58Nfi70yboCNRro1/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.3.5"
@@ -1349,6 +1452,49 @@
         // --- ゲームエンジン変数 ---
         let editorGrid = [];
         let currentTool = 'B';
+        const TOOL_DESCRIPTIONS = {
+            'B': { title: 'ブロック', text: '通常の足場ブロック。ステージの基本構造に使います。' },
+            'S': { title: 'スタート', text: 'プレイヤーの開始位置を設定するブロックです。ステージに1つだけ配置します。' },
+            'G': { title: 'ゴール', text: 'プレイヤーが到達するとクリアになるゴールブロックです。' },
+            'K': { title: 'スパイク', text: '触れるとプレイヤーがやられる危険なトゲです。' },
+            'M': { title: '敵', text: '動く敵キャラクターです。ぶつかると死亡します。' },
+            'E': { title: '消しゴム', text: '配置したブロックやアイテムを消すツールです。' },
+            'A': { title: '矢印発射装置', text: '左向きに矢を発射します。矢に触れると死亡します。' },
+            'T': { title: 'トランポリン', text: '乗ると高く跳ね返る足場です。ジャンプ中継に使えます。' },
+            'X': { title: 'トロールブロック', text: '横から触れると弾くブロックです。敵にも効果があります。' },
+            'W': { title: '風ゾーン', text: '常に右方向に風を吹かせ続ける領域です。プレイヤーを押し出します。' },
+            'L': { title: '左風', text: '左方向に風を吹かせる区画です。戻りやすくできます。' },
+            'U': { title: '上昇気流', text: '上方向にプレイヤーを持ち上げる空気の流れです。飛行や高所移動に使えます。' },
+            'P': { title: 'スピードブロック', text: '触れるとプレイヤーの移動速度が速くなる床です。' },
+            'H': { title: '橋', text: '通常の橋ブロックです。下側からジャンプで抜けることができます。' },
+            '>': { title: '一方通行（右）', text: '右方向にのみ通行できる通行ブロックです。' },
+            '<': { title: '一方通行（左）', text: '左方向にのみ通行できる通行ブロックです。' },
+            'v': { title: '一方通行（下）', text: '下方向にのみ通行できる通行ブロックです。' },
+            'C': { title: 'チェックポイント', text: '設置すると、すべて通らないとゴールできないようになります。ルート制限に使えます。' },
+            'q': { title: '青いトゲ', text: '赤青モードが現在のモードと一致していないと表示されないトゲです。' },
+            'k': { title: '赤いトゲ', text: '赤青モードの赤状態でのみ実体化するトゲです。青状態では無効化されます。' },
+            'r': { title: '赤ブロック', text: '赤青モードの赤状態でだけ実体化する足場ブロックです。青状態では透明になります。' },
+            'b': { title: '青ブロック', text: '赤青モードの青状態でだけ実体化する足場ブロックです。赤状態では透明になります。' },
+            '!': { title: 'R/Bスイッチ', text: '赤青モードを切り替えるスイッチブロックです。触れるとモードが切り替わります。' },
+            'Y': { title: '粘着ブロック', text: '踏むと足が引っかかるブロックです。移動が遅くなります。' },
+            'd': { title: '下降気流', text: '下方向にプレイヤーを引き下ろす空気の流れです。' },
+            'J': { title: 'R/B風', text: '赤青モードで風向を切り替えるスイッチ式の風です。' },
+            'j': { title: 'ジャンプ敵', text: 'プレイヤーのジャンプに合わせてジャンプする敵です。' },
+            'y': { title: '黄色いトゲ', text: 'プレイヤーだけでなく、敵も倒す凶暴なトゲです。' },
+            'ug': { title: '上向き銃', text: '上方向に弾を撃つ銃です。トリッキーな攻撃を作れます。' },
+            'dg': { title: '下向き銃', text: '下方向に弾を撃つ銃です。足元を警戒させる仕掛けに。' },
+            'rg': { title: '右向き銃', text: '右方向に弾を撃つ銃です。進行方向の障害として使います。' },
+            'I': { title: '氷ブロック', text: '滑りやすい床のブロックです。スリップしやすくなります。' },
+            'Z': { title: 'カラーブロック', text: '色が変えられるブロックです。選択した色でステージを彩れます。' },
+            'o': { title: '鍵', text: '鍵アイテムです。鍵ブロックと組み合わせて扉を作れます。' },
+            'D': { title: '鍵ブロック', text: '鍵を使って解除できるブロックです。鍵とセットで使います。' },
+            'hr': { title: '赤橋', text: '赤モードのときだけ渡れる橋です。R/Bギミックの要素です。' },
+            'hb': { title: '青橋', text: '青モードのときだけ渡れる橋です。こちらもR/Bギミック用です。' },
+            'e': { title: 'シンクロ敵', text: 'プレイヤーの左右移動をマネする可愛い敵です。' },
+            '#': { title: '金網', text: 'プレイヤーの進行を阻む金網です。縦向きでしか通過できません。' },
+            'V': { title: 'オーロラブロック', text: '光る特別なブロックです。何か力を秘めているとか...' },
+            'sp': { title: 'スポナーブロック', text: '一定間隔で敵を生成する仕掛けブロックです。' }
+        };
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
@@ -1821,6 +1967,21 @@
             }
         }
 
+        async function refreshOnlineCount() {
+            if (!CONFIG.IS_LOGGED_IN) return;
+            const res = await callApi('refreshOnlineUsers', { username: CONFIG.USERNAME });
+            if (res.success && typeof res.onlineCount === 'number') {
+                const el = document.getElementById('online-count');
+                if (el) el.innerText = res.onlineCount;
+            }
+        }
+
+        function startOnlineCountUpdates() {
+            if (window.onlineCountTimer) clearInterval(window.onlineCountTimer);
+            refreshOnlineCount();
+            window.onlineCountTimer = setInterval(refreshOnlineCount, 15000);
+        }
+
         function handleAuth(type) {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
@@ -1975,12 +2136,67 @@
             openShop(currentShopTab);
         }
 
+        const TOOL_CATEGORIES = {
+            basic: ['B', 'S', 'G', 'K', 'M', 'E']
+        };
+        const TOOL_RANK_GROUPS = {
+            common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
+            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D'],
+            epic: ['hr', 'hb', 'e', '#'],
+            legendary: ['V', 'sp']
+        };
+        const TOOL_RANK_LABELS = {
+            common: 'Common',
+            rare: 'Rare',
+            epic: 'Epic',
+            legendary: 'Legendary'
+        };
+
         function openExplanation() {
             const overlay = document.getElementById('explanation-overlay');
             const list = document.getElementById('explanation-list');
             overlay.style.display = 'flex';
-            list.innerHTML = '<div style="font-size: 2cqw; text-align: center; width: 100%; padding: 5cqh 0;">近日追加予定</div>';
+            list.innerHTML = buildExplanationHtml();
+            renderExplanationIcons();
         }
+
+        function buildExplanationHtml() {
+            const sections = [];
+            sections.push('<div style="font-size: 2.2cqw; font-weight: bold; margin-bottom: 1.2cqw;">Basic</div>');
+            sections.push('<div style="display: grid; gap: 1cqw;">');
+            TOOL_CATEGORIES.basic.forEach(type => {
+                const desc = TOOL_DESCRIPTIONS[type] || { title: type, text: '説明がありません。' };
+                sections.push(`<div class="explanation-item"><canvas class="explanation-icon" data-tool-type="${type}"></canvas><div class="explanation-text"><div style="font-size: 1.2cqw; font-weight: bold; margin-bottom: 0.5cqw;">${desc.title} (${type})</div><div>${desc.text}</div></div></div>`);
+            });
+            sections.push('</div>');
+
+            sections.push('<div style="font-size: 2.2cqw; font-weight: bold; margin: 2cqh 0 1.2cqw;">Special</div>');
+            Object.keys(TOOL_RANK_GROUPS).forEach(rank => {
+                const tools = TOOL_RANK_GROUPS[rank];
+                if (!tools || tools.length === 0) return;
+                sections.push(`<div style="font-size: 1.6cqw; font-weight: bold; margin-top: 1cqw; color: #ffeb3b;">${TOOL_RANK_LABELS[rank] || rank}</div>`);
+                sections.push('<div style="display: grid; gap: 1cqw; margin-top: 0.8cqw;">');
+                tools.forEach(type => {
+                    const desc = TOOL_DESCRIPTIONS[type] || { title: type, text: '説明がありません。' };
+                    sections.push(`<div class="explanation-item"><canvas class="explanation-icon" data-tool-type="${type}"></canvas><div class="explanation-text"><div style="font-size: 1.1cqw; font-weight: bold; margin-bottom: 0.4cqw;">${desc.title} (${type})</div><div>${desc.text}</div></div></div>`);
+                });
+                sections.push('</div>');
+            });
+            return sections.join('');
+        }
+
+        function renderExplanationIcons() {
+            const canvases = document.querySelectorAll('.explanation-icon');
+            canvases.forEach(canvas => {
+                const type = canvas.dataset.toolType;
+                canvas.width = 60;
+                canvas.height = 60;
+                const ctx = canvas.getContext('2d');
+                if (type === 'E') drawEraserIcon(ctx, 60, 60);
+                else drawTile(ctx, 0, 0, 60, 60, type);
+            });
+        }
+
         function closeExplanation() { document.getElementById('explanation-overlay').style.display = 'none'; }
 
         // --- 初期データ読み込み ---
@@ -2035,6 +2251,7 @@
             updateHomeCharacter();
             refreshChat();
             updateGoldDisplay();
+            startOnlineCountUpdates();
 
             // 今日まだボーナスを受け取っていなければ、自動的にポップアップ表示する
             const todayStr = getJstDateString();
@@ -3668,6 +3885,12 @@
 
             resizeCanvas('editor-canvas');
             drawEditor();
+            const defaultBtn = document.getElementById('btn-tool-' + currentTool);
+            if (defaultBtn) {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                defaultBtn.classList.add('active');
+            }
+            updateToolDescription(currentTool);
             renderToolIcons();
         }
 
@@ -3756,6 +3979,14 @@
                     });
                 }
             }
+        }
+
+        function updateToolDescription(type) {
+            const description = TOOL_DESCRIPTIONS[type] || { title: '不明なツール', text: 'このツールの説明はありません。' };
+            const titleEl = document.getElementById('tool-description-title');
+            const textEl = document.getElementById('tool-description-text');
+            if (titleEl) titleEl.innerText = description.title;
+            if (textEl) textEl.innerText = description.text;
         }
 
         function drawEraserIcon(ctx, w, h) {
@@ -4022,7 +4253,6 @@
                 ctx.fillRect(x*cw, y*ch, cw, ch*0.2);
                 ctx.fillStyle = "#5d4037";
                 ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.1);
-            } else if(type === 'hr') {
             } else if(type === 'V') {
                 // オーロラブロック (Aurora Block)
                 const grad = ctx.createLinearGradient(x*cw, y*ch, x*cw+cw, y*ch+ch);
@@ -4709,6 +4939,8 @@
 
         function retryGame() {
             document.getElementById('msg-overlay').style.display = 'none';
+            const rewardOverlay = document.getElementById('reward-overlay');
+            if (rewardOverlay) rewardOverlay.style.display = 'none';
             startGame(currentStageData, gameMode);
         }
 
@@ -5467,24 +5699,31 @@
                 }
             }
 
-            // Retryボタンの状態更新 (開始から15秒制限)
+            // Retry/Exitの状態更新 (開始から5秒後まで無効)
             const gameRetryBtn = document.getElementById('game-retry-btn');
+            const gameExitBtn = document.getElementById('game-exit-btn');
+            const canUseControls = !isCountingDown && !isGoalTriggered && startTime > 0;
+            const elapsed = canUseControls ? (Date.now() - startTime) / 1000 : Infinity;
+            const isControlEnabled = canUseControls && elapsed >= 5;
+
             if (gameRetryBtn) {
-                if (!isCountingDown && !isGoalTriggered && startTime > 0) {
-                    const elapsed = (Date.now() - startTime) / 1000;
-                    if (elapsed < 15) {
-                        gameRetryBtn.style.opacity = "0.5";
-                        gameRetryBtn.style.pointerEvents = "none";
-                        gameRetryBtn.innerText = `RETRY(${Math.ceil(15 - elapsed)})`;
-                    } else {
-                        gameRetryBtn.style.opacity = "1";
-                        gameRetryBtn.style.pointerEvents = "auto";
-                        gameRetryBtn.innerText = "RETRY";
-                    }
-                } else {
+                if (!isControlEnabled) {
                     gameRetryBtn.style.opacity = "0.5";
                     gameRetryBtn.style.pointerEvents = "none";
+                    gameRetryBtn.innerText = canUseControls ? `RETRY(${Math.ceil(5 - elapsed)})` : "RETRY";
+                } else {
+                    gameRetryBtn.style.opacity = "1";
+                    gameRetryBtn.style.pointerEvents = "auto";
                     gameRetryBtn.innerText = "RETRY";
+                }
+            }
+            if (gameExitBtn) {
+                if (!isControlEnabled) {
+                    gameExitBtn.style.opacity = "0.5";
+                    gameExitBtn.style.pointerEvents = "none";
+                } else {
+                    gameExitBtn.style.opacity = "1";
+                    gameExitBtn.style.pointerEvents = "auto";
                 }
             }
 
