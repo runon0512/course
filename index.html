@@ -1364,6 +1364,7 @@
                     <div class="tool-btn rank-epic" id="btn-tool-#" onclick="setTool('#', this)" title="WIRE MESH" style="display:none;"><canvas id="icon-#" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-V" onclick="setTool('V', this)" title="AURORA BLOCK" style="display:none;"><canvas id="icon-V" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-mg" onclick="setTool('mg', this)" title="MISSILE GUN" style="display:none;"><canvas id="icon-mg" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
                 </div>
             </div>
@@ -1426,14 +1427,15 @@
 
         // クリエイターズロード用
         const CREATORS_ROAD_MILESTONES = [
-            { id: 2, cp: 1000, gold: 500 }, // Gはゲームの基本要素なのでアンロック対象から除外
+            { id: 2, cp: 1000, gold: 500 },
             { id: 3, cp: 2000, unlock: 'Y', text: "粘着ブロック" },
             { id: 4, cp: 3000, gold: 200 },
-            { id: 1, cp: 5000, gold: 1000 }, // 元の5000CP報酬
+            { id: 1, cp: 5000, gold: 1000 },
             { id: 5, cp: 10000, gold: 800 },
-            { id: 6, cp: 15000, unlock: 'J', text: "R/B風" }, // Jを15000CPの報酬に
+            { id: 6, cp: 15000, unlock: 'J', text: "R/B風" },
             { id: 12, cp: 15000, unlock: 'Z', text: "カラーブロック" },
             { id: 7, cp: 20000, unlock: 'd', auroraStone: 1, text: "下降気流" },
+            { id: 15, cp: 25000, unlock: 'MISSILE_GUN', text: "ミサイル銃" },
             { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" },
             { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" },
             { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
@@ -1495,7 +1497,8 @@
             'e': { title: 'シンクロ敵', text: 'プレイヤーの左右移動をマネする可愛い敵です。' },
             '#': { title: '金網', text: 'プレイヤーの進行を阻む金網です。縦向きでしか通過できません。' },
             'V': { title: 'オーロラブロック', text: '光る特別なブロックです。何か力を秘めているとか...' },
-            'sp': { title: 'スポナーブロック', text: '一定間隔で敵を生成する仕掛けブロックです。' }
+            'sp': { title: 'スポナーブロック', text: '一定間隔で敵を生成する仕掛けブロックです。' },
+            'mg': { title: 'ミサイル銃', text: '右方向にミサイルを発射します。ミサイルはブロックに当たると周囲9マスを爆発で破壊します。' }
         };
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
@@ -1513,6 +1516,8 @@
         let filterCreatorName = '';
         let favoriteStages = [];
         let arrows = [];
+        let missiles = [];
+        let explosionEffects = []; // 爆発エフェクト
         let enemies = [];
         let playbackGhosts = [];
         let showGhosts = true;
@@ -2148,7 +2153,7 @@
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
             rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D'],
             epic: ['hr', 'hb', 'e', '#'],
-            legendary: ['V', 'sp']
+            legendary: ['V', 'sp', 'mg']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -3953,6 +3958,9 @@
             // スポナーブロック
             if(document.getElementById('btn-tool-sp')) document.getElementById('btn-tool-sp').style.display = purchasedSkins.includes('spawner') ? 'flex' : 'none';
 
+            // ミサイル銃
+            if(document.getElementById('btn-tool-mg')) document.getElementById('btn-tool-mg').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(15)) ? 'flex' : 'none';
+
             resizeCanvas('editor-canvas');
             drawEditor();
             const defaultBtn = document.getElementById('btn-tool-' + currentTool);
@@ -4003,7 +4011,7 @@
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
-                {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'E', id:'icon-E'}
+                {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -4523,14 +4531,29 @@
                 for(let i=1; i<4; i++) {
                     ctx.beginPath(); ctx.moveTo(x*cw, y*ch + i*ch/4); ctx.lineTo(x*cw + cw, y*ch + i*ch/4); ctx.stroke();
                 }
-            } else if(type === 'sp') {
+            } else if(type === 'sp' || type === 'sp_blue') {
                 // スポナーブロック (Spawner Block)
+                // sp_blue: オーロラブロックの上にある場合（青い敵を召喚）
+                const isBlue = (type === 'sp_blue');
                 ctx.fillStyle = "#78909c"; // 鉄色
                 ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
                 ctx.fillStyle = "#37474f"; // 内枠
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.2, cw*0.6, ch*0.6);
-                ctx.fillStyle = "#f44336"; // 赤いコア
+                ctx.fillStyle = isBlue ? "#2196f3" : "#f44336"; // 青or赤いコア
                 ctx.fillRect(x*cw + cw*0.35, y*ch + ch*0.35, cw*0.3, ch*0.3);
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+            } else if(type === 'mg') {
+                // ミサイル銃 (Missile Gun) - 右向き発射
+                ctx.fillStyle = "#1a237e"; // 濃い紺色のボディ
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#ff6f00"; // オレンジの砲身
+                ctx.fillRect(x*cw + cw*0.5, y*ch + ch*0.35, cw*0.5, ch*0.3);
+                ctx.fillStyle = "#fff";
+                ctx.font = `bold ${ch*0.3}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.fillText("M", x*cw + cw*0.3, y*ch + ch*0.65);
                 ctx.strokeStyle = "#fff";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
@@ -4988,6 +5011,17 @@
             playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
             updateStageCache();
             arrows = [];
+            missiles = [];
+            explosionEffects = [];
+            
+            // オーロラブロック(V)の上にスポナー(sp)があれば青スポナー(sp_blue)に変換
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    if (activeStage[y][x] === 'sp' && y + 1 < GRID_H && activeStage[y + 1][x] === 'V') {
+                        activeStage[y][x] = 'sp_blue';
+                    }
+                }
+            }
             isGoalTriggered = false;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             rewardAlreadyAdded = false;
@@ -5557,11 +5591,13 @@
                 }
             });
 
-            // スポナー（sp）の敵召喚処理 (300フレームごと)
+            // スポナー（sp / sp_blue）の敵召喚処理 (300フレームごと)
             if (!isCountingDown && frameCount > 0 && frameCount % 300 === 0) {
                 for (let y = 0; y < GRID_H; y++) {
                     for (let x = 0; x < GRID_W; x++) {
-                        if (activeStage[y][x] === 'sp') {
+                        const spTile = activeStage[y][x];
+                        if (spTile === 'sp' || spTile === 'sp_blue') {
+                            const isBlueSpawner = (spTile === 'sp_blue');
                             // スポナーの上に敵を配置可能（画面内であること）
                             if (y > 0) {
                                 // 既に同じ位置に生きている敵が重なっていないかチェック（スタック防止）
@@ -5575,8 +5611,9 @@
                                         dead: false, 
                                         onSwitch: false, 
                                         onGround: false, 
-                                        jumper: false, 
-                                        sync: false
+                                        jumper: isBlueSpawner, // 青スポナーからはジャンプ敵
+                                        sync: false,
+                                        blue: isBlueSpawner // 青スポナー由来は青色
                                     });
                                 }
                             }
@@ -5617,6 +5654,75 @@
                 if(a.x < 0 || a.x > GRID_W || hitWall) arrows.splice(i, 1);
                 if(Math.abs(a.x - player.x) < 0.5 && Math.abs(a.y - player.y) < 0.5) handlePlayerDeath();
             });
+
+            // ミサイル生成 (mgブロック, 180フレームごと)
+            if (frameCount % 180 === 0) {
+                for(let y=0; y<GRID_H; y++) {
+                    for(let x=0; x<GRID_W; x++) {
+                        if(activeStage[y][x] === 'mg') {
+                            missiles.push({x: x + 0.9, y: y + 0.4, vx: 0.2, vy: 0, life: 300});
+                        }
+                    }
+                }
+            }
+
+            // ミサイル更新
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const m = missiles[i];
+                m.x += m.vx;
+                m.life--;
+                
+                const mx = Math.floor(m.x + 0.3), my = Math.floor(m.y + 0.1);
+                
+                // 画面外または寿命切れ
+                if (m.x < 0 || m.x > GRID_W || m.life <= 0) {
+                    missiles.splice(i, 1);
+                    continue;
+                }
+                
+                // ブロック衝突チェック（プレイヤーには反応しない）
+                let hitBlock = false;
+                if (my >= 0 && my < GRID_H && mx >= 0 && mx < GRID_W) {
+                    const hitTile = activeStage[my][mx];
+                    const destructible = ['B', 'r', 'b', 'Y', 'I', 'X', 'T', 'H', 'hr', 'hb', '#'];
+                    if (hitTile && (hitTile === 'B' || hitTile === 'X' || hitTile === 'Y' || hitTile === 'I' || 
+                        destructible.includes(hitTile) || (hitTile && hitTile.startsWith('Z')))) {
+                        hitBlock = true;
+                    }
+                }
+                
+                if (hitBlock) {
+                    // 爆発エフェクト追加
+                    explosionEffects.push({x: mx, y: my, timer: 20});
+                    // 周囲9マス（3x3）を破壊
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const bx = mx + dx, by = my + dy;
+                            if (bx >= 0 && bx < GRID_W && by >= 0 && by < GRID_H) {
+                                const t = activeStage[by][bx];
+                                // 破壊不可能ブロックは除く (S, G, C, sp, mg, V, !, 銃類)
+                                const indestructible = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e'];
+                                if (t && !indestructible.includes(t) && !t.startsWith('Z') === false || 
+                                    (t && !indestructible.includes(t) && t.startsWith('Z'))) {
+                                    activeStage[by][bx] = null;
+                                    explosionEffects.push({x: bx, y: by, timer: 15});
+                                } else if (t && !indestructible.includes(t)) {
+                                    activeStage[by][bx] = null;
+                                    explosionEffects.push({x: bx, y: by, timer: 15});
+                                }
+                            }
+                        }
+                    }
+                    updateStageCache();
+                    missiles.splice(i, 1);
+                }
+            }
+
+            // 爆発エフェクト更新
+            for (let i = explosionEffects.length - 1; i >= 0; i--) {
+                explosionEffects[i].timer--;
+                if (explosionEffects[i].timer <= 0) explosionEffects.splice(i, 1);
+            }
 
             // ゴール判定
             const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
@@ -5708,7 +5814,7 @@
                 if(iy < 0) return false;
                 if(iy >= GRID_H) return false;
                 const tile = activeStage[iy][ix]; // 壁判定から V を削除
-                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || tile === 'V' || tile === 'sp' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) || (tile === '#' && axis === 'x')) return true;
+                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' || tile === 'mg' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) || (tile === '#' && axis === 'x')) return true;
                 if (tile === 'D') {
                     // 鍵を持っていれば通行を許可する（実際の消費と消去は checkGimmicks で行う）
                     if (isPlayer && player.hasKey > 0) continue; 
@@ -5832,6 +5938,7 @@
             enemies.forEach(en => {
                 if(!en.dead) {
                     if (en.sync) cachedGameCtx.fillStyle = "#ffeb3b"; // シンクロ敵は黄色
+                    else if (en.blue) cachedGameCtx.fillStyle = "#00bcd4"; // 青スポナー由来は水色
                     else cachedGameCtx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
                     cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
                     cachedGameCtx.fillStyle = "#fff";
@@ -5846,6 +5953,37 @@
                 cachedGameCtx.fillRect(a.x * cw, a.y * ch, cw * 0.4, ch * 0.1);
                 cachedGameCtx.fillStyle = a.color || "#ff5722";
                 cachedGameCtx.fillRect(a.x * cw, a.y * ch, cw * 0.1, ch * 0.1);
+            });
+
+            // ミサイルの描画
+            missiles.forEach(m => {
+                // ミサイル本体
+                cachedGameCtx.fillStyle = "#ff6f00";
+                cachedGameCtx.fillRect(m.x * cw, m.y * ch + ch * 0.3, cw * 0.5, ch * 0.2);
+                // 先端
+                cachedGameCtx.fillStyle = "#fff";
+                cachedGameCtx.fillRect((m.x + 0.45) * cw, m.y * ch + ch * 0.35, cw * 0.1, ch * 0.1);
+                // 炎
+                cachedGameCtx.fillStyle = "#ffeb3b";
+                cachedGameCtx.fillRect(m.x * cw - cw * 0.15, m.y * ch + ch * 0.32, cw * 0.2, ch * 0.15);
+            });
+
+            // 爆発エフェクトの描画
+            explosionEffects.forEach(e => {
+                const alpha = e.timer / 20;
+                const scale = 1 - (e.timer / 20) * 0.3;
+                cachedGameCtx.globalAlpha = alpha;
+                cachedGameCtx.fillStyle = "#ff5722";
+                const ex = e.x * cw + cw * 0.5, ey = e.y * ch + ch * 0.5;
+                const radius = cw * 0.6 * scale;
+                cachedGameCtx.beginPath();
+                cachedGameCtx.arc(ex, ey, radius, 0, Math.PI * 2);
+                cachedGameCtx.fill();
+                cachedGameCtx.fillStyle = "#ffeb3b";
+                cachedGameCtx.beginPath();
+                cachedGameCtx.arc(ex, ey, radius * 0.6, 0, Math.PI * 2);
+                cachedGameCtx.fill();
+                cachedGameCtx.globalAlpha = 1;
             });
             
             // ゴール時は描画のみ継続してプレイヤーを止める
