@@ -1404,8 +1404,10 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzRP574gg9QA8i0pWJg9kf48Xe1qkUf29Mq-e65k8waDDVIvZXB58Nfi70yboCNRro1/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.3.5"
+            VERSION: "2.3.6",
+            IS_OUTDATED: false  // 旧バージョンフラグ
         };
+        const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
         let userCP = 0;
         let userDiamond = 0;
@@ -1543,6 +1545,8 @@
         let stageSearchTimeout = null;
 
         let isClearChecked = false;
+        let checkedGridSnapshot = null; // クリアチェック通過時のグリッドを記憶
+        let clearCheckWarnAccepted = false; // 「クリアチェックが消える」警告を一度承認済みか
 
         let isGoalTriggered = false;
         let gameMode = 'play';
@@ -2016,6 +2020,7 @@
                                 // ログイン成功時の処理
                                 CONFIG.IS_LOGGED_IN = true;
                                 CONFIG.USERNAME = res.username;
+                                CONFIG.IS_OUTDATED = !!res.needsUpdate; // バージョン不一致フラグ
                                 userGold = res.gold || 0;
                                 userCP = res.cp || 0;
                                 userAS = res.auroraStones || 0;
@@ -2197,7 +2202,67 @@
             });
         }
 
-        function closeExplanation() { document.getElementById('explanation-overlay').style.display = 'none'; }
+        // --- クリアチェック喪失の警告 ---
+        // クリアチェック済みの状態でグリッドを変更しようとした時に警告を出す。
+        // 既にこのセッションで承認済みなら再度聞かない。
+        // 戻り値: true=続けてよい / false=キャンセル
+        function confirmClearLoss(actionName) {
+            if (!isClearChecked) return true; // チェック済みでなければ警告不要
+            if (clearCheckWarnAccepted) return true; // 既に承認済み
+            const ok = confirm(`⚠ クリアチェックが取り消されます\n\n「${actionName}」を行うと、クリアチェックが消えます。\n再度テストプレイで完走しないと投稿できなくなります。\n\n続けますか？`);
+            if (ok) clearCheckWarnAccepted = true;
+            return ok;
+        }
+
+        // クリアチェックをリセットする（警告承認後に呼ぶ）
+        function resetClearCheck() {
+            isClearChecked = false;
+            checkedGridSnapshot = null;
+            clearCheckWarnAccepted = false;
+        }
+
+        // --- 旧バージョン制限 ---
+        function applyOutdatedRestrictions() {
+            // チャット以外のメインメニューボタンをScratchリンクへ差し替え
+            const mainMenu = document.getElementById('main-menu');
+            if (mainMenu) {
+                const btns = mainMenu.querySelectorAll('.pixel-btn');
+                btns.forEach(btn => {
+                    // 「チャット」ボタンは除外しない（chat-btnはメインメニュー外）
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        window.open(NEW_VERSION_URL, '_blank');
+                    };
+                    btn.title = "新バージョンで利用可能";
+                });
+            }
+
+            // メインメニュー外のボタン群もScratchリンクへ
+            const restrictedIds = [
+                'global-rank-btn', 'creators-road-btn', 'explanation-btn',
+                'guild-btn', 'login-bonus-btn'
+            ];
+            restrictedIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.onclick = (e) => {
+                        e.preventDefault();
+                        window.open(NEW_VERSION_URL, '_blank');
+                    };
+                    el.title = "新バージョンで利用可能";
+                }
+            });
+
+            // バージョン警告バナーを表示
+            const userInfo = document.getElementById('user-info');
+            if (userInfo) {
+                const banner = document.createElement('div');
+                banner.style.cssText = "position:absolute; top:8cqh; left:0; width:100%; background:#ff9800; color:#000; text-align:center; font-size:1.4cqw; padding:0.8cqh 0; z-index:20; cursor:pointer;";
+                banner.innerText = "⚠ 旧バージョンです。チャット以外の機能は新バージョンをご利用ください";
+                banner.onclick = () => window.open(NEW_VERSION_URL, '_blank');
+                document.querySelector('.container').appendChild(banner);
+            }
+        }
 
         // --- 初期データ読み込み ---
         async function preloadAllData(username, loginHistory = []) {
@@ -2245,6 +2310,11 @@
             document.getElementById('chat-btn').style.display = 'block';
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
+
+            // 旧バージョン制限: チャット以外のボタンをScratchリンクに差し替え
+            if (CONFIG.IS_OUTDATED) {
+                applyOutdatedRestrictions();
+            }
             loginBonusHistory = loginHistory || [];
             document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
             
@@ -3917,9 +3987,9 @@
         }
 
         function clearStage() {
-            if (confirm("ステージ内のすべてのオブジェクトを削除しますか？")) {
+            if (confirm("ステージ内のすべてのオブジェクトを削除しますか？\n※ クリアチェックも取り消されます。")) {
                 initGrid();
-                isClearChecked = false;
+                resetClearCheck();
                 drawEditor();
             }
         }
@@ -4030,8 +4100,10 @@
             const y = Math.floor((e.clientY - rect.top) / (editorCanvas.height / GRID_H));
             if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
                 if (editorGrid[y][x] !== null) {
+                    if (!confirmClearLoss("消しゴム")) return;
                     editorGrid[y][x] = null;
                     isClearChecked = false;
+                    checkedGridSnapshot = null;
                     drawEditor();
                 }
             }
@@ -4044,8 +4116,10 @@
             if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
                 if (currentTool === 'E') {
                     if (editorGrid[y][x] !== null) {
+                        if (!confirmClearLoss("消しゴム")) return;
                         editorGrid[y][x] = null;
                         isClearChecked = false;
+                        checkedGridSnapshot = null;
                         drawEditor();
                     }
                 } else {
@@ -4059,8 +4133,10 @@
                     let toolToPlace = currentTool;
                     if (currentTool === 'Z') toolToPlace = 'Z' + selectedColorBlockColor;
                     if (editorGrid[y][x] === toolToPlace) return;
+                    if (!confirmClearLoss("ブロック設置")) return;
                     editorGrid[y][x] = toolToPlace;
                     isClearChecked = false;
+                    checkedGridSnapshot = null;
                     drawEditor();
                 }
             }
@@ -4533,8 +4609,14 @@
         }
 
         async function loadSavedStage() {
+            if (!confirmClearLoss("保存データの読み込み")) return;
             const res = await callApi('load', { username: CONFIG.USERNAME, key: 'my_stage' });
-            if (res && res.data) { editorGrid = normalizeGrid(res.data); drawEditor(); alert("保存データを読み込みました。"); }
+            if (res && res.data) {
+                editorGrid = normalizeGrid(res.data);
+                resetClearCheck(); // 読み込み後はクリアチェックをリセット
+                drawEditor();
+                alert("保存データを読み込みました。\n※ 投稿するには再度クリアチェックが必要です。");
+            }
             else { alert("保存データが見つかりません。"); }
         }
 
@@ -4546,6 +4628,12 @@
         async function publishStage() {
             if (!isClearChecked) {
                 showQuickMsg("先にクリアチェックが必要です！", "var(--secondary-color)");
+                return;
+            }
+            // クリアチェック後にグリッドが変更されていないか確認
+            if (!checkedGridSnapshot || checkedGridSnapshot !== JSON.stringify(editorGrid)) {
+                resetClearCheck();
+                showQuickMsg("ステージが変更されました。再度クリアチェックが必要です！", "var(--secondary-color)");
                 return;
             }
             const name = prompt("ステージ名を入力してください:");
@@ -5546,6 +5634,7 @@
                 
                 if (gameMode === 'test') {
                     isClearChecked = true;
+                    checkedGridSnapshot = JSON.stringify(editorGrid); // クリア時のグリッドを記憶
                     showMessage("CHECK OK!", "ステージを完走しました！投稿が可能です。");
                     callApi('updateSkins', { // テストクリア時は基本情報のみ保存
                         username: CONFIG.USERNAME,
