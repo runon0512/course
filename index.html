@@ -44,6 +44,8 @@
         /* テーマ別の背景色 */
         .container.bg-city { background: #050510; } /* ホームの背景を宇宙色に */
         .container.bg-sky  { background: #e1f5fe; }
+        .container.bg-water { background: linear-gradient(180deg, #003d6b 0%, #005580 40%, #004466 100%); }
+        .container.bg-dark  { background: #000; }
         .container.bg-night { background: #0b1026; }
 
         /* 難易度別の新背景 */
@@ -725,12 +727,77 @@
         #stage-list-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(120, 40, 180, 0.35) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(60, 0, 120, 0.4) 0%, transparent 55%),
+                radial-gradient(ellipse at 60% 80%, rgba(180, 60, 120, 0.25) 0%, transparent 50%),
+                linear-gradient(160deg, #0a0018 0%, #110030 30%, #0d001e 60%, #180028 100%);
             z-index: 50;
             display: none;
             flex-direction: column;
             align-items: center;
             padding-top: 5cqh;
+            overflow: hidden;
+        }
+        /* 夢の世の星屑 */
+        #stage-list-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 10% 15%, rgba(255,220,255,0.8) 0%, transparent 100%),
+                radial-gradient(1px 1px at 25% 40%, rgba(200,180,255,0.7) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 40% 8%, rgba(255,255,200,0.9) 0%, transparent 100%),
+                radial-gradient(1px 1px at 55% 60%, rgba(180,220,255,0.7) 0%, transparent 100%),
+                radial-gradient(1px 1px at 70% 25%, rgba(255,200,230,0.8) 0%, transparent 100%),
+                radial-gradient(2px 2px at 85% 70%, rgba(220,180,255,0.9) 0%, transparent 100%),
+                radial-gradient(1px 1px at 15% 75%, rgba(255,240,200,0.7) 0%, transparent 100%),
+                radial-gradient(1px 1px at 90% 10%, rgba(200,255,240,0.8) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 50% 85%, rgba(255,210,255,0.9) 0%, transparent 100%),
+                radial-gradient(1px 1px at 35% 55%, rgba(255,255,180,0.6) 0%, transparent 100%),
+                radial-gradient(1px 1px at 75% 45%, rgba(200,230,255,0.7) 0%, transparent 100%),
+                radial-gradient(1px 1px at 60% 30%, rgba(255,200,200,0.6) 0%, transparent 100%),
+                radial-gradient(2px 2px at 5% 50%, rgba(230,200,255,0.8) 0%, transparent 100%),
+                radial-gradient(1px 1px at 95% 90%, rgba(255,230,200,0.7) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 30% 90%, rgba(200,255,220,0.8) 0%, transparent 100%);
+            animation: dreamFloat 8s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* ゆらめく光の帯 */
+        #stage-list-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(60deg, transparent 40%, rgba(180,100,255,0.06) 50%, transparent 60%),
+                linear-gradient(120deg, transparent 30%, rgba(100,60,200,0.07) 50%, transparent 70%);
+            animation: dreamShimmer 6s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes dreamFloat {
+            0%   { opacity: 0.6; transform: translateY(0px); }
+            100% { opacity: 1;   transform: translateY(-8px); }
+        }
+        @keyframes dreamShimmer {
+            0%   { opacity: 0.5; transform: skewY(-1deg); }
+            100% { opacity: 1;   transform: skewY(1deg); }
+        }
+        /* Pick Up キラキラ枠エフェクト */
+        @keyframes pickupGlow {
+            0%   { box-shadow: 0 0 8px 2px rgba(255,215,0,0.6), inset 0 0 12px rgba(255,215,0,0.15); border-color: #ffd700; }
+            50%  { box-shadow: 0 0 20px 6px rgba(255,180,0,0.9), inset 0 0 20px rgba(255,220,0,0.3); border-color: #ffe066; }
+            100% { box-shadow: 0 0 8px 2px rgba(255,215,0,0.6), inset 0 0 12px rgba(255,215,0,0.15); border-color: #ffd700; }
+        }
+        @keyframes pickupSparkle {
+            0%, 100% { background-position: 0% 50%; }
+            50%       { background-position: 100% 50%; }
+        }
+        .stage-item-pickup {
+            animation: pickupGlow 2s ease-in-out infinite;
+            border-color: #ffd700 !important;
+            background: linear-gradient(135deg, #2a2010 0%, #35354e 40%, #251c08 100%) !important;
         }
 
         .stage-item {
@@ -1274,8 +1341,8 @@
 
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
-            <h2 style="font-size: 3.5cqw;">PUBLISHED STAGES</h2>
-            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%;">
+            <h2 style="font-size: 3.5cqw; position: relative; z-index: 1;">PUBLISHED STAGES</h2>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%; position: relative; z-index: 1;">
                 <button class="pixel-btn small" onclick="closeStageSelect()" style="background: #f44336; color: #fff;">戻る</button>
                 <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
                 <select id="sort-criteria" class="filter-control" onchange="openStageSelect()">
@@ -1300,7 +1367,7 @@
                 </label>
                 <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" onkeyup="debouncedStageSelect()">
             </div>
-            <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box;"></div>
+            <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box; position: relative; z-index: 1;"></div>
         </div>
 
         <!-- エディタ画面 -->
@@ -1316,6 +1383,11 @@
                     <button id="editor-switch-btn" class="pixel-btn small" style="margin-top:0; background:#ff5252; color:#fff;" onclick="toggleEditorSwitch()">R/B: ON</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
+                    <select id="stage-type-select" class="filter-control" style="font-size:1.2cqw; padding:0.3cqh 0.5cqw; background:#1a1a2e; color:#fff; border:0.15cqw solid var(--primary-color); cursor:pointer;" title="ステージタイプ" onchange="onStageTypeChange(this)">
+                        <option value="normal">🌿 通常</option>
+                        <option value="water">🌊 水中</option>
+                        <option value="dark">🌑 暗闇</option>
+                    </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                 </div>
                 <div class="editor-right-bar">
@@ -1403,11 +1475,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzRP574gg9QA8i0pWJg9kf48Xe1qkUf29Mq-e65k8waDDVIvZXB58Nfi70yboCNRro1/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6LkJALie5hvQTRKsVu3MDcS_fZJH_ysUV3IFQKbbJH3EK4dgPWI0z3QD82JrVJgp5/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.5.1",
-            IS_OUTDATED: false  // 旧バージョンフラグ
+            VERSION: "2.6.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1865,6 +1936,9 @@
             const cw = stageCacheCanvas.width / GRID_W;
             const ch = stageCacheCanvas.height / GRID_H;
             
+            // BBが存在するか事前スキャン
+            stageHasBB = activeStage.some(row => row && row.includes('BB'));
+            
             stageCacheCtx.imageSmoothingEnabled = false;
             stageCacheCtx.clearRect(0, 0, stageCacheCanvas.width, stageCacheCanvas.height);
             for(let y=0; y<GRID_H; y++){
@@ -2037,7 +2111,7 @@
                                 // ログイン成功時の処理
                                 CONFIG.IS_LOGGED_IN = true;
                                 CONFIG.USERNAME = res.username;
-                                CONFIG.IS_OUTDATED = !!res.needsUpdate; // バージョン不一致フラグ
+
                                 userGold = res.gold || 0;
                                 userCP = res.cp || 0;
                                 userAS = res.auroraStones || 0;
@@ -2241,48 +2315,14 @@
             clearCheckWarnAccepted = false;
         }
 
-        // --- 旧バージョン制限 ---
-        function applyOutdatedRestrictions() {
-            // チャット以外のメインメニューボタンをScratchリンクへ差し替え
-            const mainMenu = document.getElementById('main-menu');
-            if (mainMenu) {
-                const btns = mainMenu.querySelectorAll('.pixel-btn');
-                btns.forEach(btn => {
-                    // 「チャット」ボタンは除外しない（chat-btnはメインメニュー外）
-                    btn.onclick = (e) => {
-                        e.preventDefault();
-                        window.open(NEW_VERSION_URL, '_blank');
-                    };
-                    btn.title = "新バージョンで利用可能";
-                });
-            }
-
-            // メインメニュー外のボタン群もScratchリンクへ
-            const restrictedIds = [
-                'global-rank-btn', 'creators-road-btn', 'explanation-btn',
-                'guild-btn', 'login-bonus-btn'
-            ];
-            restrictedIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.onclick = (e) => {
-                        e.preventDefault();
-                        window.open(NEW_VERSION_URL, '_blank');
-                    };
-                    el.title = "新バージョンで利用可能";
-                }
-            });
-
-            // バージョン警告バナーを表示
-            const userInfo = document.getElementById('user-info');
-            if (userInfo) {
-                const banner = document.createElement('div');
-                banner.style.cssText = "position:absolute; top:8cqh; left:0; width:100%; background:#ff9800; color:#000; text-align:center; font-size:1.4cqw; padding:0.8cqh 0; z-index:20; cursor:pointer;";
-                banner.innerText = "⚠ 旧バージョンです。チャット以外の機能は新バージョンをご利用ください";
-                banner.onclick = () => window.open(NEW_VERSION_URL, '_blank');
-                document.querySelector('.container').appendChild(banner);
-            }
+        function setClearChecked() {
+            isClearChecked = true;
+            // タイプ変更キャンセル用に現在値を記憶
+            const sel = document.getElementById('stage-type-select');
+            if (sel) sel.dataset.prevValue = sel.value;
         }
+
+
 
         // --- 初期データ読み込み ---
         async function preloadAllData(username, loginHistory = []) {
@@ -2331,10 +2371,7 @@
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
 
-            // 旧バージョン制限: チャット以外のボタンをScratchリンクに差し替え
-            if (CONFIG.IS_OUTDATED) {
-                applyOutdatedRestrictions();
-            }
+
             loginBonusHistory = loginHistory || [];
             document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
             
@@ -3902,7 +3939,7 @@
             activeStage = [];
             // エディタ背景をリセット
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora');
+            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark');
             container.classList.add('bg-sky');
 
             // プレイ画面同様、ホームの要素を非表示にする
@@ -3979,6 +4016,15 @@
 
             resizeCanvas('editor-canvas');
             drawEditor();
+            // 水中・暗闇エフェクトのためにアニメーションループを開始
+            if (editorAnimId) cancelAnimationFrame(editorAnimId);
+            (function editorLoop() {
+                const t = document.getElementById('stage-type-select')?.value || 'normal';
+                if (document.getElementById('editor-screen').style.display !== 'none' && t !== 'normal') {
+                    drawEditor();
+                }
+                editorAnimId = requestAnimationFrame(editorLoop);
+            })();
             const defaultBtn = document.getElementById('btn-tool-' + currentTool);
             if (defaultBtn) {
                 document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -3989,6 +4035,7 @@
         }
 
         function exitEditor() {
+            if (editorAnimId) { cancelAnimationFrame(editorAnimId); editorAnimId = null; }
             document.getElementById('editor-screen').style.display = 'none';
             // ホーム画面の要素を再表示
             document.querySelector('h1').style.display = 'block';
@@ -4140,6 +4187,7 @@
             if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
                 if (currentTool === 'E') {
                     if (editorGrid[y][x] !== null) {
+                        if (stageTypeWarnPending) return; // タイプ変更警告中は操作不可
                         if (!confirmClearLoss("消しゴム")) return;
                         editorGrid[y][x] = null;
                         isClearChecked = false;
@@ -4157,6 +4205,7 @@
                     let toolToPlace = currentTool;
                     if (currentTool === 'Z') toolToPlace = 'Z' + selectedColorBlockColor;
                     if (editorGrid[y][x] === toolToPlace) return;
+                    if (stageTypeWarnPending) return; // タイプ変更警告中は配置不可
                     if (!confirmClearLoss("ブロック設置")) return;
                     if (toolToPlace === 'BB') {
                         editorGrid[y][x] = 'BB';
@@ -4185,6 +4234,51 @@
                     const tile = editorGrid[y] && editorGrid[y][x];
                     if(tile) drawTile(ctx, x, y, cw, ch, tile, time);
                 }
+            }
+
+            // エディタのステージタイププレビュー
+            const editorStageType = document.getElementById('stage-type-select')?.value || 'normal';
+
+            if (editorStageType === 'water') {
+                // 水中: 青いオーバーレイ + 泡
+                ctx.fillStyle = 'rgba(0, 60, 140, 0.32)';
+                ctx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+                ctx.strokeStyle = 'rgba(100,200,255,0.25)';
+                ctx.lineWidth = 1.5;
+                const wt = time;
+                for (let i = 0; i < 4; i++) {
+                    const wx = ((wt * 30 + i * 70) % (editorCanvas.width + 40)) - 20;
+                    ctx.beginPath();
+                    ctx.ellipse(wx, ch * 0.6, 20, 5, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = 'rgba(150,220,255,0.3)';
+                for (let i = 0; i < 6; i++) {
+                    const bx = ((Math.sin(i * 1.9 + wt * 0.4) * 0.5 + 0.5) * editorCanvas.width);
+                    const by = ((wt * 15 * (0.4 + i * 0.12)) % editorCanvas.height);
+                    ctx.beginPath();
+                    ctx.arc(bx, by, 2 + (i % 3), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else if (editorStageType === 'dark') {
+                // 暗闇: 全体を薄く暗くする（完全には暗くしない、編集できるように）
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                ctx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+                // 中央に説明テキスト
+                ctx.fillStyle = 'rgba(180,180,180,0.5)';
+                ctx.font = `bold ${ch * 0.5}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('🌑 DARK MODE', editorCanvas.width / 2, ch * 1.2);
+            }
+
+            // タイプ変更警告中はロック表示
+            if (stageTypeWarnPending) {
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+                ctx.fillStyle = '#ffc107';
+                ctx.font = `bold ${ch * 0.7}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('⚠ 確認中... 操作ロック', editorCanvas.width / 2, editorCanvas.height / 2);
             }
         }
 
@@ -4708,7 +4802,8 @@
             btn.innerText = "投稿中...";
             btn.disabled = true;
 
-            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid });
+            const stageType = document.getElementById('stage-type-select')?.value || 'normal';
+            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, stageType });
             btn.innerText = oldText;
             btn.disabled = false;
             alert("投稿完了！プレイメニューから遊べます。");
@@ -4828,7 +4923,8 @@
                 }
 
                 if (customFrameStyle) div.style.cssText += customFrameStyle;
-                else if (isPickUp) div.style.borderColor = '#ffc107';
+                // Pick up は難易度に関わらず黄色キラキラエフェクト
+                if (isPickUp) div.classList.add('stage-item-pickup');
             
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
@@ -4871,6 +4967,8 @@
                         <div style="color:var(--primary-color); flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.4cqw;">
                                 ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">Pick up!</span>' : ''}
+                                ${s.stageType === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
+                                ${s.stageType === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -4944,7 +5042,62 @@
             document.getElementById('login-bonus-btn').style.display = 'block';
         }
 
+        // このバージョンで対応しているステージタイプ
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark'];
+
+        // このバージョンで対応しているブロックタイプ
+        const SUPPORTED_BLOCK_TYPES = new Set([
+            'B','S','G','K','M','E','A','T','X','W','L','U','P','H',
+            '>','<','v','C','q','k','r','b','!','Y','d','J','j','y',
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB'
+        ]);
+
+        function checkStageCompatibility(stageObj) {
+            // ステージタイプチェック
+            const stType = stageObj.stageType || 'normal';
+            if (!SUPPORTED_STAGE_TYPES.includes(stType)) {
+                return `ステージタイプ「${stType}」`;
+            }
+
+            // ブロックタイプチェック
+            const data = stageObj.data;
+            if (data && Array.isArray(data)) {
+                for (let y = 0; y < data.length; y++) {
+                    if (!Array.isArray(data[y])) continue;
+                    for (let x = 0; x < data[y].length; x++) {
+                        const cell = data[y][x];
+                        if (!cell) continue;
+                        // カラーブロック（Z#xxxxxx形式）は Zプレフィックスで判定
+                        const baseType = (typeof cell === 'string' && cell.startsWith('Z') && cell.length > 1) ? 'Z' : cell;
+                        if (!SUPPORTED_BLOCK_TYPES.has(baseType)) {
+                            return `ブロック「${cell}」`;
+                        }
+                    }
+                }
+            }
+            return null; // 互換性あり
+        }
+
+        function showIncompatibleMsg(reason) {
+            const overlay = document.getElementById('msg-overlay');
+            overlay.innerHTML = `
+                <div style="font-size:2cqw; color:#ff5252; margin-bottom:1cqh;">⛔ このバージョンでは対応していません</div>
+                <div style="font-size:1.4cqw; color:#aaa; margin-bottom:2cqh;">このステージには、現在のバージョンで未対応の要素が含まれています。<br>（${reason}）</div>
+                <button class="pixel-btn small" onclick="document.getElementById('msg-overlay').style.display='none';" style="background:#546e7a;">閉じる</button>
+            `;
+            overlay.style.display = 'flex';
+        }
+
         function startGame(stageObj, mode = 'play') {
+            // プレイモード時のみ互換チェック
+            if (mode === 'play') {
+                const incompatible = checkStageCompatibility(stageObj);
+                if (incompatible) {
+                    showIncompatibleMsg(incompatible);
+                    return;
+                }
+            }
+
             gameMode = mode;
             currentStageData = stageObj;
             isSwitchOn = true;
@@ -4988,6 +5141,7 @@
             document.getElementById('login-bonus-btn').style.display = 'none';
 
             activeStage = normalizeGrid(stageObj.data);
+            currentStageType = stageObj.stageType || 'normal';
             // 確実にタイムが速い順にソートしてから上位5件を取得
             playbackGhosts = [...(stageObj.leaderboard || [])]
                 .sort((a, b) => a.time - b.time).slice(0, 5);
@@ -4997,9 +5151,14 @@
             
             // 背景の切り替え
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora');
+            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark');
             
-            if (mode === 'play' && stageObj && stageObj.attempts >= 5) {
+            // ステージタイプ固有の背景
+            if (currentStageType === 'water') {
+                container.classList.add('bg-water');
+            } else if (currentStageType === 'dark') {
+                container.classList.add('bg-dark');
+            } else if (mode === 'play' && stageObj && stageObj.attempts >= 5) {
                 const att = stageObj.attempts;
                 const cr = (stageObj.clears || 0) / att * 100;
                 
@@ -5308,7 +5467,8 @@
                 showQuickMsg("SとGを配置してください！", "var(--secondary-color)");
                 return;
             }
-            startGame({data: editorGrid, name: 'TEST'}, 'test');
+            const stageType = document.getElementById('stage-type-select')?.value || 'normal';
+            startGame({data: editorGrid, name: 'TEST', stageType}, 'test');
         }
 
         function showQuickMsg(txt, col) { const m = document.getElementById('auth-msg'); m.innerText = txt; m.style.color = col; }
@@ -5374,7 +5534,8 @@
             }
 
             let currentSpeed = 0.015; // デフォルトの加速
-            const gravity = 0.015;
+            const isWater = (currentStageType === 'water');
+            const gravity = isWater ? 0.004 : 0.015;  // 水中は重力弱め
             const jumpForce = -0.3;
 
             // 粘着ブロックの足元判定
@@ -5386,16 +5547,27 @@
 
             if (keys['ArrowLeft']) { player.vx -= currentSpeed; player.facing = 'left'; }
             if (keys['ArrowRight']) { player.vx += currentSpeed; player.facing = 'right'; }
-            if (keys['Space'] && player.onGround && frameCount > 10) {
-                player.vy = jumpForce;
-                player.onGround = false;
-                // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
-                enemies.forEach(en => {
-                    if (!en.dead && en.jumper && en.onGround) {
-                        en.vy = jumpForce;
-                        en.onGround = false;
-                    }
-                });
+
+            if (isWater) {
+                // 水中: Spaceで上昇、離すと少し下がる
+                if (keys['Space']) {
+                    player.vy -= 0.012;
+                }
+                // 水の抵抗（速度を減衰）
+                player.vy *= 0.88;
+                player.vx *= 0.85;
+            } else {
+                if (keys['Space'] && player.onGround && frameCount > 10) {
+                    player.vy = jumpForce;
+                    player.onGround = false;
+                    // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
+                    enemies.forEach(en => {
+                        if (!en.dead && en.jumper && en.onGround) {
+                            en.vy = jumpForce;
+                            en.onGround = false;
+                        }
+                    });
+                }
             }
             
             player.vy += gravity;
@@ -5550,16 +5722,26 @@
                         }
                     } else { en.vx = 0; }
                 }
-                
+
                 // ギミックによる敵の死亡判定 (黄色いトゲ)
                 const ex_check = Math.floor(en.x + 0.45), ey_check = Math.floor(en.y + 0.45);
                 const en_tile = activeStage[ey_check] ? activeStage[ey_check][ex_check] : null;
                 if (en_tile === 'y') en.dead = true;
 
-                // 垂直方向の物理演算（重力 + 垂直風）
-                en.vy += 0.015; 
-                if(current_tile === 'U') en.vy -= 0.035; // 上昇気流（敵も浮くように調整）
-                if(current_tile === 'd') en.vy += 0.025; // 下降気流
+                // 垂直方向の物理演算
+                if (isWater) {
+                    // 水中敵: 横移動のみ（重力なし）。壁で跳ね返り
+                    en.vy = 0;
+                    // jumper（青い敵）: Spaceで上昇
+                    if (en.jumper && keys['Space']) en.vy = -0.06;
+                    // sync敵: 横移動シンクロ（縦は固定）
+                    en.vy *= 0.9;
+                } else {
+                    // 通常重力
+                    en.vy += 0.015; 
+                    if(current_tile === 'U') en.vy -= 0.035;
+                    if(current_tile === 'd') en.vy += 0.025;
+                }
 
                 let nextY = en.y + en.vy;
                 // 地面との接触判定を少し深く（+0.05）して、歩行中の浮遊感を解消する
@@ -5580,23 +5762,27 @@
                 }
 
                 if (collidedY) {
-                    if (en.vy < 0) {
-                        const egx = Math.floor(en.x + 0.45);
-                        const eheadY = Math.floor(nextY);
-                        if (activeStage[eheadY] && activeStage[eheadY][egx] === '!') {
-                            if (!en.onSwitch) { 
-                                isSwitchOn = !isSwitchOn; 
-                                en.onSwitch = true; 
-                                updateStageCache();
+                    if (isWater) {
+                        // 水中は上下に跳ね返る
+                        en.vy *= -0.6;
+                    } else {
+                        if (en.vy < 0) {
+                            const egx = Math.floor(en.x + 0.45);
+                            const eheadY = Math.floor(nextY);
+                            if (activeStage[eheadY] && activeStage[eheadY][egx] === '!') {
+                                if (!en.onSwitch) { 
+                                    isSwitchOn = !isSwitchOn; 
+                                    en.onSwitch = true; 
+                                    updateStageCache();
+                                }
                             }
                         }
+                        if (en.vy > 0) {
+                            en.y = isBridge ? nextY : Math.floor(nextY + 0.9 + 0.05) - 0.9;
+                            en.onGround = true;
+                        }
+                        en.vy = 0;
                     }
-                    if (en.vy > 0) {
-                        // スナップ計算時も判定の深さを考慮して正確な座標に配置
-                        en.y = isBridge ? nextY : Math.floor(nextY + 0.9 + 0.05) - 0.9;
-                        en.onGround = true;
-                    }
-                    en.vy = 0;
                 } else {
                     const egx = Math.floor(en.x + 0.45);
                     const egy = Math.floor(en.y + 0.45);
@@ -5799,7 +5985,7 @@
                 player.vx = 0; player.vy = 0;
                 
                 if (gameMode === 'test') {
-                    isClearChecked = true;
+                    setClearChecked();
                     checkedGridSnapshot = JSON.stringify(editorGrid); // クリア時のグリッドを記憶
                     showMessage("CHECK OK!", "ステージを完走しました！投稿が可能です。");
                     callApi('updateSkins', { // テストクリア時は基本情報のみ保存
@@ -5860,40 +6046,69 @@
             if (footTile === 'P') player.vx *= 1.15; // 加速
         }
 
+        let stageHasBB = false;
+        let currentStageType = 'normal'; // 'normal' | 'water' | 'dark'
+        let editorAnimId = null;
+        let stageTypeWarnPending = false; // タイプ変更警告の確認待ちフラグ
+
+        function onStageTypeChange(sel) {
+            if (!isClearChecked) {
+                // チェックがなければそのまま変更
+                drawEditor();
+                return;
+            }
+            // チェック済みの場合は警告を出してからリセット
+            stageTypeWarnPending = true;
+            drawEditor();
+            const ok = confirm('⚠ ステージタイプを変更するとクリアチェックが消えます。\n\n続けますか？');
+            stageTypeWarnPending = false;
+            if (ok) {
+                resetClearCheck();
+                showQuickMsg('クリアチェックが消えました。再度テストプレイを行ってください。', 'var(--secondary-color)');
+                drawEditor();
+            } else {
+                // キャンセル: 元の値に戻す
+                const prev = ['normal','water','dark'].find(t => t !== sel.value) || 'normal';
+                // 元の値を特定するため、リセット前のcurrentStageTypeを保持しておく必要があるので
+                // isClearCheckedがtrueの間はprevStageTypeを追跡する
+                sel.value = sel.dataset.prevValue || 'normal';
+                drawEditor();
+            }
+        }
+
         function isCollideAt(x, y, w, h, isPlayer = false, axis = null) {
             const inset = 0.05;
-            const collisionPoints = [
-                [x + inset, y + inset], 
-                [x + w - inset, y + inset], 
-                [x + inset, y + h - inset], 
-                [x + w - inset, y + h - inset]
-            ];
-            for(let p of collisionPoints) {
-                const ix = Math.floor(p[0]), iy = Math.floor(p[1]);
+            const px0 = x + inset,       py0 = y + inset;
+            const px1 = x + w - inset,   py1 = y + h - inset;
+            const pts = [[px0,py0],[px1,py0],[px0,py1],[px1,py1]];
+            for(let i = 0; i < 4; i++) {
+                const px = pts[i][0], py = pts[i][1];
+                const ix = Math.floor(px), iy = Math.floor(py);
                 if(ix < 0 || ix >= GRID_W) return true;
                 if(iy < 0) return false;
                 if(iy >= GRID_H) return false;
-                const tile = activeStage[iy][ix]; // 壁判定から V を削除
-                if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' || tile === 'mg' || tile === 'BB' || (tile && tile.startsWith('Z')) || (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) || (tile === '#' && axis === 'x')) return true;
-                if (tile === 'D') {
-                    if (isPlayer && player.hasKey > 0) continue; 
-                    return true;
-                }
-                // BBの拡張当たり判定: 隣接タイルのBBから0.05マス(計1.1マス分)外側まで当たる
-                const extra = 0.05;
-                const neighbors = [
-                    [ix - 1, iy], [ix + 1, iy], [ix, iy - 1], [ix, iy + 1]
-                ];
-                for (let [nx, ny] of neighbors) {
-                    if (nx < 0 || nx >= GRID_W || ny < 0 || ny >= GRID_H) continue;
-                    if (activeStage[ny] && activeStage[ny][nx] === 'BB') {
-                        // BBタイルの境界からextraマス内に点があれば当たり
-                        const bbLeft = nx, bbRight = nx + 1, bbTop = ny, bbBottom = ny + 1;
-                        if (p[0] >= bbLeft - extra && p[0] <= bbRight + extra &&
-                            p[1] >= bbTop - extra && p[1] <= bbBottom + extra) {
-                            return true;
-                        }
+                const tile = activeStage[iy][ix];
+                if(tile) {
+                    const tc = tile.charCodeAt(0);
+                    if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' ||
+                       tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
+                       tile === 'mg' || tile === 'BB' ||
+                       (tc === 90 && tile.length > 1) /* 'Z'... */ ||
+                       (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) ||
+                       (tile === '#' && axis === 'x')) return true;
+                    if (tile === 'D') {
+                        if (isPlayer && player.hasKey > 0) continue;
+                        return true;
                     }
+                }
+                // BBの拡張判定（BB存在時のみ）
+                if (stageHasBB) {
+                    const extra = 0.05;
+                    const x0 = ix - 1, x1 = ix + 1, y0 = iy - 1, y1 = iy + 1;
+                    if (x0 >= 0 && activeStage[iy][x0] === 'BB' && px <= x0 + 1 + extra) return true;
+                    if (x1 < GRID_W && activeStage[iy][x1] === 'BB' && px >= x1 - extra) return true;
+                    if (y0 >= 0 && activeStage[y0] && activeStage[y0][ix] === 'BB' && py <= y0 + 1 + extra) return true;
+                    if (y1 < GRID_H && activeStage[y1] && activeStage[y1][ix] === 'BB' && py >= y1 - extra) return true;
                 }
             }
             return false;
@@ -6100,12 +6315,77 @@
             cachedGameCtx.globalAlpha = 1.0;
             drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing, CONFIG.USERNAME);
 
+            // 水中: プレイヤーに青みフィルターを重ねる
+            if (currentStageType === 'water') {
+                cachedGameCtx.globalCompositeOperation = 'multiply';
+                cachedGameCtx.fillStyle = 'rgba(80, 160, 255, 0.45)';
+                cachedGameCtx.fillRect(player.x * cw, player.y * ch, player.w * cw, player.h * ch);
+                cachedGameCtx.globalCompositeOperation = 'source-over';
+            }
+
             // プレイヤーの右上に所持鍵数を表示
             if (player.hasKey > 0) {
                 cachedGameCtx.fillStyle = "#ffd600";
                 cachedGameCtx.font = `bold ${ch * 0.4}px sans-serif`;
                 cachedGameCtx.textAlign = "left";
                 cachedGameCtx.fillText("🔑" + player.hasKey, (player.x + player.w) * cw + 2, player.y * ch);
+            }
+
+            // 水中オーバーレイ
+            if (currentStageType === 'water') {
+                const wt = Date.now() * 0.001;
+                cachedGameCtx.fillStyle = `rgba(0, 60, 120, ${0.28 + Math.sin(wt) * 0.04})`;
+                cachedGameCtx.fillRect(0, 0, cachedGameCanvas.width, cachedGameCanvas.height);
+                // 水面の波紋（上部）
+                cachedGameCtx.strokeStyle = 'rgba(100,200,255,0.3)';
+                cachedGameCtx.lineWidth = 2;
+                for (let i = 0; i < 5; i++) {
+                    const wx = ((wt * 40 + i * 80) % (cachedGameCanvas.width + 60)) - 30;
+                    cachedGameCtx.beginPath();
+                    cachedGameCtx.ellipse(wx, ch * 0.5, 30, 6, 0, 0, Math.PI * 2);
+                    cachedGameCtx.stroke();
+                }
+                // 泡
+                cachedGameCtx.fillStyle = 'rgba(180,230,255,0.35)';
+                for (let i = 0; i < 8; i++) {
+                    const bx = ((Math.sin(i * 1.7 + wt * 0.5) * 0.5 + 0.5) * cachedGameCanvas.width);
+                    const by = ((wt * 20 * (0.5 + i * 0.1)) % cachedGameCanvas.height);
+                    const br = 2 + (i % 3) * 2;
+                    cachedGameCtx.beginPath();
+                    cachedGameCtx.arc(bx, by, br, 0, Math.PI * 2);
+                    cachedGameCtx.fill();
+                }
+            }
+
+            // 暗闇エフェクト（オフスクリーンキャンバスで正しくマスキング）
+            if (currentStageType === 'dark') {
+                const px = (player.x + player.w / 2) * cw;
+                const py = (player.y + player.h / 2) * ch;
+                const radius = cw * 2.2;
+
+                // オフスクリーンキャンバスで暗闇マスクを生成
+                const darkCanvas = document.createElement('canvas');
+                darkCanvas.width = cachedGameCanvas.width;
+                darkCanvas.height = cachedGameCanvas.height;
+                const dctx = darkCanvas.getContext('2d');
+
+                // 全体を黒く塗る
+                dctx.fillStyle = '#000';
+                dctx.fillRect(0, 0, darkCanvas.width, darkCanvas.height);
+
+                // プレイヤー周囲を destination-out で円形に切り抜く
+                dctx.globalCompositeOperation = 'destination-out';
+                const hole = dctx.createRadialGradient(px, py, 0, px, py, radius);
+                hole.addColorStop(0,   'rgba(0,0,0,1)');
+                hole.addColorStop(0.75, 'rgba(0,0,0,1)');
+                hole.addColorStop(1,   'rgba(0,0,0,0)');
+                dctx.fillStyle = hole;
+                dctx.beginPath();
+                dctx.arc(px, py, radius, 0, Math.PI * 2);
+                dctx.fill();
+
+                // 完成したマスクをゲームキャンバス上に重ねる
+                cachedGameCtx.drawImage(darkCanvas, 0, 0);
             }
 
             // カウントダウンの描画
