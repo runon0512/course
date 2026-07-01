@@ -1438,6 +1438,8 @@
                     <div class="tool-btn rank-legendary" id="btn-tool-V" onclick="setTool('V', this)" title="AURORA BLOCK" style="display:none;"><canvas id="icon-V" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-mg" onclick="setTool('mg', this)" title="MISSILE GUN" style="display:none;"><canvas id="icon-mg" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-LM" onclick="setTool('LM', this)" title="LAMP BLOCK" style="display:none;"><canvas id="icon-LM" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-WC" onclick="setTool('WC', this)" title="WOOD CRATE" style="display:none;"><canvas id="icon-WC" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
                 </div>
             </div>
@@ -1478,7 +1480,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6LkJALie5hvQTRKsVu3MDcS_fZJH_ysUV3IFQKbbJH3EK4dgPWI0z3QD82JrVJgp5/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.6.1"
+            VERSION: "2.7.0"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1571,7 +1573,9 @@
             'V': { title: 'オーロラブロック', text: '光る特別なブロックです。何か力を秘めているとか...' },
             'sp': { title: 'スポナーブロック', text: '一定間隔で敵を生成する仕掛けブロックです。' },
             'mg': { title: 'ミサイル銃', text: '右方向にミサイルを発射します。ミサイルはブロックに当たると周囲9マスを破壊します。' },
-            'BB': { title: '鉄ブロック', text: '周囲のブロックより少し大きい頑丈な鉄のブロックです。' }
+            'BB': { title: '鉄ブロック', text: '周囲のブロックより少し大きい頑丈な鉄のブロックです。' },
+            'LM': { title: 'ランプブロック', text: '暗闇ステージで周囲を明るく照らすブロックです。それ以外のステージでは通常のブロックとして機能します。ミサイルで破壊できます。' },
+            'WC': { title: '木箱ブロック', text: '横から押して動かせる木箱です。押していない時は通常のブロックとして機能します。ミサイルで破壊できます。' }
         };
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
@@ -1598,7 +1602,7 @@
             'Y': '#7b1fa2', 'I': '#81d4fa', 'T': '#8d6e63',
             'H': '#a1887f', 'hr': '#ef9a9a', 'hb': '#90caf9',
             '#': '#b0bec5', 'r': '#f44336', 'b': '#2196f3',
-            'Z': '#e040fb', 'default': '#bdbdbd'
+            'Z': '#e040fb', 'LM': '#ffca28', 'WC': '#795548', 'default': '#bdbdbd'
         };
         let enemies = [];
         let playbackGhosts = [];
@@ -1876,7 +1880,9 @@
             'custom2': { name: 'CUSTOM 2', price: 50000, sprite: null, isCustom: true },
             'custom3': { name: 'CUSTOM 3', price: 75000, sprite: null, isCustom: true },
             'spawner': { name: 'SPAWNER BLOCK', price: 75000, isBlockSet: true, sprite: null },
-            'big_block': { name: 'IRON BLOCK', price: 10000, isBlockSet: true, sprite: null }
+            'big_block': { name: 'IRON BLOCK', price: 10000, isBlockSet: true, sprite: null },
+            'lamp_block': { name: 'LAMP BLOCK', price: 15000, isBlockSet: true, sprite: null },
+            'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null }
         };
 
         const COLORS = {
@@ -1946,7 +1952,7 @@
                     const type = activeStage[y][x];
                     if (!type) continue;
                     
-                    if(['W', 'L', 'U', 'd', 'J'].includes(type)) {
+                    if(['W', 'L', 'U', 'd', 'J', 'LM'].includes(type)) {
                         dynamicTiles.push({x, y, type});
                     } else {
                         drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
@@ -2183,6 +2189,8 @@
                 if (id === 'aurora_block') previewType = 'V';
                 if (id === 'spawner') previewType = 'sp';
                 if (id === 'big_block') previewType = 'BB';
+                if (id === 'lamp_block') previewType = 'LM';
+                if (id === 'wood_crate') previewType = 'WC';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -2238,7 +2246,7 @@
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB'],
+            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC'],
             epic: ['hr', 'hb', 'e', '#'],
             legendary: ['V', 'sp', 'mg']
         };
@@ -2498,6 +2506,30 @@
         }
 
         // --- チャット関連 ---
+        // メッセージ内のURLをクリック可能なリンクに変換する（表示前にHTMLエスケープも行う）
+        function linkifyMessage(text) {
+            if (text === null || text === undefined) return '';
+            const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (ch) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[ch]));
+            const escaped = escapeHtml(text);
+            const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+            return escaped.replace(urlPattern, (match) => {
+                // URLの末尾に付きがちな句読点・記号はリンクに含めない
+                let url = match;
+                let trail = '';
+                const trailingChars = /[.,;:!?、。！？）」』\]\)"'>]+$/;
+                const trailMatch = url.match(trailingChars);
+                if (trailMatch) {
+                    trail = trailMatch[0];
+                    url = url.slice(0, -trail.length);
+                }
+                if (!url) return match;
+                const href = url.startsWith('http') ? url : `https://${url}`;
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:var(--secondary-color); text-decoration:underline; word-break:break-all;">${url}</a>${trail}`;
+            });
+        }
+
         async function openChat() {
             document.getElementById('chat-overlay').style.display = 'flex';
             clearAttachedStage();
@@ -2550,7 +2582,7 @@
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
                 content.innerHTML = `
                     <div class="chat-user" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</div>
-                    <div style="word-break: break-all;">${m.message}</div>
+                    <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
                     ${stageBtn}
                 `;
                 item.appendChild(content);
@@ -2983,7 +3015,7 @@
                 contentDiv.className = 'message-content';
                 contentDiv.innerHTML = `
                     <div class="chat-user" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</div>
-                    <div>${m.message}</div>
+                    <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
                 item.appendChild(contentDiv);
@@ -4014,6 +4046,12 @@
             // ミサイル銃
             if(document.getElementById('btn-tool-mg')) document.getElementById('btn-tool-mg').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(15)) ? 'flex' : 'none';
 
+            // ランプブロック
+            if(document.getElementById('btn-tool-LM')) document.getElementById('btn-tool-LM').style.display = purchasedSkins.includes('lamp_block') ? 'flex' : 'none';
+
+            // 木箱ブロック
+            if(document.getElementById('btn-tool-WC')) document.getElementById('btn-tool-WC').style.display = purchasedSkins.includes('wood_crate') ? 'flex' : 'none';
+
             resizeCanvas('editor-canvas');
             drawEditor();
             // 水中・暗闇エフェクトのためにアニメーションループを開始
@@ -4074,7 +4112,8 @@
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
-                {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BB', id:'icon-BB'}
+                {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BB', id:'icon-BB'},
+                {type:'LM', id:'icon-LM'}, {type:'WC', id:'icon-WC'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -4692,6 +4731,58 @@
                 ctx.strokeStyle = "#90a4ae";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, bw - pad*2, bh - pad*2);
+            } else if(type === 'LM') {
+                // ランプブロック（暗闇ステージで周囲を照らす。それ以外では通常ブロック扱い）
+                ctx.fillStyle = "#37474f";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#263238";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch*0.15);
+                ctx.fillRect(x*cw + pad, y*ch + ch - pad - ch*0.15, cw - pad*2, ch*0.15);
+                // 中心の灯り
+                const lampCx = x*cw + cw/2, lampCy = y*ch + ch/2;
+                const lampR = Math.min(cw, ch) * 0.24;
+                const glowPulse = 0.7 + Math.sin(time * 2.2 + (x + y)) * 0.25;
+                const glow = ctx.createRadialGradient(lampCx, lampCy, 0, lampCx, lampCy, lampR * 2.4);
+                glow.addColorStop(0, `rgba(255, 213, 79, ${glowPulse})`);
+                glow.addColorStop(0.5, `rgba(255, 193, 7, ${glowPulse * 0.35})`);
+                glow.addColorStop(1, 'rgba(255, 193, 7, 0)');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(lampCx, lampCy, lampR * 2.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "#ffca28";
+                ctx.beginPath();
+                ctx.arc(lampCx, lampCy, lampR, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "#5d4037";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(lampCx, lampCy, lampR, 0, Math.PI * 2);
+                ctx.stroke();
+                // 上下の吊り金具
+                ctx.fillStyle = "#616161";
+                ctx.fillRect(lampCx - lampR*0.15, y*ch + pad, lampR*0.3, ch*0.12);
+                ctx.fillRect(lampCx - lampR*0.15, y*ch + ch - pad - ch*0.12, lampR*0.3, ch*0.12);
+            } else if(type === 'WC') {
+                // 木箱ブロック（横から押して動かせる。押していない時は通常ブロック扱い）
+                ctx.fillStyle = "#8d6e63";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.strokeStyle = "#5d4037";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                // 板の継ぎ目
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.5, y*ch + pad);
+                ctx.lineTo(x*cw + cw*0.5, y*ch + ch - pad);
+                ctx.stroke();
+                // 内側の枠と補強バツ印
+                ctx.strokeRect(x*cw + cw*0.15, y*ch + ch*0.15, cw*0.7, ch*0.7);
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.15, y*ch + ch*0.15);
+                ctx.lineTo(x*cw + cw*0.85, y*ch + ch*0.85);
+                ctx.moveTo(x*cw + cw*0.85, y*ch + ch*0.15);
+                ctx.lineTo(x*cw + cw*0.15, y*ch + ch*0.85);
+                ctx.stroke();
             } else if(type === 'd') {
                 ctx.save();
                 ctx.beginPath();
@@ -5049,7 +5140,7 @@
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','S','G','K','M','E','A','T','X','W','L','U','P','H',
             '>','<','v','C','q','k','r','b','!','Y','d','J','j','y',
-            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB'
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -5606,6 +5697,27 @@
                 return;
             }
 
+            // 木箱ブロック(WC)のプッシュ判定：プレイヤーが横から押すと1マス分移動する
+            if (player.vx !== 0) {
+                const pushDir = player.vx > 0 ? 1 : -1;
+                const rowY = Math.floor(player.y + player.h / 2);
+                const ix = Math.floor((pushDir > 0 ? (player.x + player.vx + player.w) : (player.x + player.vx)));
+                if (activeStage[rowY] && activeStage[rowY][ix] === 'WC') {
+                    const currentEdge = pushDir > 0 ? (player.x + player.w) : player.x;
+                    const isPushingIntoIt = pushDir > 0 ? (currentEdge >= ix - 0.02) : (currentEdge <= ix + 1.02);
+                    if (isPushingIntoIt) {
+                        const targetX = ix + pushDir;
+                        const inBounds = targetX >= 0 && targetX < GRID_W;
+                        const targetTile = inBounds ? activeStage[rowY][targetX] : 'OOB';
+                        if (inBounds && (targetTile === null || targetTile === undefined)) {
+                            activeStage[rowY][ix] = null;
+                            activeStage[rowY][targetX] = 'WC';
+                            updateStageCache();
+                        }
+                    }
+                }
+            }
+
             // X衝突
             let nextX = player.x + player.vx;
             let collidedX = isCollide(nextX, player.y, true, 'x');
@@ -5875,7 +5987,7 @@
                 
                 // 壁にあたったら消える（先端の1点のみで判定）
                 const checkX = Math.floor(a.x), checkY = Math.floor(a.y);
-                const hitWall = activeStage[checkY] && (activeStage[checkY][checkX] === 'B' || activeStage[checkY][checkX] === 'X');
+                const hitWall = activeStage[checkY] && (activeStage[checkY][checkX] === 'B' || activeStage[checkY][checkX] === 'X' || activeStage[checkY][checkX] === 'LM' || activeStage[checkY][checkX] === 'WC');
                 
                 if(a.x < 0 || a.x > GRID_W || hitWall) arrows.splice(i, 1);
                 if(Math.abs(a.x - player.x) < 0.5 && Math.abs(a.y - player.y) < 0.5) handlePlayerDeath();
@@ -6092,7 +6204,7 @@
                     const tc = tile.charCodeAt(0);
                     if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
-                       tile === 'mg' || tile === 'BB' ||
+                       tile === 'mg' || tile === 'BB' || tile === 'LM' || tile === 'WC' ||
                        (tc === 90 && tile.length > 1) /* 'Z'... */ ||
                        (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) ||
                        (tile === '#' && axis === 'x')) return true;
@@ -6373,16 +6485,30 @@
                 dctx.fillStyle = '#000';
                 dctx.fillRect(0, 0, darkCanvas.width, darkCanvas.height);
 
-                // プレイヤー周囲を destination-out で円形に切り抜く
+                // 指定座標を中心に destination-out で円形に切り抜くヘルパー
                 dctx.globalCompositeOperation = 'destination-out';
-                const hole = dctx.createRadialGradient(px, py, 0, px, py, radius);
-                hole.addColorStop(0,   'rgba(0,0,0,1)');
-                hole.addColorStop(0.75, 'rgba(0,0,0,1)');
-                hole.addColorStop(1,   'rgba(0,0,0,0)');
-                dctx.fillStyle = hole;
-                dctx.beginPath();
-                dctx.arc(px, py, radius, 0, Math.PI * 2);
-                dctx.fill();
+                const cutLightHole = (hx, hy, hr) => {
+                    const hole = dctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+                    hole.addColorStop(0,   'rgba(0,0,0,1)');
+                    hole.addColorStop(0.75, 'rgba(0,0,0,1)');
+                    hole.addColorStop(1,   'rgba(0,0,0,0)');
+                    dctx.fillStyle = hole;
+                    dctx.beginPath();
+                    dctx.arc(hx, hy, hr, 0, Math.PI * 2);
+                    dctx.fill();
+                };
+
+                // プレイヤー周囲を切り抜く
+                cutLightHole(px, py, radius);
+
+                // ランプブロック周囲も切り抜く
+                for (let ly = 0; ly < GRID_H; ly++) {
+                    for (let lx = 0; lx < GRID_W; lx++) {
+                        if (activeStage[ly][lx] === 'LM') {
+                            cutLightHole((lx + 0.5) * cw, (ly + 0.5) * ch, cw * 1.8);
+                        }
+                    }
+                }
 
                 // 完成したマスクをゲームキャンバス上に重ねる
                 cachedGameCtx.drawImage(darkCanvas, 0, 0);
