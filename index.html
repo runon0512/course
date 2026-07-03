@@ -1357,10 +1357,6 @@
                     <input type="checkbox" id="filter-my-stages" onchange="openStageSelect()">
                     <span>自分のステージのみ</span>
                 </label>
-                <label class="remember-wrap" style="font-size: 1.2cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid var(--secondary-color);">
-                    <input type="checkbox" id="filter-favorites" onchange="openStageSelect()">
-                    <span>お気に入りのみ</span>
-                </label>
                 <label class="remember-wrap" style="font-size: 1.2cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid #4caf50;">
                     <input type="checkbox" id="filter-unplayed" onchange="openStageSelect()">
                     <span>未プレイのみ</span>
@@ -1403,6 +1399,7 @@
                     <span class="toolbar-label">ITEMS:</span>
                     <div class="tool-btn rank-common" onclick="setTool('A', this)" title="ARROW LAUNCHER"><canvas id="icon-A" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('T', this)" title="TRAMPOLINE"><canvas id="icon-T" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('TD', this)" title="TRAMPOLINE DOWN"><canvas id="icon-TD" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('X', this)" title="TROLL BLOCK"><canvas id="icon-X" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('W', this)" title="WIND ZONE"><canvas id="icon-W" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('L', this)" title="WIND LEFT"><canvas id="icon-L" class="tool-canvas"></canvas></div>
@@ -1508,12 +1505,12 @@
             { id: 5, cp: 10000, gold: 800 },
             { id: 6, cp: 15000, unlock: 'J', text: "R/B風" },
             { id: 12, cp: 15000, unlock: 'Z', text: "カラーブロック" },
-            { id: 7, cp: 20000, unlock: 'd', auroraStone: 1, text: "下降気流" },
+            { id: 7, cp: 20000, unlock: 'd', text: "下降気流" },
             { id: 15, cp: 25000, unlock: 'MISSILE_GUN', text: "ミサイル銃" },
             { id: 8, cp: 30000, unlock: 'j', text: "ジャンプする敵" },
             { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" },
             { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
-            { id: 10, cp: 50000, unlock: 'ICE', auroraStone: 1, text: "氷ブロック" },
+            { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック" },
             { id: 14, cp: 75000, unlock: 'RB_BRIDGE', text: "R/B橋" },
             { id: 13, cp: 100000, unlock: 'SYNC_ENEMY', auroraStone: 1, text: "シンクロ敵 + AS" }
         ];
@@ -1539,6 +1536,7 @@
             'E': { title: '消しゴム', text: '配置したブロックやアイテムを消すツールです。' },
             'A': { title: '矢印発射装置', text: '左向きに矢を発射します。矢に触れると死亡します。' },
             'T': { title: 'トランポリン', text: '乗ると高く跳ね返る足場です。ジャンプ中継に使えます。' },
+            'TD': { title: '下向きトランポリン', text: '天井に設置するトランポリンです。下からジャンプでぶつかると下向きに弾き返されます。' },
             'X': { title: 'トロールブロック', text: '横から触れると弾くブロックです。敵にも効果があります。' },
             'W': { title: '風ゾーン', text: '常に右方向に風を吹かせ続ける領域です。プレイヤーを押し出します。' },
             'L': { title: '左風', text: '左方向に風を吹かせる区画です。戻りやすくできます。' },
@@ -1588,10 +1586,8 @@
         let cachedStages = null;    // ステージリストのキャッシュ
         let currentSort = 'newest'; // デフォルトのソート順
         let filterMyStages = false;
-        let filterFavorites = false; 
         let filterUnplayed = false;
         let filterCreatorName = '';
-        let favoriteStages = [];
         let arrows = [];
         let missiles = [];
         let debrisParticles = []; // 破片エフェクト
@@ -1599,7 +1595,7 @@
         // ブロックの色マッピング（破片色用）
         const BLOCK_DEBRIS_COLOR = {
             'B': '#78909c', 'X': '#546e7a', '!': '#ff8f00',
-            'Y': '#7b1fa2', 'I': '#81d4fa', 'T': '#8d6e63',
+            'Y': '#7b1fa2', 'I': '#81d4fa', 'T': '#8d6e63', 'TD': '#6d4c41',
             'H': '#a1887f', 'hr': '#ef9a9a', 'hb': '#90caf9',
             '#': '#b0bec5', 'r': '#f44336', 'b': '#2196f3',
             'Z': '#e040fb', 'LM': '#ffca28', 'WC': '#795548', 'default': '#bdbdbd'
@@ -2365,8 +2361,6 @@
                 currentGuildDetails = guildRes.guilds.find(g => g.name === userGuild);
             }
 
-            favoriteStages = JSON.parse(localStorage.getItem(`favs_${CONFIG.USERNAME}`) || "[]");
-
             // UI反映
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('main-menu').classList.add('active');
@@ -2596,11 +2590,13 @@
         async function sendChat() {
             const input = document.getElementById('chat-input');
             const sendBtn = input.nextElementSibling;
+            const attachBtn = document.getElementById('chat-attach-btn');
             const msg = input.value.trim() || (attachedStageId ? "このステージを遊んでみて！" : "");
             if (!msg && !attachedStageId) return;
             
             input.disabled = true;
             sendBtn.disabled = true;
+            if (attachBtn) attachBtn.disabled = true;
             const originalText = sendBtn.innerText;
             sendBtn.innerText = "送信中...";
 
@@ -2620,6 +2616,7 @@
             } finally {
                 input.disabled = false;
                 sendBtn.disabled = false;
+                if (attachBtn) attachBtn.disabled = false;
                 sendBtn.innerText = originalText;
             }
         }
@@ -3030,7 +3027,14 @@
             if (!msg) { alert("メッセージを入力してください。"); return; }
 
             const postBtn = input.nextElementSibling;
+            const tabBtns = [
+                document.getElementById('guild-tab-members'),
+                document.getElementById('guild-tab-bulletin'),
+                document.getElementById('guild-tab-settings')
+            ];
+            input.disabled = true;
             postBtn.disabled = true;
+            tabBtns.forEach(b => { if (b) b.disabled = true; });
             const originalText = postBtn.innerText;
             postBtn.innerText = "投稿中...";
 
@@ -3050,7 +3054,9 @@
                     alert(res.message);
                 }
             } finally {
+                input.disabled = false;
                 postBtn.disabled = false;
+                tabBtns.forEach(b => { if (b) b.disabled = false; });
                 postBtn.innerText = originalText;
             }
         }
@@ -4106,7 +4112,7 @@
         function renderToolIcons() {
             const toolList = [
                 {type:'B', id:'icon-B'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'K', id:'icon-K'}, 
-                {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
+                {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
                 {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
@@ -4420,6 +4426,12 @@
                 ctx.fillRect(x*cw, y*ch, cw, ch*0.1);
                 ctx.fillStyle = "#ffb300";
                 ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.2);
+            } else if(type === 'TD') {
+                // 下向きトランポリン（天井設置用、通常のトランポリンの上下反転）
+                ctx.fillStyle = "#fb8c00";
+                ctx.fillRect(x*cw, y*ch + ch*0.9, cw, ch*0.1);
+                ctx.fillStyle = "#ffb300";
+                ctx.fillRect(x*cw, y*ch + ch*0.7, cw, ch*0.2);
             } else if(type === 'X') {
                 // トロール（弾く）
                 ctx.fillStyle = "#4a148c";
@@ -4893,11 +4905,20 @@
             btn.innerText = "投稿中...";
             btn.disabled = true;
 
-            const stageType = document.getElementById('stage-type-select')?.value || 'normal';
-            await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, stageType });
-            btn.innerText = oldText;
-            btn.disabled = false;
-            alert("投稿完了！プレイメニューから遊べます。");
+            try {
+                const stageType = document.getElementById('stage-type-select')?.value || 'normal';
+                await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, stageType });
+
+                // 投稿完了：クリアチェック判定とステージ情報をクリア
+                initGrid();
+                resetClearCheck();
+                drawEditor();
+
+                alert("投稿完了！プレイメニューから遊べます。");
+            } finally {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
         }
 
         // --- プレイ・ゲームロジック ---
@@ -4907,7 +4928,6 @@
             overlay.style.display = 'flex';
 
             filterMyStages = document.getElementById('filter-my-stages').checked;
-            filterFavorites = document.getElementById('filter-favorites').checked;
             filterUnplayed = document.getElementById('filter-unplayed').checked;
             filterCreatorName = document.getElementById('filter-creator').value.toLowerCase();
             currentSort = document.getElementById('sort-criteria').value;
@@ -4931,11 +4951,10 @@
 
             let filtered = cachedStages.filter(s => {
                 const matchMine = !filterMyStages || s.creator === CONFIG.USERNAME;
-                const matchFav = !filterFavorites || favoriteStages.includes(s.id || s.name);
                 const isCleared = s.leaderboard && s.leaderboard.some(r => r.name === CONFIG.USERNAME);
                 const matchUnplayed = !filterUnplayed || !isCleared;
                 const matchCreator = !filterCreatorName || s.creator.toLowerCase().includes(filterCreatorName);
-                return matchMine && matchFav && matchCreator && matchUnplayed;
+                return matchMine && matchCreator && matchUnplayed;
             });
 
             // ソート処理
@@ -4969,7 +4988,6 @@
             sortedStages.forEach((s, idx) => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
-                const isFav = favoriteStages.includes(s._idStr);
                 const isPickUp = s.creator === 'SYSTEM';
                 const escapedId = s._idStr.replace(/'/g, "\\'");
             
@@ -5049,8 +5067,6 @@
                 }
                 const myRecordHtml = `<div style="font-size:0.85cqw; color:#00ff41; margin-top:0.2cqh;">🚩 Your Rank: ${myRankDisp}${myRec ? ` (${myRec.time.toFixed(3)}s)` : ''}</div>`;
                 
-                const favBtn = `<span onclick="toggleFavorite('${s._idStr}', event)" style="cursor:pointer; font-size:2cqw; color:${isFav ? '#e91e63' : '#666'}; line-height:1;">${isFav ? '★' : '☆'}</span>`;
-
                 const info = document.createElement('div');
                 info.style.cssText = "flex: 1; display: flex; flex-direction: column; gap: 0.5cqh; min-width: 0;";
                 info.innerHTML = `
@@ -5065,7 +5081,6 @@
                             </div>
                             <div style="font-size:0.8cqw; color:#aaa;">by ${s.creator}</div>
                         </div>
-                        ${favBtn}
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
                         Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''}
@@ -5087,18 +5102,6 @@
                 // プレビュー描画を少しずつ遅延させてUIのフリーズを防ぐ
                 setTimeout(() => { if(document.contains(canvas)) renderPreview(canvas, s.data); }, idx * 20);
             });
-        }
-
-        function toggleFavorite(id, event) {
-            event.stopPropagation();
-            const index = favoriteStages.indexOf(id);
-            if (index === -1) {
-                favoriteStages.push(id);
-            } else {
-                favoriteStages.splice(index, 1);
-            }
-            localStorage.setItem(`favs_${CONFIG.USERNAME}`, JSON.stringify(favoriteStages));
-            openStageSelect();
         }
 
         function renderPreview(canvas, data) {
@@ -5813,6 +5816,11 @@
                 const foot_tile = activeStage[foot_y_idx] ? activeStage[foot_y_idx][ex_tile] : null;
                 if(foot_tile === 'T' && en.vy > 0) en.vy = -0.4; // トランポリン
 
+                // 頭上のタイルを取得
+                const head_y_idx = Math.floor(en.y);
+                const head_tile = activeStage[head_y_idx] ? activeStage[head_y_idx][ex_tile] : null;
+                if(head_tile === 'TD' && en.vy < 0) en.vy = 0.4; // 下向きトランポリン
+
                 // 横移動
                 if (en.sync) {
                     en.vx = 0;
@@ -5875,6 +5883,18 @@
 
                 if (collidedY) {
                     if (isWater) {
+                        // 水中敵もスイッチブロックに触れたら切り替え可能に
+                        if (en.vy < 0) {
+                            const egx = Math.floor(en.x + 0.45);
+                            const eheadY = Math.floor(nextY);
+                            if (activeStage[eheadY] && activeStage[eheadY][egx] === '!') {
+                                if (!en.onSwitch) {
+                                    isSwitchOn = !isSwitchOn;
+                                    en.onSwitch = true;
+                                    updateStageCache();
+                                }
+                            }
+                        }
                         // 水中は上下に跳ね返る
                         en.vy *= -0.6;
                     } else {
@@ -6117,9 +6137,11 @@
             const gx = Math.floor(player.x + player.w/2);
             const gy = Math.floor(player.y + player.h/2);
             const footY = Math.floor(player.y + player.h);
+            const headY = Math.floor(player.y);
             
             const tile = activeStage[gy] ? activeStage[gy][gx] : null;
             const footTile = activeStage[footY] ? activeStage[footY][gx] : null;
+            const headTile = activeStage[headY] ? activeStage[headY][gx] : null;
 
             // 重なりによるスイッチ判定（念のため残すが、基本は衝突時判定が優先）
             if (tile !== '!') player.onSwitch = false;
@@ -6155,6 +6177,7 @@
             if (!isSwitchOn && (tile === 'q' || footTile === 'q')) handlePlayerDeath();
             if (tile === 'y' || footTile === 'y') handlePlayerDeath();
             if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
+            if (headTile === 'TD' && player.vy < 0) player.vy = 0.45;
             if (footTile === 'P') player.vx *= 1.15; // 加速
         }
 
