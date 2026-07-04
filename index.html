@@ -401,6 +401,44 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        #image-lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        #image-lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            border: 0.2cqw solid #fff;
+            border-radius: 4px;
+            cursor: default;
+            box-shadow: 0 0 3cqw rgba(0,0,0,0.8);
+        }
+        #image-lightbox-close {
+            position: absolute;
+            top: 3vh;
+            right: 3vw;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 0.15cqw solid #fff;
+            border-radius: 50%;
+            width: 3cqw;
+            height: 3cqw;
+            min-width: 32px;
+            min-height: 32px;
+            font-size: 1.5cqw;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         /* Add styles for guild bulletin board */
         .guild-bulletin-board {
             width: 90%;
@@ -997,6 +1035,12 @@
             </div>
         </div>
 
+        <!-- 画像拡大表示用ライトボックス -->
+        <div id="image-lightbox" onclick="closeImageLightbox()">
+            <img id="image-lightbox-img" src="" onclick="event.stopPropagation()">
+            <button id="image-lightbox-close" onclick="closeImageLightbox()">✕</button>
+        </div>
+
         <!-- ユーザー情報 -->
         <div id="user-info">
             USER: <span id="current-user">-</span> | 
@@ -1493,7 +1537,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyUcWefgBpUbTZu8wE8FE_NH6KIv5jOXZ0-z5dP-Y4ii-2WeM1lUcTUEIDGs7So53Y8/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.7.0"
@@ -1634,6 +1678,8 @@
         const stageCacheCtx = stageCacheCanvas.getContext('2d');
         const spriteCache = new Map();
         let timerElement = null;
+        let gameRetryBtnCache = null;
+        let gameExitBtnCache = null;
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
         let lastTime = 0;
@@ -2593,13 +2639,18 @@
                 item.appendChild(canvas);
                 const content = document.createElement('div');
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
-                const imageHtml = m.image ? `<img class="chat-image" src="${m.image}" onclick="window.open(this.src, '_blank')">` : '';
                 content.innerHTML = `
                     <div class="chat-user" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</div>
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
-                    ${imageHtml}
                     ${stageBtn}
                 `;
+                if (m.image) {
+                    const imgEl = document.createElement('img');
+                    imgEl.className = 'chat-image';
+                    imgEl.src = m.image;
+                    imgEl.addEventListener('click', () => showImageLightbox(m.image));
+                    content.appendChild(imgEl);
+                }
                 item.appendChild(content);
                 container.appendChild(item);
             });
@@ -2666,6 +2717,16 @@
             reader.readAsDataURL(file);
         }
 
+        function showImageLightbox(src) {
+            document.getElementById('image-lightbox-img').src = src;
+            document.getElementById('image-lightbox').style.display = 'flex';
+        }
+
+        function closeImageLightbox() {
+            document.getElementById('image-lightbox').style.display = 'none';
+            document.getElementById('image-lightbox-img').src = '';
+        }
+
         function clearAttachedImage() {
             attachedImageData = null;
             document.getElementById('attached-image-preview').src = '';
@@ -2688,7 +2749,7 @@
             sendBtn.innerText = "送信中...";
 
             try {
-                await callApi('postChat', {
+                const res = await callApi('postChat', {
                     username: CONFIG.USERNAME,
                     message: msg,
                     skin: equippedSkin,
@@ -2698,6 +2759,10 @@
                     attachedStageName: attachedStageName,
                     image: attachedImageData
                 });
+                if (res && res.success === false) {
+                    alert("送信に失敗しました: " + (res.message || "不明なエラー"));
+                    return;
+                }
                 input.value = '';
                 clearAttachedStage();
                 clearAttachedImage();
@@ -5231,9 +5296,9 @@
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','S','G','K','M','E','A','T','X','W','L','U','P','H',
+            'B','S','G','K','M','E','A','T','TD','X','W','L','U','P','H',
             '>','<','v','C','q','k','r','b','!','Y','d','J','j','y',
-            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC','TD'
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -5288,6 +5353,8 @@
             player.onSwitch = false;
             // spriteCache.clear(); // パフォーマンス向上のため全削除を廃止
             timerElement = document.getElementById('game-timer');
+            gameRetryBtnCache = document.getElementById('game-retry-btn');
+            gameExitBtnCache = document.getElementById('game-exit-btn');
             cachedGameCanvas = document.getElementById('game-canvas');
             cachedGameCtx = cachedGameCanvas.getContext('2d');
             cachedGameCtx.imageSmoothingEnabled = false;
@@ -5662,7 +5729,7 @@
 
             if (lastTime === 0) { lastTime = timestamp; drawGame(); return; }
             let elapsed = timestamp - lastTime;
-            const frameTime = 16; // 60FPSの1フレームあたりのミリ秒 (精度の都合上16.66より少し小さく設定)
+            const frameTime = 1000 / 60; // 60FPSの1フレームあたりのミリ秒
             let updates = 0;
 
             // 経過した時間分だけ物理演算を回して追いつく（最大5回まで）
@@ -5679,10 +5746,9 @@
                 lastTime = timestamp;
             }
 
-            // 物理演算が1回でも行われたら描画を更新
-            if (updates > 0) {
-                drawGame();
-            }
+            // 描画はモニターのリフレッシュレートに合わせて毎フレーム行う
+            // （物理演算の有無に関わらず描画することで、高リフレッシュレート環境でのカクつきを防ぐ）
+            drawGame();
         }
 
         function updateGame() {
@@ -6410,8 +6476,8 @@
             }
 
             // Retry/Exitの状態更新 (開始から5秒後まで無効)
-            const gameRetryBtn = document.getElementById('game-retry-btn');
-            const gameExitBtn = document.getElementById('game-exit-btn');
+            const gameRetryBtn = gameRetryBtnCache;
+            const gameExitBtn = gameExitBtnCache;
             const canUseControls = !isCountingDown && !isGoalTriggered && startTime > 0;
             const elapsed = canUseControls ? (Date.now() - startTime) / 1000 : Infinity;
             const isControlEnabled = canUseControls && elapsed >= 5;
