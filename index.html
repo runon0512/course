@@ -390,6 +390,17 @@
             text-align: left;
             font-size: 1.2cqw;
         }
+        .chat-image {
+            display: block;
+            max-width: 18cqw;  /* 全角文字15個分 (1.2cqw * 15) を上限に */
+            max-height: 18cqw;
+            width: auto;
+            height: auto;
+            margin-top: 0.5cqh;
+            border: 0.1cqw solid #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
         /* Add styles for guild bulletin board */
         .guild-bulletin-board {
             width: 90%;
@@ -1149,6 +1160,8 @@
             <div style="display:flex; gap:1cqw; margin-bottom: 2cqh;">
                 <button class="pixel-btn small" onclick="closeChat()">戻る</button>
                 <button id="chat-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleStageSearch()">📎 ステージを添付</button>
+                <button id="chat-image-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('chat-image-input').click()">🖼️ 画像を送る</button>
+                <input type="file" id="chat-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleChatImageSelect(event)">
             </div>
 
             <!-- ステージ検索エリア -->
@@ -1165,6 +1178,11 @@
                 <button onclick="clearAttachedStage()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.5cqw;">✕</button>
             </div>
 
+            <div id="selected-image-info" style="display:none; width:90%; background:var(--primary-color); color:#000; padding:0.5cqw; font-size:1.2cqw; margin-bottom:1cqh; justify-content:space-between; align-items:center;">
+                <span style="display:flex; align-items:center; gap:0.8cqw;">画像添付中 <img id="attached-image-preview" style="height:3cqw; width:auto; border:0.1cqw solid #000;"></span>
+                <button onclick="clearAttachedImage()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.5cqw;">✕</button>
+            </div>
+
             <div id="chat-list" class="chat-msg-list">
                 <!-- 内容はJSで生成 -->
             </div>
@@ -1173,6 +1191,7 @@
                 <button class="pixel-btn small" style="width: 15cqw;" onclick="sendChat()">送信</button>
             </div>
         </div>
+
 
         <!-- ギルド画面 -->
         <div id="guild-overlay" class="screen" style="flex-direction: column; align-items: center; padding: 5cqh 5cqw; background: rgba(10,10,30,0.95); z-index: 165; box-sizing: border-box; overflow-y: auto;">
@@ -1474,7 +1493,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6LkJALie5hvQTRKsVu3MDcS_fZJH_ysUV3IFQKbbJH3EK4dgPWI0z3QD82JrVJgp5/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyUcWefgBpUbTZu8wE8FE_NH6KIv5jOXZ0-z5dP-Y4ii-2WeM1lUcTUEIDGs7So53Y8/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.7.0"
@@ -2574,9 +2593,11 @@
                 item.appendChild(canvas);
                 const content = document.createElement('div');
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
+                const imageHtml = m.image ? `<img class="chat-image" src="${m.image}" onclick="window.open(this.src, '_blank')">` : '';
                 content.innerHTML = `
                     <div class="chat-user" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</div>
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
+                    ${imageHtml}
                     ${stageBtn}
                 `;
                 item.appendChild(content);
@@ -2586,17 +2607,83 @@
 
         let attachedStageId = null;
         let attachedStageName = null;
+        let attachedImageData = null; // 送信待ちの画像 (base64 dataURL)
+
+        const CHAT_IMAGE_MAX_FILE_SIZE = 5 * 1024 * 1024; // 元ファイルの上限 5MB
+        const CHAT_IMAGE_MAX_DIMENSION = 400; // リサイズ後の最大辺(px)
+        const CHAT_IMAGE_MAX_DATA_LENGTH = 45000; // バックエンド保存用の上限文字数
+
+        function handleChatImageSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = ''; // 同じファイルを再選択できるようにリセット
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert("画像ファイルを選択してください。");
+                return;
+            }
+            if (file.size > CHAT_IMAGE_MAX_FILE_SIZE) {
+                alert(`画像サイズが大きすぎます。${Math.floor(CHAT_IMAGE_MAX_FILE_SIZE / 1024 / 1024)}MB以下のファイルを選んでください。`);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    // アップロード時点でリサイズ・圧縮してデータ量を抑える
+                    let w = img.width, h = img.height;
+                    if (w > h && w > CHAT_IMAGE_MAX_DIMENSION) { h = Math.round(h * CHAT_IMAGE_MAX_DIMENSION / w); w = CHAT_IMAGE_MAX_DIMENSION; }
+                    else if (h >= w && h > CHAT_IMAGE_MAX_DIMENSION) { w = Math.round(w * CHAT_IMAGE_MAX_DIMENSION / h); h = CHAT_IMAGE_MAX_DIMENSION; }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "#fff"; // 透過PNG対策
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    let quality = 0.8;
+                    let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    // 文字数がまだ大きい場合は品質を落として再エンコード
+                    while (dataUrl.length > CHAT_IMAGE_MAX_DATA_LENGTH && quality > 0.3) {
+                        quality -= 0.15;
+                        dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    }
+                    if (dataUrl.length > CHAT_IMAGE_MAX_DATA_LENGTH) {
+                        alert("画像を圧縮しても容量が大きすぎるため送信できません。別の画像を選んでください。");
+                        return;
+                    }
+
+                    attachedImageData = dataUrl;
+                    document.getElementById('attached-image-preview').src = dataUrl;
+                    document.getElementById('selected-image-info').style.display = 'flex';
+                };
+                img.onerror = () => alert("画像の読み込みに失敗しました。");
+                img.src = e.target.result;
+            };
+            reader.onerror = () => alert("ファイルの読み込みに失敗しました。");
+            reader.readAsDataURL(file);
+        }
+
+        function clearAttachedImage() {
+            attachedImageData = null;
+            document.getElementById('attached-image-preview').src = '';
+            document.getElementById('selected-image-info').style.display = 'none';
+        }
 
         async function sendChat() {
             const input = document.getElementById('chat-input');
             const sendBtn = input.nextElementSibling;
             const attachBtn = document.getElementById('chat-attach-btn');
+            const imageBtn = document.getElementById('chat-image-btn');
             const msg = input.value.trim() || (attachedStageId ? "このステージを遊んでみて！" : "");
-            if (!msg && !attachedStageId) return;
+            if (!msg && !attachedStageId && !attachedImageData) return;
             
             input.disabled = true;
             sendBtn.disabled = true;
             if (attachBtn) attachBtn.disabled = true;
+            if (imageBtn) imageBtn.disabled = true;
             const originalText = sendBtn.innerText;
             sendBtn.innerText = "送信中...";
 
@@ -2608,15 +2695,18 @@
                     color: equippedColor,
                     customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
                     attachedStageId: attachedStageId,
-                    attachedStageName: attachedStageName
+                    attachedStageName: attachedStageName,
+                    image: attachedImageData
                 });
                 input.value = '';
                 clearAttachedStage();
+                clearAttachedImage();
                 await refreshChat();
             } finally {
                 input.disabled = false;
                 sendBtn.disabled = false;
                 if (attachBtn) attachBtn.disabled = false;
+                if (imageBtn) imageBtn.disabled = false;
                 sendBtn.innerText = originalText;
             }
         }
