@@ -1537,7 +1537,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6LkJALie5hvQTRKsVu3MDcS_fZJH_ysUV3IFQKbbJH3EK4dgPWI0z3QD82JrVJgp5/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.7.0"
@@ -1684,6 +1684,9 @@
         let activeCheckpoints = new Set();
         let lastTime = 0;
         let dynamicTiles = []; // 動的ギミックのキャッシュ用
+        let lampPositions = []; // 暗闇ステージのランプ位置キャッシュ（毎フレームのグリッド走査を防ぐ）
+        const darkMaskCanvas = document.createElement('canvas'); // 暗闇マスク用の使い回しキャンバス
+        const darkMaskCtx = darkMaskCanvas.getContext('2d');
         const colorVarCache = {}; // CSS変数のキャッシュ
         let recordedClearTime = 0;
         let countdown = 3;
@@ -2000,6 +2003,7 @@
             stageCacheCanvas.width = canvas.width;
             stageCacheCanvas.height = canvas.height;
             dynamicTiles = [];
+            lampPositions = [];
             const cw = stageCacheCanvas.width / GRID_W;
             const ch = stageCacheCanvas.height / GRID_H;
             
@@ -2013,6 +2017,8 @@
                     const type = activeStage[y][x];
                     if (!type) continue;
                     
+                    if (type === 'LM') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
+
                     if(['W', 'L', 'U', 'd', 'J', 'LM'].includes(type)) {
                         dynamicTiles.push({x, y, type});
                     } else {
@@ -6654,15 +6660,17 @@
                 const py = (player.y + player.h / 2) * ch;
                 const radius = cw * 2.2 * 1.6;
 
-                // オフスクリーンキャンバスで暗闇マスクを生成
-                const darkCanvas = document.createElement('canvas');
-                darkCanvas.width = cachedGameCanvas.width;
-                darkCanvas.height = cachedGameCanvas.height;
-                const dctx = darkCanvas.getContext('2d');
+                // 使い回しのオフスクリーンキャンバスで暗闇マスクを生成（毎フレームcreateElementしない）
+                if (darkMaskCanvas.width !== cachedGameCanvas.width || darkMaskCanvas.height !== cachedGameCanvas.height) {
+                    darkMaskCanvas.width = cachedGameCanvas.width;
+                    darkMaskCanvas.height = cachedGameCanvas.height;
+                }
+                const dctx = darkMaskCtx;
+                dctx.globalCompositeOperation = 'source-over';
 
                 // 全体を黒く塗る
                 dctx.fillStyle = '#000';
-                dctx.fillRect(0, 0, darkCanvas.width, darkCanvas.height);
+                dctx.fillRect(0, 0, darkMaskCanvas.width, darkMaskCanvas.height);
 
                 // 指定座標を中心に destination-out で円形に切り抜くヘルパー
                 dctx.globalCompositeOperation = 'destination-out';
@@ -6680,17 +6688,13 @@
                 // プレイヤー周囲を切り抜く
                 cutLightHole(px, py, radius);
 
-                // ランプブロック周囲も切り抜く
-                for (let ly = 0; ly < GRID_H; ly++) {
-                    for (let lx = 0; lx < GRID_W; lx++) {
-                        if (activeStage[ly][lx] === 'LM') {
-                            cutLightHole((lx + 0.5) * cw, (ly + 0.5) * ch, cw * 1.8);
-                        }
-                    }
+                // ランプブロック周囲も切り抜く（事前計算済みの座標を使い、毎フレームのグリッド走査を回避）
+                for (let i = 0; i < lampPositions.length; i++) {
+                    cutLightHole(lampPositions[i].x, lampPositions[i].y, cw * 1.8);
                 }
 
                 // 完成したマスクをゲームキャンバス上に重ねる
-                cachedGameCtx.drawImage(darkCanvas, 0, 0);
+                cachedGameCtx.drawImage(darkMaskCanvas, 0, 0);
             }
 
             // カウントダウンの描画
@@ -6708,8 +6712,9 @@
         function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
             const skin = SKINS[skinId] || SKINS['default'];
             
-            // キャッシュ用のキー作成
-            const cacheKey = (skin.isCustom && customData) ? customData : `${skinId}_${colorId}`;
+            // キャッシュ用のキー作成（オブジェクト参照ではなく内容ベースの文字列にすることで、
+            // 同じ見た目のスプライトなら毎回キャッシュがヒットするようにする）
+            const cacheKey = (skin.isCustom && customData) ? `custom_${JSON.stringify(customData)}` : `${skinId}_${colorId}`;
             let cachedCanvas = spriteCache.get(cacheKey);
 
             if (!cachedCanvas) {
