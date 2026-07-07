@@ -2630,7 +2630,9 @@
             }[ch]));
             const escaped = escapeHtml(text);
             const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
-            return escaped.replace(urlPattern, (match) => {
+            const mentionPattern = /@([A-Za-z0-9_\-]+)/g;
+
+            let withLinks = escaped.replace(urlPattern, (match) => {
                 // URLの末尾に付きがちな句読点・記号はリンクに含めない
                 let url = match;
                 let trail = '';
@@ -2643,6 +2645,11 @@
                 if (!url) return match;
                 const href = url.startsWith('http') ? url : `https://${url}`;
                 return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:var(--secondary-color); text-decoration:underline; word-break:break-all;">${url}</a>${trail}`;
+            });
+
+            return withLinks.replace(mentionPattern, (match, username) => {
+                const safeUsername = escapeHtml(username).replace(/'/g, "&#39;");
+                return `<span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
             });
         }
 
