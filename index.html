@@ -6360,6 +6360,11 @@
                 }
             });
 
+            // dead フラグの敵をまとめて削除（毎フレーム10体まで削除して分散負荷）
+            for (let i = enemies.length - 1; i >= 0 && enemies.filter(e => e.dead).length > 0; i--) {
+                if (enemies[i].dead) enemies.splice(i, 1);
+            }
+
             // スポナー（sp / sp_blue）の敵召喚処理 (300フレームごと)
             if (!isCountingDown && frameCount > 0 && frameCount % 300 === 0) {
                 for (let y = 0; y < GRID_H; y++) {
@@ -6404,8 +6409,9 @@
                 }
             }
 
-            // 矢の更新
-            arrows.forEach((a, i) => {
+            // 矢の更新（逆遡歴ループで効率化）
+            for (let i = arrows.length - 1; i >= 0; i--) {
+                const a = arrows[i];
                 // 矢にも風の影響を適用
                 const ax_tile = Math.floor(a.x), ay_tile = Math.floor(a.y);
                 if(activeStage[ay_tile]) {
@@ -6420,9 +6426,12 @@
                 const checkX = Math.floor(a.x), checkY = Math.floor(a.y);
                 const hitWall = activeStage[checkY] && (activeStage[checkY][checkX] === 'B' || activeStage[checkY][checkX] === 'X' || activeStage[checkY][checkX] === 'LM' || activeStage[checkY][checkX] === 'WC');
                 
-                if(a.x < 0 || a.x > GRID_W || hitWall) arrows.splice(i, 1);
+                if(a.x < 0 || a.x > GRID_W || hitWall) {
+                    arrows.splice(i, 1);
+                    continue;
+                }
                 if(Math.abs(a.x - player.x) < 0.5 && Math.abs(a.y - player.y) < 0.5) handlePlayerDeath();
-            });
+            }
 
             // ミサイル生成 (mgブロック, 180フレームごと)
             if (frameCount % 180 === 0) {
@@ -6502,7 +6511,11 @@
                 }
             }
 
-            // 破片パーティクル更新
+            // 破片パーティクル更新（数を制限してラグを軽減）
+            const maxDebris = 250;
+            if (debrisParticles.length > maxDebris) {
+                debrisParticles.splice(0, debrisParticles.length - maxDebris);
+            }
             for (let i = debrisParticles.length - 1; i >= 0; i--) {
                 const p = debrisParticles[i];
                 p.x += p.vx;
