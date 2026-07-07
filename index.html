@@ -46,6 +46,7 @@
         .container.bg-sky  { background: #e1f5fe; }
         .container.bg-water { background: linear-gradient(180deg, #003d6b 0%, #005580 40%, #004466 100%); }
         .container.bg-dark  { background: #000; }
+        .container.bg-volcano { background: linear-gradient(180deg, #1a0500 0%, #3d0f00 55%, #1a0500 100%); }
         .container.bg-night { background: #0b1026; }
 
         /* 難易度別の新背景 */
@@ -389,6 +390,30 @@
             gap: 1.5cqw;
             text-align: left;
             font-size: 1.2cqw;
+        }
+        /* --- OVRバッジ --- */
+        .badge-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3cqw;
+            font-weight: bold;
+            white-space: nowrap;
+            border-radius: 10px;
+            line-height: 1.4;
+            vertical-align: middle;
+        }
+        .badge-chip.badge-aurora {
+            background-size: 300% 300% !important;
+            animation: badgeAuroraShift 3s ease infinite;
+        }
+        @keyframes badgeAuroraShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .badge-toggle-btn {
+            cursor: pointer;
+            user-select: none;
         }
         .chat-image {
             display: block;
@@ -1043,7 +1068,7 @@
 
         <!-- ユーザー情報 -->
         <div id="user-info">
-            USER: <span id="current-user">-</span> | 
+            USER: <span id="current-user">-</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.2</span> | 
             <span style="color:#2ecc71;">ON: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
@@ -1191,6 +1216,8 @@
                     <div id="profile-ovr" style="font-size: 7cqw; color: var(--primary-color); font-weight: bold;">0</div>
                     <canvas id="profile-skin-canvas" width="128" height="128" style="image-rendering: pixelated; width: 10cqw; height: 10cqw; margin-top: 2cqh;"></canvas>
                     <div id="profile-username" style="margin-top: 1cqh; font-size: 1.5cqw;">-</div>
+                    <div id="profile-badge-holder" style="margin-top: 1cqh;"></div>
+                    <button id="badge-toggle-btn" class="pixel-btn small badge-toggle-btn" style="display:none; margin-top: 1cqh; font-size: 1cqw;" onclick="toggleMyBadgeVisibility()">🏅バッジ表示: ON</button>
                 </div>
                 <div style="position: relative;">
                     <canvas id="radar-chart" width="400" height="400" style="width: 35cqw; height: 35cqw;"></canvas>
@@ -1446,6 +1473,7 @@
                         <option value="normal">🌿 通常</option>
                         <option value="water">🌊 水中</option>
                         <option value="dark">🌑 暗闇</option>
+                        <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                 </div>
@@ -1540,7 +1568,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.7.0"
+            VERSION: "2.7.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1647,6 +1675,10 @@
         let activeStage = [];
         let currentStageData = null; // 現在プレイ中のステージ情報
         let cachedStages = null;    // ステージリストのキャッシュ
+        let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
+        let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
+        let _badgeOvrCache = {};    // OVR計算結果のメモ化キャッシュ（同一cachedStagesの間だけ有効）
+        let _badgeOvrCacheRef = null;
         let currentSort = 'newest'; // デフォルトのソート順
         let filterMyStages = false;
         let filterUnplayed = false;
@@ -1705,6 +1737,7 @@
 
         let isGoalTriggered = false;
         let gameMode = 'play';
+        let lavaAnimStart = 0;
 
         // --- BGM管理 ---
         const stageBGM = new Audio();
@@ -1946,7 +1979,8 @@
             'spawner': { name: 'SPAWNER BLOCK', price: 75000, isBlockSet: true, sprite: null },
             'big_block': { name: 'IRON BLOCK', price: 10000, isBlockSet: true, sprite: null },
             'lamp_block': { name: 'LAMP BLOCK', price: 15000, isBlockSet: true, sprite: null },
-            'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null }
+            'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null },
+            'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null }
         };
 
         const COLORS = {
@@ -2193,6 +2227,7 @@
                                 equippedColor = res.equippedColor || 'default';
                                 claimedRoadRewards = res.claimedRoadRewards || [];
                                 userGuild = res.guild;
+                                userBadgeVisible = res.badgeVisible !== false;
 
                                 // ログイン時に一旦すべてのデータを読み込む
                                 preloadAllData(res.username, res.loginBonusHistory);
@@ -2250,7 +2285,21 @@
             canvas.width = 64; canvas.height = 64;
             const ctx = canvas.getContext('2d');
 
-            if (data.isBlockSet) {
+            if (data.isStageType && id === 'volcano_stage') {
+                // 火山ステージ: 溶岩っぽいミニプレビューを描画
+                const grad = ctx.createLinearGradient(0, 0, 0, 64);
+                grad.addColorStop(0, '#1a0500');
+                grad.addColorStop(0.45, '#1a0500');
+                grad.addColorStop(0.55, '#ff8c00');
+                grad.addColorStop(0.75, '#ff3c00');
+                grad.addColorStop(1, '#780000');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 64, 64);
+                ctx.fillStyle = 'rgba(255,220,120,0.8)';
+                ctx.beginPath(); ctx.arc(20, 40, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(40, 50, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(48, 36, 2.5, 0, Math.PI * 2); ctx.fill();
+            } else if (data.isBlockSet) {
                 let previewType = 'o';
                 if (id === 'wire_mesh') previewType = '#';
                 if (id === 'aurora_block') previewType = 'V';
@@ -2447,6 +2496,8 @@
 
             loginBonusHistory = loginHistory || [];
             document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
+            const versionEl = document.getElementById('current-version');
+            if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
             
             updateHomeCharacter();
             refreshChat();
@@ -2632,6 +2683,12 @@
             localStorage.setItem('pixel_chat_last_time', latestTime.toString());
             document.getElementById('chat-btn').classList.remove('has-notification');
 
+            if (!cachedStages) {
+                const stageRes = await callApi('getPublished', {});
+                cachedStages = stageRes.stages || [];
+            }
+            await ensureBadgeSettingsLoaded();
+
             const container = document.getElementById('chat-list');
             container.innerHTML = '';
             res.messages.forEach(m => {
@@ -2646,7 +2703,7 @@
                 const content = document.createElement('div');
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
                 content.innerHTML = `
-                    <div class="chat-user" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
                     ${stageBtn}
                 `;
@@ -3159,6 +3216,12 @@
                 return;
             }
 
+            if (!cachedStages) {
+                const stageRes = await callApi('getPublished', {});
+                cachedStages = stageRes.stages || [];
+            }
+            await ensureBadgeSettingsLoaded();
+
             container.innerHTML = '';
             res.messages.forEach(m => {
                 const item = document.createElement('div');
@@ -3172,7 +3235,7 @@
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
                 contentDiv.innerHTML = `
-                    <div class="chat-user" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
                     <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
@@ -3380,6 +3443,7 @@
                 const res = await callApi('getPublished', {});
                 cachedStages = res.stages || [];
             }
+            await ensureBadgeSettingsLoaded();
 
             const stats = calculateProfileStats(targetUser);
             drawRadarChart(stats);
@@ -3392,6 +3456,17 @@
             const sCtx = skinCanvas.getContext('2d');
             sCtx.clearRect(0, 0, 128, 128);
             drawPlayer(sCtx, 0, 0, 128, 128, stats.skin, false, stats.color, stats.customSprite);
+
+            renderProfileBadge(targetUser);
+            const toggleBtn = document.getElementById('badge-toggle-btn');
+            if (toggleBtn) {
+                if (targetUser === CONFIG.USERNAME) {
+                    toggleBtn.style.display = 'inline-block';
+                    updateBadgeToggleUI();
+                } else {
+                    toggleBtn.style.display = 'none';
+                }
+            }
         }
 
         function closeProfile() {
@@ -3513,6 +3588,128 @@
                 color: allUsers[targetUser]?.color || 'default',
                 customSprite: allUsers[targetUser]?.customSprite || null
             };
+        }
+
+        // --- OVRバッジシステム ---
+        // OVR 1〜5がBronze 1、以降5上がるごとに1段階昇格
+        const BADGE_TIERS = [
+            { label: 'Bronze 1',  min: 1,  group: 'bronze' },
+            { label: 'Bronze 2',  min: 6,  group: 'bronze' },
+            { label: 'Bronze 3',  min: 11, group: 'bronze' },
+            { label: 'Silver 1',  min: 16, group: 'silver' },
+            { label: 'Silver 2',  min: 21, group: 'silver' },
+            { label: 'Silver 3',  min: 26, group: 'silver' },
+            { label: 'Gold 1',    min: 31, group: 'gold' },
+            { label: 'Gold 2',    min: 36, group: 'gold' },
+            { label: 'Gold 3',    min: 41, group: 'gold' },
+            { label: 'Diamond 1', min: 46, group: 'diamond' },
+            { label: 'Diamond 2', min: 51, group: 'diamond' },
+            { label: 'Diamond 3', min: 56, group: 'diamond' },
+            { label: 'Master 1',  min: 61, group: 'master' },
+            { label: 'Master 2',  min: 66, group: 'master' },
+            { label: 'Master 3',  min: 71, group: 'master' },
+            { label: 'Elite 1',   min: 76, group: 'elite' },
+            { label: 'Elite 2',   min: 81, group: 'elite' },
+            { label: 'Elite 3',   min: 86, group: 'elite' },
+            { label: 'Aurora',    min: 90, group: 'aurora' },
+        ];
+        const BADGE_GROUP_STYLE = {
+            bronze:  { bg: 'linear-gradient(135deg,#8a5a2b,#cd7f32,#e8a765)', text: '#2b1a05', border: '#a9702f', glow: 'rgba(205,127,50,0.55)', icon: '🥉' },
+            silver:  { bg: 'linear-gradient(135deg,#8f8f8f,#c9c9c9,#f2f2f2)', text: '#1a1a1a', border: '#a9a9a9', glow: 'rgba(192,192,192,0.55)', icon: '🥈' },
+            gold:    { bg: 'linear-gradient(135deg,#a97400,#ffd700,#fff3b0)', text: '#3a2600', border: '#e0b100', glow: 'rgba(255,215,0,0.6)',  icon: '🥇' },
+            diamond: { bg: 'linear-gradient(135deg,#0097a7,#4dd0e1,#e0ffff)', text: '#00303a', border: '#4dd0e1', glow: 'rgba(77,208,225,0.6)',  icon: '💎' },
+            master:  { bg: 'linear-gradient(135deg,#4a0080,#9b30ff,#d9a3ff)', text: '#fff',    border: '#9b30ff', glow: 'rgba(155,48,255,0.7)',  icon: '👑' },
+            elite:   { bg: 'linear-gradient(135deg,#000000,#0d1b2a,#2979ff)', text: '#fff',    border: '#2979ff', glow: 'rgba(41,121,255,0.8)',  icon: '⚔️' },
+            aurora:  { bg: 'linear-gradient(90deg,#00ff9d,#00bfff,#a020f0,#00ff9d)', text: '#fff', border: '#fff', glow: 'rgba(160,32,240,0.8)', icon: '🌌' }
+        };
+
+        function getBadgeTier(ovr) {
+            const v = Math.max(0, Math.round(Number(ovr) || 0));
+            let tier = BADGE_TIERS[0];
+            for (let i = 0; i < BADGE_TIERS.length; i++) {
+                if (v >= BADGE_TIERS[i].min) tier = BADGE_TIERS[i];
+            }
+            return tier;
+        }
+
+        // OVR計算のメモ化（cachedStagesが変わったら自動的にキャッシュをクリア）
+        function getCachedOVR(username) {
+            if (_badgeOvrCacheRef !== cachedStages) {
+                _badgeOvrCache = {};
+                _badgeOvrCacheRef = cachedStages;
+            }
+            if (_badgeOvrCache[username] === undefined) {
+                _badgeOvrCache[username] = calculateProfileStats(username).ovr;
+            }
+            return _badgeOvrCache[username];
+        }
+
+        // バッジ表示設定を取得（初回のみサーバーに問い合わせ、以後はキャッシュを利用）
+        async function ensureBadgeSettingsLoaded() {
+            if (cachedBadgeSettings) return cachedBadgeSettings;
+            try {
+                const res = await callApi('getBadgeSettings', {});
+                cachedBadgeSettings = { disabled: (res && res.success && res.disabled) ? res.disabled : [] };
+            } catch (e) {
+                cachedBadgeSettings = { disabled: [] };
+            }
+            return cachedBadgeSettings;
+        }
+
+        function isBadgeVisibleForUser(username) {
+            if (!username || username === 'SYSTEM') return false;
+            if (!cachedBadgeSettings) return true; // 未取得の間はデフォルト表示
+            return !cachedBadgeSettings.disabled.includes(username);
+        }
+
+        // ユーザー名の横に表示するバッジHTMLを生成（非表示設定の場合は空文字を返す）
+        function renderBadgeChip(username, size = 'normal') {
+            if (!isBadgeVisibleForUser(username)) return '';
+            const ovr = getCachedOVR(username);
+            const tier = getBadgeTier(ovr);
+            const style = BADGE_GROUP_STYLE[tier.group];
+            const fontSize = size === 'small' ? '0.65cqw' : '0.75cqw';
+            const padding = size === 'small' ? '1px 5px' : '2px 7px';
+            const isAurora = tier.group === 'aurora' ? ' badge-aurora' : '';
+            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};">${style.icon}${tier.label}</span>`;
+        }
+
+        // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
+        async function toggleMyBadgeVisibility() {
+            const btn = document.getElementById('badge-toggle-btn');
+            const newValue = !userBadgeVisible;
+            if (btn) { btn.disabled = true; }
+            try {
+                const res = await callApi('setBadgeVisibility', { username: CONFIG.USERNAME, visible: newValue });
+                if (res && res.success) {
+                    userBadgeVisible = newValue;
+                    if (!cachedBadgeSettings) cachedBadgeSettings = { disabled: [] };
+                    cachedBadgeSettings.disabled = cachedBadgeSettings.disabled.filter(u => u !== CONFIG.USERNAME);
+                    if (!userBadgeVisible) cachedBadgeSettings.disabled.push(CONFIG.USERNAME);
+                    updateBadgeToggleUI();
+                    renderProfileBadge(CONFIG.USERNAME);
+                } else {
+                    alert((res && res.message) || 'バッジ設定の変更に失敗しました。');
+                }
+            } catch (e) {
+                alert('通信エラーが発生しました。');
+            } finally {
+                if (btn) { btn.disabled = false; }
+            }
+        }
+
+        function updateBadgeToggleUI() {
+            const btn = document.getElementById('badge-toggle-btn');
+            if (!btn) return;
+            btn.innerText = userBadgeVisible ? '🏅バッジ表示: ON' : '🏅バッジ表示: OFF';
+            btn.style.background = userBadgeVisible ? 'var(--primary-color)' : '#555';
+            btn.style.color = userBadgeVisible ? '#000' : '#fff';
+        }
+
+        function renderProfileBadge(targetUser) {
+            const holder = document.getElementById('profile-badge-holder');
+            if (!holder) return;
+            holder.innerHTML = renderBadgeChip(targetUser);
         }
 
         function drawRadarChart(stats) {
@@ -3684,6 +3881,7 @@
                 const res = await callApi('getPublished', {});
                 cachedStages = res.stages || [];
             }
+            await ensureBadgeSettingsLoaded();
 
         if (tab === 'guild') {
             title.innerText = "RANK: GUILD OVR";
@@ -3749,21 +3947,23 @@
             const users = Object.keys(stats);
             let sorted = [], headerHtml = "", rowFunc = null;
 
+            const nameCell = (u) => `<td style="padding: 1.5cqh;"><span style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
+
             if (tab === 'player') {
                 title.innerText = "RANK: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].crowns}</td>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${stats[u].crowns}</td>`;
             } else if (tab === 'gods') {
                 title.innerText = "RANK: GODS";
                 sorted = users.filter(u => stats[u].gods > 0).sort((a, b) => stats[b].gods - stats[a].gods);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">GODS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</td><td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${stats[u].gods}</td>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${stats[u].gods}</td>`;
             } else {
                 title.innerText = "RANK: TOTAL PLAYS";
                 sorted = users.filter(u => stats[u].plays > 0).sort((a, b) => stats[b].plays - stats[a].plays);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">PLAYS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td><td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</td><td style="padding: 1.5cqh; text-align: right;">${stats[u].plays}</td>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${stats[u].plays}</td>`;
             }
 
             const headerRow = body.parentElement.querySelector('thead tr');
@@ -3865,7 +4065,7 @@
 
         function closeRaceMode() { document.getElementById('race-screen').style.display = 'none'; }
 
-        function showLeaderboard(stage) {
+        async function showLeaderboard(stage) {
             const overlay = document.getElementById('leaderboard-overlay');
             const title = document.getElementById('lb-title');
             const body = document.getElementById('lb-body');
@@ -3874,11 +4074,14 @@
             tabs.style.display = 'none';
             title.innerText = `TOP RACERS: ${stage.name}`;
             body.innerHTML = "";
+            overlay.style.display = 'flex';
 
             // Runonの手動追加ボタンの制御を削除
 
             const headerRow = body.parentElement.querySelector('thead tr');
             if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">TIME</th>`;
+
+            await ensureBadgeSettingsLoaded();
 
             const sortedRecords = (stage.leaderboard || []).sort((a, b) => a.time - b.time);
             
@@ -3892,11 +4095,10 @@
                 body.innerHTML += `
                     <tr style="border-bottom: 0.1cqw solid #444;">
                         <td style="padding: 1.5cqh;">${currentRank}</td>
-                        <td style="padding: 1.5cqh; color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</td>
+                        <td style="padding: 1.5cqh;"><span style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
                     </tr>`;
             });
-            overlay.style.display = 'flex';
         }
 
         async function addManualRecord(stageId) {
@@ -4138,7 +4340,7 @@
             activeStage = [];
             // エディタ背景をリセット
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark');
+            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano');
             container.classList.add('bg-sky');
 
             // プレイ画面同様、ホームの要素を非表示にする
@@ -4218,6 +4420,14 @@
 
             // 木箱ブロック
             if(document.getElementById('btn-tool-WC')) document.getElementById('btn-tool-WC').style.display = purchasedSkins.includes('wood_crate') ? 'flex' : 'none';
+
+            // 火山ステージタイプ（ショップで購入するまで選択不可）
+            const hasVolcanoStage = purchasedSkins.includes('volcano_stage');
+            const volcanoOpt = document.getElementById('stage-type-option-volcano');
+            if (volcanoOpt) {
+                volcanoOpt.disabled = !hasVolcanoStage;
+                volcanoOpt.textContent = hasVolcanoStage ? '🌋 火山' : '🌋 火山（未購入）';
+            }
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -4475,6 +4685,23 @@
                 ctx.font = `bold ${ch * 0.5}px sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.fillText('🌑 DARK MODE', editorCanvas.width / 2, ch * 1.2);
+            } else if (editorStageType === 'volcano') {
+                // 火山: 溶岩が1〜4マスの高さで上下するプレビュー
+                const lavaY = getLavaSurfaceY() * ch;
+                const grad = ctx.createLinearGradient(0, lavaY, 0, editorCanvas.height);
+                grad.addColorStop(0, 'rgba(255,140,0,0.85)');
+                grad.addColorStop(0.2, 'rgba(255,60,0,0.85)');
+                grad.addColorStop(1, 'rgba(90,0,0,0.85)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, lavaY, editorCanvas.width, editorCanvas.height - lavaY);
+                ctx.strokeStyle = 'rgba(255,220,120,0.7)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let x = 0; x <= editorCanvas.width; x += 8) {
+                    const wy = lavaY + Math.sin(x * 0.05 + time * 3) * 3;
+                    if (x === 0) ctx.moveTo(x, wy); else ctx.lineTo(x, wy);
+                }
+                ctx.stroke();
             }
 
             // タイプ変更警告中はロック表示
@@ -5237,6 +5464,7 @@
                                 ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">Pick up!</span>' : ''}
                                 ${s.stageType === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
                                 ${s.stageType === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
+                                ${s.stageType === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -5298,7 +5526,7 @@
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano'];
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
@@ -5408,13 +5636,15 @@
             
             // 背景の切り替え
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark');
+            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano');
             
             // ステージタイプ固有の背景
             if (currentStageType === 'water') {
                 container.classList.add('bg-water');
             } else if (currentStageType === 'dark') {
                 container.classList.add('bg-dark');
+            } else if (currentStageType === 'volcano') {
+                container.classList.add('bg-volcano');
             } else if (mode === 'play' && stageObj && stageObj.attempts >= 5) {
                 const att = stageObj.attempts;
                 const cr = (stageObj.clears || 0) / att * 100;
@@ -5463,6 +5693,7 @@
             }
             
             player.vx = 0; player.vy = 0; player.hasKey = 0;
+            lavaAnimStart = Date.now();
             
             playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
             updateStageCache();
@@ -5846,13 +6077,13 @@
             const cx = Math.floor(player.x + player.w/2), cy = Math.floor(player.y + player.h/2);
             if(activeStage[cy]) {
                 const tile = activeStage[cy][cx];
-                if(tile === 'W') player.vx += 0.012;
-                if(tile === 'L') player.vx -= 0.012;
-                if(tile === 'U') player.vy -= 0.025; // 重力(0.015)を打ち消して浮き上がる
-                if(tile === 'd') player.vy += 0.025; // 下降気流
+                if(tile === 'W') player.vx += 0.008;
+                if(tile === 'L') player.vx -= 0.008;
+                if(tile === 'U') player.vy -= 0.018; // 重力(0.015)を打ち消して浮き上がる
+                if(tile === 'd') player.vy += 0.018; // 下降気流
                 if(tile === 'J') {
-                    if (isSwitchOn) player.vx += 0.012;
-                    else player.vx -= 0.012;
+                    if (isSwitchOn) player.vx += 0.008;
+                    else player.vx -= 0.008;
                 }
             }
 
@@ -5860,6 +6091,14 @@
             if (player.y > GRID_H - 0.5) {
                 handlePlayerDeath();
                 return;
+            }
+
+            // 火山ステージ: 溶岩に足（下半身）が触れたら死亡
+            if (currentStageType === 'volcano') {
+                if (player.y + player.h > getLavaSurfaceY()) {
+                    handlePlayerDeath();
+                    return;
+                }
             }
 
             // 木箱ブロック(WC)のプッシュ判定：プレイヤーが横から押すと1マス分移動する
@@ -6010,6 +6249,9 @@
                 const en_tile = activeStage[ey_check] ? activeStage[ey_check][ex_check] : null;
                 if (en_tile === 'y') en.dead = true;
 
+                // 火山ステージ: 溶岩に触れた敵は死亡
+                if (currentStageType === 'volcano' && (en.y + 0.9) > getLavaSurfaceY()) en.dead = true;
+
                 // 垂直方向の物理演算
                 if (isWater) {
                     // 水中敵: 横移動のみ（重力なし）。壁で跳ね返り
@@ -6092,11 +6334,11 @@
                 }
 
                 // 横方向の風の影響を適用 (ベース速度に加算)
-                if(current_tile === 'W') en.vx += 0.015;
-                if(current_tile === 'L') en.vx -= 0.015;
+                if(current_tile === 'W') en.vx += 0.01;
+                if(current_tile === 'L') en.vx -= 0.01;
                 if(current_tile === 'J') {
-                    if (isSwitchOn) en.vx += 0.015;
-                    else en.vx -= 0.015;
+                    if (isSwitchOn) en.vx += 0.01;
+                    else en.vx -= 0.01;
                 }
 
                 const px = player.x + player.w/2, py = player.y + player.h/2;
@@ -6344,7 +6586,18 @@
         }
 
         let stageHasBB = false;
-        let currentStageType = 'normal'; // 'normal' | 'water' | 'dark'
+        let currentStageType = 'normal'; // 'normal' | 'water' | 'dark' | 'volcano'
+
+        // 火山ステージ: 溶岩は毎回一番下からスタートして、ゆっくり上下する
+        function getLavaHeightTiles() {
+            if (!lavaAnimStart) lavaAnimStart = Date.now();
+            const t = (Date.now() - lavaAnimStart) * 0.0006 - Math.PI / 2;
+            return Math.max(0.2, 0.2 + 2.8 * (0.5 + 0.5 * Math.sin(t)));
+        }
+        // 溶岩表面のワールドY座標（この値より下は溶岩）
+        function getLavaSurfaceY() {
+            return GRID_H - getLavaHeightTiles();
+        }
         let editorAnimId = null;
         let stageTypeWarnPending = false; // タイプ変更警告の確認待ちフラグ
 
@@ -6365,7 +6618,7 @@
                 drawEditor();
             } else {
                 // キャンセル: 元の値に戻す
-                const prev = ['normal','water','dark'].find(t => t !== sel.value) || 'normal';
+                const prev = ['normal','water','dark','volcano'].find(t => t !== sel.value) || 'normal';
                 // 元の値を特定するため、リセット前のcurrentStageTypeを保持しておく必要があるので
                 // isClearCheckedがtrueの間はprevStageTypeを追跡する
                 sel.value = sel.dataset.prevValue || 'normal';
@@ -6654,6 +6907,46 @@
                 }
             }
 
+            // 火山オーバーレイ（1〜4マスの高さで上下する溶岩）
+            if (currentStageType === 'volcano') {
+                const lt = Date.now() * 0.002;
+                const lavaY = getLavaSurfaceY() * ch;
+
+                // 溶岩本体（グラデーション）
+                const grad = cachedGameCtx.createLinearGradient(0, lavaY, 0, cachedGameCanvas.height);
+                grad.addColorStop(0, 'rgba(255,140,0,0.95)');
+                grad.addColorStop(0.2, 'rgba(255,60,0,0.95)');
+                grad.addColorStop(1, 'rgba(90,0,0,0.95)');
+                cachedGameCtx.fillStyle = grad;
+                cachedGameCtx.fillRect(0, lavaY, cachedGameCanvas.width, cachedGameCanvas.height - lavaY);
+
+                // 溶岩表面の波打ちライン
+                cachedGameCtx.strokeStyle = 'rgba(255,220,120,0.7)';
+                cachedGameCtx.lineWidth = 2;
+                cachedGameCtx.beginPath();
+                for (let x = 0; x <= cachedGameCanvas.width; x += 8) {
+                    const wy = lavaY + Math.sin(x * 0.05 + lt * 3) * 3;
+                    if (x === 0) cachedGameCtx.moveTo(x, wy); else cachedGameCtx.lineTo(x, wy);
+                }
+                cachedGameCtx.stroke();
+
+                // 気泡
+                cachedGameCtx.fillStyle = 'rgba(255,200,80,0.55)';
+                for (let i = 0; i < 6; i++) {
+                    const bx = ((Math.sin(i * 2.3 + lt * 0.7) * 0.5 + 0.5) * cachedGameCanvas.width);
+                    const availH = Math.max(1, cachedGameCanvas.height - lavaY);
+                    const by = lavaY + ((lt * 25 * (0.5 + i * 0.15)) % availH);
+                    const br = 2 + (i % 3) * 2;
+                    cachedGameCtx.beginPath();
+                    cachedGameCtx.arc(bx, by, br, 0, Math.PI * 2);
+                    cachedGameCtx.fill();
+                }
+
+                // 画面全体にほんのり赤いグロー（熱気の演出）
+                cachedGameCtx.fillStyle = `rgba(255, 60, 0, ${0.07 + Math.sin(lt * 1.5) * 0.03})`;
+                cachedGameCtx.fillRect(0, 0, cachedGameCanvas.width, cachedGameCanvas.height);
+            }
+
             // 暗闇エフェクト（オフスクリーンキャンバスで正しくマスキング）
             if (currentStageType === 'dark') {
                 const px = (player.x + player.w / 2) * cw;
@@ -6829,6 +7122,9 @@
             const savedPass = localStorage.getItem('pixel_stages_pass');
             const remember = localStorage.getItem('pixel_stages_remember') === 'true';
             
+            const versionEl = document.getElementById('current-version');
+            if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
+
             const isMobile = localStorage.getItem('pixel_stages_mobile') === 'true';
             document.getElementById('mobile-mode').checked = isMobile;
             isMobileMode = isMobile;
