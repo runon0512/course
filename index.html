@@ -415,6 +415,9 @@
             cursor: pointer;
             user-select: none;
         }
+        #mention-dropdown .mention-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
         .chat-image {
             display: block;
             max-width: 18cqw;  /* 全角文字15個分 (1.2cqw * 15) を上限に */
@@ -1068,7 +1071,7 @@
 
         <!-- ユーザー情報 -->
         <div id="user-info">
-            USER: <span id="current-user">-</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.2</span> | 
+            USER: <span id="current-user">-</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
             <span style="color:#2ecc71;">ON: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
@@ -1560,6 +1563,9 @@
         </div>
     </div>
 
+    <!-- @メンション検索ドロップダウン（チャット・ギルド掲示板で共用） -->
+    <div id="mention-dropdown" style="display:none; position:fixed; z-index:9999; background:#1a1a2e; border:0.15cqw solid var(--primary-color); max-height:28vh; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.7); min-width:12cqw;"></div>
+
     <script>
         // --- 設定エリア ---
         const CONFIG = {
@@ -1568,7 +1574,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.7.3"
+            VERSION: "2.7.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1677,6 +1683,11 @@
         let cachedStages = null;    // ステージリストのキャッシュ
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
+        let cachedAllUsernames = null; // @メンション検索用の全ユーザー名一覧
+        let mentionActiveInput = null; // 現在メンション検索対象になっている入力欄
+        let mentionStartIndex = -1;    // 入力文字列中の「@」の位置
+        let mentionResults = [];       // 現在表示中の候補一覧
+        let mentionSelectedIndex = -1; // キーボード操作中の選択インデックス
         let _badgeOvrCache = {};    // OVR計算結果のメモ化キャッシュ（同一cachedStagesの間だけ有効）
         let _badgeOvrCacheRef = null;
         let currentSort = 'newest'; // デフォルトのソート順
@@ -2065,33 +2076,46 @@
         /**
          * GAS APIへの通信を共通化
          */
-        async function callApi(action, payload, timeoutMs = 20000) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-            try {
-                const response = await fetch(CONFIG.DEPLOY_URL, {
-                    method: 'POST',
-                    mode: 'cors', 
-                    cache: 'no-cache',
-                    redirect: 'follow',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8' 
-                    },
-                    signal: controller.signal,
-                    body: JSON.stringify({
-                        action: action,
-                        ...payload 
-                    })
-                });
-                clearTimeout(timeoutId);
+        // 読み取り専用で、何度実行しても副作用がない（＝再試行しても安全な）アクションかどうか判定
+        // 書き込み系アクション（記録の送信・購入・投稿など）は二重処理を防ぐため絶対に再試行しない
+        function isRetryableReadAction(action) {
+            return action === 'login' || action === 'load' || action === 'refreshOnlineUsers' || action.indexOf('get') === 0;
+        }
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
-            } catch (error) {
-                clearTimeout(timeoutId);
-                console.error(`API call failed (${action}):`, error);
-                return { success: false, message: "通信エラーが発生しました。インターネット接続を確認してください。" };
+        async function callApi(action, payload, timeoutMs = 20000) {
+            const maxAttempts = isRetryableReadAction(action) ? 2 : 1; // 読み取り系のみ通信不安定時に1回だけ再試行
+            let lastError = null;
+
+            for (let i = 0; i < maxAttempts; i++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+                try {
+                    const response = await fetch(CONFIG.DEPLOY_URL, {
+                        method: 'POST',
+                        mode: 'cors', 
+                        cache: 'no-cache',
+                        redirect: 'follow',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8' 
+                        },
+                        signal: controller.signal,
+                        body: JSON.stringify({
+                            action: action,
+                            ...payload 
+                        })
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    lastError = error;
+                    console.warn(`API attempt ${i + 1}/${maxAttempts} failed (${action}):`, error);
+                }
             }
+            console.error(`API call failed (${action}):`, lastError);
+            return { success: false, message: "通信エラーが発生しました。インターネット接続を確認してください。" };
         }
 
         function togglePassword() {
@@ -2165,12 +2189,13 @@
         async function refreshOnlineCount() {
             if (!CONFIG.IS_LOGGED_IN) return;
             // ステージ選択中・プレイ中・編集中は通信によるラグを避けるためスキップする
+            // ※ style.displayは「一度も開いたことがない画面」だと空文字のままになり誤判定するため、
+            //    実際の描画状態を反映するgetComputedStyleで判定する
             const gameScreen = document.getElementById('game-screen');
             const editorScreen = document.getElementById('editor-screen');
             const stageListOverlay = document.getElementById('stage-list-overlay');
-            if ((gameScreen && gameScreen.style.display !== 'none') ||
-                (editorScreen && editorScreen.style.display !== 'none') ||
-                (stageListOverlay && stageListOverlay.style.display !== 'none')) {
+            const isVisible = (el) => !!el && getComputedStyle(el).display !== 'none';
+            if (isVisible(gameScreen) || isVisible(editorScreen) || isVisible(stageListOverlay)) {
                 return;
             }
             const res = await callApi('refreshOnlineUsers', { username: CONFIG.USERNAME });
@@ -2653,6 +2678,147 @@
                 const safeUsername = escapeHtml(username).replace(/'/g, "&#39;");
                 return `<span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
             });
+        }
+
+        // --- @メンション検索（チャット・ギルド掲示板 共通） ---
+
+        // 全ユーザー名を取得（初回のみサーバーに問い合わせ、以後はキャッシュを利用）
+        async function ensureUsernamesLoaded() {
+            if (cachedAllUsernames) return cachedAllUsernames;
+            try {
+                const res = await callApi('getAllUsernames', {});
+                cachedAllUsernames = (res && res.success && res.usernames) ? res.usernames : [];
+            } catch (e) {
+                cachedAllUsernames = [];
+            }
+            return cachedAllUsernames;
+        }
+
+        // メンション機能を入力欄に紐づける
+        function setupMentionAutocomplete(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.addEventListener('input', () => handleMentionInput(input));
+            input.addEventListener('keydown', (e) => handleMentionKeydown(e, input));
+            input.addEventListener('blur', () => setTimeout(closeMentionDropdown, 150)); // クリック選択を先に処理させるため少し待つ
+        }
+
+        // 入力内容の変化を検知し、カーソル直前の「@」以降を検索クエリとして候補を表示する
+        async function handleMentionInput(input) {
+            const value = input.value;
+            const cursor = input.selectionStart;
+            let atIndex = -1;
+            for (let i = cursor - 1; i >= 0; i--) {
+                const c = value[i];
+                if (c === '@') { atIndex = i; break; }
+                if (/\s/.test(c)) break; // 空白を挟んだら@メンションの入力とはみなさない
+            }
+            if (atIndex === -1) { closeMentionDropdown(); return; }
+
+            const query = value.slice(atIndex + 1, cursor);
+            mentionActiveInput = input;
+            mentionStartIndex = atIndex;
+            await showMentionSuggestions(query);
+        }
+
+        // 検索クエリにマッチするユーザーをOVR順（高い順）に並べて表示する
+        async function showMentionSuggestions(query) {
+            await ensureUsernamesLoaded();
+            await ensureBadgeSettingsLoaded();
+            if (!cachedStages) {
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+            }
+
+            const q = query.toLowerCase();
+            let matches = cachedAllUsernames.filter(u => u.toLowerCase().includes(q));
+            matches.sort((a, b) => getCachedOVR(b) - getCachedOVR(a));
+            matches = matches.slice(0, 8);
+
+            mentionResults = matches;
+            mentionSelectedIndex = matches.length > 0 ? 0 : -1;
+
+            if (matches.length === 0) { closeMentionDropdown(); return; }
+            renderMentionDropdown();
+        }
+
+        // ドロップダウンを描画し、入力欄の直下に配置する
+        function renderMentionDropdown() {
+            const dropdown = document.getElementById('mention-dropdown');
+            if (!dropdown || !mentionActiveInput) return;
+
+            dropdown.innerHTML = mentionResults.map((u, i) => {
+                const ovr = getCachedOVR(u);
+                const badge = renderBadgeChip(u, 'small');
+                const bg = i === mentionSelectedIndex ? 'background:rgba(255,255,255,0.15);' : '';
+                return `<div class="mention-item" data-index="${i}" style="display:flex; align-items:center; justify-content:space-between; gap:0.8cqw; padding:0.8cqh 1cqw; cursor:pointer; ${bg}" onmousedown="selectMentionCandidate(${i})">
+                    <span style="display:flex; align-items:center; gap:0.5cqw; color:#fff; font-size:1.2cqw;">@${u}</span>
+                    <span style="display:flex; align-items:center; gap:0.4cqw;">${badge}<span style="color:#aaa; font-size:1cqw;">OVR ${ovr}</span></span>
+                </div>`;
+            }).join('');
+
+            const rect = mentionActiveInput.getBoundingClientRect();
+            dropdown.style.left = `${rect.left}px`;
+            dropdown.style.width = `${rect.width}px`;
+            // 入力欄の上に十分なスペースがあれば上に、無ければ下に表示する
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 200 && rect.top > 200) {
+                dropdown.style.top = '';
+                dropdown.style.bottom = `${window.innerHeight - rect.top}px`;
+            } else {
+                dropdown.style.bottom = '';
+                dropdown.style.top = `${rect.bottom + 4}px`;
+            }
+            dropdown.style.display = 'block';
+        }
+
+        function closeMentionDropdown() {
+            const dropdown = document.getElementById('mention-dropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            mentionActiveInput = null;
+            mentionStartIndex = -1;
+            mentionResults = [];
+            mentionSelectedIndex = -1;
+        }
+
+        // 候補をクリックまたはキーボードで選択した際、入力欄の@以降を確定したユーザー名に置き換える
+        function selectMentionCandidate(index) {
+            if (!mentionActiveInput || !mentionResults[index]) { closeMentionDropdown(); return; }
+            const input = mentionActiveInput;
+            const username = mentionResults[index];
+            const value = input.value;
+            const cursor = input.selectionStart;
+            const before = value.slice(0, mentionStartIndex);
+            const after = value.slice(cursor);
+            const newValue = `${before}@${username} ${after}`;
+            input.value = newValue;
+            const newCursor = (before + '@' + username + ' ').length;
+            input.focus();
+            input.setSelectionRange(newCursor, newCursor);
+            closeMentionDropdown();
+        }
+
+        // ドロップダウン表示中の矢印キー・Enter・Escapeを処理する
+        function handleMentionKeydown(e, input) {
+            const dropdown = document.getElementById('mention-dropdown');
+            if (!dropdown || dropdown.style.display === 'none' || mentionResults.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                mentionSelectedIndex = (mentionSelectedIndex + 1) % mentionResults.length;
+                renderMentionDropdown();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                mentionSelectedIndex = (mentionSelectedIndex - 1 + mentionResults.length) % mentionResults.length;
+                renderMentionDropdown();
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                if (mentionSelectedIndex >= 0) {
+                    e.preventDefault();
+                    selectMentionCandidate(mentionSelectedIndex);
+                }
+            } else if (e.key === 'Escape') {
+                closeMentionDropdown();
+            }
         }
 
         async function openChat() {
@@ -5869,7 +6035,7 @@
                         // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                         customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
                         gold: userGold
-                    }, 3, 40000);
+                    }, 40000);
 
                     // 通信エラーやデータサイズ制限で失敗した場合、重いデータ（ゴースト・カスタムスキン）を除外して「タイムのみ」で再送
                     if (!res || !res.success) {
@@ -5884,7 +6050,7 @@
                             auroraStones: userAS,
                             customSprite: null, // カスタムスキンデータを除外
                             gold: userGold
-                        }, 3, 20000);
+                        }, 20000);
                     }
 
                     if (res && res.success) {
@@ -7172,6 +7338,10 @@
             toggleGhostsCheckbox.onchange = function() { showGhosts = this.checked; localStorage.setItem('pixel_stages_show_ghosts', this.checked); };
             
             document.querySelector('.container').classList.add('bg-city');
+
+            // @メンション検索をチャット・ギルド掲示板の入力欄に登録
+            setupMentionAutocomplete('chat-input');
+            setupMentionAutocomplete('guild-bulletin-input');
 
             if (savedUser && savedPass) {
                 document.getElementById('username').value = savedUser;
