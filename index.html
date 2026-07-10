@@ -1720,6 +1720,10 @@
         const stageCacheCanvas = document.createElement('canvas');
         const stageCacheCtx = stageCacheCanvas.getContext('2d');
         const spriteCache = new Map();
+        // カスタムスキン用: customDataのオブジェクト参照をキーにした事前レンダリング済みキャンバスのキャッシュ。
+        // 参照が変わる（=編集して保存し直す）まではJSON.stringifyなどのシリアライズ処理を挟まずに
+        // 再利用できるため、毎フレームのコストをほぼゼロにできる。
+        const customSpriteCanvasCache = new WeakMap();
         let timerElement = null;
         let gameRetryBtnCache = null;
         let gameExitBtnCache = null;
@@ -6528,8 +6532,11 @@
                 }
             });
 
-            // dead フラグの敵をまとめて削除（毎フレーム10体まで削除して分散負荷）
-            for (let i = enemies.length - 1; i >= 0 && enemies.filter(e => e.dead).length > 0; i--) {
+            // dead フラグの敵をまとめて削除
+            // ※以前はループ条件で毎回 enemies.filter() を呼んでおり、フレームごとに配列全体を
+            //   スキャンする O(n^2) 処理になっていた（敵の数が増えるほど指数的に重くなりラグの原因に）。
+            //   単純な後方ループに変更し、1パス（O(n)）で削除するように修正。
+            for (let i = enemies.length - 1; i >= 0; i--) {
                 if (enemies[i].dead) enemies.splice(i, 1);
             }
 
@@ -7192,19 +7199,35 @@
 
         function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
             const skin = SKINS[skinId] || SKINS['default'];
-            
-            // キャッシュ用のキー作成（オブジェクト参照ではなく内容ベースの文字列にすることで、
-            // 同じ見た目のスプライトなら毎回キャッシュがヒットするようにする）
-            const cacheKey = (skin.isCustom && customData) ? `custom_${JSON.stringify(customData)}` : `${skinId}_${colorId}`;
-            let cachedCanvas = spriteCache.get(cacheKey);
 
-            if (!cachedCanvas) {
-                cachedCanvas = document.createElement('canvas');
-                cachedCanvas.width = 16;
-                cachedCanvas.height = 16;
-                const cctx = cachedCanvas.getContext('2d');
-                renderToSpriteCanvas(cctx, skin, customData, colorId);
-                spriteCache.set(cacheKey, cachedCanvas);
+            let cachedCanvas;
+            if (skin.isCustom && customData) {
+                // カスタムスキンはオブジェクト参照をキーにしたWeakMapでキャッシュする。
+                // 以前は「内容ベースの文字列キー」を作るために毎フレームJSON.stringify(customData)を
+                // 実行しており、敵の数などとは無関係に常時発生する重い処理になっていた
+                // （プレイヤー本体1回＋表示中のカスタムスキンのゴーストの数だけ毎フレーム発生）。
+                // customData は編集時以外は同じ参照が使い回されるため、WeakMapによる参照キャッシュで
+                // 文字列化を完全に省略できる。
+                cachedCanvas = customSpriteCanvasCache.get(customData);
+                if (!cachedCanvas) {
+                    cachedCanvas = document.createElement('canvas');
+                    cachedCanvas.width = 16;
+                    cachedCanvas.height = 16;
+                    const cctx = cachedCanvas.getContext('2d');
+                    renderToSpriteCanvas(cctx, skin, customData, colorId);
+                    customSpriteCanvasCache.set(customData, cachedCanvas);
+                }
+            } else {
+                const cacheKey = `${skinId}_${colorId}`;
+                cachedCanvas = spriteCache.get(cacheKey);
+                if (!cachedCanvas) {
+                    cachedCanvas = document.createElement('canvas');
+                    cachedCanvas.width = 16;
+                    cachedCanvas.height = 16;
+                    const cctx = cachedCanvas.getContext('2d');
+                    renderToSpriteCanvas(cctx, skin, customData, colorId);
+                    spriteCache.set(cacheKey, cachedCanvas);
+                }
             }
 
             ctx.imageSmoothingEnabled = false;
