@@ -1531,6 +1531,9 @@
                     <div class="tool-btn rank-legendary" id="btn-tool-mg" onclick="setTool('mg', this)" title="MISSILE GUN" style="display:none;"><canvas id="icon-mg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-LM" onclick="setTool('LM', this)" title="LAMP BLOCK" style="display:none;"><canvas id="icon-LM" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-WC" onclick="setTool('WC', this)" title="WOOD CRATE" style="display:none;"><canvas id="icon-WC" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-EC" onclick="setTool('EC', this)" title="ERUPTION CONTROL" style="display:none;"><canvas id="icon-EC" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-PB" onclick="setTool('PB', this)" title="PURPLE (BOSS)" style="display:none;"><canvas id="icon-PB" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-SM" onclick="setTool('SM', this)" title="SLIME BLOCK" style="display:none;"><canvas id="icon-SM" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
                 </div>
             </div>
@@ -1670,7 +1673,10 @@
             'mg': { title: 'ミサイル銃', text: '右方向にミサイルを発射します。ミサイルはブロックに当たると周囲9マスを破壊します。' },
             'BB': { title: '鉄ブロック', text: '周囲のブロックより少し大きい頑丈な鉄のブロックです。' },
             'LM': { title: 'ランプブロック', text: '暗闇ステージで周囲を明るく照らすブロックです。それ以外のステージでは通常のブロックとして機能します。ミサイルで破壊できます。' },
-            'WC': { title: '木箱ブロック', text: '横から押して動かせる木箱です。押していない時は通常のブロックとして機能します。ミサイルで破壊できます。' }
+            'WC': { title: '木箱ブロック', text: '横から押して動かせる木箱です。押していない時は通常のブロックとして機能します。ミサイルで破壊できます。' },
+            'EC': { title: '噴火制御機', text: '火山ステージに1つだけ設置できる装置です。溶岩が上昇する最大の高さを、この装置がある高さまでに制限します。' },
+            'PB': { title: 'パープル', text: '通常の敵の2倍の大きさを持つボス敵です。ステージに1体だけ配置できます。倒すとステージ上の粘液ブロックがすべて消えます。' },
+            'SM': { title: '粘液ブロック', text: '紫色のブロックです。それ自体に特別な効果はありませんが、ボス「パープル」を倒すとステージから消滅します。' }
         };
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
@@ -1732,6 +1738,9 @@
         let lastTime = 0;
         let dynamicTiles = []; // 動的ギミックのキャッシュ用
         let lampPositions = []; // 暗闇ステージのランプ位置キャッシュ（毎フレームのグリッド走査を防ぐ）
+        let spawnerPositions = [];
+        let arrowLauncherPositions = [];
+        let missileLauncherPositions = [];
         const darkMaskCanvas = document.createElement('canvas'); // 暗闇マスク用の使い回しキャンバス
         const darkMaskCtx = darkMaskCanvas.getContext('2d');
         const colorVarCache = {}; // CSS変数のキャッシュ
@@ -1995,7 +2004,9 @@
             'big_block': { name: 'IRON BLOCK', price: 10000, isBlockSet: true, sprite: null },
             'lamp_block': { name: 'LAMP BLOCK', price: 15000, isBlockSet: true, sprite: null },
             'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null },
-            'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null }
+            'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
+            'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
+            'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null }
         };
 
         const COLORS = {
@@ -2053,6 +2064,9 @@
             stageCacheCanvas.height = canvas.height;
             dynamicTiles = [];
             lampPositions = [];
+            spawnerPositions = [];
+            arrowLauncherPositions = [];
+            missileLauncherPositions = [];
             const cw = stageCacheCanvas.width / GRID_W;
             const ch = stageCacheCanvas.height / GRID_H;
             
@@ -2067,8 +2081,11 @@
                     if (!type) continue;
                     
                     if (type === 'LM') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
+                    if (type === 'sp' || type === 'sp_blue') spawnerPositions.push({ x, y, blue: type === 'sp_blue' });
+                    if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
+                    if (type === 'mg') missileLauncherPositions.push({ x, y });
 
-                    if(['W', 'L', 'U', 'd', 'J', 'LM'].includes(type)) {
+                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'EC'].includes(type)) {
                         dynamicTiles.push({x, y, type});
                     } else {
                         drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
@@ -2338,6 +2355,8 @@
                 if (id === 'big_block') previewType = 'BB';
                 if (id === 'lamp_block') previewType = 'LM';
                 if (id === 'wood_crate') previewType = 'WC';
+                if (id === 'eruption_control') previewType = 'EC';
+                if (id === 'purple_boss') previewType = 'PB';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -2393,9 +2412,9 @@
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC'],
+            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'SM'],
             epic: ['hr', 'hb', 'e', '#'],
-            legendary: ['V', 'sp', 'mg']
+            legendary: ['V', 'sp', 'mg', 'EC', 'PB']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -2661,7 +2680,6 @@
             }[ch]));
             const escaped = escapeHtml(text);
             const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
-            const mentionPattern = /@([A-Za-z0-9_\-]+)/g;
 
             let withLinks = escaped.replace(urlPattern, (match) => {
                 // URLの末尾に付きがちな句読点・記号はリンクに含めない
@@ -2678,6 +2696,11 @@
                 return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:var(--secondary-color); text-decoration:underline; word-break:break-all;">${url}</a>${trail}`;
             });
 
+            // 候補から選択された実在ユーザー名を長い順に照合するため、日本語や空白を含む名前にも対応できる
+            const usernames = (cachedAllUsernames || []).slice().sort((a, b) => b.length - a.length);
+            if (usernames.length === 0) return withLinks;
+            const escapedNames = usernames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const mentionPattern = new RegExp(`@(${escapedNames.join('|')})(?=$|[\\s.,;:!?、。！？）」』\\]"'])`, 'g');
             return withLinks.replace(mentionPattern, (match, username) => {
                 const safeUsername = escapeHtml(username).replace(/'/g, "&#39;");
                 return `<span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
@@ -2711,13 +2734,10 @@
         async function handleMentionInput(input) {
             const value = input.value;
             const cursor = input.selectionStart;
-            let atIndex = -1;
-            for (let i = cursor - 1; i >= 0; i--) {
-                const c = value[i];
-                if (c === '@') { atIndex = i; break; }
-                if (/\s/.test(c)) break; // 空白を挟んだら@メンションの入力とはみなさない
-            }
-            if (atIndex === -1) { closeMentionDropdown(); return; }
+            // 空白もユーザー名・検索語の一部として扱い、現在行で最後に入力された@を起点にする
+            const lineStart = value.lastIndexOf('\n', cursor - 1) + 1;
+            const atIndex = value.lastIndexOf('@', cursor - 1);
+            if (atIndex < lineStart) { closeMentionDropdown(); return; }
 
             const query = value.slice(atIndex + 1, cursor);
             mentionActiveInput = input;
@@ -2867,6 +2887,7 @@
                 cachedStages = stageRes.stages || [];
             }
             await ensureBadgeSettingsLoaded();
+            await ensureUsernamesLoaded(); // 日本語・空白を含むメンションの表示判定に使用
 
             const container = document.getElementById('chat-list');
             container.innerHTML = '';
@@ -4600,6 +4621,14 @@
             // 木箱ブロック
             if(document.getElementById('btn-tool-WC')) document.getElementById('btn-tool-WC').style.display = purchasedSkins.includes('wood_crate') ? 'flex' : 'none';
 
+            // パープル（ボス）＆ 粘液ブロック
+            const hasPurpleBoss = purchasedSkins.includes('purple_boss');
+            if(document.getElementById('btn-tool-PB')) document.getElementById('btn-tool-PB').style.display = hasPurpleBoss ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-SM')) document.getElementById('btn-tool-SM').style.display = hasPurpleBoss ? 'flex' : 'none';
+
+            // 噴火制御機（購入済み、かつ火山ステージ選択中のみ表示）
+            updateEruptionControlToolVisibility();
+
             // 火山ステージタイプ（ショップで購入するまで選択不可）
             const hasVolcanoStage = purchasedSkins.includes('volcano_stage');
             const volcanoOpt = document.getElementById('stage-type-option-volcano');
@@ -4669,7 +4698,7 @@
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BB', id:'icon-BB'},
-                {type:'LM', id:'icon-LM'}, {type:'WC', id:'icon-WC'}
+                {type:'LM', id:'icon-LM'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'SM', id:'icon-SM'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -4790,6 +4819,21 @@
                         drawEditor();
                     }
                 } else {
+                    if (currentTool === 'EC') {
+                        const stageTypeSel = document.getElementById('stage-type-select');
+                        if (!stageTypeSel || stageTypeSel.value !== 'volcano') {
+                            showQuickMsg('噴火制御機は火山ステージでのみ設置できます。', '#ff5252');
+                            return;
+                        }
+                    }
+                    // 噴火制御機・パープル（ボス）はステージに1つだけ配置できるツール
+                    if ((currentTool === 'EC' || currentTool === 'PB') && editorGrid[y][x] !== currentTool) {
+                        for(let r=0; r<GRID_H; r++) {
+                            for(let c=0; c<GRID_W; c++) {
+                                if(editorGrid[r][c] === currentTool) editorGrid[r][c] = null;
+                            }
+                        }
+                    }
                     if (currentTool === 'S' && editorGrid[y][x] !== 'S') {
                         for(let r=0; r<GRID_H; r++) {
                             for(let c=0; c<GRID_W; c++) {
@@ -4866,7 +4910,10 @@
                 ctx.fillText('🌑 DARK MODE', editorCanvas.width / 2, ch * 1.2);
             } else if (editorStageType === 'volcano') {
                 // 火山: 溶岩が1〜4マスの高さで上下するプレビュー
-                const lavaY = getLavaSurfaceY() * ch;
+                // 噴火制御機（EC）が設置されていれば、その高さを上限としてプレビューに反映する
+                const ecRow = findEruptionControlRow(editorGrid);
+                const ecLimitOverride = (ecRow !== null) ? (GRID_H - ecRow) : undefined;
+                const lavaY = getLavaSurfaceY(ecLimitOverride) * ch;
                 const grad = ctx.createLinearGradient(0, lavaY, 0, editorCanvas.height);
                 grad.addColorStop(0, 'rgba(255,140,0,0.85)');
                 grad.addColorStop(0.2, 'rgba(255,60,0,0.85)');
@@ -5362,6 +5409,61 @@
                 ctx.moveTo(x*cw + cw*0.85, y*ch + ch*0.15);
                 ctx.lineTo(x*cw + cw*0.15, y*ch + ch*0.85);
                 ctx.stroke();
+            } else if(type === 'EC') {
+                // 噴火制御機 (Eruption Control Device): 溶岩の最大上昇高さをこの位置に制限する
+                ctx.fillStyle = "#455a64";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "#263238";
+                ctx.fillRect(x*cw + cw*0.15, y*ch + ch*0.12, cw*0.7, ch*0.4);
+                // 点滅するメーター（脈動）
+                const ecPulse = 0.5 + Math.sin(time * 3) * 0.5;
+                ctx.fillStyle = `rgba(255, ${Math.floor(90 + 120 * ecPulse)}, 0, 1)`;
+                ctx.beginPath();
+                ctx.arc(x*cw + cw*0.5, y*ch + ch*0.32, Math.min(cw, ch) * 0.11, 0, Math.PI * 2);
+                ctx.fill();
+                // 操作レバー
+                ctx.strokeStyle = "#eceff1";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.28, y*ch + ch*0.85);
+                ctx.lineTo(x*cw + cw*0.28, y*ch + ch*0.6);
+                ctx.stroke();
+                ctx.fillStyle = "#d32f2f";
+                ctx.beginPath();
+                ctx.arc(x*cw + cw*0.28, y*ch + ch*0.58, 3, 0, Math.PI * 2);
+                ctx.fill();
+                // 台座
+                ctx.fillStyle = "#37474f";
+                ctx.fillRect(x*cw + cw*0.15, y*ch + ch*0.6, cw*0.4, ch*0.28);
+                ctx.strokeStyle = "#90a4ae";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+            } else if(type === 'PB') {
+                // パープル（ボス）の配置マーカー。実際のサイズはこのマスの2倍で出現する
+                ctx.fillStyle = "#7b1fa2";
+                ctx.fillRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.9);
+                ctx.fillStyle = "#4a148c";
+                ctx.fillRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.18);
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(x*cw + cw*0.22, y*ch + ch*0.35, cw*0.18, ch*0.18);
+                ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.35, cw*0.18, ch*0.18);
+                ctx.strokeStyle = "#e1bee7";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.9);
+            } else if(type === 'SM') {
+                // 粘液ブロック (Slime Block): 紫色の通常ブロック。特別な効果はない
+                ctx.fillStyle = "#8e24aa";
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = "rgba(225,190,231,0.55)";
+                ctx.beginPath();
+                ctx.arc(x*cw + cw*0.32, y*ch + ch*0.38, Math.min(cw, ch) * 0.12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x*cw + cw*0.65, y*ch + ch*0.62, Math.min(cw, ch) * 0.09, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "#4a148c";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
             } else if(type === 'd') {
                 ctx.save();
                 ctx.beginPath();
@@ -5711,7 +5813,8 @@
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','S','G','K','M','E','A','T','TD','X','W','L','U','P','H',
             '>','<','v','C','q','k','r','b','!','Y','d','J','j','y',
-            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC'
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC',
+            'EC','PB','SM'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -5868,14 +5971,30 @@
                         enemies.push({x: x, y: y, vx: 0, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: true});
                         activeStage[y][x] = null;
                     }
+                    if(activeStage[y][x] === 'PB') {
+                        // パープル（ボス）: 通常の敵の2倍の大きさ（size: 1.8）で出現させる
+                        enemies.push({x: x, y: y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, hitCooldown: 0});
+                        activeStage[y][x] = null;
+                    }
                 }
+            }
+
+            // パープルが1.8マスへ巨大化する領域に埋まっている通常ブロックを開幕時に破壊する
+            enemies.forEach(en => {
+                if (en.isPurple) destroyBlocksInsideBoss(en);
+            });
+
+            // 噴火制御機（EC）: 火山ステージの場合、設置位置の高さを溶岩上昇の上限として記憶する
+            eruptionControlLimitTiles = null;
+            if (currentStageType === 'volcano') {
+                const ecRow = findEruptionControlRow(activeStage);
+                if (ecRow !== null) eruptionControlLimitTiles = GRID_H - ecRow;
             }
             
             player.vx = 0; player.vy = 0; player.hasKey = 0;
             lavaAnimStart = Date.now();
             
             playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
-            updateStageCache();
             arrows = [];
             missiles = [];
             debrisParticles = [];
@@ -5888,6 +6007,7 @@
                     }
                 }
             }
+            updateStageCache();
             isGoalTriggered = false;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             rewardAlreadyAdded = false;
@@ -6162,9 +6282,9 @@
                 lastTime = timestamp;
             }
 
-            // 描画はモニターのリフレッシュレートに合わせて毎フレーム行う
-            // （物理演算の有無に関わらず描画することで、高リフレッシュレート環境でのカクつきを防ぐ）
-            drawGame();
+            // 物理更新がない高リフレッシュレート側のフレームでは同じ画面を再描画しない。
+            // Canvas の描画負荷を最大60回/秒に抑え、120/144Hz環境での無駄な負荷を防ぐ。
+            if (updates > 0) drawGame();
         }
 
         function updateGame() {
@@ -6384,15 +6504,41 @@
             enemies.forEach(en => {
                 if(en.dead) return;
 
-                const ex_tile = Math.floor(en.x + 0.5);
-                const ey_tile = Math.floor(en.y + 0.5);
+                if (en.hitCooldown > 0) en.hitCooldown--;
+                // パープルは5秒ごとに1秒間チャージし、その時点のプレイヤー方向へ壁まで突進する
+                if (en.isPurple) {
+                    if (!en.isDashing && en.chargeFrames <= 0 && frameCount >= en.nextDashFrame) {
+                        const playerCenter = player.x + player.w / 2;
+                        const bossCenter = en.x + (en.size || 1.8) / 2;
+                        en.dashDirection = playerCenter < bossCenter ? -1 : 1;
+                        en.chargeFrames = 61; // 開始フレームを含め、停止時間を正確に60フレーム（1秒）にする
+                        en.vx = 0;
+                        en.nextDashFrame = frameCount + 300;
+                    }
+                    if (en.chargeFrames > 0) {
+                        en.vx = 0;
+                        en.chargeFrames--;
+                        if (en.chargeFrames === 0) {
+                            en.isDashing = true;
+                            en.vx = en.dashDirection * 0.24;
+                        }
+                    }
+                }
+
+                // 敵のサイズ（通常は0.9、パープル（ボス）は2倍の1.8）。以降の当たり判定・座標計算はすべて
+                // このサイズを基準にスケールさせることで、サイズ違いの敵でも同じロジックを使い回せるようにする。
+                const enSize = en.size || 0.9;
+                const enHalf = enSize / 2;
+
+                const ex_tile = Math.floor(en.x + enHalf);
+                const ey_tile = Math.floor(en.y + enHalf);
                 const current_tile = activeStage[ey_tile] ? activeStage[ey_tile][ex_tile] : null;
 
                 // 特殊ブロックの即時反映
                 if(current_tile === 'X') en.vx = (en.vx > 0 ? -0.5 : 0.5); // トロールの中で跳ねる
                 
                 // 足元のタイルを取得
-                const foot_y_idx = Math.floor(en.y + 1);
+                const foot_y_idx = Math.floor(en.y + enSize);
                 const foot_tile = activeStage[foot_y_idx] ? activeStage[foot_y_idx][ex_tile] : null;
                 if(foot_tile === 'T' && en.vy > 0) en.vy = -0.4; // トランポリン
 
@@ -6409,27 +6555,32 @@
                 }
 
                 let nextX = en.x + en.vx;
-                if (!isEnemyCollide(nextX, en.y, 'x')) {
+                if (!isEnemyCollide(nextX, en.y, 'x', enSize)) {
                     en.x = nextX;
                 } else {
                     if (!en.sync) {
-                        const egx = Math.floor(en.x + (en.vx > 0 ? 0.9 : 0));
-                        const egy = Math.floor(en.y + 0.5);
-                        if (activeStage[egy] && activeStage[egy][egx] === 'X') {
-                            en.vx = (en.vx > 0 ? -0.5 : 0.5);
+                        if (en.isPurple && en.isDashing) {
+                            en.isDashing = false;
+                            en.vx = -en.dashDirection * 0.04;
                         } else {
-                            en.vx *= -1;
+                            const egx = Math.floor(en.x + (en.vx > 0 ? enSize : 0));
+                            const egy = Math.floor(en.y + enHalf);
+                            if (activeStage[egy] && activeStage[egy][egx] === 'X') {
+                                en.vx = (en.vx > 0 ? -0.5 : 0.5);
+                            } else {
+                                en.vx *= -1;
+                            }
                         }
                     } else { en.vx = 0; }
                 }
 
                 // ギミックによる敵の死亡判定 (黄色いトゲ)
-                const ex_check = Math.floor(en.x + 0.45), ey_check = Math.floor(en.y + 0.45);
+                const ex_check = Math.floor(en.x + enHalf), ey_check = Math.floor(en.y + enHalf);
                 const en_tile = activeStage[ey_check] ? activeStage[ey_check][ex_check] : null;
                 if (en_tile === 'y') en.dead = true;
 
                 // 火山ステージ: 溶岩に触れた敵は死亡
-                if (currentStageType === 'volcano' && (en.y + 0.9) > getLavaSurfaceY()) en.dead = true;
+                if (!en.isPurple && currentStageType === 'volcano' && (en.y + enSize) > getLavaSurfaceY()) en.dead = true;
 
                 // 垂直方向の物理演算
                 if (isWater) {
@@ -6448,18 +6599,18 @@
 
                 let nextY = en.y + en.vy;
                 // 地面との接触判定を少し深く（+0.05）して、歩行中の浮遊感を解消する
-                let collidedY = isEnemyCollide(en.x, nextY + (en.vy > 0 ? 0.05 : 0), 'y');
+                let collidedY = isEnemyCollide(en.x, nextY + (en.vy > 0 ? 0.05 : 0), 'y', enSize);
                 let isBridge = false;
 
                 if (!collidedY && en.vy >= 0) {
-                    let footY = en.y + 0.9;
-                    let nextFootY = nextY + 0.9 + 0.05; // 橋の判定も同様に深く
-                    let ix = Math.floor(en.x + 0.45), iy_idx = Math.floor(nextFootY);
+                    let footY = en.y + enSize;
+                    let nextFootY = nextY + enSize + 0.05; // 橋の判定も同様に深く
+                    let ix = Math.floor(en.x + enHalf), iy_idx = Math.floor(nextFootY);
                     const enTileBelow = activeStage[iy_idx] ? activeStage[iy_idx][ix] : null;
                     const isEnSolidBridge = (enTileBelow === 'H' || (enTileBelow === 'hr' && isSwitchOn) || (enTileBelow === 'hb' && !isSwitchOn));
                     if (isEnSolidBridge && footY <= iy_idx + 0.1) {
                         collidedY = true;
-                        nextY = iy_idx - 0.9; // 地面に密着させる
+                        nextY = iy_idx - enSize; // 地面に密着させる
                         isBridge = true;
                     }
                 }
@@ -6468,7 +6619,7 @@
                     if (isWater) {
                         // 水中敵もスイッチブロックに触れたら切り替え可能に
                         if (en.vy < 0) {
-                            const egx = Math.floor(en.x + 0.45);
+                            const egx = Math.floor(en.x + enHalf);
                             const eheadY = Math.floor(nextY);
                             if (activeStage[eheadY] && activeStage[eheadY][egx] === '!') {
                                 if (!en.onSwitch) {
@@ -6482,7 +6633,7 @@
                         en.vy *= -0.6;
                     } else {
                         if (en.vy < 0) {
-                            const egx = Math.floor(en.x + 0.45);
+                            const egx = Math.floor(en.x + enHalf);
                             const eheadY = Math.floor(nextY);
                             if (activeStage[eheadY] && activeStage[eheadY][egx] === '!') {
                                 if (!en.onSwitch) { 
@@ -6493,21 +6644,28 @@
                             }
                         }
                         if (en.vy > 0) {
-                            en.y = isBridge ? nextY : Math.floor(nextY + 0.9 + 0.05) - 0.9;
+                            en.y = isBridge ? nextY : Math.floor(nextY + enSize + 0.05) - enSize;
                             en.onGround = true;
                         }
                         en.vy = 0;
                     }
                 } else {
-                    const egx = Math.floor(en.x + 0.45);
-                    const egy = Math.floor(en.y + 0.45);
+                    const egx = Math.floor(en.x + enHalf);
+                    const egy = Math.floor(en.y + enHalf);
                     if (!activeStage[egy] || activeStage[egy][egx] !== '!') en.onSwitch = false;
                     en.y = nextY;
                     if (en.vy !== 0) en.onGround = false;
                 }
+
+                // パープルは奈落へ落ちても死亡・消失せず、ステージ下端で踏みとどまる
+                if (en.isPurple && en.y + enSize > GRID_H) {
+                    en.y = GRID_H - enSize;
+                    en.vy = 0;
+                    en.onGround = true;
+                }
                 
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
-                if (!en.sync) {
+                if (!en.sync && !(en.isPurple && (en.isDashing || en.chargeFrames > 0))) {
                     en.vx *= 0.98;
                     if(Math.abs(en.vx) < 0.04) en.vx = (en.vx >= 0 ? 0.04 : -0.04);
                 }
@@ -6521,16 +6679,31 @@
                 }
 
                 const px = player.x + player.w/2, py = player.y + player.h/2;
-                const ex = en.x + 0.5, ey = en.y + 0.5;
-                if (Math.abs(px - ex) < 0.8 && Math.abs(py - ey) < 0.8) {
-                    // 踏みつけ判定: 落下中かつ、プレイヤーの足元が敵の下部2割（地面から0.2ブロック分）より高い位置にある場合
-                    if (isFalling && (player.y + player.h) < (en.y + 0.8)) {
-                        en.dead = true; player.vy = -0.3; // 踏んで跳ねる
+                const ex = en.x + enHalf, ey = en.y + enHalf;
+                // 判定範囲は「プレイヤーの半径＋敵の半径」を基準にスケール（元は0.9サイズの敵で0.8だった）
+                const proximityThresh = player.w/2 + enHalf - 0.1;
+                if (Math.abs(px - ex) < proximityThresh && Math.abs(py - ey) < proximityThresh) {
+                    // 踏みつけ判定: 落下中かつ、プレイヤーの足元が敵の下部2割より高い位置にある場合
+                    if (isFalling && (player.y + player.h) < (en.y + enSize - 0.1)) {
+                        player.vy = -0.3; // 踏んで跳ねる
+                        if (en.isBoss) {
+                            if (en.hitCooldown <= 0) {
+                                en.hp = Math.max(0, en.hp - 10);
+                                en.hitCooldown = 20;
+                                if (en.hp <= 0) {
+                                    en.dead = true;
+                                    if (en.isPurple) removeAllSlimeBlocks();
+                                }
+                            }
+                        } else {
+                            en.dead = true;
+                        }
                     } else {
                         handlePlayerDeath();
                     }
                 }
             });
+
 
             // dead フラグの敵をまとめて削除
             // ※以前はループ条件で毎回 enemies.filter() を呼んでおり、フレームごとに配列全体を
@@ -6542,11 +6715,8 @@
 
             // スポナー（sp / sp_blue）の敵召喚処理 (300フレームごと)
             if (!isCountingDown && frameCount > 0 && frameCount % 300 === 0) {
-                for (let y = 0; y < GRID_H; y++) {
-                    for (let x = 0; x < GRID_W; x++) {
-                        const spTile = activeStage[y][x];
-                        if (spTile === 'sp' || spTile === 'sp_blue') {
-                            const isBlueSpawner = (spTile === 'sp_blue');
+                for (const spawner of spawnerPositions) {
+                    const { x, y, blue: isBlueSpawner } = spawner;
                             // スポナーの上に敵を配置可能（画面内であること）
                             if (y > 0) {
                                 // 既に同じ位置に生きている敵が重なっていないかチェック（スタック防止）
@@ -6566,21 +6736,17 @@
                                     });
                                 }
                             }
-                        }
-                    }
                 }
             }
 
             // 矢の生成
             if (frameCount % 120 === 0) {
-                for(let y=0; y<GRID_H; y++) {
-                    for(let x=0; x<GRID_W; x++) {
-                        const tile = activeStage[y][x];
+                for (const launcher of arrowLauncherPositions) {
+                        const { x, y, type: tile } = launcher;
                         if(tile === 'A') arrows.push({x: x, y: y + 0.4, vx: -0.15, vy: 0, color: '#ff5722'});
                         if(tile === 'rg') arrows.push({x: x + 0.7, y: y + 0.4, vx: 0.15, vy: 0, color: varColor('--secondary-color')});
                         if(tile === 'ug') arrows.push({x: x + 0.4, y: y, vx: 0, vy: -0.15, color: varColor('--secondary-color')});
                         if(tile === 'dg') arrows.push({x: x + 0.4, y: y + 0.9, vx: 0, vy: 0.15, color: varColor('--secondary-color')});
-                    }
                 }
             }
 
@@ -6610,12 +6776,8 @@
 
             // ミサイル生成 (mgブロック, 180フレームごと)
             if (frameCount % 180 === 0) {
-                for(let y=0; y<GRID_H; y++) {
-                    for(let x=0; x<GRID_W; x++) {
-                        if(activeStage[y][x] === 'mg') {
-                            missiles.push({x: x + 0.9, y: y + 0.4, vx: 0.2, vy: 0, life: 300});
-                        }
-                    }
+                for (const launcher of missileLauncherPositions) {
+                    missiles.push({x: launcher.x + 0.9, y: launcher.y + 0.4, vx: 0.2, vy: 0, life: 300});
                 }
             }
 
@@ -6673,7 +6835,7 @@
                             const bx = mx + dx, by = my + dy;
                             if (bx >= 0 && bx < GRID_W && by >= 0 && by < GRID_H) {
                                 const t = activeStage[by][bx];
-                                const indestructible = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB'];
+                                const indestructible = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'EC', 'PB'];
                                 if (t && !indestructible.includes(t)) {
                                     spawnDebris(bx, by, t);
                                     activeStage[by][bx] = null;
@@ -6783,23 +6945,58 @@
         let stageHasBB = false;
         let currentStageType = 'normal'; // 'normal' | 'water' | 'dark' | 'volcano'
 
+        // 噴火制御機（EC）による溶岩上昇の高さ制限（タイル数、下端からの高さ）。
+        // nullの場合は制限なし。ゲーム開始時（openGame相当の処理）でactiveStageから設置位置を
+        // 探して1度だけ計算しておくことで、毎フレームのグリッド走査を避ける。
+        let eruptionControlLimitTiles = null;
+
+        // 指定したグリッドから噴火制御機（'EC'）の設置行を探す（見つからなければnull）
+        function findEruptionControlRow(grid) {
+            if (!grid) return null;
+            for (let y = 0; y < GRID_H; y++) {
+                if (!grid[y]) continue;
+                for (let x = 0; x < GRID_W; x++) {
+                    if (grid[y][x] === 'EC') return y;
+                }
+            }
+            return null;
+        }
+
         // 火山ステージ: 溶岩は毎回一番下からスタートして、ゆっくり上下する
-        function getLavaHeightTiles() {
+        // maxOverrideを渡すと、そのタイル数を溶岩の高さの上限として使用する（エディタのプレビュー用）。
+        // 省略時はゲーム中に設定されるeruptionControlLimitTilesを使用する。
+        function getLavaHeightTiles(maxOverride) {
             if (!lavaAnimStart) lavaAnimStart = Date.now();
             const t = (Date.now() - lavaAnimStart) * 0.0006 - Math.PI / 2;
-            return Math.max(0.2, 0.2 + 2.8 * (0.5 + 0.5 * Math.sin(t)));
+            const limit = (maxOverride !== undefined) ? maxOverride : eruptionControlLimitTiles;
+            // 制御機がある場合は、その設置高度を波の頂点として実際に到達させる
+            const maxHeight = (limit !== null && limit !== undefined) ? Math.max(0.2, limit) : 3;
+            const h = 0.2 + (maxHeight - 0.2) * (0.5 + 0.5 * Math.sin(t));
+            return h;
         }
         // 溶岩表面のワールドY座標（この値より下は溶岩）
-        function getLavaSurfaceY() {
-            return GRID_H - getLavaHeightTiles();
+        function getLavaSurfaceY(maxOverride) {
+            return GRID_H - getLavaHeightTiles(maxOverride);
         }
         let editorAnimId = null;
         let stageTypeWarnPending = false; // タイプ変更警告の確認待ちフラグ
+
+
+        // 噴火制御機ツールは「購入済み」かつ「現在選択中のステージタイプが火山」の場合のみ表示する
+        function updateEruptionControlToolVisibility() {
+            const btn = document.getElementById('btn-tool-EC');
+            if (!btn) return;
+            const hasEruptionControl = purchasedSkins.includes('eruption_control');
+            const stageTypeSel = document.getElementById('stage-type-select');
+            const isVolcano = stageTypeSel && stageTypeSel.value === 'volcano';
+            btn.style.display = (hasEruptionControl && isVolcano) ? 'flex' : 'none';
+        }
 
         function onStageTypeChange(sel) {
             if (!isClearChecked) {
                 // チェックがなければそのまま変更
                 drawEditor();
+                updateEruptionControlToolVisibility();
                 return;
             }
             // チェック済みの場合は警告を出してからリセット
@@ -6819,6 +7016,7 @@
                 sel.value = sel.dataset.prevValue || 'normal';
                 drawEditor();
             }
+            updateEruptionControlToolVisibility();
         }
 
         function isCollideAt(x, y, w, h, isPlayer = false, axis = null) {
@@ -6838,6 +7036,7 @@
                     if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
                        tile === 'mg' || tile === 'BB' || tile === 'LM' || tile === 'WC' ||
+                       tile === 'SM' || tile === 'EC' ||
                        (tc === 90 && tile.length > 1) /* 'Z'... */ ||
                        (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) ||
                        (tile === '#' && axis === 'x')) return true;
@@ -6863,9 +7062,10 @@
             return isCollideAt(x, y, player.w, player.h, isPlayer, axis);
         }
 
-        function isEnemyCollide(x, y, axis = null) {
-            return isCollideAt(x, y, 0.9, 0.9, false, axis);
+        function isEnemyCollide(x, y, axis = null, size = 0.9) {
+            return isCollideAt(x, y, size, size, false, axis);
         }
+
 
         function isTouchingType(x, y, type) {
             const inset = 0.02;
@@ -6875,6 +7075,36 @@
                 if(activeStage[iy] && activeStage[iy][ix] === type) return true;
             }
             return false;
+        }
+
+        // パープル（ボス）撃破時: ステージ上の粘液ブロック（'SM'）をすべて除去する
+        function removeAllSlimeBlocks() {
+            let removedAny = false;
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    if (activeStage[y] && activeStage[y][x] === 'SM') {
+                        activeStage[y][x] = null;
+                        removedAny = true;
+                    }
+                }
+            }
+            if (removedAny) updateStageCache();
+        }
+
+        // ボスの巨大化領域と重なる、破壊可能なブロックを取り除く
+        function destroyBlocksInsideBoss(boss) {
+            const protectedTiles = new Set(['S', 'G', 'C', 'EC', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg']);
+            const size = boss.size || 1.8;
+            const minX = Math.max(0, Math.floor(boss.x));
+            const maxX = Math.min(GRID_W - 1, Math.ceil(boss.x + size) - 1);
+            const minY = Math.max(0, Math.floor(boss.y));
+            const maxY = Math.min(GRID_H - 1, Math.ceil(boss.y + size) - 1);
+            for (let y = minY; y <= maxY; y++) {
+                for (let x = minX; x <= maxX; x++) {
+                    const tile = activeStage[y] && activeStage[y][x];
+                    if (tile && !protectedTiles.has(tile)) activeStage[y][x] = null;
+                }
+            }
         }
 
         function handlePlayerDeath() {
@@ -6972,13 +7202,45 @@
             // 敵の描画
             enemies.forEach(en => {
                 if(!en.dead) {
-                    if (en.sync) cachedGameCtx.fillStyle = "#ffeb3b"; // シンクロ敵は黄色
-                    else if (en.blue) cachedGameCtx.fillStyle = "#00bcd4"; // 青スポナー由来は水色
-                    else cachedGameCtx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
-                    cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
-                    cachedGameCtx.fillStyle = "#fff";
-                    cachedGameCtx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
-                    cachedGameCtx.fillRect(en.x * cw + cw*0.55, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
+                    const enSize = en.size || 0.9;
+                    if (en.isPurple) {
+                        // チャージ中の予告エフェクト（収束する輪と火花）
+                        if (en.chargeFrames > 0) {
+                            const centerX = (en.x + enSize / 2) * cw;
+                            const centerY = (en.y + enSize / 2) * ch;
+                            const pulse = 0.75 + Math.sin(time * 10) * 0.15;
+                            cachedGameCtx.save();
+                            cachedGameCtx.strokeStyle = 'rgba(224,64,251,0.9)';
+                            cachedGameCtx.lineWidth = Math.max(2, cw * 0.06);
+                            cachedGameCtx.beginPath();
+                            cachedGameCtx.arc(centerX, centerY, cw * enSize * pulse, 0, Math.PI * 2);
+                            cachedGameCtx.stroke();
+                            cachedGameCtx.fillStyle = 'rgba(255,128,255,0.9)';
+                            for (let i = 0; i < 8; i++) {
+                                const angle = time * 4 + i * Math.PI / 4;
+                                const radius = cw * enSize * (0.55 + (Math.min(60, en.chargeFrames) / 60) * 0.35);
+                                cachedGameCtx.fillRect(centerX + Math.cos(angle) * radius - 2, centerY + Math.sin(angle) * radius - 2, 4, 4);
+                            }
+                            cachedGameCtx.restore();
+                        }
+                        // パープル（ボス）: 通常の敵の2倍サイズ、紫色
+                        cachedGameCtx.fillStyle = "#6a1b9a";
+                        cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*enSize, ch*enSize);
+                        cachedGameCtx.fillStyle = "#4a148c";
+                        cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*enSize, ch*enSize*0.22);
+                        cachedGameCtx.fillStyle = "#fff";
+                        cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.2, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
+                        cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.6, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
+
+                    } else {
+                        if (en.sync) cachedGameCtx.fillStyle = "#ffeb3b"; // シンクロ敵は黄色
+                        else if (en.blue) cachedGameCtx.fillStyle = "#00bcd4"; // 青スポナー由来は水色
+                        else cachedGameCtx.fillStyle = en.jumper ? "#2196f3" : "#f44336";
+                        cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*0.9, ch*0.9);
+                        cachedGameCtx.fillStyle = "#fff";
+                        cachedGameCtx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
+                        cachedGameCtx.fillRect(en.x * cw + cw*0.55, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
+                    }
                 }
             });
 
@@ -7195,6 +7457,24 @@
                 cachedGameCtx.fillText(countdown, cachedGameCanvas.width/2, cachedGameCanvas.height/2 + ch/2);
             }
             cachedGameCtx.globalAlpha = 1.0;
+
+            // 体力バーは画面効果より手前で、各ボスの頭上に追従表示する
+            enemies.forEach(en => {
+                if (!en.isBoss || en.dead) return;
+                const enSize = en.size || 0.9;
+                const barW = cw * enSize;
+                const barH = Math.max(5, ch * 0.12);
+                const barX = en.x * cw;
+                const barY = Math.max(2, en.y * ch - barH - 5);
+                const hpRatio = Math.max(0, en.hp / en.maxHp);
+                cachedGameCtx.fillStyle = 'rgba(0,0,0,0.8)';
+                cachedGameCtx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
+                cachedGameCtx.fillStyle = '#4a148c';
+                cachedGameCtx.fillRect(barX, barY, barW, barH);
+                cachedGameCtx.fillStyle = '#e040fb';
+                cachedGameCtx.fillRect(barX, barY, barW * hpRatio, barH);
+            });
+
         }
 
         function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
