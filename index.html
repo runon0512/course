@@ -6376,13 +6376,13 @@
             const cx = Math.floor(player.x + player.w/2), cy = Math.floor(player.y + player.h/2);
             if(activeStage[cy]) {
                 const tile = activeStage[cy][cx];
-                if(tile === 'W') player.vx += 0.01;
-                if(tile === 'L') player.vx -= 0.01;
-                if(tile === 'U') player.vy -= 0.018; // 重力(0.015)を打ち消して浮き上がる
-                if(tile === 'd') player.vy += 0.018; // 下降気流
+                if(tile === 'W') player.vx += 0.012;
+                if(tile === 'L') player.vx -= 0.012;
+                if(tile === 'U') player.vy -= 0.035; // 重力(0.015)を打ち消して浮き上がる
+                if(tile === 'd') player.vy += 0.025; // 下降気流
                 if(tile === 'J') {
-                    if (isSwitchOn) player.vx += 0.01;
-                    else player.vx -= 0.01;
+                    if (isSwitchOn) player.vx += 0.012;
+                    else player.vx -= 0.12;
                 }
             }
 
@@ -6671,11 +6671,11 @@
                 }
 
                 // 横方向の風の影響を適用 (ベース速度に加算)
-                if(current_tile === 'W') en.vx += 0.01;
-                if(current_tile === 'L') en.vx -= 0.01;
+                if(current_tile === 'W') en.vx += 0.012;
+                if(current_tile === 'L') en.vx -= 0.012;
                 if(current_tile === 'J') {
-                    if (isSwitchOn) en.vx += 0.01;
-                    else en.vx -= 0.01;
+                    if (isSwitchOn) en.vx += 0.012;
+                    else en.vx -= 0.012;
                 }
 
                 const px = player.x + player.w/2, py = player.y + player.h/2;
