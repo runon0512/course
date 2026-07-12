@@ -6379,7 +6379,7 @@
                 if(tile === 'W') player.vx += 0.012;
                 if(tile === 'L') player.vx -= 0.012;
                 if(tile === 'U') player.vy -= 0.035; // 重力(0.015)を打ち消して浮き上がる
-                if(tile === 'd') player.vy += 0.025; // 下降気流
+                if(tile === 'd') player.vy += 0.018; // 下降気流
                 if(tile === 'J') {
                     if (isSwitchOn) player.vx += 0.012;
                     else player.vx -= 0.12;
@@ -6594,7 +6594,7 @@
                     // 通常重力
                     en.vy += 0.015; 
                     if(current_tile === 'U') en.vy -= 0.035;
-                    if(current_tile === 'd') en.vy += 0.025;
+                    if(current_tile === 'd') en.vy += 0.018;
                 }
 
                 let nextY = en.y + en.vy;
