@@ -1601,7 +1601,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.8.5"
+            VERSION: "2.8.5R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -6425,6 +6425,9 @@
                 }
             }
             
+            // Keep the pre-move state for swept stomp detection.
+            const playerPreviousBottom = player.y + player.h;
+            const playerWasFalling = player.vy >= 0;
             player.vy += gravity;
 
             let friction = 0.9;
@@ -6549,6 +6552,7 @@
             } else {
                 // 頭をぶつけた時にスイッチ判定（上方向への移動中）
                 if (player.vy < 0) {
+                    player.y = Math.floor(nextY) + 1;
                     const gx = Math.floor(player.x + player.w/2);
                     const headY = Math.floor(nextY);
                     if (activeStage[headY] && activeStage[headY][gx] === '!') {
@@ -6569,9 +6573,9 @@
             checkGimmicks();
 
             // 敵の更新
-            const isFalling = player.vy >= 0;
             enemies.forEach(en => {
                 if(en.dead) return;
+                const enemyPreviousTop = en.y;
 
                 if (en.hitCooldown > 0) en.hitCooldown--;
                 // パープルは5秒ごとに1秒間チャージし、その時点のプレイヤー方向へ壁まで突進する
@@ -6754,9 +6758,14 @@
                 const ex = en.x + enHalf, ey = en.y + enHalf;
                 // 判定範囲は「プレイヤーの半径＋敵の半径」を基準にスケール（元は0.9サイズの敵で0.8だった）
                 const proximityThresh = player.w/2 + enHalf - 0.1;
-                if (Math.abs(px - ex) < proximityThresh && Math.abs(py - ey) < proximityThresh) {
+                const isOverlappingEnemy = Math.abs(px - ex) < proximityThresh && Math.abs(py - ey) < proximityThresh;
+                const enemyTop = Math.min(enemyPreviousTop, en.y);
+                const overlapsEnemyHorizontally = player.x < en.x + enSize - 0.05 && player.x + player.w > en.x + 0.05;
+                const stompedEnemy = playerWasFalling && overlapsEnemyHorizontally &&
+                    playerPreviousBottom <= enemyTop + 0.1 && player.y + player.h >= enemyTop - 0.05;
+                if (isOverlappingEnemy || stompedEnemy) {
                     // 踏みつけ判定: 落下中かつ、プレイヤーの足元が敵の下部2割より高い位置にある場合
-                    if (isFalling && (player.y + player.h) < (en.y + enSize - 0.1)) {
+                    if (stompedEnemy) {
                         player.vy = -0.3; // 踏んで跳ねる
                         if (en.isBoss) {
                             if (en.hitCooldown <= 0) {
