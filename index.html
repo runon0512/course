@@ -644,6 +644,25 @@
             min-width: 6cqw;
         }
 
+        /* UI非表示モード: トグルボタン以外のエディタUIを隠して盤面全体を見やすくする */
+        .editor-ui-hidden .editor-top-bar {
+            background: transparent;
+            border-bottom: none;
+            justify-content: flex-end;
+            pointer-events: none;
+        }
+        .editor-ui-hidden .editor-top-bar > *:not(#editor-ui-toggle-btn) {
+            display: none;
+        }
+        .editor-ui-hidden .editor-top-bar #editor-ui-toggle-btn {
+            pointer-events: auto;
+            opacity: 0.6;
+        }
+        .editor-ui-hidden .editor-right-bar,
+        .editor-ui-hidden .editor-bottom-bar {
+            display: none;
+        }
+
         .editor-bottom-bar {
             position: absolute;
             bottom: 2cqh;
@@ -1126,6 +1145,10 @@
                     <input type="checkbox" id="manual-reload" onchange="isManualReloadOnly = this.checked; localStorage.setItem('pixel_stages_manual_reload', this.checked)">
                     <span>再読み込みは手動のみ</span>
                 </label>
+                <label class="remember-wrap">
+                    <input type="checkbox" id="quick-send" onchange="isQuickSend = this.checked; localStorage.setItem('pixel_stages_quick_send', this.checked)">
+                    <span>クイック送信（送信を待たずにOK）</span>
+                </label>
                 <div style="display: flex; gap: 2cqw; justify-content: center;">
                     <button class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
                     <button class="pixel-btn small" onclick="handleAuth('register')">新規登録</button>
@@ -1479,6 +1502,7 @@
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
+                    <button id="editor-ui-toggle-btn" class="pixel-btn small" style="margin-top:0; background:#607d8b; color:#fff;" onclick="toggleEditorUI()">🙈UI非表示</button>
                 </div>
                 <div class="editor-right-bar">
                     <div class="toolbar-label basic-label">Basic</div>
@@ -1577,7 +1601,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.8.3"
+            VERSION: "2.8.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1717,6 +1741,7 @@
         let showGhosts = true;
         let isSchoolMode = false;
         let isManualReloadOnly = false;
+        let isQuickSend = false;
         let isMobileMode = false; 
         let currentGhostData = []; // ゴーストデータはフレームごとに記録
         let startTime = 0;
@@ -4660,6 +4685,8 @@
         function exitEditor() {
             if (editorAnimId) { cancelAnimationFrame(editorAnimId); editorAnimId = null; }
             document.getElementById('editor-screen').style.display = 'none';
+            // UI非表示状態が残らないようリセット
+            if (isEditorUIHidden) toggleEditorUI();
             // ホーム画面の要素を再表示
             document.querySelector('h1').style.display = 'block';
             document.getElementById('subtitle').style.display = 'block';
@@ -4686,6 +4713,14 @@
                 resetClearCheck();
                 drawEditor();
             }
+        }
+
+        let isEditorUIHidden = false;
+        function toggleEditorUI() {
+            isEditorUIHidden = !isEditorUIHidden;
+            document.getElementById('canvas-container').classList.toggle('editor-ui-hidden', isEditorUIHidden);
+            const btn = document.getElementById('editor-ui-toggle-btn');
+            if (btn) btn.innerText = isEditorUIHidden ? "👁️UI表示" : "🙈UI非表示";
         }
 
         function renderToolIcons() {
@@ -6097,7 +6132,8 @@
             // Runonのクリア時名前・タイム手動変更機能を削除
             
             // タイムが保存されない問題を防止するため、キャッシュを先にクリアして再取得を強制する
-            if (!isManualReloadOnly) cachedStages = null;
+            // （クイック送信ONの時は、OKを押した後にステージ一覧の再読み込みが走らないよう、キャッシュを保持する）
+            if (!isManualReloadOnly && !isQuickSend) cachedStages = null;
             cancelAnimationFrame(gameLoopId);
 
             let rewardGold = 100;
@@ -6123,16 +6159,6 @@
             const retryBtn = document.getElementById('reward-retry-btn');
             rewardOverlay.style.display = 'flex';
 
-            if (okBtn) {
-                okBtn.disabled = true;
-                okBtn.innerText = "SAVING...";
-                okBtn.onclick = null;
-            }
-            if (retryBtn) {
-                retryBtn.disabled = true;
-                retryBtn.style.opacity = "0.5";
-            }
-
             // タイムがトップ5に入る可能性がある場合のみゴーストデータを送信する
             // （サーバー側の負荷軽減と、データ肥大化による送信失敗を防ぐため）
             const isTop5Candidate = (playbackGhosts.length < 5 || clearTime <= (playbackGhosts[playbackGhosts.length - 1]?.time || Infinity));
@@ -6144,55 +6170,42 @@
                 p.f === 'right' ? 1 : 0
             ]) : null;
 
+            if (isQuickSend) {
+                // クイック送信: 送信の完了を待たずにOKを押せるようにする（送信は裏で実行）
+                okBtn.innerText = "OK";
+                okBtn.disabled = false;
+                okBtn.onclick = closeReward;
+                if (retryBtn) {
+                    retryBtn.disabled = false;
+                    retryBtn.style.opacity = "1";
+                }
+                submitClearData(stageId, submitUsername, clearTime, compressedGhost, isTop5Candidate, rewardOverlay);
+                return;
+            }
+
+            if (okBtn) {
+                okBtn.disabled = true;
+                okBtn.innerText = "SAVING...";
+                okBtn.onclick = null;
+            }
+            if (retryBtn) {
+                retryBtn.disabled = true;
+                retryBtn.style.opacity = "0.5";
+            }
+
             // 通信の競合を防ぐため、順序立てて保存を実行
             try {
                 if (stageId) {
-                    // 1回目：ゴーストデータやカスタムスキンを含めてフルデータで送信試行
-                    let res = await callApi('recordClear', { 
-                        stageId: stageId, 
-                        username: submitUsername, 
-                        time: clearTime || 0.001, 
-                        ghost: compressedGhost, // 軽量化したゴーストデータ
-                        skin: equippedSkin,
-                        color: equippedColor,
-                        auroraStones: userAS, // オーロラストーンも送信
-                        // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
-                        customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
-                        gold: userGold
-                    }, 40000);
-
-                    // 通信エラーやデータサイズ制限で失敗した場合、重いデータ（ゴースト・カスタムスキン）を除外して「タイムのみ」で再送
-                    if (!res || !res.success) {
-                        console.warn("フルデータの送信に失敗しました。タイムのみの再送を試みます...");
-                        res = await callApi('recordClear', {
-                            stageId: stageId,
-                            username: submitUsername,
-                            time: clearTime || 0.001,
-                            ghost: null,        // ゴーストデータを除外
-                            skin: equippedSkin,
-                            color: equippedColor,
-                            auroraStones: userAS,
-                            customSprite: null, // カスタムスキンデータを除外
-                            gold: userGold
-                        }, 20000);
-                    }
-
-                    if (res && res.success) {
-                        if (res.auroraStoneAwarded) {
-                            userAS++;
-                            updateGoldDisplay();
-                            document.getElementById('reward-as-wrap').style.display = 'inline';
-                            document.getElementById('reward-as').innerText = "1";
-                        }
-                        okBtn.innerText = "OK";
-                        okBtn.disabled = false;
-                        okBtn.onclick = closeReward;
-                        if (retryBtn) {
-                            retryBtn.disabled = false;
-                            retryBtn.style.opacity = "1";
-                        }
-                    } else {
+                    const res = await submitClearData(stageId, submitUsername, clearTime, compressedGhost, isTop5Candidate, rewardOverlay);
+                    if (!(res && res.success)) {
                         throw new Error(res ? res.message : "保存失敗");
+                    }
+                    okBtn.innerText = "OK";
+                    okBtn.disabled = false;
+                    okBtn.onclick = closeReward;
+                    if (retryBtn) {
+                        retryBtn.disabled = false;
+                        retryBtn.style.opacity = "1";
                     }
                 } else {
                     okBtn.innerText = "OK";
@@ -6206,6 +6219,62 @@
                 okBtn.disabled = false;
                 okBtn.onclick = () => showReward();
                 alert("保存に失敗しました。ネット環境を確認し、「再試行」を押してください。");
+            }
+        }
+
+        // クリア記録の送信処理（showRewardから通常送信・クイック送信の両方で共通利用）
+        // rewardOverlayがまだ表示中（＝OK未送信でユーザーが画面を見ている）場合のみ、AS獲得表示などのUI更新を行う
+        async function submitClearData(stageId, submitUsername, clearTime, compressedGhost, isTop5Candidate, rewardOverlay) {
+            if (!stageId) return { success: true };
+            try {
+                // 1回目：ゴーストデータやカスタムスキンを含めてフルデータで送信試行
+                let res = await callApi('recordClear', {
+                    stageId: stageId,
+                    username: submitUsername,
+                    time: clearTime || 0.001,
+                    ghost: compressedGhost, // 軽量化したゴーストデータ
+                    skin: equippedSkin,
+                    color: equippedColor,
+                    auroraStones: userAS, // オーロラストーンも送信
+                    // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
+                    customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
+                    gold: userGold
+                }, 40000);
+
+                // 通信エラーやデータサイズ制限で失敗した場合、重いデータ（ゴースト・カスタムスキン）を除外して「タイムのみ」で再送
+                if (!res || !res.success) {
+                    console.warn("フルデータの送信に失敗しました。タイムのみの再送を試みます...");
+                    res = await callApi('recordClear', {
+                        stageId: stageId,
+                        username: submitUsername,
+                        time: clearTime || 0.001,
+                        ghost: null,        // ゴーストデータを除外
+                        skin: equippedSkin,
+                        color: equippedColor,
+                        auroraStones: userAS,
+                        customSprite: null, // カスタムスキンデータを除外
+                        gold: userGold
+                    }, 20000);
+                }
+
+                if (res && res.success && res.auroraStoneAwarded) {
+                    userAS++;
+                    updateGoldDisplay();
+                    // まだ報酬画面を見ている場合のみ表示を更新（クイック送信でOKを押して離脱済みの場合は触らない）
+                    if (rewardOverlay && rewardOverlay.style.display !== 'none') {
+                        const asWrap = document.getElementById('reward-as-wrap');
+                        const asVal = document.getElementById('reward-as');
+                        if (asWrap) asWrap.style.display = 'inline';
+                        if (asVal) asVal.innerText = "1";
+                    }
+                }
+                if (!res || !res.success) {
+                    console.error("クリア記録の送信に失敗しました:", res ? res.message : "保存失敗");
+                }
+                return res;
+            } catch (e) {
+                console.error("通信エラー:", e);
+                return { success: false, message: e.message };
             }
         }
 
@@ -7629,6 +7698,9 @@
 
             isManualReloadOnly = localStorage.getItem('pixel_stages_manual_reload') === 'true';
             document.getElementById('manual-reload').checked = isManualReloadOnly;
+
+            isQuickSend = localStorage.getItem('pixel_stages_quick_send') === 'true';
+            document.getElementById('quick-send').checked = isQuickSend;
 
             // ゴースト表示設定の読み込みと適用
             const toggleGhostsCheckbox = document.getElementById('toggle-ghosts');
