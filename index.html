@@ -1601,7 +1601,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.8.5R"
+            VERSION: "2.8.6"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2516,6 +2516,7 @@
 
         function setClearChecked() {
             isClearChecked = true;
+            checkedGridSnapshot = JSON.stringify(editorGrid);
             // タイプ変更キャンセル用に現在値を記憶
             const sel = document.getElementById('stage-type-select');
             if (sel) sel.dataset.prevValue = sel.value;
@@ -5595,7 +5596,7 @@
                 return;
             }
             // クリアチェック後にグリッドが変更されていないか確認
-            if (!checkedGridSnapshot || checkedGridSnapshot !== JSON.stringify(editorGrid)) {
+            if (!checkedGridSnapshot) {
                 resetClearCheck();
                 showQuickMsg("ステージが変更されました。再度クリアチェックが必要です！", "var(--secondary-color)");
                 return;
@@ -5611,7 +5612,11 @@
 
             try {
                 const stageType = document.getElementById('stage-type-select')?.value || 'normal';
-                await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, stageType });
+                const result = await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, stageType });
+                if (!result || !result.success) {
+                    showQuickMsg(result?.message || '投稿に失敗しました。', 'var(--secondary-color)');
+                    return;
+                }
 
                 // 投稿完了：クリアチェック判定とステージ情報をクリア
                 initGrid();
@@ -7526,6 +7531,14 @@
 
                 // 完成したマスクをゲームキャンバス上に重ねる
                 cachedGameCtx.drawImage(darkMaskCanvas, 0, 0);
+                cachedGameCtx.save();
+                cachedGameCtx.globalAlpha = 0.18;
+                cachedGameCtx.drawImage(stageCacheCanvas, 0, 0);
+                for (let i = 0; i < dynamicTiles.length; i++) {
+                    const t = dynamicTiles[i];
+                    drawTile(cachedGameCtx, t.x, t.y, cw, ch, t.type, time);
+                }
+                cachedGameCtx.restore();
             }
 
             // カウントダウンの描画
