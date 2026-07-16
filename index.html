@@ -1601,7 +1601,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.8.6"
+            VERSION: "2.8.7"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -6527,6 +6527,7 @@
             // Y衝突
             let nextY = player.y + player.vy;
             let collidedY = isCollide(player.x, nextY, true, 'y');
+            let hitDownOneWayCeiling = false;
             
             // 橋（下から抜けられる足場）の特殊判定
             if (!collidedY && player.vy >= 0) {
@@ -6548,6 +6549,7 @@
                 if (activeStage[iy] && activeStage[iy][ix] === 'v' && player.y >= iy + 0.9) {
                     collidedY = true;
                     nextY = iy + 1;
+                    hitDownOneWayCeiling = true;
                 }
             }
 
@@ -6557,7 +6559,7 @@
             } else {
                 // 頭をぶつけた時にスイッチ判定（上方向への移動中）
                 if (player.vy < 0) {
-                    player.y = Math.floor(nextY) + 1;
+                    player.y = hitDownOneWayCeiling ? nextY : Math.floor(nextY) + 1;
                     const gx = Math.floor(player.x + player.w/2);
                     const headY = Math.floor(nextY);
                     if (activeStage[headY] && activeStage[headY][gx] === '!') {
