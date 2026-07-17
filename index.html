@@ -1714,6 +1714,8 @@
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
         let cachedAllUsernames = null; // @メンション検索用の全ユーザー名一覧
+        let cachedMentionRegexSource = undefined; // メンション検出用正規表現をキャッシュしたときのcachedAllUsernames参照
+        let cachedMentionRegex = null; // linkifyMessageで使い回すメンション検出用正規表現（毎回のsort/エスケープ/コンパイルを避けるため）
         let mentionActiveInput = null; // 現在メンション検索対象になっている入力欄
         let mentionStartIndex = -1;    // 入力文字列中の「@」の位置
         let mentionResults = [];       // 現在表示中の候補一覧
@@ -2698,6 +2700,25 @@
         }
 
         // --- チャット関連 ---
+        // メンション検出用の正規表現を返す（cachedAllUsernamesが変化していなければキャッシュを再利用する）。
+        // 以前はlinkifyMessage内でメッセージ1件ごとに全ユーザー名のsort・エスケープ・正規表現コンパイルを
+        // 毎回行っており、チャット表示件数×ユーザー数に比例して重くなりラグの原因になっていた。
+        function getMentionRegex() {
+            const usernames = cachedAllUsernames || [];
+            if (cachedMentionRegexSource !== usernames) {
+                cachedMentionRegexSource = usernames;
+                if (usernames.length === 0) {
+                    cachedMentionRegex = null;
+                } else {
+                    // 短い名前が長い名前の一部に誤マッチしないよう、長い順に照合する
+                    const sortedNames = usernames.slice().sort((a, b) => b.length - a.length);
+                    const escapedNames = sortedNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+                    cachedMentionRegex = new RegExp(`@(${escapedNames.join('|')})(?=$|[\\s.,;:!?、。！？）」』\\]"'])`, 'g');
+                }
+            }
+            return cachedMentionRegex;
+        }
+
         // メッセージ内のURLをクリック可能なリンクに変換する（表示前にHTMLエスケープも行う）
         function linkifyMessage(text) {
             if (text === null || text === undefined) return '';
@@ -2723,10 +2744,8 @@
             });
 
             // 候補から選択された実在ユーザー名を長い順に照合するため、日本語や空白を含む名前にも対応できる
-            const usernames = (cachedAllUsernames || []).slice().sort((a, b) => b.length - a.length);
-            if (usernames.length === 0) return withLinks;
-            const escapedNames = usernames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-            const mentionPattern = new RegExp(`@(${escapedNames.join('|')})(?=$|[\\s.,;:!?、。！？）」』\\]"'])`, 'g');
+            const mentionPattern = getMentionRegex();
+            if (!mentionPattern) return withLinks;
             return withLinks.replace(mentionPattern, (match, username) => {
                 const safeUsername = escapeHtml(username).replace(/'/g, "&#39;");
                 return `<span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
@@ -6026,9 +6045,11 @@
 
             // 噴火制御機（EC）: 火山ステージの場合、設置位置の高さを溶岩上昇の上限として記憶する
             eruptionControlLimitTiles = null;
+            auroraEruptionControlActive = false;
             if (currentStageType === 'volcano') {
                 const ecRow = findEruptionControlRow(activeStage);
                 if (ecRow !== null) eruptionControlLimitTiles = GRID_H - ecRow;
+                auroraEruptionControlActive = isEruptionControlSurroundedByAurora(activeStage);
             }
             
             player.vx = 0; player.vy = 0; player.hasKey = 0;
@@ -6471,7 +6492,7 @@
 
             // 火山ステージ: 溶岩に足（下半身）が触れたら死亡
             if (currentStageType === 'volcano') {
-                if (player.y + player.h > getLavaSurfaceY()) {
+                if (isTouchingLava(player.y, player.y + player.h)) {
                     handlePlayerDeath();
                     return;
                 }
@@ -6660,7 +6681,7 @@
                 if (en_tile === 'y') en.dead = true;
 
                 // 火山ステージ: 溶岩に触れた敵は死亡
-                if (!en.isPurple && currentStageType === 'volcano' && (en.y + enSize) > getLavaSurfaceY()) en.dead = true;
+                if (!en.isPurple && currentStageType === 'volcano' && isTouchingLava(en.y, en.y + enSize)) en.dead = true;
 
                 // 垂直方向の物理演算
                 if (isWater) {
@@ -7037,6 +7058,7 @@
         // nullの場合は制限なし。ゲーム開始時（openGame相当の処理）でactiveStageから設置位置を
         // 探して1度だけ計算しておくことで、毎フレームのグリッド走査を避ける。
         let eruptionControlLimitTiles = null;
+        let auroraEruptionControlActive = false;
 
         // 指定したグリッドから噴火制御機（'EC'）の設置行を探す（見つからなければnull）
         function findEruptionControlRow(grid) {
@@ -7050,6 +7072,22 @@
             return null;
         }
 
+        function isEruptionControlSurroundedByAurora(grid) {
+            if (!grid) return false;
+            for (let y = 1; y < GRID_H - 1; y++) {
+                for (let x = 1; x < GRID_W - 1; x++) {
+                    if (grid[y][x] !== 'EC') continue;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if ((dx !== 0 || dy !== 0) && grid[y + dy][x + dx] !== 'V') return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // 火山ステージ: 溶岩は毎回一番下からスタートして、ゆっくり上下する
         // maxOverrideを渡すと、そのタイル数を溶岩の高さの上限として使用する（エディタのプレビュー用）。
         // 省略時はゲーム中に設定されるeruptionControlLimitTilesを使用する。
@@ -7059,12 +7097,27 @@
             const limit = (maxOverride !== undefined) ? maxOverride : eruptionControlLimitTiles;
             // 制御機がある場合は、その設置高度を波の頂点として実際に到達させる
             const maxHeight = (limit !== null && limit !== undefined) ? Math.max(0.2, limit) : 3;
+            if (auroraEruptionControlActive && limit !== null && limit !== undefined) {
+                const minHeight = Math.max(0.2, limit);
+                return minHeight + (GRID_H - 0.2 - minHeight) * (0.5 + 0.5 * Math.sin(t));
+            }
             const h = 0.2 + (maxHeight - 0.2) * (0.5 + 0.5 * Math.sin(t));
             return h;
         }
-        // 溶岩表面のワールドY座標（この値より下は溶岩）
-        function getLavaSurfaceY(maxOverride) {
-            return GRID_H - getLavaHeightTiles(maxOverride);
+        // 溶岩表面のワールドY座標。
+        // 通常は「この値より下」が溶岩（下から迫り上がる）。
+        // fromAbove（省略時はauroraEruptionControlActiveに従う）がtrueの場合は
+        // 「この値より上」が溶岩になる（オーロラ化した噴火制御機: 天井として上から迫る）。
+        function getLavaSurfaceY(maxOverride, fromAbove) {
+            const h = getLavaHeightTiles(maxOverride);
+            const isFromAbove = (fromAbove !== undefined) ? fromAbove : auroraEruptionControlActive;
+            return isFromAbove ? h : GRID_H - h;
+        }
+        // プレイヤー/敵の上端・下端が溶岩に触れているかどうかを判定する（迫る方向の違いを吸収）
+        function isTouchingLava(topY, bottomY, maxOverride, fromAbove) {
+            const isFromAbove = (fromAbove !== undefined) ? fromAbove : auroraEruptionControlActive;
+            const surfaceY = getLavaSurfaceY(maxOverride, isFromAbove);
+            return isFromAbove ? (topY < surfaceY) : (bottomY > surfaceY);
         }
         let editorAnimId = null;
         let stageTypeWarnPending = false; // タイプ変更警告の確認待ちフラグ
@@ -7111,9 +7164,9 @@
             const inset = 0.05;
             const px0 = x + inset,       py0 = y + inset;
             const px1 = x + w - inset,   py1 = y + h - inset;
-            const pts = [[px0,py0],[px1,py0],[px0,py1],[px1,py1]];
             for(let i = 0; i < 4; i++) {
-                const px = pts[i][0], py = pts[i][1];
+                const px = (i & 1) ? px1 : px0;
+                const py = (i & 2) ? py1 : py0;
                 const ix = Math.floor(px), iy = Math.floor(py);
                 if(ix < 0 || ix >= GRID_W) return true;
                 if(iy < 0) return false;
@@ -7452,21 +7505,38 @@
                 }
             }
 
-            // 火山オーバーレイ（1〜4マスの高さで上下する溶岩）
+            // 火山オーバーレイ（1〜4マスの高さで上下する溶岩。オーロラ化した噴火制御機の場合は天井として上から迫る）
             if (currentStageType === 'volcano') {
                 const lt = Date.now() * 0.002;
+                const fromAbove = auroraEruptionControlActive;
                 const lavaY = getLavaSurfaceY() * ch;
+                // 溶岩本体が占める領域（上から迫る場合は0〜lavaY、下から迫り上がる場合はlavaY〜画面下端）
+                const lavaTop = fromAbove ? 0 : lavaY;
+                const lavaBottom = fromAbove ? lavaY : cachedGameCanvas.height;
 
-                // 溶岩本体（グラデーション）
-                const grad = cachedGameCtx.createLinearGradient(0, lavaY, 0, cachedGameCanvas.height);
-                grad.addColorStop(0, 'rgba(255,140,0,0.95)');
-                grad.addColorStop(0.2, 'rgba(255,60,0,0.95)');
-                grad.addColorStop(1, 'rgba(90,0,0,0.95)');
+                // 溶岩本体（グラデーション。境界面＝lavaYを明るい色、そこから遠い側を暗い色にする）
+                const grad = fromAbove
+                    ? cachedGameCtx.createLinearGradient(0, lavaY, 0, 0)
+                    : cachedGameCtx.createLinearGradient(0, lavaY, 0, cachedGameCanvas.height);
+                if (auroraEruptionControlActive) {
+                    grad.addColorStop(0, 'rgba(255,0,80,0.95)');
+                    grad.addColorStop(0.2, 'rgba(255,220,0,0.95)');
+                    grad.addColorStop(0.4, 'rgba(0,220,110,0.95)');
+                    grad.addColorStop(0.6, 'rgba(0,170,255,0.95)');
+                    grad.addColorStop(0.8, 'rgba(100,70,255,0.95)');
+                    grad.addColorStop(1, 'rgba(255,0,200,0.95)');
+                } else {
+                    grad.addColorStop(0, 'rgba(255,140,0,0.95)');
+                    grad.addColorStop(0.2, 'rgba(255,60,0,0.95)');
+                    grad.addColorStop(1, 'rgba(90,0,0,0.95)');
+                }
                 cachedGameCtx.fillStyle = grad;
-                cachedGameCtx.fillRect(0, lavaY, cachedGameCanvas.width, cachedGameCanvas.height - lavaY);
+                cachedGameCtx.fillRect(0, lavaTop, cachedGameCanvas.width, lavaBottom - lavaTop);
 
-                // 溶岩表面の波打ちライン
-                cachedGameCtx.strokeStyle = 'rgba(255,220,120,0.7)';
+                // 溶岩表面の波打ちライン（境界面＝lavaYに沿って描く）
+                cachedGameCtx.strokeStyle = auroraEruptionControlActive
+                    ? `hsla(${(lt * 90) % 360}, 100%, 75%, 0.8)`
+                    : 'rgba(255,220,120,0.7)';
                 cachedGameCtx.lineWidth = 2;
                 cachedGameCtx.beginPath();
                 for (let x = 0; x <= cachedGameCanvas.width; x += 8) {
@@ -7475,12 +7545,12 @@
                 }
                 cachedGameCtx.stroke();
 
-                // 気泡
+                // 気泡（溶岩が占める領域内に収める）
                 cachedGameCtx.fillStyle = 'rgba(255,200,80,0.55)';
                 for (let i = 0; i < 6; i++) {
                     const bx = ((Math.sin(i * 2.3 + lt * 0.7) * 0.5 + 0.5) * cachedGameCanvas.width);
-                    const availH = Math.max(1, cachedGameCanvas.height - lavaY);
-                    const by = lavaY + ((lt * 25 * (0.5 + i * 0.15)) % availH);
+                    const availH = Math.max(1, lavaBottom - lavaTop);
+                    const by = lavaTop + ((lt * 25 * (0.5 + i * 0.15)) % availH);
                     const br = 2 + (i % 3) * 2;
                     cachedGameCtx.beginPath();
                     cachedGameCtx.arc(bx, by, br, 0, Math.PI * 2);
