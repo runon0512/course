@@ -494,12 +494,14 @@
             flex-grow: 1;
             word-break: break-all;
         }
-        .guild-bulletin-item .message-meta {
+        .guild-bulletin-item .message-meta,
+        .chat-msg-item .message-meta {
             font-size: 0.8cqw;
             color: #aaa;
             margin-top: 0.2cqh;
         }
-        .guild-bulletin-item .message-meta span {
+        .guild-bulletin-item .message-meta span,
+        .chat-msg-item .message-meta span {
             margin-left: 0.5cqw;
         }
         .guild-settings-section {
@@ -1094,7 +1096,8 @@
             <span style="color:#2ecc71;">ON: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
-            <span style="color:#e0f7fa;">AS: <span id="user-as">0</span></span>
+            <span style="color:#e0f7fa;">AS: <span id="user-as">0</span></span> | 
+            <span style="color:#ff6f00;">ES:<span id="user-es">0</span></span>
         </div>
 
         <!-- グローバルランキングボタン -->
@@ -1164,6 +1167,7 @@
                 <div style="font-size: 2cqw; margin: 2cqh 0;">
                     GET: <span id="reward-amount" style="color: #f1c40f;">0 G</span>
                     <span id="reward-as-wrap" style="display:none; color: #00ffff;"> + <span id="reward-as">0</span> AS</span>
+                    <span id="reward-es-wrap" style="display:none; color: #ff9800;"> + ES:<span id="reward-es">0</span></span>
                 </div>
                 <hr style="border: 0.1cqw solid #444; width: 100%;">
                 <div style="margin: 2cqh 0;">
@@ -1202,7 +1206,13 @@
             <div class="shop-tabs">
                 <button id="shop-tab-skins" class="pixel-btn small" onclick="openShop('skins')">SKINS</button>
                 <button id="shop-tab-blocks" class="pixel-btn small" onclick="openShop('blocks')">BLOCKS</button>
+                <button id="shop-tab-collab" class="pixel-btn small" onclick="openShop('collab')">双剣物語コラボ</button>
                 <button class="pixel-btn small" onclick="closeShop()" style="background: #f44336; color: #fff;">戻る</button>
+            </div>
+            <div id="shop-collab-banner" style="display:none; margin-bottom:1.5cqh; text-align:center;">
+                <div style="font-size:1.6cqw; font-weight:bold; color:#ff9800; letter-spacing:0.05em;">双剣物語 コラボショップ</div>
+                <div style="font-size:0.9cqw; color:#ffcc80; margin-top:0.5cqh;">他のコラボアイテムも近日追加予定！</div>
+                <div style="font-size:0.85cqw; color:#e0f7fa; margin-top:0.5cqh;">ES（イベントストーン）は超難関以上のステージクリアで獲得できます</div>
             </div>
             <div class="shop-grid" id="shop-container"></div>
         </div>
@@ -1557,7 +1567,9 @@
                     <div class="tool-btn rank-rare" id="btn-tool-WC" onclick="setTool('WC', this)" title="WOOD CRATE" style="display:none;"><canvas id="icon-WC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-EC" onclick="setTool('EC', this)" title="ERUPTION CONTROL" style="display:none;"><canvas id="icon-EC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-PB" onclick="setTool('PB', this)" title="PURPLE (BOSS)" style="display:none;"><canvas id="icon-PB" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-WB" onclick="setTool('WB', this)" title="WOLF (BOSS No.2)" style="display:none;"><canvas id="icon-WB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-SM" onclick="setTool('SM', this)" title="SLIME BLOCK" style="display:none;"><canvas id="icon-SM" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-FL" onclick="setTool('FL', this)" title="FIRE BLOCK" style="display:none;"><canvas id="icon-FL" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
                 </div>
             </div>
@@ -1598,16 +1610,17 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzO0W8HEJ1Rt4yd1utTbPdnUGJ-oPixY8_HMbrUuJa4z5lMBuoMiOA2QYxb8oeAqlp2/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.8.7"
+            VERSION: "2.9.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
         let userCP = 0;
         let userDiamond = 0;
         let userAS = 0;
+        let userES = 0; // ES（イベントストーン）: 超難関以上のステージクリアで獲得できるコラボ用の通貨
         let purchasedSkins = ['default', 'girl'];
         let userGuild = null;
         let equippedSkin = 'default';
@@ -1700,7 +1713,9 @@
             'WC': { title: '木箱ブロック', text: '横から押して動かせる木箱です。押していない時は通常のブロックとして機能します。ミサイルで破壊できます。' },
             'EC': { title: '噴火制御機', text: '火山ステージに1つだけ設置できる装置です。溶岩が上昇する最大の高さを、この装置がある高さまでに制限します。' },
             'PB': { title: 'パープル', text: '通常の敵の2倍の大きさを持つボス敵です。ステージに1体だけ配置できます。倒すとステージ上の粘液ブロックがすべて消えます。' },
-            'SM': { title: '粘液ブロック', text: '紫色のブロックです。それ自体に特別な効果はありませんが、ボス「パープル」を倒すとステージから消滅します。' }
+            'WB': { title: '狼 (No.2)', text: '移動しながら4秒に1回、プレイヤーを追尾する回転する鎌を投げてくるボス敵です。ステージに1体だけ配置できます。' },
+            'SM': { title: '粘液ブロック', text: '紫色のブロックです。それ自体に特別な効果はありませんが、ボス「パープル」を倒すとステージから消滅します。' },
+            'FL': { title: '炎ブロック', text: '触れると即死する炎のブロックです。ボス「狼(No.2)」を倒すとステージから消滅します。' }
         };
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
@@ -1728,6 +1743,8 @@
         let filterCreatorName = '';
         let arrows = [];
         let missiles = [];
+        let sickles = []; // 狼（ボスNo.2）が投げる、プレイヤーを追尾する回転する鎌
+        let fireballs = []; // 狼（ボスNo.2）が放つ炎の飛び道具
         let debrisParticles = []; // 破片エフェクト
 
         // ブロックの色マッピング（破片色用）
@@ -1738,7 +1755,35 @@
             '#': '#b0bec5', 'r': '#f44336', 'b': '#2196f3',
             'Z': '#e040fb', 'LM': '#ffca28', 'WC': '#795548', 'default': '#bdbdbd'
         };
+        // 破壊できないタイル一覧（ミサイルの爆発・狼の大ジャンプ破壊など、ブロックを壊す処理全体で共有する）
+        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'EC', 'PB', 'WB', 'FL'];
+        // ブロック破壊時の破片パーティクルを生成する共通ヘルパー（以前はミサイル爆発処理内のローカル関数だった）
+        function spawnBlockDebris(bx, by, tileType) {
+            if (!cachedGameCanvas) return;
+            const _cw = cachedGameCanvas.width / GRID_W;
+            const _ch = cachedGameCanvas.height / GRID_H;
+            const baseColor = (tileType && tileType.startsWith('Z'))
+                ? '#e040fb'
+                : (BLOCK_DEBRIS_COLOR[tileType] || BLOCK_DEBRIS_COLOR['default']);
+            const count = 5 + Math.floor(Math.random() * 4);
+            for (let d = 0; d < count; d++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 0.04 + Math.random() * 0.08;
+                debrisParticles.push({
+                    x: (bx + 0.5) * _cw, y: (by + 0.5) * _ch,
+                    vx: Math.cos(angle) * speed * _cw,
+                    vy: Math.sin(angle) * speed * _ch - 0.02 * _ch,
+                    size: 2 + Math.random() * 4,
+                    color: baseColor,
+                    alpha: 1,
+                    life: 30 + Math.floor(Math.random() * 20)
+                });
+            }
+        }
         let enemies = [];
+        let wolfBossRefs = []; // 狼（ボスNo.2）の参照だけを保持するキャッシュ。
+        // プレイヤーの当たり判定で毎フレーム全敵(enemies)をスキャンしなくて済むようにする
+        // （敵が多いステージで、プレイヤーが横移動するたびに重くなる原因になっていた）。
         let playbackGhosts = [];
         let showGhosts = true;
         let isSchoolMode = false;
@@ -2009,6 +2054,95 @@
             "                "
         ];
 
+        // 狼（ボスNo.2）のドット絵データ。プレイヤーのカスタムスキンと同じ16x16の色配列形式。
+        const WOLF_BOSS_SPRITE_DATA = [[null,null,null,"#ffff00",null,null,"#800000","#800000","#800000","#800000",null,null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#800000","#800000","#800000","#800000","#800000","#800000",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffff00","#800000","#800000","#800000","#800000","#800000","#800000",null,null,null,null],[null,null,null,"#800000","#ffff00","#800000","#800000","#800000","#f1c27d","#800000","#800000","#808080",null,null,null,null],[null,null,null,"#800000","#800000","#800000","#f1c27d","#c0c0c0","#f1c27d","#800000","#c0c0c0","#800000","#808080",null,null,null],[null,null,null,"#800000","#800000","#f1c27d","#f1c27d","#800000","#f1c27d","#f1c27d","#800000","#f1c27d","#808080",null,null,null],[null,null,null,"#800000","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#808080",null,null,null],[null,null,null,null,null,"#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#808080","#808080",null,null,null],[null,null,null,null,"#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000",null,null,null],[null,null,null,"#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000",null,null],[null,null,"#000000","#000000","#808080","#000000","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000",null,null],[null,null,"#000000","#000000","#808080","#808080","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000",null],[null,null,"#000000","#000000","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000",null],[null,"#000000","#000000","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000",null],["#000000","#000000","#808080","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000",null],["#000000","#000000","#808080","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#808080","#000000"]];
+        let wolfBossSpriteCanvas = null; // 上記データを16x16キャンバスへ1度だけ焼き込んでおくキャッシュ
+        function getWolfBossSpriteCanvas() {
+            if (!wolfBossSpriteCanvas) {
+                wolfBossSpriteCanvas = document.createElement('canvas');
+                wolfBossSpriteCanvas.width = 16;
+                wolfBossSpriteCanvas.height = 16;
+                const c = wolfBossSpriteCanvas.getContext('2d');
+                WOLF_BOSS_SPRITE_DATA.forEach((row, y) => {
+                    row.forEach((color, x) => {
+                        if (color) { c.fillStyle = color; c.fillRect(x, y, 1, 1); }
+                    });
+                });
+            }
+            return wolfBossSpriteCanvas;
+        }
+        // 狼のドット絵を任意の位置・サイズに描画する（移動方向に応じて左右反転）
+        function drawWolfBossSprite(ctx, x, y, w, h, facing = 'right') {
+            const canvas = getWolfBossSpriteCanvas();
+            ctx.imageSmoothingEnabled = false;
+            ctx.save();
+            ctx.translate(x + (facing === 'left' ? w : 0), y);
+            if (facing === 'left') ctx.scale(-1, 1);
+            ctx.drawImage(canvas, 0, 0, w, h);
+            ctx.restore();
+        }
+
+        // 狼（ボスNo.2）が投げる「回転する鎌」のドット絵データ（16x16の色配列形式）
+        const SICKLE_SPRITE_DATA = [[null,null,null,null,null,null,null,null,null,null,null,null,"#000000",null,null,null],[null,null,null,null,null,null,null,null,null,null,null,"#000000","#000000","#000000","#000000",null],[null,null,null,null,null,null,null,null,null,null,null,"#000000","#000000","#ff0000","#ff0000",null],[null,null,null,null,null,null,null,null,null,null,"#000000","#000000","#000000","#000000","#000000",null],[null,null,null,null,null,null,null,null,null,"#000000","#000000",null,null,"#000000","#000000","#ff0000"],[null,null,null,null,null,null,null,"#000000","#000000","#000000",null,null,null,"#000000","#000000","#000000"],[null,null,null,null,null,null,null,"#000000","#000000",null,null,null,null,"#000000","#000000","#000000"],[null,null,null,null,null,null,"#800000","#800000",null,null,null,null,null,"#000000","#000000",null],[null,null,null,null,null,null,"#800000",null,null,null,null,null,"#000000","#000000","#000000",null],[null,null,null,null,null,"#800000","#800000",null,null,null,"#000000","#000000","#000000","#000000","#000000",null],[null,null,null,null,"#800000","#800000",null,null,null,null,"#000000","#000000","#000000","#000000",null,null],[null,null,null,"#800000","#800000","#800000",null,null,null,null,null,null,null,null,null,null],[null,null,"#800000","#800000",null,null,null,null,null,null,null,null,null,null,null,null],[null,null,"#800000","#800000",null,null,null,null,null,null,null,null,null,null,null,null],["#800000","#800000","#800000",null,null,null,null,null,null,null,null,null,null,null,null,null],["#800000","#800000",null,null,null,null,null,null,null,null,null,null,null,null,null,null]];
+        let sickleSpriteCanvas = null; // 上記データを16x16キャンバスへ1度だけ焼き込んでおくキャッシュ
+        function getSickleSpriteCanvas() {
+            if (!sickleSpriteCanvas) {
+                sickleSpriteCanvas = document.createElement('canvas');
+                sickleSpriteCanvas.width = 16;
+                sickleSpriteCanvas.height = 16;
+                const c = sickleSpriteCanvas.getContext('2d');
+                SICKLE_SPRITE_DATA.forEach((row, y) => {
+                    row.forEach((color, x) => {
+                        if (color) { c.fillStyle = color; c.fillRect(x, y, 1, 1); }
+                    });
+                });
+            }
+            return sickleSpriteCanvas;
+        }
+
+        // 炎の飛び道具のグロー表現を1度だけキャンバスへ焼き込んでおくキャッシュ。
+        // 以前はfireballs.forEach内でcreateRadialGradientを毎フレーム・弾ごとに生成しており、
+        // 弾が多い場面でGC（ガベージコレクション）の負荷になっていた。
+        let fireballSpriteCanvas = null;
+        function getFireballSpriteCanvas() {
+            if (!fireballSpriteCanvas) {
+                fireballSpriteCanvas = document.createElement('canvas');
+                fireballSpriteCanvas.width = 64;
+                fireballSpriteCanvas.height = 64;
+                const c = fireballSpriteCanvas.getContext('2d');
+                const grad = c.createRadialGradient(32, 32, 0, 32, 32, 32);
+                grad.addColorStop(0, '#fff59d');
+                grad.addColorStop(0.4, '#ff9800');
+                grad.addColorStop(1, 'rgba(255,61,0,0)');
+                c.fillStyle = grad;
+                c.beginPath();
+                c.arc(32, 32, 32, 0, Math.PI * 2);
+                c.fill();
+            }
+            return fireballSpriteCanvas;
+        }
+
+        // 鎌の炎エフェクト（軌跡）用の炎パーティクルを1度だけキャンバスへ焼き込んでおくキャッシュ
+        let fireParticleSpriteCanvas = null;
+        function getFireParticleSpriteCanvas() {
+            if (!fireParticleSpriteCanvas) {
+                fireParticleSpriteCanvas = document.createElement('canvas');
+                fireParticleSpriteCanvas.width = 32;
+                fireParticleSpriteCanvas.height = 32;
+                const c = fireParticleSpriteCanvas.getContext('2d');
+                const grad = c.createRadialGradient(16, 16, 0, 16, 16, 16);
+                grad.addColorStop(0, '#fff9c4');
+                grad.addColorStop(0.35, '#ffb300');
+                grad.addColorStop(0.7, '#ff5722');
+                grad.addColorStop(1, 'rgba(255,87,34,0)');
+                c.fillStyle = grad;
+                c.beginPath();
+                c.arc(16, 16, 16, 0, Math.PI * 2);
+                c.fill();
+            }
+            return fireParticleSpriteCanvas;
+        }
+
         const SKINS = {
             'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE, recolorIndex: '2' },
             'girl': { name: 'GIRL', price: 0, sprite: GIRL_SPRITE, recolorIndex: '2' },
@@ -2033,7 +2167,8 @@
             'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null },
             'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
-            'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null }
+            'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
+            'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 50, isBlockSet: true, isCollab: true, isES: true, sprite: null }
         };
 
         const COLORS = {
@@ -2096,17 +2231,17 @@
             missileLauncherPositions = [];
             const cw = stageCacheCanvas.width / GRID_W;
             const ch = stageCacheCanvas.height / GRID_H;
-            
+
             // BBが存在するか事前スキャン
             stageHasBB = activeStage.some(row => row && row.includes('BB'));
-            
+
             stageCacheCtx.imageSmoothingEnabled = false;
             stageCacheCtx.clearRect(0, 0, stageCacheCanvas.width, stageCacheCanvas.height);
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
                     const type = activeStage[y][x];
                     if (!type) continue;
-                    
+
                     if (type === 'LM') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
                     if (type === 'sp' || type === 'sp_blue') spawnerPositions.push({ x, y, blue: type === 'sp_blue' });
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
@@ -2119,6 +2254,21 @@
                     }
                 }
             }
+        }
+
+        // updateStageCache()の軽量版: グリッド全体を再スキャンせず、指定した1マスだけを
+        // ステージキャッシュ（静的レイヤー）に描き直す。
+        // 木箱(WC)を押す等、連続して同じ1マスだけが変化し続ける操作で毎フレーム
+        // updateStageCache()（全マス走査＋全体再描画）を呼ぶとラグの原因になるため、
+        // そのマスの矩形だけをクリアして再描画する。drawTileは各タイルを自分のマス内だけに
+        // 描画するため、この部分更新でも見た目は変わらない。
+        function updateStageCacheTile(x, y) {
+            if (!stageCacheCanvas || activeStage.length === 0) return;
+            const cw = stageCacheCanvas.width / GRID_W;
+            const ch = stageCacheCanvas.height / GRID_H;
+            stageCacheCtx.clearRect(x * cw, y * ch, cw, ch);
+            const type = activeStage[y] ? activeStage[y][x] : null;
+            if (type) drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
         }
 
         /**
@@ -2297,6 +2447,7 @@
                                 userGold = res.gold || 0;
                                 userCP = res.cp || 0;
                                 userAS = res.auroraStones || 0;
+                                userES = res.eventStones || 0;
                                 purchasedSkins = res.purchasedSkins || ['default', 'girl'];
                                 equippedSkin = res.equippedSkin || 'default';
                                 equippedColor = res.equippedColor || 'default';
@@ -2330,6 +2481,7 @@
             // タブのボタン状態更新
             const btnSkins = document.getElementById('shop-tab-skins');
             const btnBlocks = document.getElementById('shop-tab-blocks');
+            const btnCollab = document.getElementById('shop-tab-collab');
             if (btnSkins) {
                 btnSkins.style.backgroundColor = tab === 'skins' ? 'var(--primary-color)' : '#000';
                 btnSkins.style.color = tab === 'skins' ? '#000' : '#fff';
@@ -2338,16 +2490,34 @@
                 btnBlocks.style.backgroundColor = tab === 'blocks' ? 'var(--primary-color)' : '#000';
                 btnBlocks.style.color = tab === 'blocks' ? '#000' : '#fff';
             }
+            if (btnCollab) {
+                btnCollab.style.backgroundColor = tab === 'collab' ? '#ff9800' : '#000';
+                btnCollab.style.color = tab === 'collab' ? '#000' : '#fff';
+            }
+
+            // コラボショップの説明バナーは「双剣物語コラボ」タブの時だけ表示
+            const collabBanner = document.getElementById('shop-collab-banner');
+            if (collabBanner) collabBanner.style.display = (tab === 'collab') ? 'block' : 'none';
 
             Object.keys(SKINS).forEach(id => {
                 const skin = SKINS[id];
                 const isBlock = !!skin.isBlockSet;
-                
-                if ((tab === 'blocks' && isBlock) || (tab === 'skins' && !isBlock)) {
-                    const isPurchased = purchasedSkins.includes(id);
-                    const isEquipped = equippedSkin === id;
-                    createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target, skin.isAS));
+                const isCollab = !!skin.isCollab;
+
+                // コラボアイテム（双剣物語コラボの狼など）は通常のSKINS/BLOCKSタブには表示せず、
+                // 専用の「双剣物語コラボ」タブにのみ表示する
+                if (isCollab) {
+                    if (tab !== 'collab') return;
+                } else if (tab === 'collab') {
+                    return;
+                } else if (!((tab === 'blocks' && isBlock) || (tab === 'skins' && !isBlock))) {
+                    return;
                 }
+
+                const isPurchased = purchasedSkins.includes(id);
+                const isEquipped = equippedSkin === id;
+                const currency = skin.isES ? 'ES' : (skin.isAS ? 'AS' : 'gold');
+                createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target, currency));
             });
         }
 
@@ -2384,6 +2554,7 @@
                 if (id === 'wood_crate') previewType = 'WC';
                 if (id === 'eruption_control') previewType = 'EC';
                 if (id === 'purple_boss') previewType = 'PB';
+                if (id === 'wolf_boss') previewType = 'WB';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -2400,7 +2571,7 @@
                 btn.disabled = true;
                 item.style.opacity = '0.7'; /* 購入済みアイテムの視認性を少し上げる */
             } else {
-                btn.innerText = `${data.price} ${data.isAS ? 'AS' : 'G'}`;
+                btn.innerText = data.isES ? `ES:${data.price}` : `${data.price} ${data.isAS ? 'AS' : 'G'}`;
                 btn.onclick = onBuy;
             }
             item.appendChild(btn);
@@ -2409,15 +2580,21 @@
 
         function closeShop() { document.getElementById('shop-overlay').style.display = 'none'; }
 
-        async function buyItem(id, price, btn, isAS = false) {
-            if (!isAS && userGold < price) { alert("Gが足りません！"); return; }
-            if (isAS && userAS < price) { alert("ASが足りません！クリア報酬などで獲得してください。"); return; }
-            
+        async function buyItem(id, price, btn, currency = 'gold') {
+            // 後方互換: 以前はisAS(true/false)を第4引数として渡していたため、そのケースも吸収する
+            if (currency === true) currency = 'AS';
+            else if (currency === false || !currency) currency = 'gold';
+
+            if (currency === 'gold' && userGold < price) { alert("Gが足りません！"); return; }
+            if (currency === 'AS' && userAS < price) { alert("ASが足りません！クリア報酬などで獲得してください。"); return; }
+            if (currency === 'ES' && userES < price) { alert("ESが足りません！超難関以上のステージクリアで獲得できます。"); return; }
+
             const originalText = btn.innerText;
             btn.innerText = "通信中...";
             btn.disabled = true;
 
-            if (isAS) userAS -= price;
+            if (currency === 'AS') userAS -= price;
+            else if (currency === 'ES') userES -= price;
             else userGold -= price;
 
             purchasedSkins.push(id);
@@ -2427,6 +2604,7 @@
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
                 auroraStones: userAS,
+                eventStones: userES,
                 purchasedSkins: purchasedSkins,
                 equippedSkin: equippedSkin,
                 equippedColor: equippedColor,
@@ -2439,9 +2617,9 @@
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'SM'],
+            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'SM', 'FL'],
             epic: ['hr', 'hb', 'e', '#'],
-            legendary: ['V', 'sp', 'mg', 'EC', 'PB']
+            legendary: ['V', 'sp', 'mg', 'EC', 'PB', 'WB']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -2902,6 +3080,7 @@
             document.getElementById('chat-stage-search').style.display = 'none';
             // 閉じてもバックグラウンドで新着通知を確認するためにインターバルは維持
         }
+
         async function refreshChat() {
             const res = await callApi('getChat', {});
             if (!res.success) return;
@@ -2950,6 +3129,7 @@
                 content.innerHTML = `
                     <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
+                    <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                     ${stageBtn}
                 `;
                 if (m.image) {
@@ -4083,6 +4263,7 @@
                     username: CONFIG.USERNAME,
                     gold: nextGold,
                     auroraStones: nextAS,
+                    eventStones: userES,
                     purchasedSkins: purchasedSkins,
                     equippedSkin: equippedSkin,
                     equippedColor: equippedColor,
@@ -4388,6 +4569,10 @@
             container.innerHTML = '';
             purchasedSkins.forEach(id => {
                 const skin = SKINS[id];
+                // ブロックセット（噴火制御機・パープルボス・狼ボス等の「ブロック購入」）は
+                // 内部的な購入フラグとしてpurchasedSkinsを共用しているだけで、実際のプレイヤースキンではない。
+                // ロッカー（装備スキン選択）には表示しない。
+                if (skin.isBlockSet) return;
                 const item = document.createElement('div');
                 item.className = 'shop-item';
                 item.style.borderColor = (tempSelectedSkin === id) ? 'var(--primary-color)' : '#fff';
@@ -4671,6 +4856,11 @@
             if(document.getElementById('btn-tool-PB')) document.getElementById('btn-tool-PB').style.display = hasPurpleBoss ? 'flex' : 'none';
             if(document.getElementById('btn-tool-SM')) document.getElementById('btn-tool-SM').style.display = hasPurpleBoss ? 'flex' : 'none';
 
+            // 狼（ボスNo.2）＆ 炎ブロック
+            const hasWolfBoss = purchasedSkins.includes('wolf_boss');
+            if(document.getElementById('btn-tool-WB')) document.getElementById('btn-tool-WB').style.display = hasWolfBoss ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-FL')) document.getElementById('btn-tool-FL').style.display = hasWolfBoss ? 'flex' : 'none';
+
             // 噴火制御機（購入済み、かつ火山ステージ選択中のみ表示）
             updateEruptionControlToolVisibility();
 
@@ -4753,7 +4943,7 @@
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BB', id:'icon-BB'},
-                {type:'LM', id:'icon-LM'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'SM', id:'icon-SM'}
+                {type:'LM', id:'icon-LM'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -4881,8 +5071,8 @@
                             return;
                         }
                     }
-                    // 噴火制御機・パープル（ボス）はステージに1つだけ配置できるツール
-                    if ((currentTool === 'EC' || currentTool === 'PB') && editorGrid[y][x] !== currentTool) {
+                    // 噴火制御機・パープル（ボス）・狼（ボス）はステージに1つだけ配置できるツール
+                    if ((currentTool === 'EC' || currentTool === 'PB' || currentTool === 'WB') && editorGrid[y][x] !== currentTool) {
                         for(let r=0; r<GRID_H; r++) {
                             for(let c=0; c<GRID_W; c++) {
                                 if(editorGrid[r][c] === currentTool) editorGrid[r][c] = null;
@@ -5505,6 +5695,14 @@
                 ctx.strokeStyle = "#e1bee7";
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.9);
+            } else if(type === 'WB') {
+                // 狼（ボスNo.2）の配置マーカー。実際のドット絵を使い、少し大きめのサイズで出現する
+                ctx.fillStyle = "#3e2723";
+                ctx.fillRect(x*cw + cw*0.03, y*ch + ch*0.05, cw*0.94, ch*0.94);
+                drawWolfBossSprite(ctx, x*cw + cw*0.08, y*ch + ch*0.08, cw*0.84, ch*0.84);
+                ctx.strokeStyle = "#ffca28";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.9);
             } else if(type === 'SM') {
                 // 粘液ブロック (Slime Block): 紫色の通常ブロック。特別な効果はない
                 ctx.fillStyle = "#8e24aa";
@@ -5519,6 +5717,24 @@
                 ctx.strokeStyle = "#4a148c";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+            } else if(type === 'FL') {
+                // 炎ブロック: 触れると即死。ウルフ（ボスNo.2）を倒すとステージから消滅する
+                const flicker = 0.5 + 0.5 * Math.sin(time * 8 + x * 1.7 + y * 2.3);
+                const grad = ctx.createLinearGradient(0, y*ch + ch, 0, y*ch);
+                grad.addColorStop(0, '#b71c1c');
+                grad.addColorStop(0.5, '#ff5722');
+                grad.addColorStop(1, `rgba(255,235,59,${0.7 + flicker * 0.3})`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.5, y*ch + ch*(0.08 - flicker*0.06));
+                ctx.quadraticCurveTo(x*cw + cw*0.85, y*ch + ch*0.4, x*cw + cw*0.6, y*ch + ch*0.55);
+                ctx.quadraticCurveTo(x*cw + cw*0.8, y*ch + ch*0.7, x*cw + cw*0.55, y*ch + ch*0.95);
+                ctx.quadraticCurveTo(x*cw + cw*0.75, y*ch + ch*0.75, x*cw + cw*0.5, y*ch + ch*0.98);
+                ctx.quadraticCurveTo(x*cw + cw*0.25, y*ch + ch*0.75, x*cw + cw*0.45, y*ch + ch*0.95);
+                ctx.quadraticCurveTo(x*cw + cw*0.2, y*ch + ch*0.7, x*cw + cw*0.4, y*ch + ch*0.55);
+                ctx.quadraticCurveTo(x*cw + cw*0.15, y*ch + ch*0.4, x*cw + cw*0.5, y*ch + ch*(0.08 - flicker*0.06));
+                ctx.closePath();
+                ctx.fill();
             } else if(type === 'd') {
                 ctx.save();
                 ctx.beginPath();
@@ -5812,7 +6028,7 @@
                         </div>
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''}
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''}${(s.attempts >= 5 && crNum <= 10) ? ' ES:<span class="stat-val">1</span>' : ''}
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
@@ -5873,7 +6089,7 @@
             'B','S','G','K','M','E','A','T','TD','X','W','L','U','P','H',
             '>','<','v','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC',
-            'EC','PB','SM'
+            'EC','PB','WB','SM','FL'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -6014,6 +6230,7 @@
 
             // 初期位置探し
             enemies = [];
+            wolfBossRefs = [];
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
@@ -6035,12 +6252,23 @@
                         enemies.push({x: x, y: y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, hitCooldown: 0});
                         activeStage[y][x] = null;
                     }
+                    if(activeStage[y][x] === 'WB') {
+                        // 狼（ボスNo.2）: 通常の敵よりやや大きいサイズ（size: 1.4）で出現し、
+                        // 4秒(240フレーム)ごとに追尾する回転鎌を投げ、8秒(480フレーム)ごとに炎の飛び道具を放つ。
+                        // 移動速度は通常の敵の1.5倍、3秒(180フレーム)ごとに大ジャンプし、上昇中はブロックを壊しながら進む。
+                        // 1秒(60フレーム)ごとにプレイヤーのいる方向へ進行方向を変える。
+                        enemies.push({x: x, y: y, vx: -0.0525, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.4, isWolf: true, isBoss: true, name: 'WOLF', hp: 80, maxHp: 80, hitCooldown: 0, sickleTimer: 240, fireballTimer: 480, bigJumpTimer: 180, isBigJumping: false, bigJumpFrames: 0, directionTimer: 60});
+                        activeStage[y][x] = null;
+                    }
                 }
             }
+            // 狼ボスの参照をキャッシュ（プレイヤーの当たり判定で毎フレーム全敵をスキャンしないため。
+            // ステージ開始時の1回だけ抽出すればよい）
+            wolfBossRefs = enemies.filter(en => en.isWolf);
 
-            // パープルが1.8マスへ巨大化する領域に埋まっている通常ブロックを開幕時に破壊する
+            // ボスが巨大化する領域に埋まっている通常ブロックを開幕時に破壊する
             enemies.forEach(en => {
-                if (en.isPurple) destroyBlocksInsideBoss(en);
+                if (en.isBoss) destroyBlocksInsideBoss(en);
             });
 
             // 噴火制御機（EC）: 火山ステージの場合、設置位置の高さを溶岩上昇の上限として記憶する
@@ -6058,6 +6286,8 @@
             playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
             arrows = [];
             missiles = [];
+            sickles = [];
+            fireballs = [];
             debrisParticles = [];
             
             // オーロラブロック(V)の上にスポナー(sp)があれば青スポナー(sp_blue)に変換
@@ -6178,6 +6408,7 @@
             // UIを即座に更新して表示
             document.getElementById('reward-amount').innerText = `${rewardGold} G`;
             document.getElementById('reward-as-wrap').style.display = 'none';
+            document.getElementById('reward-es-wrap').style.display = 'none';
             document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(3)}s)`;
             
             const rewardOverlay = document.getElementById('reward-overlay');
@@ -6262,6 +6493,7 @@
                     skin: equippedSkin,
                     color: equippedColor,
                     auroraStones: userAS, // オーロラストーンも送信
+                    eventStones: userES, // ES（イベントストーン）も送信
                     // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                     customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
                     gold: userGold
@@ -6278,6 +6510,7 @@
                         skin: equippedSkin,
                         color: equippedColor,
                         auroraStones: userAS,
+                        eventStones: userES,
                         customSprite: null, // カスタムスキンデータを除外
                         gold: userGold
                     }, 20000);
@@ -6292,6 +6525,18 @@
                         const asVal = document.getElementById('reward-as');
                         if (asWrap) asWrap.style.display = 'inline';
                         if (asVal) asVal.innerText = "1";
+                    }
+                }
+                // ES（イベントストーン）: 超難関以上のステージクリアでサーバー側がeventStoneAwardedを返した場合に加算する。
+                // ※現時点ではサーバー側(code.gs)の難易度判定・付与ロジックは未実装のため、実際に付与されるにはそちらの対応が別途必要。
+                if (res && res.success && res.eventStoneAwarded) {
+                    userES += res.eventStoneAwarded;
+                    updateGoldDisplay();
+                    if (rewardOverlay && rewardOverlay.style.display !== 'none') {
+                        const esWrap = document.getElementById('reward-es-wrap');
+                        const esVal = document.getElementById('reward-es');
+                        if (esWrap) esWrap.style.display = 'inline';
+                        if (esVal) esVal.innerText = String(res.eventStoneAwarded);
                     }
                 }
                 if (!res || !res.success) {
@@ -6332,6 +6577,8 @@
             if (cpDisplay) cpDisplay.innerText = userCP;
             const asDisplay = document.getElementById('user-as');
             if (asDisplay) asDisplay.innerText = userAS;
+            const esDisplay = document.getElementById('user-es');
+            if (esDisplay) esDisplay.innerText = userES;
 
             // クリエイターズロードの通知（赤丸）更新
             const hasUnclaimed = CREATORS_ROAD_MILESTONES.some(m => 
@@ -6380,6 +6627,26 @@
             // 物理更新がない高リフレッシュレート側のフレームでは同じ画面を再描画しない。
             // Canvas の描画負荷を最大60回/秒に抑え、120/144Hz環境での無駄な負荷を防ぐ。
             if (updates > 0) drawGame();
+        }
+
+        // 指定した矩形範囲(ワールド座標)に重なる、壊せるブロックをすべて破壊する（狼の大ジャンプ中の突破用）。
+        // updateStageCache()（全マス再構築）ではなく、壊れたマスだけを再描画するupdateStageCacheTile()を使い、
+        // 連続して呼ばれてもラグの原因にならないようにしている。
+        function destroyBlocksInBox(x, y, size) {
+            const x0 = Math.floor(x), x1 = Math.floor(x + size);
+            const y0 = Math.floor(y), y1 = Math.floor(y + size);
+            for (let by = y0; by <= y1; by++) {
+                if (by < 0 || by >= GRID_H || !activeStage[by]) continue;
+                for (let bx = x0; bx <= x1; bx++) {
+                    if (bx < 0 || bx >= GRID_W) continue;
+                    const t = activeStage[by][bx];
+                    if (t && !INDESTRUCTIBLE_TILES.includes(t)) {
+                        spawnBlockDebris(bx, by, t);
+                        activeStage[by][bx] = null;
+                        updateStageCacheTile(bx, by);
+                    }
+                }
+            }
         }
 
         function updateGame() {
@@ -6513,7 +6780,10 @@
                         if (inBounds && (targetTile === null || targetTile === undefined)) {
                             activeStage[rowY][ix] = null;
                             activeStage[rowY][targetX] = 'WC';
-                            updateStageCache();
+                            // 全マス再走査するupdateStageCache()の代わりに、変化した2マスだけを再描画する
+                            // （押している間ずっと呼ばれるため、フルスキャン版だとラグの原因になっていた）
+                            updateStageCacheTile(ix, rowY);
+                            updateStageCacheTile(targetX, rowY);
                         }
                     }
                 }
@@ -6534,6 +6804,24 @@
                     let ix = Math.floor(nextX), iy1 = Math.floor(player.y + 0.1), iy2 = Math.floor(player.y + player.h - 0.1);
                     if ((activeStage[iy1] && activeStage[iy1][ix] === '>') || (activeStage[iy2] && activeStage[iy2][ix] === '>')) {
                         if (player.x >= ix + 1) { collidedX = true; nextX = ix + 1; }
+                    }
+                }
+            }
+
+            // 狼（ボスNo.2）は当たり判定を持ち、横切れない壁として機能する（体当たりダメージ自体はない）。
+            // 全敵(enemies)ではなく、事前にキャッシュしたwolfBossRefsだけを見る
+            // （敵が多いステージで、横移動のたびに全敵をスキャンするとラグの原因になっていた）。
+            if (!collidedX && player.vx !== 0) {
+                for (let wi = 0; wi < wolfBossRefs.length; wi++) {
+                    const wEn = wolfBossRefs[wi];
+                    if (wEn.dead) continue;
+                    const wSize = wEn.size || 1.4;
+                    const overlapY = player.y < wEn.y + wSize - 0.05 && player.y + player.h > wEn.y + 0.05;
+                    if (!overlapY) continue;
+                    if (player.vx > 0 && player.x + player.w <= wEn.x + 0.02 && nextX + player.w > wEn.x) {
+                        collidedX = true; nextX = wEn.x - player.w;
+                    } else if (player.vx < 0 && player.x >= wEn.x + wSize - 0.02 && nextX < wEn.x + wSize) {
+                        collidedX = true; nextX = wEn.x + wSize;
                     }
                 }
             }
@@ -6574,6 +6862,23 @@
                 }
             }
 
+            // 狼（ボスNo.2）は縦方向にも当たり判定を持つ（上に乗れる・下からは突き抜けられない）。
+            // こちらも全敵ではなくwolfBossRefsだけを見る。
+            if (!collidedY) {
+                for (let wi = 0; wi < wolfBossRefs.length; wi++) {
+                    const wEn = wolfBossRefs[wi];
+                    if (wEn.dead) continue;
+                    const wSize = wEn.size || 1.4;
+                    const overlapX = player.x < wEn.x + wSize - 0.05 && player.x + player.w > wEn.x + 0.05;
+                    if (!overlapX) continue;
+                    if (player.vy >= 0 && player.y + player.h <= wEn.y + 0.05 && nextY + player.h > wEn.y) {
+                        collidedY = true; nextY = wEn.y - player.h;
+                    } else if (player.vy < 0 && player.y >= wEn.y + wSize - 0.05 && nextY < wEn.y + wSize) {
+                        collidedY = true; nextY = wEn.y + wSize;
+                    }
+                }
+            }
+
             if(!collidedY) {
                 player.y = nextY;
                 player.onGround = false;
@@ -6601,8 +6906,13 @@
             checkGimmicks();
 
             // 敵の更新
-            enemies.forEach(en => {
-                if(en.dead) return;
+            // 以前はenemies.forEach(en => {...})で書かれており、毎フレーム無名関数を1つ生成していた。
+            // 直接的に重いわけではないが、他の描画系forEachと合わせて毎フレーム大量の使い捨てクロージャを
+            // 生成しており、GC（ガベージコレクション）の発生頻度を上げて「時々一瞬カクつく」原因になっていた。
+            // 単純なfor文に変換し、ループのたびに関数オブジェクトを作らないようにする（処理内容は変更なし）。
+            for (let enIdx = 0; enIdx < enemies.length; enIdx++) {
+                const en = enemies[enIdx];
+                if(en.dead) continue;
                 const enemyPreviousTop = en.y;
 
                 if (en.hitCooldown > 0) en.hitCooldown--;
@@ -6623,6 +6933,83 @@
                             en.isDashing = true;
                             en.vx = en.dashDirection * 0.24;
                         }
+                    }
+                }
+
+                // 狼（ボスNo.2）: 4秒(240フレーム)ごとに、その時点のプレイヤーへ向かう追尾する回転鎌を投げる
+                // （鎌は投げてから4秒経つと自動的に狼のもとへ戻ってくる）
+                if (en.isWolf) {
+                    en.sickleTimer--;
+                    if (en.sickleTimer <= 0) {
+                        const wolfSize = en.size || 1.4;
+                        const startX = en.x + wolfSize / 2;
+                        const startY = en.y + wolfSize / 2;
+                        const targetX = player.x + player.w / 2;
+                        const targetY = player.y + player.h / 2;
+                        const dist = Math.max(0.0001, Math.hypot(targetX - startX, targetY - startY));
+                        const sickleSpeed = 0.11;
+                        sickles.push({
+                            x: startX, y: startY,
+                            vx: (targetX - startX) / dist * sickleSpeed,
+                            vy: (targetY - startY) / dist * sickleSpeed,
+                            speed: sickleSpeed,
+                            spinAngle: 0,
+                            age: 0,
+                            returning: false, // 4秒経過で true になり、狼のもとへ戻り始める
+                            owner: en,
+                            life: 600
+                        });
+                        en.sickleTimer = 240;
+                    }
+                }
+
+                // 狼（ボスNo.2）: 8秒(480フレーム)ごとに、自分の位置からプレイヤーへ向けて炎の飛び道具を放つ
+                if (en.isWolf) {
+                    en.fireballTimer--;
+                    if (en.fireballTimer <= 0) {
+                        const wolfSize = en.size || 1.4;
+                        const startX = en.x + wolfSize / 2;
+                        const startY = en.y + wolfSize / 2;
+                        const targetX = player.x + player.w / 2;
+                        const targetY = player.y + player.h / 2;
+                        const dist = Math.max(0.0001, Math.hypot(targetX - startX, targetY - startY));
+                        const fireballSpeed = 0.14;
+                        fireballs.push({
+                            x: startX, y: startY,
+                            vx: (targetX - startX) / dist * fireballSpeed,
+                            vy: (targetY - startY) / dist * fireballSpeed,
+                            life: 240
+                        });
+                        en.fireballTimer = 480;
+                    }
+                }
+
+                // 狼（ボスNo.2）: 3秒(180フレーム)ごとに大ジャンプする。ジャンプ中はブロックを壊しながら移動できる。
+                if (en.isWolf) {
+                    if (en.isBigJumping) {
+                        en.bigJumpFrames--;
+                        if (en.bigJumpFrames <= 0 || en.onGround) en.isBigJumping = false;
+                    } else {
+                        en.bigJumpTimer--;
+                        if (en.bigJumpTimer <= 0 && en.onGround) {
+                            en.vy = -0.55; // 通常のプレイヤーのジャンプ(-0.3)より大幅に高い大ジャンプ
+                            en.isBigJumping = true;
+                            en.bigJumpFrames = 90; // 着地するかこのフレーム数が尽きるまでブロックを壊しながら進める
+                            en.onGround = false;
+                            en.bigJumpTimer = 180;
+                        }
+                    }
+                }
+
+                // 狼（ボスNo.2）: 1秒(60フレーム)ごとに、その時点のプレイヤーがいる方向へ進行方向を変える
+                if (en.isWolf) {
+                    en.directionTimer--;
+                    if (en.directionTimer <= 0) {
+                        const wolfCenterX = en.x + (en.size || 1.4) / 2;
+                        const playerCenterX = player.x + player.w / 2;
+                        const wolfSpeed = 0.06;
+                        en.vx = (playerCenterX >= wolfCenterX) ? wolfSpeed : -wolfSpeed;
+                        en.directionTimer = 60;
                     }
                 }
 
@@ -6656,6 +7043,8 @@
                 }
 
                 let nextX = en.x + en.vx;
+                // 狼（ボスNo.2）の大ジャンプ中は、進行方向の壊せるブロックを破壊してから移動する
+                if (en.isWolf && en.isBigJumping && en.vy < 0) destroyBlocksInBox(nextX, en.y, enSize);
                 if (!isEnemyCollide(nextX, en.y, 'x', enSize)) {
                     en.x = nextX;
                 } else {
@@ -6680,8 +7069,8 @@
                 const en_tile = activeStage[ey_check] ? activeStage[ey_check][ex_check] : null;
                 if (en_tile === 'y') en.dead = true;
 
-                // 火山ステージ: 溶岩に触れた敵は死亡
-                if (!en.isPurple && currentStageType === 'volcano' && isTouchingLava(en.y, en.y + enSize)) en.dead = true;
+                // 火山ステージ: 溶岩に触れた敵は死亡（ボスは溶岩に触れても死亡しない）
+                if (!en.isBoss && currentStageType === 'volcano' && isTouchingLava(en.y, en.y + enSize)) en.dead = true;
 
                 // 垂直方向の物理演算
                 if (isWater) {
@@ -6702,6 +7091,8 @@
                 }
 
                 let nextY = en.y + en.vy;
+                // 狼（ボスNo.2）の大ジャンプ中は、進行方向（上方向にジャンプ中など）の壊せるブロックも破壊する
+                if (en.isWolf && en.isBigJumping && en.vy < 0) destroyBlocksInBox(en.x, nextY, enSize);
                 // 地面との接触判定を少し深く（+0.05）して、歩行中の浮遊感を解消する
                 let collidedY = isEnemyCollide(en.x, nextY + (en.vy > 0 ? 0.05 : 0), 'y', enSize);
                 let isBridge = false;
@@ -6761,17 +7152,19 @@
                     if (en.vy !== 0) en.onGround = false;
                 }
 
-                // パープルは奈落へ落ちても死亡・消失せず、ステージ下端で踏みとどまる
-                if (en.isPurple && en.y + enSize > GRID_H) {
+                // ボスは奈落へ落ちても死亡・消失せず、ステージ下端で踏みとどまる
+                if (en.isBoss && en.y + enSize > GRID_H) {
                     en.y = GRID_H - enSize;
                     en.vy = 0;
                     en.onGround = true;
                 }
                 
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
+                // 狼（ボスNo.2）は移動速度を通常の敵の1.5倍にするため、下限速度も1.5倍(0.04→0.06)にする。
                 if (!en.sync && !(en.isPurple && (en.isDashing || en.chargeFrames > 0))) {
                     en.vx *= 0.98;
-                    if(Math.abs(en.vx) < 0.04) en.vx = (en.vx >= 0 ? 0.04 : -0.04);
+                    const baseSpeed = en.isWolf ? 0.06 : 0.04;
+                    if(Math.abs(en.vx) < baseSpeed) en.vx = (en.vx >= 0 ? baseSpeed : -baseSpeed);
                 }
 
                 // 横方向の風の影響を適用 (ベース速度に加算)
@@ -6802,16 +7195,19 @@
                                 if (en.hp <= 0) {
                                     en.dead = true;
                                     if (en.isPurple) removeAllSlimeBlocks();
+                                    if (en.isWolf) removeAllFireBlocks();
                                 }
                             }
                         } else {
                             en.dead = true;
                         }
-                    } else {
+                    } else if (!en.isWolf) {
+                        // 狼（ボスNo.2）は体当たり（横・下からの接触）ではプレイヤーにダメージを与えない。
+                        // ダメージは鎌・炎の飛び道具などの専用攻撃でのみ発生する。
                         handlePlayerDeath();
                     }
                 }
-            });
+            }
 
 
             // dead フラグの敵をまとめて削除
@@ -6915,38 +7311,14 @@
                 }
                 
                 if (hitBlock) {
-                    // 破片を生成するヘルパー（updateGame内なのでcw/chをキャンバスから取得）
-                    const _cw = cachedGameCanvas.width / GRID_W;
-                    const _ch = cachedGameCanvas.height / GRID_H;
-                    const spawnDebris = (bx, by, tileType) => {
-                        const baseColor = (tileType && tileType.startsWith('Z'))
-                            ? '#e040fb'
-                            : (BLOCK_DEBRIS_COLOR[tileType] || BLOCK_DEBRIS_COLOR['default']);
-                        const count = 5 + Math.floor(Math.random() * 4);
-                        for (let d = 0; d < count; d++) {
-                            const angle = Math.random() * Math.PI * 2;
-                            const speed = 0.04 + Math.random() * 0.08;
-                            debrisParticles.push({
-                                x: (bx + 0.5) * _cw, y: (by + 0.5) * _ch,
-                                vx: Math.cos(angle) * speed * _cw,
-                                vy: Math.sin(angle) * speed * _ch - 0.02 * _ch,
-                                size: 2 + Math.random() * 4,
-                                color: baseColor,
-                                alpha: 1,
-                                life: 30 + Math.floor(Math.random() * 20)
-                            });
-                        }
-                    };
-
                     // 周囲9マス（3x3）を破壊＋破片生成
                     for (let dy = -1; dy <= 1; dy++) {
                         for (let dx = -1; dx <= 1; dx++) {
                             const bx = mx + dx, by = my + dy;
                             if (bx >= 0 && bx < GRID_W && by >= 0 && by < GRID_H) {
                                 const t = activeStage[by][bx];
-                                const indestructible = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'EC', 'PB'];
-                                if (t && !indestructible.includes(t)) {
-                                    spawnDebris(bx, by, t);
+                                if (t && !INDESTRUCTIBLE_TILES.includes(t)) {
+                                    spawnBlockDebris(bx, by, t);
                                     activeStage[by][bx] = null;
                                 }
                             }
@@ -6955,6 +7327,78 @@
                     updateStageCache();
                     missiles.splice(i, 1);
                 }
+            }
+
+            // 回転する鎌（sickle）の更新: 最初の4秒はプレイヤーへ追尾し、以降は投げた狼のもとへ戻る（ブーメラン）
+            for (let i = sickles.length - 1; i >= 0; i--) {
+                const s = sickles[i];
+                s.life--;
+                s.age++;
+                s.spinAngle += 0.35; // 見た目の回転（進行方向とは独立したアニメーション）
+
+                // 投げてから4秒(240フレーム)経過したら、戻りフェーズへ切り替える
+                if (!s.returning && s.age >= 240) s.returning = true;
+
+                if (s.returning) {
+                    // 戻り先の狼が既に倒されている場合は鎌もその場で消える
+                    if (!s.owner || s.owner.dead) {
+                        sickles.splice(i, 1);
+                        continue;
+                    }
+                }
+
+                // 追尾/帰還対象（プレイヤー、または戻り先の狼）へ向けて速度を少しずつ補正する
+                const ownerSize = s.returning ? (s.owner.size || 1.4) : 0;
+                const targetX = s.returning ? (s.owner.x + ownerSize / 2) : (player.x + player.w / 2);
+                const targetY = s.returning ? (s.owner.y + ownerSize / 2) : (player.y + player.h / 2);
+                const dx = targetX - s.x, dy = targetY - s.y;
+                const dist = Math.max(0.0001, Math.hypot(dx, dy));
+                const desiredVx = (dx / dist) * s.speed;
+                const desiredVy = (dy / dist) * s.speed;
+                const turnRate = 0.06;
+                s.vx += (desiredVx - s.vx) * turnRate;
+                s.vy += (desiredVy - s.vy) * turnRate;
+                s.x += s.vx;
+                s.y += s.vy;
+
+                // 戻り中に狼へ十分近づいたら回収される
+                if (s.returning && dist < 0.5) {
+                    sickles.splice(i, 1);
+                    continue;
+                }
+
+                // 壁（主要なソリッドブロック）に当たったら消える（矢の壁判定に準拠）
+                const sx_tile = Math.floor(s.x), sy_tile = Math.floor(s.y);
+                const sTile = activeStage[sy_tile] && activeStage[sy_tile][sx_tile];
+                const sHitWall = sTile === 'B' || sTile === 'X' || sTile === 'LM' || sTile === 'WC' || sTile === 'BB';
+
+                if (s.life <= 0 || s.x < -1 || s.x > GRID_W + 1 || s.y < -1 || s.y > GRID_H + 1 || sHitWall) {
+                    sickles.splice(i, 1);
+                    continue;
+                }
+
+                // 往路・復路を問わず、プレイヤーに触れたら死亡
+                const scPx = player.x + player.w / 2, scPy = player.y + player.h / 2;
+                if (Math.hypot(s.x - scPx, s.y - scPy) < 0.4) handlePlayerDeath();
+            }
+
+            // 炎の飛び道具（狼が8秒ごとに放つ）の更新: 発射時の方向へ直進する
+            for (let i = fireballs.length - 1; i >= 0; i--) {
+                const f = fireballs[i];
+                f.x += f.vx; f.y += f.vy;
+                f.life--;
+
+                const fx_tile = Math.floor(f.x), fy_tile = Math.floor(f.y);
+                const fTile = activeStage[fy_tile] && activeStage[fy_tile][fx_tile];
+                const fHitWall = fTile === 'B' || fTile === 'X' || fTile === 'LM' || fTile === 'WC' || fTile === 'BB';
+
+                if (f.life <= 0 || f.x < -1 || f.x > GRID_W + 1 || f.y < -1 || f.y > GRID_H + 1 || fHitWall) {
+                    fireballs.splice(i, 1);
+                    continue;
+                }
+
+                const fPx = player.x + player.w / 2, fPy = player.y + player.h / 2;
+                if (Math.hypot(f.x - fPx, f.y - fPy) < 0.4) handlePlayerDeath();
             }
 
             // 破片パーティクル更新（数を制限してラグを軽減）
@@ -7046,6 +7490,7 @@
             if (isSwitchOn && (tile === 'k' || footTile === 'k')) handlePlayerDeath();
             if (!isSwitchOn && (tile === 'q' || footTile === 'q')) handlePlayerDeath();
             if (tile === 'y' || footTile === 'y') handlePlayerDeath();
+            if (tile === 'FL' || footTile === 'FL') handlePlayerDeath();
             if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
             if (headTile === 'TD' && player.vy < 0) player.vy = 0.45;
             if (footTile === 'P') player.vx *= 1.15; // 加速
@@ -7232,6 +7677,20 @@
             if (removedAny) updateStageCache();
         }
 
+        // 狼（ボスNo.2）撃破時: ステージ上の炎ブロック（'FL'）をすべて除去する
+        function removeAllFireBlocks() {
+            let removedAny = false;
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    if (activeStage[y] && activeStage[y][x] === 'FL') {
+                        activeStage[y][x] = null;
+                        removedAny = true;
+                    }
+                }
+            }
+            if (removedAny) updateStageCache();
+        }
+
         // ボスの巨大化領域と重なる、破壊可能なブロックを取り除く
         function destroyBlocksInsideBoss(boss) {
             const protectedTiles = new Set(['S', 'G', 'C', 'EC', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg']);
@@ -7341,7 +7800,8 @@
             }
 
             // 敵の描画
-            enemies.forEach(en => {
+            for (let edi = 0; edi < enemies.length; edi++) {
+                const en = enemies[edi];
                 if(!en.dead) {
                     const enSize = en.size || 0.9;
                     if (en.isPurple) {
@@ -7373,6 +7833,10 @@
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.2, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.6, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
 
+                    } else if (en.isWolf) {
+                        // 狼（ボスNo.2）: 指定のドット絵で描画。移動方向に応じて左右反転する
+                        const facing = en.vx < 0 ? 'left' : 'right';
+                        drawWolfBossSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, facing);
                     } else {
                         if (en.sync) cachedGameCtx.fillStyle = "#ffeb3b"; // シンクロ敵は黄色
                         else if (en.blue) cachedGameCtx.fillStyle = "#00bcd4"; // 青スポナー由来は水色
@@ -7383,18 +7847,20 @@
                         cachedGameCtx.fillRect(en.x * cw + cw*0.55, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
                     }
                 }
-            });
+            }
 
             // 矢の描画
-            arrows.forEach(a => {
+            for (let i = 0; i < arrows.length; i++) {
+                const a = arrows[i];
                 cachedGameCtx.fillStyle = "#37474f";
                 cachedGameCtx.fillRect(a.x * cw, a.y * ch, cw * 0.4, ch * 0.1);
                 cachedGameCtx.fillStyle = a.color || "#ff5722";
                 cachedGameCtx.fillRect(a.x * cw, a.y * ch, cw * 0.1, ch * 0.1);
-            });
+            }
 
             // ミサイルの描画
-            missiles.forEach(m => {
+            for (let i = 0; i < missiles.length; i++) {
+                const m = missiles[i];
                 // ミサイル本体
                 cachedGameCtx.fillStyle = "#ff6f00";
                 cachedGameCtx.fillRect(m.x * cw, m.y * ch + ch * 0.3, cw * 0.5, ch * 0.2);
@@ -7404,14 +7870,52 @@
                 // 炎
                 cachedGameCtx.fillStyle = "#ffeb3b";
                 cachedGameCtx.fillRect(m.x * cw - cw * 0.15, m.y * ch + ch * 0.32, cw * 0.2, ch * 0.15);
-            });
+            }
+
+            // 回転する鎌（狼のNo.2ボスが投げる追尾武器）の描画。指定のドット絵を回転させながら表示する
+            for (let i = 0; i < sickles.length; i++) {
+                const s = sickles[i];
+                const scx = s.x * cw, scy = s.y * ch;
+                const size = Math.min(cw, ch) * 0.95;
+
+                // 炎エフェクト（軌跡）: 進行方向の後方に炎パーティクルを焼き込み済みスプライトで描く
+                const speedMag = Math.max(0.0001, Math.hypot(s.vx, s.vy));
+                const dirX = s.vx / speedMag, dirY = s.vy / speedMag;
+                const fireCanvas = getFireParticleSpriteCanvas();
+                for (let fp = 1; fp <= 3; fp++) {
+                    const trailDist = fp * size * 0.32;
+                    const flicker = 0.6 + 0.4 * Math.sin(s.spinAngle * 2 + fp * 2.1);
+                    const fSize = size * (0.6 - fp * 0.1) * flicker;
+                    const fx = scx - dirX * trailDist;
+                    const fy = scy - dirY * trailDist;
+                    cachedGameCtx.globalAlpha = 0.55 * flicker;
+                    cachedGameCtx.drawImage(fireCanvas, fx - fSize / 2, fy - fSize / 2, fSize, fSize);
+                }
+                cachedGameCtx.globalAlpha = 1;
+
+                cachedGameCtx.save();
+                cachedGameCtx.translate(scx, scy);
+                cachedGameCtx.rotate(s.spinAngle);
+                cachedGameCtx.imageSmoothingEnabled = false;
+                cachedGameCtx.drawImage(getSickleSpriteCanvas(), -size / 2, -size / 2, size, size);
+                cachedGameCtx.restore();
+            }
+
+            // 炎の飛び道具（狼が8秒ごとに放つ）の描画
+            for (let i = 0; i < fireballs.length; i++) {
+                const f = fireballs[i];
+                const fcx = f.x * cw, fcy = f.y * ch;
+                const r = Math.min(cw, ch) * 0.32;
+                cachedGameCtx.drawImage(getFireballSpriteCanvas(), fcx - r, fcy - r, r * 2, r * 2);
+            }
 
             // 破片パーティクルの描画
-            debrisParticles.forEach(p => {
+            for (let i = 0; i < debrisParticles.length; i++) {
+                const p = debrisParticles[i];
                 cachedGameCtx.globalAlpha = Math.max(0, p.alpha);
                 cachedGameCtx.fillStyle = p.color;
                 cachedGameCtx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-            });
+            }
             cachedGameCtx.globalAlpha = 1;
             
             // ゴール時は描画のみ継続してプレイヤーを止める
@@ -7422,9 +7926,10 @@
                 cachedGameCtx.fillStyle = "rgba(255, 0, 0, 0.7)";
                 cachedGameCtx.font = `bold ${ch * 0.4}px sans-serif`;
                 cachedGameCtx.textAlign = "center";
-                currentStageData.deaths.forEach(d => {
+                for (let i = 0; i < currentStageData.deaths.length; i++) {
+                    const d = currentStageData.deaths[i];
                     cachedGameCtx.fillText("X", d.x * cw + (cw/2), d.y * ch + (ch/2));
-                });
+                }
             }
 
             // ゴーストの描画
@@ -7625,8 +8130,9 @@
             cachedGameCtx.globalAlpha = 1.0;
 
             // 体力バーは画面効果より手前で、各ボスの頭上に追従表示する
-            enemies.forEach(en => {
-                if (!en.isBoss || en.dead) return;
+            for (let i = 0; i < enemies.length; i++) {
+                const en = enemies[i];
+                if (!en.isBoss || en.dead) continue;
                 const enSize = en.size || 0.9;
                 const barW = cw * enSize;
                 const barH = Math.max(5, ch * 0.12);
@@ -7639,7 +8145,7 @@
                 cachedGameCtx.fillRect(barX, barY, barW, barH);
                 cachedGameCtx.fillStyle = '#e040fb';
                 cachedGameCtx.fillRect(barX, barY, barW * hpRatio, barH);
-            });
+            }
 
         }
 
