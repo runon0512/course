@@ -449,6 +449,42 @@
             background-size: 300% 300% !important;
             animation: badgeAuroraShift 3s ease infinite;
         }
+        .guild-badge {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.8em;
+            height: 1.8em;
+            margin-left: 0.35em;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+        .guild-badge img { width: 100%; height: 100%; image-rendering: pixelated; }
+        .guild-badge-rank { position:absolute; right:0; bottom:0; min-width:.95em; padding:0 .1em; background:#07111f; color:#7dffcb; font-size:.58em; font-weight:900; line-height:1.05; text-align:center; text-shadow:0 1px #000; }
+        .guild-badge-empty { box-sizing:border-box; border:1px dashed rgba(190,210,235,.85); border-radius:0; opacity:.8; }
+        #my-guild-icon-wrap { position:relative; width:7cqw; height:7cqw; flex:0 0 auto; }
+        #my-guild-icon-wrap canvas { width:100%; height:100%; }
+        #my-guild-rank-frame { position:absolute; right:-.25cqw; bottom:-.25cqh; padding:.25cqw .45cqw; background:#061325; border:1px solid #55dfff; color:#b9fff2; font-size:.85cqw; font-weight:bold; }
+        .guild-exp-gauge { width:20cqw; max-width:100%; height:1.2cqh; margin-top:.35cqh; border:1px solid #6d9bc9; background:#07111f; overflow:hidden; }
+        .guild-exp-gauge > div { height:100%; background:linear-gradient(90deg,#20d89a,#65c7ff); transition:width .35s ease; }
+        .guild-exp-caption { font-size:.82cqw; color:#b5cde4; }
+        .guild-home-layout { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(18cqw,.8fr); gap:2cqw; flex:1; min-height:0; }
+        .guild-home-left { min-width:0; display:flex; flex-direction:column; gap:1.2cqh; }
+        .guild-home-identity { display:flex; align-items:center; gap:1.5cqw; padding:1.2cqw; border:0.3cqw solid var(--primary-color); background:linear-gradient(135deg,rgba(0,255,65,.16),rgba(0,191,255,.08)); box-shadow:inset 0 0 2cqw rgba(0,255,65,.08); }
+        .guild-home-identity canvas { width:7cqw; height:7cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .65cqw rgba(0,255,65,.65)); }
+        .guild-home-members { min-width:0; display:flex; flex-direction:column; padding:1cqw; border:0.2cqw solid #4b6389; background:rgba(5,12,30,.75); }
+        .guild-home-members h3, .guild-home-board-title { margin:0 0 0.8cqh; color:#9bdcff; font-size:1.35cqw; letter-spacing:.08em; }
+        .guild-home-members #guild-members-list-tab { flex:1; min-height:0; }
+        .guild-home-board { display:flex; flex-direction:column; min-height:0; flex:1; padding:1cqw; border:0.2cqw solid #3f4f78; background:rgba(0,0,0,.32); }
+        .guild-home-board #guild-bulletin-board-tab { flex:1; min-height:0; }
+        #guild-member-view.guild-home-active { display:grid !important; grid-template-columns:minmax(0,1.55fr) minmax(18cqw,.8fr); grid-template-rows:auto minmax(0,1fr) auto; gap:1.2cqh 2cqw; }
+        #guild-member-view.guild-home-active > :first-child { grid-column:1; grid-row:1; }
+        #guild-member-view.guild-home-active > :nth-child(2) { display:none !important; }
+        #guild-member-view.guild-home-active > #guild-members-list-tab { grid-column:2; grid-row:1 / 3; display:flex !important; min-height:0; }
+        #guild-member-view.guild-home-active > #guild-bulletin-board-tab { grid-column:1; grid-row:2; display:flex !important; min-height:0; }
+        #guild-member-view.guild-home-active > #guild-settings-tab { grid-column:1 / 3; grid-row:1 / 3; z-index:2; background:#111a30; padding:2cqw; }
+        #guild-member-view.guild-home-active > #guild-action-area { grid-column:1 / 3; grid-row:3; }
         .rank-logo {
             width: 1.55em;
             height: 1.55em;
@@ -1230,6 +1266,7 @@
                 <h2 style="color: var(--primary-color); font-size: 3cqw; margin-bottom: 2cqh;">STAGE CLEAR!</h2>
                 <div style="font-size: 2cqw; margin: 2cqh 0;">
                     GET: <span id="reward-amount" style="color: #f1c40f;">0 G</span>
+                    <span id="reward-guild-amount" style="display:none; color:#f1c40f;"><span id="reward-guild-base" style="text-decoration:line-through; color:#aaa; font-size:.75em;">0 G</span><br><span id="reward-guild-final">0 G</span></span>
                     <span id="reward-as-wrap" style="display:none; color: #00ffff;"> + <span id="reward-as">0</span> AS</span>
                     <span id="reward-es-wrap" style="display:none; color: #ff9800;"> + ES:<span id="reward-es">0</span></span>
                 </div>
@@ -1371,7 +1408,6 @@
         <!-- ギルド画面 -->
         <div id="guild-overlay" class="screen" style="flex-direction: column; align-items: center; padding: 5cqh 5cqw; background: rgba(10,10,30,0.95); z-index: 165; box-sizing: border-box; overflow-y: auto;">
             <h2 id="guild-title" style="font-size: 3.5cqw; margin-bottom: 2cqh;">GUILD</h2>
-            <button class="pixel-btn small" onclick="closeGuild()" style="margin-bottom: 3cqh;">戻る</button>
             
             <div id="guild-main-view" style="width: 90%; flex-grow: 1; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 5cqh;">
                 <div style="display: flex; gap: 4cqw;">
@@ -1401,10 +1437,14 @@
 
             <div id="guild-member-view" style="width: 90%; flex-grow: 1; display: none; flex-direction: column; gap: 2cqh;">
                 <div style="display: flex; align-items: center; gap: 2cqw; background: rgba(255,255,255,0.1); padding: 1cqw; border: 0.3cqw solid var(--primary-color);">
-                    <canvas id="my-guild-icon-canvas" width="64" height="64" style="image-rendering: pixelated; width: 6cqw; height: 6cqw;"></canvas>
+                    <div id="my-guild-icon-wrap"><canvas id="my-guild-icon-canvas" width="64" height="64" style="image-rendering: pixelated;"></canvas><span id="my-guild-rank-frame">RANK 0</span></div>
                     <div>
                         <div id="my-guild-name" style="font-size: 2.5cqw; font-weight: bold;">-</div>
+                        <div id="my-guild-rank-display" style="font-size:1.1cqw; color:#7dffcb;">RANK 0 ・ EXP 0</div>
+                        <div id="my-guild-rank-progress"></div>
+                        <div id="my-guild-benefit" style="font-size:1cqw; color:#ffd86b;">特典: なし</div>
                         <div id="my-guild-owner-disp" style="font-size: 1.2cqw; color: #aaa;">Owner: -</div>
+                        <button id="guild-home-settings-btn" class="pixel-btn small" style="display:none; margin-top:0.7cqh; background:#ff9800;" onclick="showGuildSettingsTab()">⚙ 設定</button>
                     </div>
                 </div>
                 
@@ -1422,15 +1462,24 @@
 
                 <!-- 掲示板タブ -->
                 <div id="guild-bulletin-board-tab" style="display:none; flex-direction: column; flex-grow: 1; width: 100%; gap: 1cqh;">
+                    <div class="guild-home-board-title">GUILD CHAT</div>
                     <div id="guild-bulletin-list" class="guild-bulletin-board"></div>
                     <div id="guild-bulletin-post-area" style="display:none; width: 100%; display: flex; gap: 1cqw;">
-                        <input type="text" id="guild-bulletin-input" maxlength="100" placeholder="マスターのみ投稿可能..." style="flex: 1; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.2cqw;">
+                        <input type="text" id="guild-bulletin-input" maxlength="100" placeholder="ギルドチャットを送信..." style="flex: 1; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.2cqw;">
                         <button class="pixel-btn small" style="width: 15cqw;" onclick="postGuildMessage()">投稿</button>
                     </div>
                 </div>
 
                 <!-- 設定タブ -->
                 <div id="guild-settings-tab" style="display:none; flex-direction: column; flex-grow: 1; width: 100%; align-items: center; gap: 2cqh; overflow-y: auto;">
+                    <button class="pixel-btn small" onclick="showGuildHome()">← ギルドホームへ戻る</button>
+                    <div class="guild-settings-section">
+                        <div style="font-size:1.5cqw; font-weight:bold;">参加条件</div>
+                        <label style="font-size:1.1cqw;">最低OVR <input id="guild-min-ovr-input" type="number" min="0" value="0" style="width:8cqw; background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"></label>
+                        <label style="font-size:1.1cqw;">加入方法 <select id="guild-join-policy-select" style="background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"><option value="free">自由加入</option><option value="approval">承認制</option></select></label>
+                        <button class="pixel-btn small" style="background:#00a8a8;" onclick="saveGuildJoinSettings()">参加条件を保存</button>
+                        <div id="guild-join-requests" style="font-size:1.1cqw;"></div>
+                    </div>
                     <div class="guild-settings-section">
                         <div style="font-size: 1.5cqw; font-weight: bold;">ギルド名変更</div>
                         <input type="text" id="new-guild-name-input" placeholder="新しいギルド名" maxlength="10" style="width: 100%; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 0.8cqw; font-size: 1.2cqw; box-sizing: border-box;">
@@ -1452,9 +1501,8 @@
                 </div>
 
                 <div id="guild-action-area" style="display:flex; gap:2cqw; margin-top: 1cqh; width: 100%; justify-content: center;">
-                   <button class="pixel-btn small" onclick="showGuildList()">他のギルドを見る</button>
                    <button id="guild-leave-btn" class="pixel-btn small" style="background: #f44336; display:none; margin:0;" onclick="confirmLeaveGuild()">ギルドを脱退</button>
-                   <button class="pixel-btn small" onclick="closeGuild()">閉じる</button>
+                   <button class="pixel-btn small" onclick="closeGuild()">戻る</button>
                 </div>
             </div>
         </div>
@@ -1678,7 +1726,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxm4vWXGFnMN3VV1w-5ZPtpWH0sblJSZNW2d5qQEGSxeewwA4ngtGgGqN0LMN8Go5nC/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxC5KHPoWsPTRgM6clMBV6hvUU4tDYyAu272Mmh2N-ZWGI8csSi0jD72-H2481n6f5l/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.9.2"
@@ -1700,6 +1748,45 @@
         let chatRefreshId = null;
         let guildBulletinRefreshId = null;
         let currentGuildDetails = null; 
+        let guildBadgeByMember = Object.create(null);
+        const guildIconDataUrlCache = Object.create(null);
+        const GUILD_RANK_EXP = [0, 10000, 60000, 160000, 660000, 1660000, 6660000, 16660000];
+
+        function renderGuildRankProgress(guild) {
+            const holder = document.getElementById('my-guild-rank-progress');
+            if (!holder) return;
+            const rank = Math.min(7, Number(guild.rank) || 0);
+            const exp = Number(guild.exp) || 0;
+            if (rank >= 7) {
+                holder.innerHTML = '<div class="guild-exp-gauge"><div style="width:100%"></div></div><div class="guild-exp-caption">MAX RANK</div>';
+                return;
+            }
+            const start = GUILD_RANK_EXP[rank];
+            const end = GUILD_RANK_EXP[rank + 1];
+            const gained = Math.max(0, exp - start);
+            const needed = end - start;
+            const percent = Math.min(100, gained / needed * 100);
+            holder.innerHTML = `<div class="guild-exp-gauge"><div style="width:${percent}%"></div></div><div class="guild-exp-caption">${gained.toLocaleString()} / ${needed.toLocaleString()} EXP</div>`;
+        }
+
+        function cacheGuildBadgeData(guilds) {
+            guildBadgeByMember = Object.create(null);
+            (guilds || []).forEach(guild => {
+                (guild.members || []).forEach(member => {
+                    guildBadgeByMember[member] = { name: guild.name, icon: guild.icon || 'default', rank: Number(guild.rank) || 0 };
+                });
+            });
+        }
+
+        function getGuildIconDataUrl(icon) {
+            const id = icon || 'default';
+            if (guildIconDataUrlCache[id]) return guildIconDataUrlCache[id];
+            const canvas = document.createElement('canvas');
+            canvas.width = 16;
+            canvas.height = 16;
+            renderToSpriteCanvas(canvas.getContext('2d'), SKINS[id] || SKINS.default, null, 'default');
+            return guildIconDataUrlCache[id] = canvas.toDataURL();
+        }
 
         // クリエイターズロード用
         const CREATORS_ROAD_MILESTONES = [
@@ -2811,7 +2898,7 @@
             const [publishedRes, customSkinsRes, guildRes] = await Promise.all([
                 callApi('getPublished', {}),
                 callApi('load', { username: username, key: 'custom_skins' }),
-                userGuild ? callApi('getGuilds', {}) : Promise.resolve({ success: true, guilds: [] })
+                callApi('getGuilds', {})
             ]);
 
             // ステージキャッシュの構築
@@ -2832,8 +2919,9 @@
             if (customSkinsRes && customSkinsRes.data) customSpriteStore = { ...customSpriteStore, ...customSkinsRes.data };
             
             // ギルド詳細反映
-            if (guildRes.success && userGuild) {
-                currentGuildDetails = guildRes.guilds.find(g => g.name === userGuild);
+            if (guildRes.success) {
+                cacheGuildBadgeData(guildRes.guilds);
+                if (userGuild) currentGuildDetails = guildRes.guilds.find(g => g.name === userGuild);
             }
 
             // UI反映
@@ -3481,10 +3569,14 @@
 
         // --- ギルド関連 ---
         let selectedGuildIcon = 'default';
+        let guildMemberSortMode = 'ovr';
+        function hasCurrentGuild() {
+            return !!(userGuild && userGuild !== "" && userGuild !== "null");
+        }
         function openGuild() {
             document.getElementById('guild-overlay').style.display = 'flex';
             // userGuild が文字列として存在しているか厳密にチェック
-            if (userGuild && userGuild !== "" && userGuild !== "null" && userGuild !== null) {
+            if (hasCurrentGuild()) {
                 showMyGuild();
             } else {
                 showGuildMain();
@@ -3492,6 +3584,7 @@
         }
         function closeGuild() { document.getElementById('guild-overlay').style.display = 'none'; }
         function showGuildMain() {
+            if (hasCurrentGuild()) { showMyGuild(); return; }
             if (guildBulletinRefreshId) clearInterval(guildBulletinRefreshId);
             document.getElementById('guild-main-view').style.display = 'flex';
             document.getElementById('guild-create-view').style.display = 'none';
@@ -3499,6 +3592,7 @@
             document.getElementById('guild-member-view').style.display = 'none';
         }
         function showGuildCreate() {
+            if (hasCurrentGuild()) { showMyGuild(); return; }
             document.getElementById('guild-main-view').style.display = 'none';
             document.getElementById('guild-create-view').style.display = 'flex';
             const selector = document.getElementById('guild-icon-selector');
@@ -3530,25 +3624,35 @@
             drawPlayer(initialCtx, 0, 0, 64, 64, selectedGuildIcon);
         }
         async function createGuild() {
+            if (hasCurrentGuild()) { alert("すでにギルドに所属しています。"); showMyGuild(); return; }
             const name = document.getElementById('guild-name-input').value.trim();
             if (!name) { alert("ギルド名を入力してください。"); return; }
             if (userGold < 25000) { alert("作成には25000G必要です。"); return; }
             
-            userGold -= 25000;
-            const res = await callApi('createGuild', {
-                username: CONFIG.USERNAME,
-                guildName: name,
-                icon: selectedGuildIcon,
-                gold: userGold
-            });
-            if (res.success) {
-                userGuild = name;
-                updateGoldDisplay();
-                showMyGuild();
+            const nextGold = userGold - 25000;
+            const createBtn = document.querySelector('#guild-create-view button[onclick="createGuild()"]');
+            const originalText = createBtn ? createBtn.innerText : '';
+            if (createBtn) { createBtn.disabled = true; createBtn.innerText = '作成中...'; }
+            try {
+                const res = await callApi('createGuild', {
+                    username: CONFIG.USERNAME,
+                    guildName: name,
+                    icon: selectedGuildIcon,
+                    gold: nextGold
+                });
+                if (res.success) {
+                    userGold = nextGold;
+                    userGuild = name;
+                    updateGoldDisplay();
+                    showMyGuild();
+                }
+                alert(res.message);
+            } finally {
+                if (createBtn) { createBtn.disabled = false; createBtn.innerText = originalText; }
             }
-            alert(res.message);
         }
         async function showGuildList() {
+            if (hasCurrentGuild()) { showMyGuild(); return; }
             document.getElementById('guild-main-view').style.display = 'none';
             document.getElementById('guild-create-view').style.display = 'none';
             document.getElementById('guild-list-view').style.display = 'flex';
@@ -3596,12 +3700,20 @@
                     // どこにも所属していない場合は入会ボタンを表示
                     btn.innerText = '入会';
                     btn.onclick = async () => {
-                        const joinRes = await callApi('joinGuild', { username: CONFIG.USERNAME, guildName: g.name });
-                        if (joinRes.success) {
-                            userGuild = g.name;
-                            showMyGuild();
+                        const originalText = btn.innerText;
+                        btn.disabled = true;
+                        btn.innerText = '入会中...';
+                        try {
+                            const joinRes = await callApi('joinGuild', { username: CONFIG.USERNAME, guildName: g.name, playerOvr: getCachedOVR(CONFIG.USERNAME) });
+                            if (joinRes.success && !joinRes.pending) {
+                                userGuild = g.name;
+                                showMyGuild();
+                            }
+                            alert(joinRes.message);
+                        } finally {
+                            btn.disabled = false;
+                            btn.innerText = originalText;
                         }
-                        alert(joinRes.message);
                     };
                 }
                 div.appendChild(btn);
@@ -3614,16 +3726,26 @@
             document.getElementById('guild-list-view').style.display = 'none';
             if (guildBulletinRefreshId) clearInterval(guildBulletinRefreshId);
             document.getElementById('guild-member-view').style.display = 'flex';
+            document.getElementById('my-guild-name').innerText = '読み込み中...';
+            document.getElementById('guild-members-list-tab').innerText = '読み込み中...';
+            document.getElementById('guild-bulletin-list').innerText = '読み込み中...';
 
             const res = await callApi('getGuilds', {});
+            if (!res.success) return;
+            cacheGuildBadgeData(res.guilds);
             const g = res.guilds.find(guild => guild.name === userGuild);
             if (!g) {
                 userGuild = null;
                 showGuildMain();
                 return;
             }
+            currentGuildDetails = g;
 
             document.getElementById('my-guild-name').innerText = g.name;
+            document.getElementById('my-guild-rank-frame').innerText = `RANK ${g.rank || 0}`;
+            document.getElementById('my-guild-rank-display').innerText = `RANK ${g.rank || 0} ・ EXP ${(Number(g.exp) || 0).toLocaleString()} ・ G×${g.goldMultiplier || 1}`;
+            renderGuildRankProgress(g);
+            document.getElementById('my-guild-benefit').innerText = (Number(g.rank) || 0) === 0 ? '特典: なし' : `特典: クリア報酬G ×${g.goldMultiplier}`;
             document.getElementById('my-guild-owner-disp').innerText = `Owner: ${g.owner}`;
             const myIconCvs = document.getElementById('my-guild-icon-canvas');
             const myIconCtx = myIconCvs.getContext('2d');
@@ -3632,34 +3754,21 @@
             drawPlayer(myIconCtx, 0, 0, 64, 64, g.icon);
 
             const isOwner = (String(g.owner) === String(CONFIG.USERNAME));
-            document.getElementById('guild-tab-settings').style.display = isOwner ? 'block' : 'none'; // Only owner sees settings tab
-            document.getElementById('guild-bulletin-post-area').style.display = isOwner ? 'flex' : 'none'; // Only owner can post
+            document.getElementById('guild-tab-settings').style.display = isOwner ? 'block' : 'none'; // 既存操作との互換用
+            document.getElementById('guild-home-settings-btn').style.display = isOwner ? 'block' : 'none';
+            document.getElementById('guild-bulletin-post-area').style.display = 'flex'; // 所属メンバー全員がギルドチャットを送信可能
             document.getElementById('guild-leave-btn').style.display = isOwner ? 'none' : 'block';
+            showGuildHome();
+        }
 
-            const list = document.getElementById('guild-members-list');
-            list.innerHTML = '';
-            g.members.forEach(m => {
-                const mDiv = document.createElement('div');
-                mDiv.style.cssText = "padding: 1cqh 1.5cqw; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;";
-
-                const nameSpan = document.createElement('span');
-                nameSpan.style.cursor = 'pointer';
-                nameSpan.innerHTML = `<span style="color:var(--primary-color);">${m === g.owner ? '👑' : '👤'}</span> ${m}`;
-                nameSpan.onclick = () => openProfile(m);
-                mDiv.appendChild(nameSpan);
-
-                // マスター譲渡ボタン
-                if (isOwner && m !== CONFIG.USERNAME) {
-                    const transferBtn = document.createElement('button');
-                    transferBtn.className = 'pixel-btn small';
-                    transferBtn.style.fontSize = '0.8cqw';
-                    transferBtn.innerText = 'マスター譲渡';
-                    transferBtn.onclick = () => confirmTransferMaster(m);
-                    mDiv.appendChild(transferBtn);
-                }
-
-                list.appendChild(mDiv);
-            });
+        function showGuildHome() {
+            const view = document.getElementById('guild-member-view');
+            view.classList.add('guild-home-active');
+            document.getElementById('guild-members-list-tab').style.display = 'flex';
+            document.getElementById('guild-bulletin-board-tab').style.display = 'flex';
+            document.getElementById('guild-settings-tab').style.display = 'none';
+            renderGuildMembersList();
+            renderGuildBulletinBoard(true);
         }
 
         async function confirmTransferMaster(newOwner) {
@@ -3743,15 +3852,28 @@
             list.innerHTML = '';
             if (!currentGuildDetails) return;
 
-            const isOwner = (String(currentGuildDetails.owner) === String(CONFIG.USERNAME));
+            const sortSelect = document.createElement('select');
+            sortSelect.style.cssText = 'background:#111a2e; color:#fff; border:1px solid #6fa7da; padding:0.45cqw; margin-bottom:0.8cqh; font-size:1cqw;';
+            sortSelect.innerHTML = '<option value="ovr">OVR順</option><option value="contribution">貢献度順</option>';
+            sortSelect.value = guildMemberSortMode;
+            sortSelect.onchange = () => { guildMemberSortMode = sortSelect.value; renderGuildMembersList(); };
+            list.appendChild(sortSelect);
 
-            currentGuildDetails.members.forEach(m => {
+            const isOwner = (String(currentGuildDetails.owner) === String(CONFIG.USERNAME));
+            const contributions = currentGuildDetails.contributions || {};
+            const members = [...currentGuildDetails.members].sort((a, b) => {
+                if (guildMemberSortMode === 'contribution') return (Number(contributions[b]) || 0) - (Number(contributions[a]) || 0) || String(a).localeCompare(String(b));
+                return getCachedOVR(b) - getCachedOVR(a) || String(a).localeCompare(String(b));
+            });
+
+            members.forEach(m => {
                 const mDiv = document.createElement('div');
                 mDiv.style.cssText = "padding: 1cqh 1.5cqw; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;";
                 
                 const nameSpan = document.createElement('span');
                 nameSpan.style.cursor = 'pointer';
-                nameSpan.innerHTML = `<span style="color:var(--primary-color);">${m === currentGuildDetails.owner ? '👑' : '👤'}</span> ${m}`;
+                const contribution = Number(contributions[m]) || 0;
+                nameSpan.innerHTML = `<span style="color:var(--primary-color);">${m === currentGuildDetails.owner ? '👑' : '👤'}</span> ${m} ${renderBadgeChip(m, 'small')}<span style="display:block; color:#9fb4c9; font-size:.85em; margin-top:.2cqh;">OVR ${getCachedOVR(m)} ・ 貢献 ${contribution.toLocaleString()} EXP</span>`;
                 nameSpan.onclick = () => openProfile(m);
                 mDiv.appendChild(nameSpan);
 
@@ -3874,6 +3996,35 @@
             document.getElementById('guild-settings-tab').style.display = 'flex';
 
             openGuildIconChange(); // Initialize icon selector when settings tab is opened
+            document.getElementById('guild-min-ovr-input').value = currentGuildDetails?.minOvr || 0;
+            document.getElementById('guild-join-policy-select').value = currentGuildDetails?.joinPolicy || 'free';
+            renderGuildJoinRequests();
+        }
+
+        async function saveGuildJoinSettings() {
+            const res = await callApi('updateGuildJoinSettings', { username: CONFIG.USERNAME, guildName: userGuild, minOvr: Number(document.getElementById('guild-min-ovr-input').value) || 0, joinPolicy: document.getElementById('guild-join-policy-select').value });
+            if (res.success) { currentGuildDetails.minOvr = Number(document.getElementById('guild-min-ovr-input').value) || 0; currentGuildDetails.joinPolicy = document.getElementById('guild-join-policy-select').value; }
+            alert(res.message);
+        }
+
+        async function renderGuildJoinRequests() {
+            const holder = document.getElementById('guild-join-requests');
+            holder.innerText = '申請を読み込み中...';
+            const res = await callApi('getGuildJoinRequests', { guildName: userGuild, username: CONFIG.USERNAME });
+            const requests = res.requests || [];
+            holder.innerHTML = requests.length ? `加入申請: ${requests.map(name => `<button class="pixel-btn small" onclick="approveGuildJoinRequest('${name}')">${name} を承認</button>`).join(' ')}` : '加入申請はありません。';
+        }
+
+        async function approveGuildJoinRequest(username) {
+            const res = await callApi('approveGuildJoin', { guildName: userGuild, ownerUsername: CONFIG.USERNAME, targetUsername: username });
+            alert(res.message);
+            if (res.success) showMyGuild(); else renderGuildJoinRequests();
+        }
+
+        async function showGuildRankingMembers(guildName) {
+            const res = await callApi('getGuilds', {});
+            const guild = (res.guilds || []).find(g => g.name === guildName);
+            alert(guild ? `【${guild.name}】\n\n${guild.members.join('\n')}` : 'ギルド情報を取得できませんでした。');
         }
 
         async function confirmGuildNameChange() {
@@ -4260,7 +4411,11 @@
             const padding = size === 'small' ? '1px 5px' : '2px 7px';
             const isAurora = tier.group === 'aurora' ? ' badge-aurora' : '';
             const rankMark = tier.group === 'aurora' ? 'A' : tier.label.slice(-1);
-            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>`;
+            const guild = guildBadgeByMember[username];
+            const guildIcon = guild
+                ? `<span class="guild-badge" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
+                : '<span class="guild-badge guild-badge-empty" title="ギルド未所属"></span>';
+            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${guildIcon}`;
         }
 
         // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
@@ -4497,6 +4652,7 @@
                     <td style="padding: 1.5cqh; display: flex; align-items: center; gap: 1cqw;">
                         <canvas id="lb-guild-icon-${i}" width="32" height="32" style="image-rendering: pixelated; width: 3cqw; height: 3cqw;"></canvas>
                         <span style="color: var(--primary-color);">${g.name}</span>
+                        <button class="pixel-btn small" style="font-size:.8cqw; padding:.4cqw;" onclick='showGuildRankingMembers(${JSON.stringify(g.name)})'>メンバー</button>
                     </td>
                     <td style="padding: 1.5cqh; text-align: right;">${g.totalOvr}</td>
                 </tr>`).join('');
@@ -4506,6 +4662,12 @@
                 if (cvs) drawPlayer(cvs.getContext('2d'), 0, 0, 32, 32, g.icon);
             });
             return;
+        }
+
+        async function showGuildRankingMembers(guildName) {
+            const res = await callApi('getGuilds', {});
+            const guild = (res.guilds || []).find(g => g.name === guildName);
+            alert(guild ? `【${guild.name}】\n\n${guild.members.join('\n')}` : 'ギルド情報を取得できませんでした。');
         }
 
             const stats = {}; // { username: { crowns: 0, gods: 0, plays: 0 } }
@@ -6527,6 +6689,7 @@
             const crNum = att > 0 ? (clr / att * 100) : 100;
 
             let rewardGold = 100;
+            let baseRewardGold = 100;
 
             if (att >= 5 && crNum <= 0.1) {
                 // 未知 または 新次元 (クリア率 0.1% 以下)
@@ -6545,6 +6708,11 @@
             
             if (s.creator === username) rewardGold = Math.floor(rewardGold / 2);
             return Math.max(10, rewardGold);
+        }
+
+        function getCurrentGuildGoldMultiplier() {
+            if (!currentGuildDetails || !hasCurrentGuild()) return 1;
+            return Number(currentGuildDetails.goldMultiplier) || 1;
         }
 
         let rewardAlreadyAdded = false;
@@ -6567,7 +6735,8 @@
             const stageId = currentStageData ? (currentStageData.id || currentStageData.name) : null;
 
             if (stageId) {
-                rewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
+                baseRewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
+                rewardGold = Math.round(baseRewardGold * getCurrentGuildGoldMultiplier());
             }
             
             if (!rewardAlreadyAdded) {
@@ -6577,7 +6746,14 @@
             }
 
             // UIを即座に更新して表示
+            const guildMultiplier = getCurrentGuildGoldMultiplier();
+            document.getElementById('reward-amount').style.display = guildMultiplier > 1 ? 'none' : 'inline';
             document.getElementById('reward-amount').innerText = `${rewardGold} G`;
+            document.getElementById('reward-guild-amount').style.display = guildMultiplier > 1 ? 'inline' : 'none';
+            if (guildMultiplier > 1) {
+                document.getElementById('reward-guild-base').innerText = `${baseRewardGold} G`;
+                document.getElementById('reward-guild-final').innerText = `${rewardGold} G (×${guildMultiplier})`;
+            }
             document.getElementById('reward-as-wrap').style.display = 'none';
             document.getElementById('reward-es-wrap').style.display = 'none';
             document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(3)}s)`;
@@ -6710,6 +6886,16 @@
                         if (esWrap) esWrap.style.display = 'inline';
                         if (esVal) esVal.innerText = String(res.eventStoneAwarded);
                     }
+                }
+                if (res && res.success && currentGuildDetails && res.guildRank !== null && res.guildRank !== undefined) {
+                    currentGuildDetails.exp = Number(res.guildExp) || currentGuildDetails.exp || 0;
+                    currentGuildDetails.rank = Number(res.guildRank) || 0;
+                    currentGuildDetails.goldMultiplier = Number(res.guildGoldMultiplier) || 1;
+                    if (!currentGuildDetails.contributions) currentGuildDetails.contributions = {};
+                    if (res.guildContribution !== null && res.guildContribution !== undefined) currentGuildDetails.contributions[CONFIG.USERNAME] = Number(res.guildContribution) || 0;
+                    (currentGuildDetails.members || []).forEach(member => {
+                        guildBadgeByMember[member] = { name: currentGuildDetails.name, icon: currentGuildDetails.icon || 'default', rank: currentGuildDetails.rank };
+                    });
                 }
                 if (!res || !res.success) {
                     console.error("クリア記録の送信に失敗しました:", res ? res.message : "保存失敗");
