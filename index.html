@@ -1729,7 +1729,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxC5KHPoWsPTRgM6clMBV6hvUU4tDYyAu272Mmh2N-ZWGI8csSi0jD72-H2481n6f5l/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.9.2"
+            VERSION: "2.9.3"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1940,20 +1940,19 @@
         // プレイヤーの当たり判定で毎フレーム全敵(enemies)をスキャンしなくて済むようにする
         // （敵が多いステージで、プレイヤーが横移動するたびに重くなる原因になっていた）。
         let playbackGhosts = [];
-        let preloadedGhostStage = null;
-        let preloadedGhostLeaderboard = null;
-        let preloadedGhosts = [];
+        // ステージごとに準備済みのゴーストを保持する。
+        // Retry はこのデータを再利用し、再変換を発生させない。
+        const preloadedGhostCache = new WeakMap();
 
-        // ゴーストの並べ替えと旧形式データの変換は、プレイ開始前に一度だけ行う。
-        // Retry 時は同じデータを再利用し、開始直後の引っ掛かりを防ぐ。
+        // ゴーストの並べ替えと旧形式データの変換はステージごとに一度だけ行う。
         function preloadStageGhosts(stageObj) {
+            if (!stageObj || typeof stageObj !== 'object') return [];
             const leaderboard = Array.isArray(stageObj?.leaderboard) ? stageObj.leaderboard : [];
-            if (preloadedGhostStage === stageObj && preloadedGhostLeaderboard === leaderboard) {
-                return preloadedGhosts;
+            const cached = preloadedGhostCache.get(stageObj);
+            if (cached && cached.leaderboard === leaderboard) {
+                return cached.ghosts;
             }
-            preloadedGhostStage = stageObj;
-            preloadedGhostLeaderboard = leaderboard;
-            preloadedGhosts = leaderboard
+            const ghosts = leaderboard
                 .slice()
                 .sort((a, b) => a.time - b.time)
                 .slice(0, 5)
@@ -1965,8 +1964,10 @@
                             : [pos.x, pos.y, pos.f === 'right' ? 1 : 0])
                         : []
                 }));
-            return preloadedGhosts;
+            preloadedGhostCache.set(stageObj, { leaderboard, ghosts });
+            return ghosts;
         }
+
         let showGhosts = true;
         let isSchoolMode = false;
         let isManualReloadOnly = false;
@@ -5626,36 +5627,34 @@
                 ctx.fillText("!", x*cw + cw/2, y*ch + ch*0.7);
             } else if(type === 'W') {
                 // 風ゾーン
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(x*cw, y*ch, cw, ch);
-                ctx.clip();
                 ctx.strokeStyle = "rgba(0, 255, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
+                const windLeft = x * cw, windRight = windLeft + cw;
                 for(let i=0; i<4; i++) {
-                    ctx.beginPath(); ctx.moveTo(x*cw + drift - cw, y*ch + (i+1)*ch/5);
-                    ctx.lineTo(x*cw + drift - cw + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(x*cw + drift, y*ch + (i+1)*ch/5);
-                    ctx.lineTo(x*cw + drift + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                    const wy = y*ch + (i+1)*ch/5;
+                    const a1 = windLeft + drift - cw, b1 = a1 + cw*0.6;
+                    const a2 = windLeft + drift, b2 = a2 + cw*0.6;
+                    ctx.beginPath();
+                    if (b1 > windLeft && a1 < windRight) { ctx.moveTo(Math.max(windLeft, a1), wy); ctx.lineTo(Math.min(windRight, b1), wy); }
+                    if (b2 > windLeft && a2 < windRight) { ctx.moveTo(Math.max(windLeft, a2), wy); ctx.lineTo(Math.min(windRight, b2), wy); }
+                    ctx.stroke();
                 }
-                ctx.restore();
             } else if(type === 'L') {
                 // 逆向きの風（左向き）
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(x*cw, y*ch, cw, ch);
-                ctx.clip();
                 ctx.strokeStyle = "rgba(255, 100, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
+                const windLeft = x * cw, windRight = windLeft + cw;
                 for(let i=0; i<4; i++) {
-                    ctx.beginPath(); ctx.moveTo(x*cw + cw - drift, y*ch + (i+1)*ch/5);
-                    ctx.lineTo(x*cw + cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(x*cw - drift, y*ch + (i+1)*ch/5);
-                    ctx.lineTo(x*cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                    const wy = y*ch + (i+1)*ch/5;
+                    const a1 = windRight - drift, b1 = a1 - cw*0.6;
+                    const a2 = windLeft - drift, b2 = a2 - cw*0.6;
+                    ctx.beginPath();
+                    if (b1 < windRight && a1 > windLeft) { ctx.moveTo(Math.min(windRight, a1), wy); ctx.lineTo(Math.max(windLeft, b1), wy); }
+                    if (b2 < windRight && a2 > windLeft) { ctx.moveTo(Math.min(windRight, a2), wy); ctx.lineTo(Math.max(windLeft, b2), wy); }
+                    ctx.stroke();
                 }
-                ctx.restore();
             } else if(type === 'U') {
                 // 上昇気流
                 // 以前は毎フレーム ctx.save()+ctx.clip()（canvasの中でも特に重い処理）と
@@ -6095,29 +6094,27 @@
                 ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
             } else if(type === 'J') {
                 // R/B風 (R/B Wind)
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(x*cw, y*ch, cw, ch);
-                ctx.clip();
                 ctx.strokeStyle = isSwitchOn ? "rgba(255, 82, 82, 0.7)" : "rgba(68, 138, 255, 0.7)";
                 ctx.lineWidth = 3;
                 let drift = (time * 100) % cw;
+                const windLeft = x * cw, windRight = windLeft + cw;
                 if (isSwitchOn) { // 右向き（R）
                     for(let i=0; i<4; i++) {
-                        ctx.beginPath(); ctx.moveTo(x*cw + drift - cw, y*ch + (i+1)*ch/5);
-                        ctx.lineTo(x*cw + drift - cw + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
-                        ctx.beginPath(); ctx.moveTo(x*cw + drift, y*ch + (i+1)*ch/5);
-                        ctx.lineTo(x*cw + drift + cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                        const wy = y*ch + (i+1)*ch/5, a1 = windLeft + drift - cw, b1 = a1 + cw*.6, a2 = windLeft + drift, b2 = a2 + cw*.6;
+                        ctx.beginPath();
+                        if (b1 > windLeft && a1 < windRight) { ctx.moveTo(Math.max(windLeft,a1),wy); ctx.lineTo(Math.min(windRight,b1),wy); }
+                        if (b2 > windLeft && a2 < windRight) { ctx.moveTo(Math.max(windLeft,a2),wy); ctx.lineTo(Math.min(windRight,b2),wy); }
+                        ctx.stroke();
                     }
                 } else { // 左向き（B）
                     for(let i=0; i<4; i++) {
-                        ctx.beginPath(); ctx.moveTo(x*cw + cw - drift, y*ch + (i+1)*ch/5);
-                        ctx.lineTo(x*cw + cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
-                        ctx.beginPath(); ctx.moveTo(x*cw - drift, y*ch + (i+1)*ch/5);
-                        ctx.lineTo(x*cw - drift - cw*0.6, y*ch + (i+1)*ch/5); ctx.stroke();
+                        const wy = y*ch + (i+1)*ch/5, a1 = windRight - drift, b1 = a1 - cw*.6, a2 = windLeft - drift, b2 = a2 - cw*.6;
+                        ctx.beginPath();
+                        if (b1 < windRight && a1 > windLeft) { ctx.moveTo(Math.min(windRight,a1),wy); ctx.lineTo(Math.max(windLeft,b1),wy); }
+                        if (b2 < windRight && a2 > windLeft) { ctx.moveTo(Math.min(windRight,a2),wy); ctx.lineTo(Math.max(windLeft,b2),wy); }
+                        ctx.stroke();
                     }
                 }
-                ctx.restore();
             } else if(type === 'j') {
                 // ジャンプする敵 (Jumper Enemy) - 青色
                 ctx.fillStyle = "#2196f3";
@@ -6470,6 +6467,10 @@
                 }
             }
 
+            // 「プレイ」を押してからゲーム画面を始めるまでの間に一度だけ変換する。
+            // Retry 時は既存の playbackGhosts をそのまま使う。
+            if (!isRetry) playbackGhosts = preloadStageGhosts(stageObj);
+
             gameMode = mode;
             currentStageData = stageObj;
             isSwitchOn = true;
@@ -6520,7 +6521,6 @@
 
             activeStage = normalizeGrid(stageObj.data);
             currentStageType = stageObj.stageType || 'normal';
-            if (!isRetry) playbackGhosts = preloadStageGhosts(stageObj);
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             resizeCanvas('game-canvas');
@@ -7268,6 +7268,9 @@
             // 直接的に重いわけではないが、他の描画系forEachと合わせて毎フレーム大量の使い捨てクロージャを
             // 生成しており、GC（ガベージコレクション）の発生頻度を上げて「時々一瞬カクつく」原因になっていた。
             // 単純なfor文に変換し、ループのたびに関数オブジェクトを作らないようにする（処理内容は変更なし）。
+            const syncEnemyVx = keys['ArrowLeft'] ? -0.04 : (keys['ArrowRight'] ? 0.04 : 0);
+            const playerCenterXForEnemies = player.x + player.w / 2;
+            const playerCenterYForEnemies = player.y + player.h / 2;
             for (let enIdx = 0; enIdx < enemies.length; enIdx++) {
                 const en = enemies[enIdx];
                 if(en.dead) continue;
@@ -7395,9 +7398,7 @@
 
                 // 横移動
                 if (en.sync) {
-                    en.vx = 0;
-                    if (keys['ArrowLeft']) en.vx = -0.04;
-                    if (keys['ArrowRight']) en.vx = 0.04;
+                    en.vx = syncEnemyVx;
                 }
 
                 let nextX = en.x + en.vx;
@@ -7533,7 +7534,7 @@
                     else en.vx -= 0.01;
                 }
 
-                const px = player.x + player.w/2, py = player.y + player.h/2;
+                const px = playerCenterXForEnemies, py = playerCenterYForEnemies;
                 const ex = en.x + enHalf, ey = en.y + enHalf;
                 // 判定範囲は「プレイヤーの半径＋敵の半径」を基準にスケール（元は0.9サイズの敵で0.8だった）
                 const proximityThresh = player.w/2 + enHalf - 0.1;
