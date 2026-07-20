@@ -1610,10 +1610,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzO0W8HEJ1Rt4yd1utTbPdnUGJ-oPixY8_HMbrUuJa4z5lMBuoMiOA2QYxb8oeAqlp2/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.9.1"
+            VERSION: "2.8.7"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2168,7 +2168,7 @@
             'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
-            'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 50, isBlockSet: true, isCollab: true, isES: true, sprite: null }
+            'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null }
         };
 
         const COLORS = {
@@ -2757,6 +2757,9 @@
             
             updateHomeCharacter();
             refreshChat();
+            // 3分(180000ms)ごとにチャットの新着をバックグラウンドで確認し、新着があれば通知バッジを出す
+            if (chatRefreshId) clearInterval(chatRefreshId);
+            chatRefreshId = setInterval(refreshChat, 180000);
             updateGoldDisplay();
             startOnlineCountUpdates();
 
@@ -3078,7 +3081,8 @@
         function closeChat() {
             document.getElementById('chat-overlay').style.display = 'none';
             document.getElementById('chat-stage-search').style.display = 'none';
-            // 閉じてもバックグラウンドで新着通知を確認するためにインターバルは維持
+            // 開いている間は止めていたバックグラウンド通知ポーリング(3分間隔)を再開する
+            if (!chatRefreshId) chatRefreshId = setInterval(refreshChat, 180000);
         }
 
         async function refreshChat() {
@@ -3951,6 +3955,13 @@
                 allUsers[CONFIG.USERNAME].color = equippedColor;
                 allUsers[CONFIG.USERNAME].customSprite = customSpriteStore[equippedSkin];
                 allUsers[CONFIG.USERNAME].cp = userCP;
+            } else if (targetUser === CONFIG.USERNAME) {
+                // クリア記録・投稿が1件もない新規ユーザーでも、現在装備中のスキンが反映されるようにする
+                allUsers[CONFIG.USERNAME] = {
+                    clears: 0, posts: 0, cp: userCP, firsts: 0, totalPlays: 0, stageCount: 0,
+                    skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin],
+                    stagePlays: []
+                };
             }
  
             // 各種計算
@@ -5332,20 +5343,25 @@
                 ctx.restore();
             } else if(type === 'U') {
                 // 上昇気流
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(x*cw, y*ch, cw, ch);
-                ctx.clip();
+                // 以前は毎フレーム ctx.save()+ctx.clip()（canvasの中でも特に重い処理）と
+                // 8回の個別stroke()呼び出しを行っており、風タイルが多い水中ステージなどで
+                // ラグの原因になっていた。clip()はここでは「タイル内に収まるよう縦線を切る」
+                // だけなので、直線の端点をタイルの上下端にクランプする計算で同じ見た目を再現し、
+                // 4本ぶんの線を1つのパスにまとめて1回のstroke()で描く。
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
                 ctx.lineWidth = 3;
+                const uTop = y*ch, uBottom = y*ch + ch;
+                const uClamp = v => Math.max(uTop, Math.min(uBottom, v));
                 let drift = (time * 100) % ch;
+                ctx.beginPath();
                 for(let i=0; i<4; i++) {
-                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch + ch - drift);
-                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch + ch - drift - ch*0.6); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch - drift);
-                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch - drift - ch*0.6); ctx.stroke();
+                    const lx = x*cw + (i+1)*cw/5;
+                    let y1 = uClamp(y*ch + ch - drift), y2 = uClamp(y*ch + ch - drift - ch*0.6);
+                    if (y1 !== y2) { ctx.moveTo(lx, y1); ctx.lineTo(lx, y2); }
+                    y1 = uClamp(y*ch - drift); y2 = uClamp(y*ch - drift - ch*0.6);
+                    if (y1 !== y2) { ctx.moveTo(lx, y1); ctx.lineTo(lx, y2); }
                 }
-                ctx.restore();
+                ctx.stroke();
             } else if(type === 'P') {
                 // 風・気流系の共通クリップ解除（座標制御が複雑なため簡易化）
                 // 元々1マス内での描画なので、save/restoreは残すがclipだけ外しても影響は少ない
@@ -5736,20 +5752,21 @@
                 ctx.closePath();
                 ctx.fill();
             } else if(type === 'd') {
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(x*cw, y*ch, cw, ch);
-                ctx.clip();
+                // 下降気流（上昇気流と同様、clip()と複数回のstroke()呼び出しをやめて1回にまとめる）
                 ctx.strokeStyle = "rgba(100, 100, 255, 0.8)";
                 ctx.lineWidth = 3;
+                const dTop = y*ch, dBottom = y*ch + ch;
+                const dClamp = v => Math.max(dTop, Math.min(dBottom, v));
                 let drift = (time * 100) % ch;
+                ctx.beginPath();
                 for(let i=0; i<4; i++) {
-                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch + drift);
-                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch + drift - ch*0.6); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(x*cw + (i+1)*cw/5, y*ch + drift + ch);
-                    ctx.lineTo(x*cw + (i+1)*cw/5, y*ch + drift + ch - ch*0.6); ctx.stroke();
+                    const lx = x*cw + (i+1)*cw/5;
+                    let y1 = dClamp(y*ch + drift), y2 = dClamp(y*ch + drift - ch*0.6);
+                    if (y1 !== y2) { ctx.moveTo(lx, y1); ctx.lineTo(lx, y2); }
+                    y1 = dClamp(y*ch + drift + ch); y2 = dClamp(y*ch + drift + ch - ch*0.6);
+                    if (y1 !== y2) { ctx.moveTo(lx, y1); ctx.lineTo(lx, y2); }
                 }
-                ctx.restore();
+                ctx.stroke();
             } else if(type === 'Z') {
                 const previewColors = ['#fff', '#f00', '#00f', '#ff0'];
                 previewColors.forEach((c, i) => {
