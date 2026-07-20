@@ -391,6 +391,49 @@
             text-align: left;
             font-size: 1.2cqw;
         }
+        .chat-reply-btn {
+            background: none;
+            border: 0;
+            padding: 0;
+            margin-top: 0.35cqh;
+            color: #9cc9ff;
+            font: inherit;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+        .chat-reply-btn:hover { color: #fff; }
+        .chat-reply-source {
+            display: block;
+            background: none;
+            border: 0;
+            padding: 0;
+            margin: 0.35cqh 0;
+            color: #a9c9ff;
+            font: inherit;
+            font-size: 1.05cqw;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+        .chat-reply-source:hover { color: #fff; }
+        .chat-reply-source-preview {
+            margin: 0.3cqh 0 0.55cqh;
+            padding: 0.55cqw 0.8cqw;
+            border-left: 0.3cqw solid #7eaaff;
+            border-radius: 0.35cqw;
+            background: rgba(126, 170, 255, 0.12);
+            color: #dce8ff;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .chat-reply-context {
+            margin-bottom: 0.8cqh;
+            padding: 0.55cqw 0.8cqw;
+            background: rgba(110, 170, 255, 0.18);
+            border-left: 0.2cqw solid #9cc9ff;
+            color: #d9ebff;
+            font-size: 1.1cqw;
+        }
         /* --- OVRバッジ --- */
         .badge-chip {
             display: inline-flex;
@@ -406,6 +449,27 @@
             background-size: 300% 300% !important;
             animation: badgeAuroraShift 3s ease infinite;
         }
+        .rank-logo {
+            width: 1.55em;
+            height: 1.55em;
+            display: inline-grid;
+            place-items: center;
+            flex: 0 0 auto;
+            color: #fff;
+            font-size: 0.85em;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 1px 1px rgba(0,0,0,.8);
+            box-shadow: inset 0 1px rgba(255,255,255,.65), 0 0 5px currentColor;
+        }
+        .rank-bronze  { background: linear-gradient(135deg,#5a2e12,#d58a43); clip-path: polygon(50% 0,95% 18%,82% 88%,50% 100%,18% 88%,5% 18%); }
+        .rank-silver  { background: linear-gradient(135deg,#687681,#eef7ff); clip-path: polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); color:#1c2a34; text-shadow:none; }
+        .rank-gold    { background: linear-gradient(135deg,#9a5700,#ffe970,#c47700); clip-path: polygon(0 25%,20% 0,38% 25%,50% 0,62% 25%,80% 0,100% 25%,88% 100%,12% 100%); }
+        .rank-diamond { background: linear-gradient(135deg,#4ef5ff,#168ee8,#d8ffff); clip-path: polygon(50% 0,100% 38%,72% 100%,28% 100%,0 38%); color:#043c68; text-shadow:none; }
+        .rank-master  { background: linear-gradient(135deg,#3a095f,#bd5cff,#f0cbff); clip-path: polygon(50% 0,84% 14%,100% 50%,84% 86%,50% 100%,16% 86%,0 50%,16% 14%); }
+        .rank-elite   { background: linear-gradient(135deg,#05070f,#1d4fd7,#62b5ff); clip-path: polygon(50% 0,68% 25%,100% 18%,82% 50%,100% 82%,68% 75%,50% 100%,32% 75%,0 82%,18% 50%,0 18%,32% 25%); }
+        .rank-aurora  { background: conic-gradient(#00ff9d,#00d9ff,#9b5cff,#ff5cd6,#00ff9d); clip-path: polygon(50% 0,61% 34%,97% 32%,68% 54%,79% 91%,50% 69%,21% 91%,32% 54%,3% 32%,39% 34%); animation: rankAuroraSpin 4s linear infinite; }
+        @keyframes rankAuroraSpin { to { filter: hue-rotate(360deg); } }
         @keyframes badgeAuroraShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -1293,6 +1357,10 @@
             <div id="chat-list" class="chat-msg-list">
                 <!-- 内容はJSで生成 -->
             </div>
+            <div id="chat-reply-context" class="chat-reply-context" style="display:none; width:90%; box-sizing:border-box; justify-content:space-between; align-items:center;">
+                <span id="chat-reply-target"></span>
+                <button onclick="clearChatReply()" style="background:none; border:none; color:#d9ebff; cursor:pointer; font-size:1.4cqw;">✕</button>
+            </div>
             <div style="width: 90%; display: flex; gap: 1cqw;">
                 <input type="text" id="chat-input" maxlength="50" placeholder="メッセージを入力..." style="flex: 1; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.5cqw;">
                 <button class="pixel-btn small" style="width: 15cqw;" onclick="sendChat()">送信</button>
@@ -1610,10 +1678,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx6xTmJrKtykNSeIWtRVqmYpLa4xCE3MIFKRNcOE4zzCDVkWIaYefnkuv73coWQmyBB/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxm4vWXGFnMN3VV1w-5ZPtpWH0sblJSZNW2d5qQEGSxeewwA4ngtGgGqN0LMN8Go5nC/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.8.7"
+            VERSION: "2.9.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1785,6 +1853,33 @@
         // プレイヤーの当たり判定で毎フレーム全敵(enemies)をスキャンしなくて済むようにする
         // （敵が多いステージで、プレイヤーが横移動するたびに重くなる原因になっていた）。
         let playbackGhosts = [];
+        let preloadedGhostStage = null;
+        let preloadedGhostLeaderboard = null;
+        let preloadedGhosts = [];
+
+        // ゴーストの並べ替えと旧形式データの変換は、プレイ開始前に一度だけ行う。
+        // Retry 時は同じデータを再利用し、開始直後の引っ掛かりを防ぐ。
+        function preloadStageGhosts(stageObj) {
+            const leaderboard = Array.isArray(stageObj?.leaderboard) ? stageObj.leaderboard : [];
+            if (preloadedGhostStage === stageObj && preloadedGhostLeaderboard === leaderboard) {
+                return preloadedGhosts;
+            }
+            preloadedGhostStage = stageObj;
+            preloadedGhostLeaderboard = leaderboard;
+            preloadedGhosts = leaderboard
+                .slice()
+                .sort((a, b) => a.time - b.time)
+                .slice(0, 5)
+                .map(ghost => ({
+                    ...ghost,
+                    frames: Array.isArray(ghost.ghost)
+                        ? ghost.ghost.map(pos => Array.isArray(pos)
+                            ? pos
+                            : [pos.x, pos.y, pos.f === 'right' ? 1 : 0])
+                        : []
+                }));
+            return preloadedGhosts;
+        }
         let showGhosts = true;
         let isSchoolMode = false;
         let isManualReloadOnly = false;
@@ -1805,6 +1900,10 @@
         let timerElement = null;
         let gameRetryBtnCache = null;
         let gameExitBtnCache = null;
+        let lastGameTimerText = '';
+        let lastGameTimerColor = '';
+        let lastRetryLabel = '';
+        let lastControlEnabled = null;
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
         let lastTime = 0;
@@ -3074,6 +3173,7 @@
         async function openChat() {
             document.getElementById('chat-overlay').style.display = 'flex';
             clearAttachedStage();
+            clearChatReply();
             document.getElementById('chat-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
             await refreshChat();
             if (chatRefreshId) { clearInterval(chatRefreshId); chatRefreshId = null; }
@@ -3130,8 +3230,10 @@
                 item.appendChild(canvas);
                 const content = document.createElement('div');
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
+                const replyInfo = '';
                 content.innerHTML = `
                     <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
+                    ${replyInfo}
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                     ${stageBtn}
@@ -3143,6 +3245,18 @@
                     imgEl.addEventListener('click', () => showImageLightbox(m.image));
                     content.appendChild(imgEl);
                 }
+                if (m.replyToUsername) {
+                    const sourceBtn = document.createElement('button');
+                    sourceBtn.className = 'chat-reply-source';
+                    sourceBtn.innerText = '↳返信元';
+                    sourceBtn.onclick = () => toggleReplySource(sourceBtn, m.replyToUsername, m.replyToMessage);
+                    content.insertBefore(sourceBtn, content.children[2] || null);
+                }
+                const replyBtn = document.createElement('button');
+                replyBtn.className = 'chat-reply-btn';
+                replyBtn.innerText = '返信';
+                replyBtn.onclick = () => setChatReply(m.username, m.message);
+                content.appendChild(replyBtn);
                 item.appendChild(content);
                 container.appendChild(item);
             });
@@ -3150,6 +3264,38 @@
 
         let attachedStageId = null;
         let attachedStageName = null;
+        let replyToUsername = null;
+        let replyToMessage = null;
+
+        function setChatReply(username, message) {
+            replyToUsername = username;
+            replyToMessage = message;
+            document.getElementById('chat-reply-target').innerText = `${username} に返信しています`;
+            document.getElementById('chat-reply-context').style.display = 'flex';
+            document.getElementById('chat-input').focus();
+        }
+
+        function clearChatReply() {
+            replyToUsername = null;
+            replyToMessage = null;
+            const context = document.getElementById('chat-reply-context');
+            if (context) context.style.display = 'none';
+        }
+
+        function toggleReplySource(button, username, message) {
+            const next = button.nextElementSibling;
+            if (next && next.classList.contains('chat-reply-source-preview')) {
+                next.remove();
+                return;
+            }
+            const preview = document.createElement('div');
+            preview.className = 'chat-reply-source-preview';
+            const sender = document.createElement('strong');
+            sender.innerText = username || '不明なユーザー';
+            preview.appendChild(sender);
+            preview.appendChild(document.createTextNode(`: ${message || '（元のメッセージはありません）'}`));
+            button.insertAdjacentElement('afterend', preview);
+        }
         let attachedImageData = null; // 送信待ちの画像 (base64 dataURL)
 
         const CHAT_IMAGE_MAX_FILE_SIZE = 5 * 1024 * 1024; // 元ファイルの上限 5MB
@@ -3249,7 +3395,9 @@
                     customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
                     attachedStageId: attachedStageId,
                     attachedStageName: attachedStageName,
-                    image: attachedImageData
+                    image: attachedImageData,
+                    replyToUsername: replyToUsername,
+                    replyToMessage: replyToMessage
                 });
                 if (res && res.success === false) {
                     alert("送信に失敗しました: " + (res.message || "不明なエラー"));
@@ -3258,6 +3406,7 @@
                 input.value = '';
                 clearAttachedStage();
                 clearAttachedImage();
+                clearChatReply();
                 await refreshChat();
             } finally {
                 input.disabled = false;
@@ -3884,7 +4033,10 @@
             const skinCanvas = document.getElementById('profile-skin-canvas');
             const sCtx = skinCanvas.getContext('2d');
             sCtx.clearRect(0, 0, 128, 128);
-            drawPlayer(sCtx, 0, 0, 128, 128, stats.skin, false, stats.color, stats.customSprite);
+            const profileSkin = targetUser === CONFIG.USERNAME ? equippedSkin : stats.skin;
+            const profileColor = targetUser === CONFIG.USERNAME ? equippedColor : stats.color;
+            const profileCustomSprite = targetUser === CONFIG.USERNAME ? customSpriteStore[equippedSkin] : stats.customSprite;
+            drawPlayer(sCtx, 0, 0, 128, 128, profileSkin, false, profileColor, profileCustomSprite);
 
             renderProfileBadge(targetUser);
             const toggleBtn = document.getElementById('badge-toggle-btn');
@@ -4107,7 +4259,8 @@
             const fontSize = size === 'small' ? '0.65cqw' : '0.75cqw';
             const padding = size === 'small' ? '1px 5px' : '2px 7px';
             const isAurora = tier.group === 'aurora' ? ' badge-aurora' : '';
-            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};">${style.icon}${tier.label}</span>`;
+            const rankMark = tier.group === 'aurora' ? 'A' : tier.label.slice(-1);
+            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>`;
         }
 
         // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
@@ -6145,7 +6298,7 @@
             overlay.style.display = 'flex';
         }
 
-        function startGame(stageObj, mode = 'play') {
+        function startGame(stageObj, mode = 'play', isRetry = false) {
             // プレイモード時のみ互換チェック
             if (mode === 'play') {
                 const incompatible = checkStageCompatibility(stageObj);
@@ -6163,6 +6316,10 @@
             timerElement = document.getElementById('game-timer');
             gameRetryBtnCache = document.getElementById('game-retry-btn');
             gameExitBtnCache = document.getElementById('game-exit-btn');
+            lastGameTimerText = '';
+            lastGameTimerColor = '';
+            lastRetryLabel = '';
+            lastControlEnabled = null;
             cachedGameCanvas = document.getElementById('game-canvas');
             cachedGameCtx = cachedGameCanvas.getContext('2d');
             cachedGameCtx.imageSmoothingEnabled = false;
@@ -6201,9 +6358,7 @@
 
             activeStage = normalizeGrid(stageObj.data);
             currentStageType = stageObj.stageType || 'normal';
-            // 確実にタイムが速い順にソートしてから上位5件を取得
-            playbackGhosts = [...(stageObj.leaderboard || [])]
-                .sort((a, b) => a.time - b.time).slice(0, 5);
+            if (!isRetry) playbackGhosts = preloadStageGhosts(stageObj);
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             resizeCanvas('game-canvas');
@@ -6300,7 +6455,6 @@
             player.vx = 0; player.vy = 0; player.hasKey = 0;
             lavaAnimStart = Date.now();
             
-            playbackGhosts.forEach(g => g.trail = []); // 既存コードとの整合性のために初期化のみ残す（使用はしない）
             arrows = [];
             missiles = [];
             sickles = [];
@@ -6357,7 +6511,7 @@
             document.getElementById('msg-overlay').style.display = 'none';
             const rewardOverlay = document.getElementById('reward-overlay');
             if (rewardOverlay) rewardOverlay.style.display = 'none';
-            startGame(currentStageData, gameMode);
+            startGame(currentStageData, gameMode, true);
         }
 
         function closeMessage() {
@@ -6547,7 +6701,8 @@
                 // ES（イベントストーン）: 超難関以上のステージクリアでサーバー側がeventStoneAwardedを返した場合に加算する。
                 // ※現時点ではサーバー側(code.gs)の難易度判定・付与ロジックは未実装のため、実際に付与されるにはそちらの対応が別途必要。
                 if (res && res.success && res.eventStoneAwarded) {
-                    userES += res.eventStoneAwarded;
+                    const serverEventStones = Number(res.eventStones);
+                    userES = Number.isFinite(serverEventStones) ? serverEventStones : userES + res.eventStoneAwarded;
                     updateGoldDisplay();
                     if (rewardOverlay && rewardOverlay.style.display !== 'none') {
                         const esWrap = document.getElementById('reward-es-wrap');
@@ -7560,8 +7715,8 @@
             // 制御機がある場合は、その設置高度を波の頂点として実際に到達させる
             const maxHeight = (limit !== null && limit !== undefined) ? Math.max(0.2, limit) : 3;
             if (auroraEruptionControlActive && limit !== null && limit !== undefined) {
-                const minHeight = Math.max(0.2, limit);
-                return minHeight + (GRID_H - 0.2 - minHeight) * (0.5 + 0.5 * Math.sin(t));
+                const controlRow = Math.max(0.2, GRID_H - limit);
+                return 0.2 + (controlRow - 0.2) * (0.5 + 0.5 * Math.sin(t));
             }
             const h = 0.2 + (maxHeight - 0.2) * (0.5 + 0.5 * Math.sin(t));
             return h;
@@ -7766,14 +7921,18 @@
 
             // タイマーUIの更新
             if (timerElement) {
+                let nextTimerText = '';
+                let nextTimerColor = '';
                 if (isCountingDown) {
-                    timerElement.innerText = `TIME: 100.0 | KEYS: 0`;
-                    timerElement.style.color = "#fff";
+                    nextTimerText = `TIME: 100.0 | KEYS: 0`;
+                    nextTimerColor = "#fff";
                 } else if (!isGoalTriggered && startTime > 0) {
                     const remaining = Math.max(0, 100 - frameCount / 60);
-                    timerElement.innerText = `TIME: ${remaining.toFixed(1)} | KEYS: ${player.hasKey}`;
-                    timerElement.style.color = remaining < 10 ? "#ff5252" : "#fff";
+                    nextTimerText = `TIME: ${remaining.toFixed(1)} | KEYS: ${player.hasKey}`;
+                    nextTimerColor = remaining < 10 ? "#ff5252" : "#fff";
                 }
+                if (nextTimerText && nextTimerText !== lastGameTimerText) timerElement.innerText = lastGameTimerText = nextTimerText;
+                if (nextTimerColor && nextTimerColor !== lastGameTimerColor) timerElement.style.color = lastGameTimerColor = nextTimerColor;
             }
 
             // Retry/Exitの状態更新 (開始から5秒後まで無効)
@@ -7783,24 +7942,21 @@
             const elapsed = canUseControls ? (Date.now() - startTime) / 1000 : Infinity;
             const isControlEnabled = canUseControls && elapsed >= 5;
 
-            if (gameRetryBtn) {
-                if (!isControlEnabled) {
-                    gameRetryBtn.style.opacity = "0.5";
-                    gameRetryBtn.style.pointerEvents = "none";
-                    gameRetryBtn.innerText = canUseControls ? `RETRY(${Math.ceil(5 - elapsed)})` : "RETRY";
-                } else {
-                    gameRetryBtn.style.opacity = "1";
-                    gameRetryBtn.style.pointerEvents = "auto";
-                    gameRetryBtn.innerText = "RETRY";
-                }
+            const retryLabel = !isControlEnabled && canUseControls ? `RETRY(${Math.ceil(5 - elapsed)})` : "RETRY";
+            if (gameRetryBtn && retryLabel !== lastRetryLabel) {
+                gameRetryBtn.innerText = lastRetryLabel = retryLabel;
             }
-            if (gameExitBtn) {
-                if (!isControlEnabled) {
-                    gameExitBtn.style.opacity = "0.5";
-                    gameExitBtn.style.pointerEvents = "none";
-                } else {
-                    gameExitBtn.style.opacity = "1";
-                    gameExitBtn.style.pointerEvents = "auto";
+            if (isControlEnabled !== lastControlEnabled) {
+                lastControlEnabled = isControlEnabled;
+                const opacity = isControlEnabled ? "1" : "0.5";
+                const pointerEvents = isControlEnabled ? "auto" : "none";
+                if (gameRetryBtn) {
+                    gameRetryBtn.style.opacity = opacity;
+                    gameRetryBtn.style.pointerEvents = pointerEvents;
+                }
+                if (gameExitBtn) {
+                    gameExitBtn.style.opacity = opacity;
+                    gameExitBtn.style.pointerEvents = pointerEvents;
                 }
             }
 
@@ -7959,21 +8115,14 @@
                 
                 for (let i = 0; i < playbackGhosts.length; i++) {
                     const ghost = playbackGhosts[i];
-                    if (!ghost.ghost) continue;
-                    const pos = ghost.ghost[frameIdx] || ghost.ghost[ghost.ghost.length - 1];
+                    const frames = ghost.frames;
+                    if (!frames || frames.length === 0) continue;
+                    const pos = frames[frameIdx] || frames[frames.length - 1];
                     if (!pos) continue;
 
-                    // 旧形式(オブジェクト)と新形式(配列)の両方に対応
-                    let gx, gy, gf;
-                    if (Array.isArray(pos)) {
-                        gx = pos[0];
-                        gy = pos[1];
-                        gf = pos[2] === 1 ? 'right' : 'left';
-                    } else {
-                        gx = pos.x;
-                        gy = pos.y;
-                        gf = pos.f || 'right';
-                    }
+                    const gx = pos[0];
+                    const gy = pos[1];
+                    const gf = pos[2] === 1 ? 'right' : 'left';
 
                     drawPlayer(cachedGameCtx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
                     
