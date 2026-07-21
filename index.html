@@ -629,6 +629,16 @@
         .guild-badge-empty { box-sizing:border-box; border:1px dashed rgba(190,210,235,.85); border-radius:0; opacity:.8; }
         #my-guild-icon-wrap { position:relative; width:7cqw; height:7cqw; flex:0 0 auto; }
         #my-guild-icon-wrap canvas { width:100%; height:100%; }
+        .guild-badge.guild-rank-1, #my-guild-icon-wrap.guild-rank-1 { outline:1px solid #9eb2ca; box-shadow:0 0 .35cqw rgba(185,210,235,.5); }
+        .guild-badge.guild-rank-2, #my-guild-icon-wrap.guild-rank-2 { outline:2px solid #45b9ff; box-shadow:0 0 .7cqw rgba(69,185,255,.75), inset 0 0 .35cqw rgba(126,222,255,.4); }
+        .guild-badge.guild-rank-3, #my-guild-icon-wrap.guild-rank-3 { outline:2px double #b66cff; box-shadow:0 0 .9cqw rgba(182,108,255,.85), inset 0 0 .5cqw rgba(236,165,255,.45); }
+        .guild-badge.guild-rank-4, #my-guild-icon-wrap.guild-rank-4 { outline:3px double #ff8f4d; box-shadow:0 0 1cqw rgba(255,110,50,.95), inset 0 0 .6cqw rgba(255,210,105,.45); }
+        .guild-badge.guild-rank-5, #my-guild-icon-wrap.guild-rank-5 { outline:3px double #ffd54d; box-shadow:0 0 1.15cqw rgba(255,205,45,1), inset 0 0 .75cqw rgba(255,245,165,.6); }
+        .guild-badge.guild-rank-6, #my-guild-icon-wrap.guild-rank-6 { outline:3px double #7fffe5; box-shadow:0 0 1.35cqw #24dfff, 0 0 .6cqw #ffd952, inset 0 0 .8cqw rgba(190,255,245,.7); }
+        .guild-badge.guild-rank-7, #my-guild-icon-wrap.guild-rank-7 { outline:3px double #fff; box-shadow:0 0 1.5cqw #ff5bd7, 0 0 1cqw #4eeaff, 0 0 .7cqw #ffe65b, inset 0 0 .9cqw rgba(255,255,255,.7); animation:guildRankPrism 2.4s linear infinite; }
+        @keyframes guildRankPrism { 0%,100% { filter:hue-rotate(0deg) brightness(1); } 50% { filter:hue-rotate(85deg) brightness(1.3); } }
+        .chat-delete-btn { margin-left:.7cqw; padding:0; border:0; background:transparent; color:#a6b4c6; font-size:.78em; cursor:pointer; }
+        .chat-delete-btn:hover { color:#ff697d; }
         #my-guild-rank-frame { position:absolute; right:-.25cqw; bottom:-.25cqh; padding:.25cqw .45cqw; background:#061325; border:1px solid #55dfff; color:#b9fff2; font-size:.85cqw; font-weight:bold; }
         .guild-exp-gauge { width:20cqw; max-width:100%; height:1.2cqh; margin-top:.35cqh; border:1px solid #6d9bc9; background:#07111f; overflow:hidden; }
         .guild-exp-gauge > div { height:100%; background:linear-gradient(90deg,#20d89a,#65c7ff); transition:width .35s ease; }
@@ -1999,10 +2009,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyY1oCM7UsBrLmksvuKJ0_14NwoxLoHkamwdHlS7jl2rPqjBAFKlIOWuDjiWcWy0dI/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzdE98UvpLTc01BP_bRS3QgqX5C4czXUENfjXHPxmb--kb8ufM6WG4FPMbuAjLCa0Nv/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.10.1"
+            VERSION: "2.10.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3657,6 +3667,13 @@
                 replyBtn.innerText = '返信';
                 replyBtn.onclick = () => setChatReply(m.username, m.message);
                 content.appendChild(replyBtn);
+                if (String(m.username) === String(CONFIG.USERNAME)) {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'chat-delete-btn';
+                    deleteBtn.innerText = '削除';
+                    deleteBtn.onclick = () => deleteOwnChatMessage(m.id, m.message);
+                    content.appendChild(deleteBtn);
+                }
                 item.appendChild(content);
                 container.appendChild(item);
             });
@@ -3666,6 +3683,16 @@
         let attachedStageName = null;
         let replyToUsername = null;
         let replyToMessage = null;
+
+        async function deleteOwnChatMessage(messageId, message) {
+            if (!confirm('このコメントを削除しますか？')) return;
+            const res = await callApi('deleteChat', { username: CONFIG.USERNAME, messageId, message });
+            if (res && res.success) {
+                refreshChat();
+            } else {
+                alert((res && res.message) || '削除に失敗しました。');
+            }
+        }
 
         function setChatReply(username, message) {
             replyToUsername = username;
@@ -4057,6 +4084,7 @@
 
             document.getElementById('my-guild-name').innerText = g.name;
             document.getElementById('my-guild-rank-frame').innerText = `RANK ${g.rank || 0}`;
+            document.getElementById('my-guild-icon-wrap').className = `guild-rank-${Math.max(0, Math.min(7, Number(g.rank) || 0))}`;
             document.getElementById('my-guild-rank-display').innerText = `RANK ${g.rank || 0} ・ EXP ${(Number(g.exp) || 0).toLocaleString()} ・ G×${g.goldMultiplier || 1}`;
             renderGuildRankProgress(g);
             document.getElementById('my-guild-benefit').innerText = (Number(g.rank) || 0) === 0 ? '特典: なし' : `特典: クリア報酬G ×${g.goldMultiplier}`;
@@ -4821,7 +4849,7 @@
             const rankMark = tier.group === 'aurora' ? 'A' : tier.label.slice(-1);
             const guild = guildBadgeByMember[username];
             const guildIcon = guild
-                ? `<span class="guild-badge" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
+                ? `<span class="guild-badge guild-rank-${Math.max(0, Math.min(7, Number(guild.rank) || 0))}" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
                 : '<span class="guild-badge guild-badge-empty" title="ギルド未所属"></span>';
             return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${guildIcon}`;
         }
