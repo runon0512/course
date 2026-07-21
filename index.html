@@ -48,6 +48,8 @@
         .container.bg-dark  { background: #000; }
         .container.bg-volcano { background: linear-gradient(180deg, #1a0500 0%, #3d0f00 55%, #1a0500 100%); }
         .container.bg-night { background: #0b1026; }
+        .container.bg-moon { background: radial-gradient(circle at 72% 20%, #e9edf5 0 7%, transparent 7.3%), radial-gradient(1px 1px at 16% 24%, #fff 0 100%, transparent 100%), radial-gradient(1px 1px at 38% 66%, #cce6ff 0 100%, transparent 100%), radial-gradient(1px 1px at 84% 72%, #fff 0 100%, transparent 100%), linear-gradient(180deg, #050816, #141b36); }
+        .container.bg-beach { background: linear-gradient(180deg, #74d6ff 0%, #d9f6ff 47%, #16aee1 48%, #00699e 100%); }
 
         /* 難易度別の新背景 */
         .container.bg-cloudy { background: #90a4ae; } /* 難関: 曇り */
@@ -308,6 +310,110 @@
             display: flex;
         }
 
+        /* ホーム画面専用のネオンUI */
+        .container.bg-city::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            background:
+                radial-gradient(ellipse at 72% 53%, rgba(0, 191, 255, .19), transparent 25%),
+                radial-gradient(ellipse at 20% 78%, rgba(0, 255, 65, .12), transparent 27%),
+                linear-gradient(115deg, rgba(0, 255, 65, .06), transparent 36%, rgba(0, 191, 255, .08));
+        }
+        .container.bg-city::after {
+            content: '';
+            position: absolute;
+            left: -10%; right: -10%; bottom: 0;
+            height: 27%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: .38;
+            background: linear-gradient(transparent 0 82%, rgba(0, 191, 255, .32) 83% 84%, transparent 85%),
+                repeating-linear-gradient(90deg, transparent 0 5cqw, rgba(0, 191, 255, .24) 5.1cqw 5.25cqw);
+            transform: perspective(28cqw) rotateX(58deg) scaleX(1.25);
+            transform-origin: bottom;
+        }
+        h1 {
+            letter-spacing: .12em;
+            text-shadow: 0 0 .5cqw rgba(255,255,255,.8), 0 0 1.4cqw rgba(0,191,255,.72), .35cqw .35cqw 0 rgba(27,12,67,.9);
+        }
+        h1 .cursive-font {
+            display: inline-block;
+            background: linear-gradient(120deg, #fff 15%, #a9f7ff 44%, #43ffc3 72%, #fff 96%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 .45cqw rgba(0,255,200,.45));
+        }
+        #subtitle {
+            letter-spacing: .18em;
+            text-shadow: 0 0 .75cqw rgba(0,191,255,.9);
+        }
+        #subtitle::before, #subtitle::after {
+            content: '✦';
+            margin: 0 1.2cqw;
+            color: #7dffcb;
+            font-family: sans-serif;
+        }
+        #home-character-canvas {
+            filter: drop-shadow(0 0 1.2cqw rgba(0,255,190,.45)) drop-shadow(0 0 2.5cqw rgba(0,130,255,.3));
+            animation: homeCharacterFloat 4s ease-in-out infinite;
+        }
+        @keyframes homeCharacterFloat {
+            0%, 100% { transform: translateY(-50%) translateY(0); }
+            50% { transform: translateY(-50%) translateY(-1.1cqh); }
+        }
+        #main-menu {
+            top: 33cqh;
+            left: 6cqw;
+            width: 31cqw;
+            gap: 1.35cqh;
+            padding: 1.6cqw;
+            border: .1cqw solid rgba(105,224,255,.48);
+            background: linear-gradient(135deg, rgba(4,16,43,.76), rgba(5,8,25,.38));
+            box-shadow: inset 0 0 2cqw rgba(0,191,255,.08), 0 0 2.5cqw rgba(0,0,0,.3);
+            box-sizing: border-box;
+        }
+        #main-menu::before {
+            content: 'MAIN TERMINAL  /  SELECT MODE';
+            color: #88eaff;
+            font-size: .9cqw;
+            letter-spacing: .14em;
+            text-align: left;
+            padding-bottom: .8cqh;
+            border-bottom: 1px solid rgba(136,234,255,.35);
+            width: 100%;
+        }
+        #main-menu .pixel-btn {
+            width: 100%;
+            min-width: 0;
+            padding: 1.15cqh 1.6cqw;
+            text-align: left;
+            font-size: 2cqw;
+            border: .16cqw solid rgba(157,235,255,.8);
+            background: linear-gradient(90deg, rgba(3,20,43,.94), rgba(8,32,66,.78));
+            box-shadow: inset .28cqw 0 0 var(--primary-color), 0 .35cqw 0 rgba(0,0,0,.35);
+        }
+        #main-menu .pixel-btn::before { display:inline-block; width:2.1cqw; color:#7dffcb; font-size:1.25em; }
+        #main-menu .pixel-btn:nth-child(1)::before { content:'▶'; }
+        #main-menu .pixel-btn:nth-child(2)::before { content:'▣'; }
+        #main-menu .pixel-btn:nth-child(3)::before { content:'◈'; }
+        #main-menu .pixel-btn:nth-child(4)::before { content:'✦'; }
+        #main-menu .pixel-btn:hover {
+            color:#02141d;
+            background: linear-gradient(90deg, #4affc1, #63d9ff);
+            border-color:#fff;
+            box-shadow: 0 0 1.4cqw rgba(66,255,198,.78), .45cqw .45cqw 0 rgba(0,0,0,.55);
+            transform: translate(-.22cqw, -.22cqw);
+        }
+        #user-info {
+            border-color: rgba(92,235,255,.8);
+            background: linear-gradient(90deg, rgba(2,17,38,.88), rgba(4,29,52,.58));
+            box-shadow: 0 0 1.1cqw rgba(0,191,255,.2);
+        }
+
         .pixel-btn {
             background-color: #000;
             border: 0.5cqw solid #fff;
@@ -391,6 +497,64 @@
             text-align: left;
             font-size: 1.2cqw;
         }
+
+        /* ホーム・ステージ一覧と統一するネオンパネル */
+        #chat-overlay, #profile-overlay, #guild-overlay, #shop-overlay, #explanation-overlay {
+            background:
+                radial-gradient(ellipse at 15% 10%, rgba(0,255,180,.13), transparent 35%),
+                radial-gradient(ellipse at 85% 88%, rgba(0,166,255,.15), transparent 42%),
+                linear-gradient(135deg, rgba(3,10,25,.98), rgba(5,23,48,.97)) !important;
+        }
+        #leaderboard-overlay {
+            background:
+                radial-gradient(ellipse at 20% 12%, rgba(0,255,180,.15), transparent 35%),
+                radial-gradient(ellipse at 80% 90%, rgba(0,166,255,.16), transparent 44%),
+                linear-gradient(135deg, #030a19, #071c38) !important;
+        }
+        #chat-overlay h2, #profile-overlay h2, #guild-overlay h2, #shop-overlay h2,
+        #explanation-overlay h2, #leaderboard-overlay h2 {
+            color:#c9fbff !important;
+            letter-spacing:.12em;
+            text-shadow:0 0 1cqw rgba(0,210,255,.72);
+        }
+        #chat-overlay .pixel-btn, #leaderboard-overlay .pixel-btn, #profile-overlay .pixel-btn,
+        #guild-overlay .pixel-btn, #shop-overlay .pixel-btn, #explanation-overlay .pixel-btn {
+            border-color:#5cddff;
+            box-shadow:inset .16cqw 0 0 rgba(125,255,203,.8), 0 .25cqw 0 rgba(0,0,0,.38);
+        }
+        #chat-overlay .pixel-btn:hover, #leaderboard-overlay .pixel-btn:hover, #profile-overlay .pixel-btn:hover,
+        #guild-overlay .pixel-btn:hover, #shop-overlay .pixel-btn:hover, #explanation-overlay .pixel-btn:hover {
+            box-shadow:0 0 1.1cqw rgba(75,226,255,.6);
+        }
+        .chat-msg-list {
+            box-sizing:border-box;
+            padding:1cqw;
+            border:.14cqw solid rgba(83,220,255,.62);
+            background:rgba(2,15,35,.72);
+            box-shadow:inset 0 0 1.3cqw rgba(0,191,255,.08);
+            scrollbar-color:#4edcff #061326;
+        }
+        .chat-msg-item {
+            background:linear-gradient(100deg, rgba(6,28,58,.88), rgba(11,42,76,.58));
+            border:1px solid rgba(102,220,255,.33);
+            border-left:.28cqw solid #57ddff;
+            border-radius:0;
+            box-shadow:inset 0 0 .8cqw rgba(0,191,255,.05);
+        }
+        #chat-overlay input, #chat-overlay #chat-stage-search, #chat-overlay .chat-reply-context {
+            background:#071a35 !important;
+            border-color:#58dfff !important;
+            box-shadow:inset 0 0 .8cqw rgba(0,191,255,.11);
+        }
+        #leaderboard-overlay .auth-box, .profile-container .ovr-box {
+            background:linear-gradient(135deg, rgba(4,22,49,.95), rgba(8,34,66,.8)) !important;
+            border-color:#57ddff !important;
+            box-shadow:inset 0 0 1.6cqw rgba(0,191,255,.09), 0 0 1.4cqw rgba(0,0,0,.35);
+        }
+        #leaderboard-overlay table { background:rgba(3,18,42,.78); border-color:#57ddff !important; }
+        #leaderboard-overlay th { color:#8cf5ff; background:rgba(0,191,255,.12); }
+        #leaderboard-overlay td { border-color:rgba(83,220,255,.25) !important; }
+        .profile-container .ovr-box { border-width:.2cqw; }
         .chat-reply-btn {
             background: none;
             border: 0;
@@ -482,7 +646,7 @@
         #guild-member-view.guild-home-active > :first-child { grid-column:1; grid-row:1; }
         #guild-member-view.guild-home-active > :nth-child(2) { display:none !important; }
         #guild-member-view.guild-home-active > #guild-members-list-tab { grid-column:2; grid-row:1 / 3; display:flex !important; min-height:0; }
-        #guild-member-view.guild-home-active > #guild-bulletin-board-tab { grid-column:1; grid-row:2; display:flex !important; min-height:0; }
+        #guild-member-view.guild-home-active > #guild-bulletin-board-tab { grid-column:1; grid-row:2; display:flex !important; min-height:0; overflow:hidden; }
         #guild-member-view.guild-home-active > #guild-settings-tab { grid-column:1 / 3; grid-row:1 / 3; z-index:2; background:#111a30; padding:2cqw; }
         #guild-member-view.guild-home-active > #guild-action-area { grid-column:1 / 3; grid-row:3; }
         .rank-logo {
@@ -567,12 +731,15 @@
             align-items: center;
             justify-content: center;
         }
-        /* Add styles for guild bulletin board */
+        /* ギルドチャットは欄内だけをスクロールさせる。少ない場合も2件程度の高さを保つ。 */
         .guild-bulletin-board {
-            width: 90%;
-            flex-grow: 1;
+            box-sizing: border-box;
+            width: 100%;
+            height: 15cqh;
+            min-height: 15cqh;
+            flex: 0 0 15cqh;
             overflow-y: auto;
-            margin-bottom: 2cqh;
+            overscroll-behavior: contain;
             display: flex;
             flex-direction: column;
             gap: 1cqh;
@@ -926,10 +1093,10 @@
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: 
-                radial-gradient(ellipse at 20% 50%, rgba(120, 40, 180, 0.35) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 20%, rgba(60, 0, 120, 0.4) 0%, transparent 55%),
-                radial-gradient(ellipse at 60% 80%, rgba(180, 60, 120, 0.25) 0%, transparent 50%),
-                linear-gradient(160deg, #0a0018 0%, #110030 30%, #0d001e 60%, #180028 100%);
+                radial-gradient(ellipse at 18% 18%, rgba(0, 255, 174, 0.16) 0%, transparent 42%),
+                radial-gradient(ellipse at 83% 24%, rgba(0, 171, 255, 0.2) 0%, transparent 45%),
+                radial-gradient(ellipse at 52% 100%, rgba(116, 57, 255, 0.18) 0%, transparent 48%),
+                linear-gradient(135deg, #030916 0%, #07152b 48%, #090b22 100%);
             z-index: 50;
             display: none;
             flex-direction: column;
@@ -999,22 +1166,25 @@
         }
 
         .stage-item {
-            width: 80%;
-            background: #35354e;
-            border: 0.2cqw solid #fff;
-            padding: 1cqw;
-            margin-bottom: 1cqh;
+            width: min(82%, 88cqw);
+            background: linear-gradient(105deg, rgba(5, 20, 43, .94), rgba(10, 35, 66, .78));
+            border: 0.16cqw solid rgba(112, 224, 255, .75);
+            padding: 1.1cqw;
+            margin: 0 auto 1cqh;
             cursor: pointer;
             text-align: left;
             font-size: 1.8cqw;
             display: flex;
             align-items: center;
             gap: 2cqw;
+            box-sizing: border-box;
+            box-shadow: inset .28cqw 0 0 var(--primary-color), 0 .45cqw 1.4cqw rgba(0, 0, 0, .34);
+            transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
         }
-        .stage-item:hover { background: #444; }
+        .stage-item:hover { background: linear-gradient(105deg, rgba(8, 54, 77, .98), rgba(19, 52, 96, .9)); border-color: #7dffcb; transform: translateY(-.25cqh); box-shadow: inset .32cqw 0 0 #7dffcb, 0 0 1.5cqw rgba(0, 214, 255, .32); }
         .stage-stats {
             font-size: 0.8cqw;
-            color: #bbb;
+            color: #b8d7ed;
             margin-top: 0.5cqh;
             display: flex;
             gap: 1cqw;
@@ -1024,10 +1194,19 @@
         .stage-preview {
             width: 16cqw;
             height: 8cqw;
-            background: #70a1ff;
-            border: 0.1cqw solid #fff;
+            background: #061326;
+            border: 0.14cqw solid #57dfff;
             image-rendering: pixelated;
+            box-shadow: 0 0 .8cqw rgba(0, 191, 255, .3);
         }
+
+        .stage-list-title { color:#c7fbff; letter-spacing:.13em; text-shadow:0 0 1cqw rgba(0, 210, 255, .75); }
+        .stage-filter-bar { width:min(84%, 94cqw) !important; padding:.9cqw; box-sizing:border-box; border:.12cqw solid rgba(103,220,255,.52); background:rgba(3,17,39,.7); box-shadow:inset 0 0 1.5cqw rgba(0,191,255,.08); }
+        .stage-filter-bar .pixel-btn { background:linear-gradient(90deg, #06234a, #123a69) !important; color:#e8fdff !important; border-color:#62e4ff !important; box-shadow:inset .18cqw 0 0 #7dffcb, 0 .25cqw 0 rgba(0,0,0,.35); }
+        .stage-filter-bar .pixel-btn:hover { background:linear-gradient(90deg, #63fbc9, #64cbff) !important; color:#03141e !important; box-shadow:0 0 1cqw rgba(81,234,255,.55); }
+        #stage-list-overlay .filter-control { background:#071a35; color:#e6fbff; border:.14cqw solid #58dfff; padding:.65cqh .8cqw; font-size:1.15cqw; box-shadow:inset 0 0 .8cqw rgba(0,191,255,.12); }
+        #stage-list-overlay .remember-wrap { border-color:#4edcff !important; background:rgba(4,25,52,.85) !important; color:#d9f8ff; }
+        #stage-list-container { display:flex; flex-direction:column; align-items:center; scrollbar-color:#4edcff #061326; }
 
         @keyframes float {
             0%, 100% { transform: translateY(-50%); }
@@ -1165,6 +1344,65 @@
             background: #333;
             color: #888;
         }
+        /* ネオンテーマの解除: 既存画面の標準デザインへ戻す */
+        .container.bg-city::before, .container.bg-city::after { content:none; }
+        h1 { letter-spacing:normal; text-shadow:none; }
+        h1 .cursive-font { display:inline; background:none; -webkit-background-clip:initial; background-clip:initial; color:#fff; filter:none; }
+        #subtitle { letter-spacing:normal; text-shadow:none; }
+        #subtitle::before, #subtitle::after { content:none; margin:0; }
+        #home-character-canvas { filter:none; animation:none; }
+        #main-menu { top:35cqh; left:5cqw; width:35cqw; gap:2.5cqh; padding:0; border:0; background:none; box-shadow:none; box-sizing:content-box; }
+        #main-menu::before { content:none; }
+        #main-menu .pixel-btn { width:100%; min-width:18cqw; padding:2% 5%; text-align:center; font-size:2.5cqw; border:.3cqw solid #fff; background:#000; box-shadow:none; }
+        #main-menu .pixel-btn::before { display:none; }
+        #main-menu .pixel-btn:hover { color:#000; background:var(--primary-color); border-color:var(--primary-color); box-shadow:1.2cqw 1.2cqw 0 var(--secondary-color); transform:translate(-2px,-2px); }
+        #user-info { border-color:var(--primary-color); background:rgba(0,0,0,.5); box-shadow:none; }
+
+        #stage-list-overlay { background:radial-gradient(ellipse at 20% 50%, rgba(120,40,180,.35) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(60,0,120,.4) 0%, transparent 55%), radial-gradient(ellipse at 60% 80%, rgba(180,60,120,.25) 0%, transparent 50%), linear-gradient(160deg,#0a0018 0%,#110030 30%,#0d001e 60%,#180028 100%); }
+        .stage-list-title { color:inherit; letter-spacing:normal; text-shadow:none; }
+        .stage-filter-bar { width:80% !important; padding:0; border:0; background:none; box-shadow:none; }
+        .stage-filter-bar .pixel-btn { background:#000 !important; color:#fff !important; border-color:#fff !important; box-shadow:none; }
+        .stage-filter-bar .pixel-btn:hover { background:var(--primary-color) !important; color:#000 !important; box-shadow:1.2cqw 1.2cqw 0 var(--secondary-color); }
+        #stage-list-overlay .filter-control { background:#fff; color:#111; border:.12cqw solid #555; padding:.55cqh .75cqw; font-size:1.15cqw; box-shadow:none; }
+        #stage-list-overlay .filter-control::placeholder { color:#666; opacity:1; }
+        #stage-list-overlay .remember-wrap { border-color:var(--primary-color) !important; background:rgba(0,0,0,.5) !important; color:inherit; }
+        #stage-list-container { display:block; scrollbar-color:auto; }
+        .stage-item { width:80%; background:#35354e; border:.2cqw solid #fff; padding:1cqw; margin:0 auto 1cqh; box-shadow:none; transition:none; }
+        .stage-item:hover { background:#444; border-color:#fff; transform:none; box-shadow:none; }
+        .stage-stats { color:#bbb; }
+        .stage-preview { background:#70a1ff; border:.1cqw solid #fff; box-shadow:none; }
+
+        #chat-overlay { background:rgba(10,10,30,.95) !important; }
+        #profile-overlay, #guild-overlay, #shop-overlay, #explanation-overlay { background:rgba(10,10,30,.9) !important; }
+        #leaderboard-overlay { background:rgba(0,0,0,.95) !important; }
+        #chat-overlay h2, #profile-overlay h2, #guild-overlay h2, #shop-overlay h2, #explanation-overlay h2, #leaderboard-overlay h2 { color:inherit !important; letter-spacing:normal; text-shadow:none; }
+        #chat-overlay .pixel-btn, #leaderboard-overlay .pixel-btn, #profile-overlay .pixel-btn, #guild-overlay .pixel-btn, #shop-overlay .pixel-btn, #explanation-overlay .pixel-btn { border-color:#fff; box-shadow:none; }
+        .chat-msg-list { box-sizing:content-box; padding:0; border:0; background:transparent; box-shadow:none; scrollbar-color:auto; }
+        .chat-msg-item { background:rgba(255,255,255,.05); border:0; border-left:0; border-radius:4px; box-shadow:none; }
+        #chat-overlay input, #chat-overlay #chat-stage-search, #chat-overlay .chat-reply-context { background:#1a1a2e !important; border-color:#fff !important; box-shadow:none; }
+        #leaderboard-overlay .auth-box, .profile-container .ovr-box { background:rgba(255,255,255,.1) !important; border-color:var(--primary-color) !important; box-shadow:none; }
+        #leaderboard-overlay table { background:transparent; border-color:initial !important; }
+        #leaderboard-overlay th { color:inherit; background:transparent; }
+        #leaderboard-overlay td { border-color:#444 !important; }
+        .profile-container .ovr-box { border-width:.5cqw; }
+
+        /* 大型メニューのコンテンツ幅と中央位置を統一 */
+        #creators-road-overlay, #login-bonus-overlay, #explanation-overlay { align-items:center; box-sizing:border-box; }
+        #creators-road-overlay > h2, #creators-road-overlay > button,
+        #login-bonus-overlay > h2, #login-bonus-overlay > p,
+        #explanation-overlay > h2, #explanation-overlay > button { align-self:center; text-align:center; }
+        #creators-road-overlay > div:not(#road-milestones), #road-milestones,
+        #login-bonus-calendar, #explanation-list { margin-left:auto !important; margin-right:auto !important; }
+        #road-milestones { max-width:80cqw; align-self:center; }
+        #road-milestones > div { box-sizing:border-box; width:100%; }
+        #login-bonus-calendar { max-width:90cqw; justify-content:center; align-self:center; }
+        #explanation-list { max-width:85cqw; align-self:center; box-sizing:border-box; }
+
+        /* プロフィールは画面中央を基準にまとめる */
+        #profile-overlay { justify-content:center; box-sizing:border-box; gap:1.2cqh; }
+        #profile-overlay > h2, #profile-overlay > button, #profile-overlay > .profile-container { flex-shrink:0; }
+        .profile-container { width:min(90%, 92cqw); height:auto; min-height:52cqh; margin:0 auto; justify-content:center; }
+        #radar-chart { display:block; margin:0 auto; background:radial-gradient(circle, rgba(0,191,255,.09), rgba(5,12,30,.08) 65%, transparent 66%); border:.14cqw solid rgba(130,220,255,.4); }
     </style>
 </head>
 <body>
@@ -1351,7 +1589,8 @@
                 <div class="ovr-box">
                     <div style="font-size: 1.8cqw; color: #aaa;">OVR</div>
                     <div id="profile-ovr" style="font-size: 7cqw; color: var(--primary-color); font-weight: bold;">0</div>
-                    <canvas id="profile-skin-canvas" width="128" height="128" style="image-rendering: pixelated; width: 10cqw; height: 10cqw; margin-top: 2cqh;"></canvas>
+                    <div id="profile-skin-loading" style="width:10cqw; height:10cqw; margin:2cqh auto 0; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:1.2cqw;">読み込み中...</div>
+                    <canvas id="profile-skin-canvas" width="128" height="128" style="display:none; image-rendering: pixelated; width:10cqw; height:10cqw; margin:2cqh auto 0;"></canvas>
                     <div id="profile-username" style="margin-top: 1cqh; font-size: 1.5cqw;">-</div>
                     <div id="profile-badge-holder" style="margin-top: 1cqh;"></div>
                     <button id="badge-toggle-btn" class="pixel-btn small badge-toggle-btn" style="display:none; margin-top: 1cqh; font-size: 1cqw;" onclick="toggleMyBadgeVisibility()">🏅バッジ表示: ON</button>
@@ -1423,6 +1662,7 @@
                 <div id="guild-selected-icon-preview" style="text-align: center;">
                     <canvas id="guild-icon-canvas" width="64" height="64" style="image-rendering: pixelated; width: 8cqw; height: 8cqw;"></canvas>
                 </div>
+                <button class="pixel-btn small" style="background:#673ab7;" onclick="openGuildIconEditor('create')">✏ カスタムアイコンを作る</button>
                 <button class="pixel-btn" style="width: 40%; background: #4caf50;" onclick="createGuild()">25000Gで作成</button>
                 <button class="pixel-btn small" onclick="showGuildMain()">キャンセル</button>
             </div>
@@ -1491,12 +1731,18 @@
                         <div style="text-align: center; margin: 1cqh 0;">
                             <canvas id="guild-icon-change-canvas" width="64" height="64" style="image-rendering: pixelated; width: 6cqw; height: 6cqw;"></canvas>
                         </div>
+                        <button class="pixel-btn small" style="background: #673ab7;" onclick="openGuildIconEditor('change')">✏ カスタム編集</button>
                         <button class="pixel-btn small" style="background: #ff9800;" onclick="confirmGuildIconChange()">変更する</button>
                     </div>
                     <div class="guild-settings-section">
                         <div style="font-size: 1.5cqw; font-weight: bold;">マスター権限譲渡</div>
                         <select id="transfer-master-select" style="width: 100%; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 0.8cqw; font-size: 1.2cqw;"></select>
                         <button class="pixel-btn small" style="background: #f44336; margin-top: 1cqh;" onclick="confirmTransferMasterFromSettings()">マスター譲渡</button>
+                    </div>
+                    <div id="guild-delete-section" class="guild-settings-section" style="display:none;">
+                        <div style="font-size: 1.5cqw; font-weight: bold; color:#ff8a80;">ギルドを削除</div>
+                        <div style="font-size:1cqw; color:#ccc; margin:0.6cqh 0;">メンバーが自分だけの時に削除できます。</div>
+                        <button id="guild-delete-btn" class="pixel-btn small" style="background:#b71c1c;" onclick="confirmDeleteGuild()">ギルドを削除</button>
                     </div>
                 </div>
 
@@ -1523,6 +1769,21 @@
         </div>
 
         <!-- カスタムスキンエディタ -->
+        <div id="guild-icon-editor-overlay" class="screen" style="z-index: 170; flex-direction:column; align-items:center; justify-content:center; background:rgba(8,10,28,.97);">
+            <h2 style="font-size:3cqw; margin-bottom:2cqh;">GUILD ICON EDITOR</h2>
+            <div style="display:flex; gap:4cqw; align-items:flex-start;">
+                <canvas id="guild-icon-edit-canvas" width="256" height="256" style="border:.5cqw solid #fff; image-rendering:pixelated; width:30cqw; height:30cqw; cursor:crosshair;"></canvas>
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <div id="guild-icon-current-pen" style="width:6cqw; height:6cqw; border:.3cqw solid #fff; margin-bottom:2cqh;"></div>
+                    <div class="palette-grid" id="guild-icon-editor-palette"></div>
+                    <div style="margin-top:4cqh; display:flex; flex-direction:column; gap:2cqh; width:100%;">
+                        <button class="pixel-btn small" onclick="saveGuildCustomIcon()">💾 アイコンに使用</button>
+                        <button class="pixel-btn small" style="background:#f44336;" onclick="closeGuildIconEditor()">戻る</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="custom-editor-overlay" class="screen">
             <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">SKIN EDITOR</h2>
             <div style="display: flex; gap: 4cqw; align-items: flex-start;">
@@ -1583,8 +1844,8 @@
 
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
-            <h2 style="font-size: 3.5cqw; position: relative; z-index: 1;">PUBLISHED STAGES</h2>
-            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%; position: relative; z-index: 1;">
+            <h2 class="stage-list-title" style="font-size: 3.5cqw; position: relative; z-index: 1;">PUBLISHED STAGES</h2>
+            <div class="stage-filter-bar" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%; position: relative; z-index: 1;">
                 <button class="pixel-btn small" onclick="closeStageSelect()" style="background: #f44336; color: #fff;">戻る</button>
                 <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
                 <select id="sort-criteria" class="filter-control" onchange="openStageSelect()">
@@ -1603,7 +1864,17 @@
                     <input type="checkbox" id="filter-unplayed" onchange="openStageSelect()">
                     <span>未プレイのみ</span>
                 </label>
-                <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" onkeyup="debouncedStageSelect()">
+                <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" oninput="debouncedStageSelect()">
+                <input type="text" id="filter-stage-name" placeholder="ステージ名で絞り込み" class="filter-control" oninput="debouncedStageSelect()">
+                <select id="filter-stage-type" class="filter-control" onchange="openStageSelect()">
+                    <option value="">全ステージタイプ</option>
+                    <option value="normal">通常</option>
+                    <option value="water">水中</option>
+                    <option value="dark">暗闇</option>
+                    <option value="volcano">火山</option>
+                    <option value="moon">月</option>
+                    <option value="beach">海辺</option>
+                </select>
             </div>
             <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box; position: relative; z-index: 1;"></div>
         </div>
@@ -1626,6 +1897,8 @@
                         <option value="water">🌊 水中</option>
                         <option value="dark">🌑 暗闇</option>
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
+                        <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
+                        <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                     <button id="editor-ui-toggle-btn" class="pixel-btn small" style="margin-top:0; background:#607d8b; color:#fff;" onclick="toggleEditorUI()">🙈UI非表示</button>
@@ -1726,10 +1999,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxC5KHPoWsPTRgM6clMBV6hvUU4tDYyAu272Mmh2N-ZWGI8csSi0jD72-H2481n6f5l/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyY1oCM7UsBrLmksvuKJ0_14NwoxLoHkamwdHlS7jl2rPqjBAFKlIOWuDjiWcWy0dI/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.9.3"
+            VERSION: "2.10.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -1778,13 +2051,32 @@
             });
         }
 
+        const guildCustomIconCache = new Map();
+        function getGuildCustomIconData(icon) {
+            if (typeof icon !== 'string' || !icon.startsWith('guild-custom:')) return null;
+            if (guildCustomIconCache.has(icon)) return guildCustomIconCache.get(icon);
+            try {
+                const data = JSON.parse(icon.slice('guild-custom:'.length));
+                const valid = Array.isArray(data) && data.length === 16 &&
+                    data.every(row => Array.isArray(row) && row.length === 16);
+                if (!valid) return null;
+                guildCustomIconCache.set(icon, data);
+                return data;
+            } catch (e) { return null; }
+        }
+
+        function drawGuildIcon(ctx, x, y, width, height, icon) {
+            const customData = getGuildCustomIconData(icon);
+            drawPlayer(ctx, x, y, width, height, customData ? 'custom' : (icon || 'default'), false, 'default', customData);
+        }
+
         function getGuildIconDataUrl(icon) {
             const id = icon || 'default';
             if (guildIconDataUrlCache[id]) return guildIconDataUrlCache[id];
             const canvas = document.createElement('canvas');
             canvas.width = 16;
             canvas.height = 16;
-            renderToSpriteCanvas(canvas.getContext('2d'), SKINS[id] || SKINS.default, null, 'default');
+            drawGuildIcon(canvas.getContext('2d'), 0, 0, 16, 16, id);
             return guildIconDataUrlCache[id] = canvas.toDataURL();
         }
 
@@ -1896,6 +2188,9 @@
         let filterMyStages = false;
         let filterUnplayed = false;
         let filterCreatorName = '';
+        let filterStageName = '';
+        let filterStageType = '';
+        let stageListRenderVersion = 0;
         let arrows = [];
         let missiles = [];
         let sickles = []; // 狼（ボスNo.2）が投げる、プレイヤーを追尾する回転する鎌
@@ -2353,6 +2648,8 @@
             'lamp_block': { name: 'LAMP BLOCK', price: 15000, isBlockSet: true, sprite: null },
             'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null },
             'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
+            'moon_stage': { name: 'MOON STAGE', price: 40000, isBlockSet: true, isStageType: true, sprite: null },
+            'beach_stage': { name: 'BEACH STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null }
@@ -2649,6 +2946,8 @@
                                 document.getElementById('sort-criteria').value = currentSort;
                                 document.getElementById('filter-my-stages').checked = filterMyStages;
                                 document.getElementById('filter-creator').value = filterCreatorName;
+                                document.getElementById('filter-stage-name').value = filterStageName;
+                                document.getElementById('filter-stage-type').value = filterStageType;
                                 updateGoldDisplay();
                             }, 1000);
                         }
@@ -2731,6 +3030,18 @@
                 ctx.beginPath(); ctx.arc(20, 40, 3, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(40, 50, 2, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(48, 36, 2.5, 0, Math.PI * 2); ctx.fill();
+            } else if (data.isStageType && id === 'moon_stage') {
+                ctx.fillStyle = '#080b20'; ctx.fillRect(0, 0, 64, 64);
+                ctx.fillStyle = '#e8edf7'; ctx.beginPath(); ctx.arc(42, 20, 14, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#b7c0d0'; ctx.beginPath(); ctx.arc(37, 17, 3, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(47, 25, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#8a8d99'; ctx.fillRect(0, 48, 64, 16);
+            } else if (data.isStageType && id === 'beach_stage') {
+                const sky = ctx.createLinearGradient(0, 0, 0, 64);
+                sky.addColorStop(0, '#79d8ff'); sky.addColorStop(.48, '#d7f5ff'); sky.addColorStop(.5, '#15aee5'); sky.addColorStop(1, '#006da8');
+                ctx.fillStyle = sky; ctx.fillRect(0, 0, 64, 64);
+                ctx.fillStyle = '#fff4b3'; ctx.fillRect(0, 28, 64, 4);
+                ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1;
+                for (let x = 0; x < 64; x += 14) { ctx.beginPath(); ctx.arc(x + 7, 35, 6, Math.PI, Math.PI * 2); ctx.stroke(); }
             } else if (data.isBlockSet) {
                 let previewType = 'o';
                 if (id === 'wire_mesh') previewType = '#';
@@ -3622,7 +3933,7 @@
             const initialCtx = initialCvs.getContext('2d');
             initialCtx.clearRect(0, 0, initialCvs.width, initialCvs.height);
             initialCtx.clearRect(0, 0, initialCvs.width, initialCvs.height); // Clear before drawing
-            drawPlayer(initialCtx, 0, 0, 64, 64, selectedGuildIcon);
+            drawGuildIcon(initialCtx, 0, 0, 64, 64, selectedGuildIcon);
         }
         async function createGuild() {
             if (hasCurrentGuild()) { alert("すでにギルドに所属しています。"); showMyGuild(); return; }
@@ -3669,7 +3980,7 @@
                 div.className = 'shop-item';
                 const cvs = document.createElement('canvas');
                 cvs.width = 64; cvs.height = 64;
-                drawPlayer(cvs.getContext('2d'), 0, 0, 64, 64, g.icon);
+                drawGuildIcon(cvs.getContext('2d'), 0, 0, 64, 64, g.icon);
                 
                 const textInfo = document.createElement('div');
                 textInfo.style.marginTop = '0.5cqh';
@@ -3735,8 +4046,10 @@
             if (!res.success) return;
             cacheGuildBadgeData(res.guilds);
             const g = res.guilds.find(guild => guild.name === userGuild);
-            if (!g) {
+            // キック後はブラウザ側に残った古いuserGuildを使わず、実際のメンバー一覧を正とする。
+            if (!g || !(g.members || []).some(member => String(member) === String(CONFIG.USERNAME))) {
                 userGuild = null;
+                currentGuildDetails = null;
                 showGuildMain();
                 return;
             }
@@ -3752,11 +4065,12 @@
             const myIconCtx = myIconCvs.getContext('2d');
             myIconCtx.clearRect(0, 0, myIconCvs.width, myIconCvs.height); // Clear before drawing
             myIconCtx.clearRect(0, 0, myIconCvs.width, myIconCvs.height);
-            drawPlayer(myIconCtx, 0, 0, 64, 64, g.icon);
+            drawGuildIcon(myIconCtx, 0, 0, 64, 64, g.icon);
 
             const isOwner = (String(g.owner) === String(CONFIG.USERNAME));
             document.getElementById('guild-tab-settings').style.display = isOwner ? 'block' : 'none'; // 既存操作との互換用
             document.getElementById('guild-home-settings-btn').style.display = isOwner ? 'block' : 'none';
+            document.getElementById('guild-delete-section').style.display = isOwner && (g.members || []).length === 1 ? 'block' : 'none';
             document.getElementById('guild-bulletin-post-area').style.display = 'flex'; // 所属メンバー全員がギルドチャットを送信可能
             document.getElementById('guild-leave-btn').style.display = isOwner ? 'none' : 'block';
             showGuildHome();
@@ -4072,21 +4386,102 @@
                     const previewCvs = document.getElementById('guild-icon-change-canvas');
                     const previewCtx = previewCvs.getContext('2d');
                     previewCtx.clearRect(0, 0, previewCvs.width, previewCvs.height);
-                    drawPlayer(previewCtx, 0, 0, 64, 64, id);
+                    drawGuildIcon(previewCtx, 0, 0, 64, 64, id);
                 };
                 selector.appendChild(div);
             });
             const initialCvs = document.getElementById('guild-icon-change-canvas');
             const initialCtx = initialCvs.getContext('2d');
             initialCtx.clearRect(0, 0, initialCvs.width, initialCvs.height); // Clear before drawing
-            drawPlayer(initialCtx, 0, 0, 64, 64, selectedIconForChange);
+            drawGuildIcon(initialCtx, 0, 0, 64, 64, selectedIconForChange);
+        }
+
+        let guildIconEditingSprite = null;
+        let guildIconEditorColorIdx = 1;
+        let isGuildIconDrawing = false;
+        let guildIconEditorTarget = 'change';
+
+        function openGuildIconEditor(target = 'change') {
+            guildIconEditorTarget = target;
+            const base = target === 'create' ? selectedGuildIcon : selectedIconForChange;
+            const existing = getGuildCustomIconData(base);
+            guildIconEditingSprite = existing
+                ? existing.map(row => row.slice())
+                : Array.from({ length: 16 }, () => Array(16).fill(null));
+            document.getElementById('guild-icon-editor-overlay').style.display = 'flex';
+            renderGuildIconEditorPalette();
+            drawGuildIconEditor();
+        }
+
+        function renderGuildIconEditorPalette() {
+            const holder = document.getElementById('guild-icon-editor-palette');
+            holder.innerHTML = '';
+            CUSTOM_PALETTE.forEach((color, index) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch' + (index === guildIconEditorColorIdx ? ' active' : '');
+                swatch.style.background = color === null
+                    ? 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 10px 10px'
+                    : color;
+                swatch.onclick = () => { guildIconEditorColorIdx = index; renderGuildIconEditorPalette(); };
+                holder.appendChild(swatch);
+            });
+            const pen = document.getElementById('guild-icon-current-pen');
+            const color = CUSTOM_PALETTE[guildIconEditorColorIdx];
+            pen.style.background = color === null
+                ? 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 15px 15px'
+                : color;
+        }
+
+        function drawGuildIconEditor() {
+            const canvas = document.getElementById('guild-icon-edit-canvas');
+            const ctx = canvas.getContext('2d');
+            const pixel = canvas.width / 16;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+                const half = pixel / 2;
+                ctx.fillStyle = '#fff'; ctx.fillRect(x * pixel, y * pixel, half, half); ctx.fillRect(x * pixel + half, y * pixel + half, half, half);
+                ctx.fillStyle = '#ccc'; ctx.fillRect(x * pixel + half, y * pixel, half, half); ctx.fillRect(x * pixel, y * pixel + half, half, half);
+                if (guildIconEditingSprite[y][x]) { ctx.fillStyle = guildIconEditingSprite[y][x]; ctx.fillRect(x * pixel, y * pixel, pixel, pixel); }
+                ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.strokeRect(x * pixel, y * pixel, pixel, pixel);
+            }
+        }
+
+        function paintGuildIconEditor(event) {
+            if (!guildIconEditingSprite) return;
+            const canvas = document.getElementById('guild-icon-edit-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((event.clientX - rect.left) / (rect.width / 16));
+            const y = Math.floor((event.clientY - rect.top) / (rect.height / 16));
+            if (x >= 0 && x < 16 && y >= 0 && y < 16) {
+                guildIconEditingSprite[y][x] = CUSTOM_PALETTE[guildIconEditorColorIdx];
+                drawGuildIconEditor();
+            }
+        }
+
+        document.getElementById('guild-icon-edit-canvas').addEventListener('mousedown', event => { isGuildIconDrawing = true; paintGuildIconEditor(event); });
+        document.getElementById('guild-icon-edit-canvas').addEventListener('mousemove', event => { if (isGuildIconDrawing) paintGuildIconEditor(event); });
+        window.addEventListener('mouseup', () => { isGuildIconDrawing = false; });
+
+        function closeGuildIconEditor() { document.getElementById('guild-icon-editor-overlay').style.display = 'none'; }
+
+        function saveGuildCustomIcon() {
+            const icon = 'guild-custom:' + JSON.stringify(guildIconEditingSprite);
+            guildCustomIconCache.set(icon, guildIconEditingSprite);
+            if (guildIconEditorTarget === 'create') selectedGuildIcon = icon;
+            else selectedIconForChange = icon;
+            const preview = document.getElementById(guildIconEditorTarget === 'create' ? 'guild-icon-canvas' : 'guild-icon-change-canvas');
+            const ctx = preview.getContext('2d');
+            ctx.clearRect(0, 0, preview.width, preview.height);
+            drawGuildIcon(ctx, 0, 0, preview.width, preview.height, icon);
+            closeGuildIconEditor();
         }
 
         async function confirmGuildIconChange() {
             if (!currentGuildDetails || !userGuild || !selectedIconForChange) return;
             if (selectedIconForChange === currentGuildDetails.icon) { alert("現在のアイコンと同じです。"); return; }
 
-            if (!confirm(`ギルドアイコンを ${SKINS[selectedIconForChange].name} に変更しますか？`)) return;
+            const iconName = getGuildCustomIconData(selectedIconForChange) ? 'カスタムアイコン' : (SKINS[selectedIconForChange]?.name || 'このアイコン');
+            if (!confirm(`ギルドアイコンを ${iconName} に変更しますか？`)) return;
 
             const res = await callApi('changeGuildIcon', {
                 guildName: userGuild,
@@ -4168,6 +4563,14 @@
         async function openProfile(targetUser = CONFIG.USERNAME) {
             const overlay = document.getElementById('profile-overlay');
             overlay.style.display = 'flex';
+            const skinLoading = document.getElementById('profile-skin-loading');
+            const skinCanvas = document.getElementById('profile-skin-canvas');
+            skinLoading.style.display = 'flex';
+            skinCanvas.style.display = 'none';
+            // 自分以外は、クリア記録に残った過去の見た目ではなく現在装備中のスキンを取得する。
+            const currentSkinRequest = targetUser === CONFIG.USERNAME
+                ? null
+                : callApi('getUserProfile', { username: targetUser });
             
             if (!cachedStages) {
                 const res = await callApi('getPublished', {});
@@ -4182,13 +4585,17 @@
             document.getElementById('profile-username').innerText = targetUser;
             document.getElementById('profile-title').innerText = targetUser === CONFIG.USERNAME ? "MY PROFILE" : targetUser + "'S PROFILE";
             
-            const skinCanvas = document.getElementById('profile-skin-canvas');
+            const currentSkin = currentSkinRequest ? await currentSkinRequest : null;
             const sCtx = skinCanvas.getContext('2d');
             sCtx.clearRect(0, 0, 128, 128);
-            const profileSkin = targetUser === CONFIG.USERNAME ? equippedSkin : stats.skin;
-            const profileColor = targetUser === CONFIG.USERNAME ? equippedColor : stats.color;
-            const profileCustomSprite = targetUser === CONFIG.USERNAME ? customSpriteStore[equippedSkin] : stats.customSprite;
+            const profileSkin = targetUser === CONFIG.USERNAME ? equippedSkin : (currentSkin?.success ? currentSkin.skin : stats.skin);
+            const profileColor = targetUser === CONFIG.USERNAME ? equippedColor : (currentSkin?.success ? currentSkin.color : stats.color);
+            const profileCustomSprite = targetUser === CONFIG.USERNAME
+                ? customSpriteStore[equippedSkin]
+                : (currentSkin?.success ? currentSkin.customSprite : stats.customSprite);
             drawPlayer(sCtx, 0, 0, 128, 128, profileSkin, false, profileColor, profileCustomSprite);
+            skinLoading.style.display = 'none';
+            skinCanvas.style.display = 'block';
 
             renderProfileBadge(targetUser);
             const toggleBtn = document.getElementById('badge-toggle-btn');
@@ -4468,8 +4875,15 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 背景の五角形
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+            // 暗いパネルと淡いグローを重ね、ステータス画面らしいUIにする。
+            const bg = ctx.createRadialGradient(centerX, centerY, 8, centerX, centerY, 195);
+            bg.addColorStop(0, 'rgba(28, 80, 110, .3)');
+            bg.addColorStop(.72, 'rgba(8, 22, 48, .4)');
+            bg.addColorStop(1, 'rgba(2, 7, 20, .72)');
+            ctx.fillStyle = bg;
+            ctx.beginPath(); ctx.arc(centerX, centerY, 192, 0, Math.PI * 2); ctx.fill();
+
+            // 同心の五角形と軸線。
             ctx.lineWidth = 1;
             for (let j = 1; j <= 5; j++) {
                 ctx.beginPath();
@@ -4479,34 +4893,54 @@
                     ctx.lineTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
                 }
                 ctx.closePath();
+                ctx.strokeStyle = j === 5 ? 'rgba(117, 229, 255, .62)' : 'rgba(150, 213, 255, .2)';
                 ctx.stroke();
             }
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                ctx.beginPath(); ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle));
+                ctx.strokeStyle = 'rgba(160, 225, 255, .24)'; ctx.stroke();
+            }
 
-            // データの描画
+            // ステータスの面と頂点。
             ctx.beginPath();
-            ctx.fillStyle = "rgba(0, 255, 65, 0.4)";
-            ctx.strokeStyle = varColor('--primary-color');
-            ctx.lineWidth = 3;
             for (let i = 0; i < 5; i++) {
                 const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
                 const r = (radius * values[i] / 100);
                 ctx.lineTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
             }
             ctx.closePath();
+            const fill = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
+            fill.addColorStop(0, 'rgba(0, 255, 155, .45)');
+            fill.addColorStop(1, 'rgba(0, 172, 255, .3)');
+            ctx.fillStyle = fill;
             ctx.fill();
+            ctx.strokeStyle = '#7dffcb';
+            ctx.shadowColor = 'rgba(85, 240, 255, .8)';
+            ctx.shadowBlur = 10;
+            ctx.lineWidth = 3;
             ctx.stroke();
+            ctx.shadowBlur = 0;
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                const r = radius * values[i] / 100;
+                ctx.beginPath(); ctx.arc(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle), 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#eaffff'; ctx.fill();
+                ctx.strokeStyle = '#37dfff'; ctx.lineWidth = 2; ctx.stroke();
+            }
 
-            // ラベルの描画
-            ctx.fillStyle = "#fff";
-            ctx.font = "16px 'Roboto', sans-serif"; /* フォントサイズを少し大きく */
+            // ラベルは項目名と数値を色分けして読みやすくする。
             ctx.textAlign = "center";
             for (let i = 0; i < 5; i++) {
                 const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
                 const labelR = radius + 40;
                 const lx = centerX + labelR * Math.cos(angle);
                 const ly = centerY + labelR * Math.sin(angle);
+                ctx.fillStyle = '#d8f7ff'; ctx.font = "bold 15px 'Roboto', sans-serif";
                 ctx.fillText(labels[i], lx, ly);
-                ctx.fillText(values[i], lx, ly + 20);
+                ctx.fillStyle = '#7dffcb'; ctx.font = "bold 20px 'Roboto', sans-serif";
+                ctx.fillText(String(values[i]), lx, ly + 22);
             }
         }
 
@@ -4660,7 +5094,7 @@
 
             sortedGuilds.forEach((g, i) => {
                 const cvs = document.getElementById(`lb-guild-icon-${i}`);
-                if (cvs) drawPlayer(cvs.getContext('2d'), 0, 0, 32, 32, g.icon);
+                if (cvs) drawGuildIcon(cvs.getContext('2d'), 0, 0, 32, 32, g.icon);
             });
             return;
         }
@@ -5198,6 +5632,12 @@
                 volcanoOpt.disabled = !hasVolcanoStage;
                 volcanoOpt.textContent = hasVolcanoStage ? '🌋 火山' : '🌋 火山（未購入）';
             }
+            const moonOpt = document.getElementById('stage-type-option-moon');
+            const hasMoonStage = purchasedSkins.includes('moon_stage');
+            if (moonOpt) { moonOpt.disabled = !hasMoonStage; moonOpt.textContent = hasMoonStage ? '🌙 月' : '🌙 月（未購入）'; }
+            const beachOpt = document.getElementById('stage-type-option-beach');
+            const hasBeachStage = purchasedSkins.includes('beach_stage');
+            if (beachOpt) { beachOpt.disabled = !hasBeachStage; beachOpt.textContent = hasBeachStage ? '🏖️ 海辺' : '🏖️ 海辺（未購入）'; }
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -5471,6 +5911,15 @@
                     ctx.arc(bx, by, 2 + (i % 3), 0, Math.PI * 2);
                     ctx.fill();
                 }
+            } else if (editorStageType === 'beach') {
+                const waterTop = editorCanvas.height / 2;
+                ctx.fillStyle = 'rgba(0, 110, 190, .34)';
+                ctx.fillRect(0, waterTop, editorCanvas.width, editorCanvas.height - waterTop);
+                ctx.strokeStyle = 'rgba(235,255,255,.7)'; ctx.lineWidth = 2;
+                for (let x = -20; x < editorCanvas.width + 20; x += 42) { ctx.beginPath(); ctx.arc(x + (time * 18 % 42), waterTop, 12, Math.PI, Math.PI * 2); ctx.stroke(); }
+            } else if (editorStageType === 'moon') {
+                ctx.fillStyle = 'rgba(18, 24, 52, .3)'; ctx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+                ctx.fillStyle = 'rgba(240,245,255,.75)'; ctx.beginPath(); ctx.arc(editorCanvas.width * .8, ch * 1.2, ch * .55, 0, Math.PI * 2); ctx.fill();
             } else if (editorStageType === 'dark') {
                 // 暗闇: 全体を薄く暗くする（完全には暗くしない、編集できるように）
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
@@ -6151,7 +6600,7 @@
 
         function debouncedStageSelect() {
             clearTimeout(stageSearchTimeout);
-            stageSearchTimeout = setTimeout(() => openStageSelect(), 300);
+            stageSearchTimeout = setTimeout(() => openStageSelect(), 180);
         }
 
         async function publishStage() {
@@ -6199,10 +6648,13 @@
             const overlay = document.getElementById('stage-list-overlay');
             const container = document.getElementById('stage-list-container');
             overlay.style.display = 'flex';
+            const renderVersion = ++stageListRenderVersion;
 
             filterMyStages = document.getElementById('filter-my-stages').checked;
             filterUnplayed = document.getElementById('filter-unplayed').checked;
-            filterCreatorName = document.getElementById('filter-creator').value.toLowerCase();
+            filterCreatorName = document.getElementById('filter-creator').value.trim().toLowerCase();
+            filterStageName = document.getElementById('filter-stage-name').value.trim().toLowerCase();
+            filterStageType = document.getElementById('filter-stage-type').value;
             currentSort = document.getElementById('sort-criteria').value;
             
             if (!cachedStages || forceRefresh) {
@@ -6226,8 +6678,10 @@
                 const matchMine = !filterMyStages || s.creator === CONFIG.USERNAME;
                 const isCleared = s.leaderboard && s.leaderboard.some(r => r.name === CONFIG.USERNAME);
                 const matchUnplayed = !filterUnplayed || !isCleared;
-                const matchCreator = !filterCreatorName || s.creator.toLowerCase().includes(filterCreatorName);
-                return matchMine && matchCreator && matchUnplayed;
+                const matchCreator = !filterCreatorName || String(s.creator || '').toLowerCase().includes(filterCreatorName);
+                const matchStageName = !filterStageName || String(s.name || '').toLowerCase().includes(filterStageName);
+                const matchStageType = !filterStageType || (s.stageType || 'normal') === filterStageType;
+                return matchMine && matchCreator && matchStageName && matchStageType && matchUnplayed;
             });
 
             // ソート処理
@@ -6350,6 +6804,8 @@
                                 ${s.stageType === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
                                 ${s.stageType === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
                                 ${s.stageType === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
+                                ${s.stageType === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
+                                ${s.stageType === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -6374,7 +6830,9 @@
                 container.appendChild(div);
 
                 // プレビュー描画を少しずつ遅延させてUIのフリーズを防ぐ
-                setTimeout(() => { if(document.contains(canvas)) renderPreview(canvas, s.data); }, idx * 20);
+                setTimeout(() => {
+                    if (renderVersion === stageListRenderVersion && document.contains(canvas)) renderPreview(canvas, s.data);
+                }, idx * 20);
             });
         }
 
@@ -6411,7 +6869,7 @@
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach'];
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
@@ -6527,7 +6985,7 @@
             
             // 背景の切り替え
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano');
+            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
             
             // ステージタイプ固有の背景
             if (currentStageType === 'water') {
@@ -6536,6 +6994,10 @@
                 container.classList.add('bg-dark');
             } else if (currentStageType === 'volcano') {
                 container.classList.add('bg-volcano');
+            } else if (currentStageType === 'moon') {
+                container.classList.add('bg-moon');
+            } else if (currentStageType === 'beach') {
+                container.classList.add('bg-beach');
             } else if (mode === 'play' && stageObj && stageObj.attempts >= 5) {
                 const att = stageObj.attempts;
                 const cr = (stageObj.clears || 0) / att * 100;
@@ -6614,7 +7076,7 @@
                 auroraEruptionControlActive = isEruptionControlSurroundedByAurora(activeStage);
             }
             
-            player.vx = 0; player.vy = 0; player.hasKey = 0;
+            player.vx = 0; player.vy = 0; player.hasKey = 0; player.wasInBeachWater = false;
             lavaAnimStart = Date.now();
             
             arrows = [];
@@ -7040,8 +7502,12 @@
             }
 
             let currentSpeed = 0.015; // デフォルトの加速
-            const isWater = (currentStageType === 'water');
-            const gravity = isWater ? 0.004 : 0.015;  // 水中は重力弱め
+            const isBeachWater = currentStageType === 'beach' && (player.y + player.h / 2 >= GRID_H / 2);
+            const isWater = (currentStageType === 'water' || isBeachWater);
+            // 海辺で水面を下から抜けたフレームだけ、地上ジャンプと同じ推進力を使えるようにする。
+            const emergedFromBeachWater = currentStageType === 'beach' && player.wasInBeachWater && !isBeachWater;
+            player.wasInBeachWater = isBeachWater;
+            const gravity = currentStageType === 'moon' ? 0.0075 : (isWater ? 0.004 : 0.015);  // 月は通常重力の1/2、水中は弱め
             const jumpForce = -0.3;
 
             // 粘着ブロックの足元判定
@@ -7063,7 +7529,7 @@
                 player.vy *= 0.88;
                 player.vx *= 0.85;
             } else {
-                if (keys['Space'] && player.onGround && frameCount > 10) {
+                if (keys['Space'] && (player.onGround || emergedFromBeachWater) && frameCount > 10) {
                     player.vy = jumpForce;
                     player.onGround = false;
                     // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
@@ -7955,7 +8421,7 @@
                 drawEditor();
             } else {
                 // キャンセル: 元の値に戻す
-                const prev = ['normal','water','dark','volcano'].find(t => t !== sel.value) || 'normal';
+                const prev = ['normal','water','dark','volcano','moon','beach'].find(t => t !== sel.value) || 'normal';
                 // 元の値を特定するため、リセット前のcurrentStageTypeを保持しておく必要があるので
                 // isClearCheckedがtrueの間はprevStageTypeを追跡する
                 sel.value = sel.dataset.prevValue || 'normal';
@@ -8089,7 +8555,7 @@
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
                 }
             }
-            player.vx = 0; player.vy = 0;
+            player.vx = 0; player.vy = 0; player.wasInBeachWater = false;
         }
 
         function getMovingPlatformOffset() {
@@ -8360,6 +8826,21 @@
                     cachedGameCtx.beginPath();
                     cachedGameCtx.arc(bx, by, br, 0, Math.PI * 2);
                     cachedGameCtx.fill();
+                }
+            }
+
+            // 海辺: 下半分だけを水として描画する（物理も下半分に入った時だけ水中扱い）。
+            if (currentStageType === 'beach') {
+                const wt = Date.now() * 0.001;
+                const waterTop = cachedGameCanvas.height / 2;
+                cachedGameCtx.fillStyle = `rgba(0, 100, 185, ${0.3 + Math.sin(wt) * 0.04})`;
+                cachedGameCtx.fillRect(0, waterTop, cachedGameCanvas.width, cachedGameCanvas.height - waterTop);
+                cachedGameCtx.strokeStyle = 'rgba(235,255,255,.7)';
+                cachedGameCtx.lineWidth = 2;
+                for (let x = -20; x < cachedGameCanvas.width + 24; x += 38) {
+                    cachedGameCtx.beginPath();
+                    cachedGameCtx.arc(x + (wt * 16 % 38), waterTop, 11, Math.PI, Math.PI * 2);
+                    cachedGameCtx.stroke();
                 }
             }
 
