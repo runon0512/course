@@ -2038,7 +2038,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx7_MnxbbnNycQQu5Dt8bp3QwYKfGXFiY2OE0CZyM1oFvQeDRWHUtniOH3oFladaRR6/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxfqnEv17UzBwb-N0N6t5KxmUUHGDvE8cYj2Z9mIdWT_3pL8DR0bYxUbDxLRAF3IieF/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.11.2"
@@ -2213,6 +2213,9 @@
         let activeStage = [];
         let currentStageData = null; // 現在プレイ中のステージ情報
         let isWeeklyCupMatch = false; // 大会から開始したプレイ中だけ、専用の金色演出を使う
+        let weeklyCupStageCache = null;
+        let weeklyCupStageCacheWeek = null;
+        let returnToWeeklyCupAfterGame = false;
         let cachedStages = null;    // ステージリストのキャッシュ
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
@@ -2978,9 +2981,10 @@
                                 equippedColor = res.equippedColor || 'default';
                                 claimedRoadRewards = res.claimedRoadRewards || [];
                                 userGuild = res.guild;
-                                userBadgeVisible = res.badgeVisible !== false;
+                                 userBadgeVisible = res.badgeVisible !== false;
 
-                                // ログイン時に一旦すべてのデータを読み込む
+                                // ホームを先に表示し、重い同期はバックグラウンドで行う。
+                                showLoggedInHome(res.username);
                                 preloadAllData(res.username, res.loginBonusHistory);
 
                                 // Initialize sort/filter UI on login
@@ -3244,9 +3248,29 @@
 
 
         // --- 初期データ読み込み ---
+        function showLoggedInHome(username) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('main-menu').classList.add('active');
+            document.getElementById('subtitle').style.display = 'block';
+            document.getElementById('user-info').style.display = 'block';
+            document.getElementById('global-rank-btn').style.display = 'block';
+            document.getElementById('weekly-cup-btn').style.display = 'block';
+            document.getElementById('creators-road-btn').style.display = 'block';
+            document.getElementById('explanation-btn').style.display = 'block';
+            document.getElementById('chat-btn').style.display = 'block';
+            document.getElementById('guild-btn').style.display = 'block';
+            document.getElementById('login-bonus-btn').style.display = 'block';
+            document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
+            const versionEl = document.getElementById('current-version');
+            if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
+            updateGoldDisplay();
+            updateHomeCharacter();
+        }
+
         async function preloadAllData(username, loginHistory = []) {
-            document.getElementById('auth-msg').innerText = "データを同期中...";
-            
+            // ホームを先に表示し、重い同期処理は画面表示後に進める。
+            loginBonusHistory = loginHistory || [];
+
             // 並列で全データを取得
             const [publishedRes, customSkinsRes, guildRes, cupWinnersRes] = await Promise.all([
                 callApi('getPublished', {}),
@@ -3279,25 +3303,7 @@
             }
             if (cupWinnersRes && cupWinnersRes.success) weeklyCupWinnerCounts = cupWinnersRes.counts || Object.create(null);
 
-            // UI反映
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('main-menu').classList.add('active');
-            document.getElementById('subtitle').style.display = 'block';
-            document.getElementById('user-info').style.display = 'block';
-            document.getElementById('global-rank-btn').style.display = 'block';
-            document.getElementById('weekly-cup-btn').style.display = 'block';
-            document.getElementById('creators-road-btn').style.display = 'block';
-            document.getElementById('explanation-btn').style.display = 'block';
-            document.getElementById('chat-btn').style.display = 'block';
-            document.getElementById('guild-btn').style.display = 'block';
-            document.getElementById('login-bonus-btn').style.display = 'block';
-
-
-            loginBonusHistory = loginHistory || [];
-            document.getElementById('current-user').innerHTML = `<span onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
-            const versionEl = document.getElementById('current-version');
-            if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
-            
+            // 同期完了後に取得済みのスキン・ギルド情報をホームへ反映
             updateHomeCharacter();
             refreshChat();
             // 3分(180000ms)ごとにチャットの新着をバックグラウンドで確認し、新着があれば通知バッジを出す
@@ -5118,7 +5124,7 @@
             const rankingBody = document.getElementById('weekly-cup-ranking');
             overlay.style.display = 'flex';
             period.innerText = '読み込み中...';
-            stageBox.innerText = '公式ステージを確認しています...';
+            if (!weeklyCupStageCache) stageBox.innerText = '公式ステージを確認しています...';
             rankingWrap.style.display = 'none';
             rankingBody.innerHTML = '';
 
@@ -5129,7 +5135,10 @@
             const myOvr = getCachedOVR(CONFIG.USERNAME);
             const canJoinCup = myOvr >= 16; // Silver 1 以上
 
-            const res = await callApi('getWeeklyCup', {});
+            let res = await callApi('getWeeklyCup', { includeStage: !weeklyCupStageCache });
+            if (res && res.success && !res.stage && weeklyCupStageCacheWeek !== res.weekStart) {
+                res = await callApi('getWeeklyCup', { includeStage: true });
+            }
             if (!res || !res.success) {
                 period.innerText = '大会情報を取得できませんでした。';
                 stageBox.innerText = '';
@@ -5140,30 +5149,37 @@
             period.innerText = res.active ? `開催中　${dateText}` : `調整期間　次回 ${dateText}`;
             period.style.color = res.active ? '#7dffcb' : '#ffd36b';
 
-            if (!res.stage) {
+            if (res.stage) {
+                weeklyCupStageCache = res.stage;
+                weeklyCupStageCacheWeek = res.weekStart;
+            }
+            const cupStage = res.stage || (weeklyCupStageCacheWeek === res.weekStart ? weeklyCupStageCache : null);
+            if (!cupStage) {
                 stageBox.innerText = '公式ステージは調整中です。\nWeeklyCup シートに対象ステージの番号が設定されると表示されます。';
                 return;
             }
 
+            // ステージ本体は初回だけ描画し、開き直し時はタイム順位表のみ更新する。
+            if (res.stage) {
             stageBox.innerHTML = '';
             const preview = document.createElement('canvas');
             preview.width = 480; preview.height = 180;
             preview.style.cssText = 'width:min(100%,58cqw); image-rendering:pixelated; border:.12cqw solid #fff; background:#111;';
-            renderPreview(preview, res.stage.data);
+            renderPreview(preview, cupStage.data);
             const title = document.createElement('div');
             title.style.cssText = 'font-size:2cqw; color:#fff; margin-top:.8cqh; font-weight:bold;';
-            title.innerText = res.stage.name;
+            title.innerText = cupStage.name;
             const creator = document.createElement('div');
             creator.style.cssText = 'font-size:1.05cqw; color:#b5cde4; margin:.35cqh 0 1cqh;';
-            creator.innerText = `OFFICIAL STAGE / by ${res.stage.creator}`;
+            creator.innerText = `OFFICIAL STAGE / by ${cupStage.creator}`;
             const playBtn = document.createElement('button');
             playBtn.className = 'pixel-btn small';
             let eligibilityNotice = null;
             playBtn.innerText = !res.active ? 'ステージを確認' : (canJoinCup ? '大会に挑戦' : 'シルバーランク以上で参加可能');
             if (!res.active) {
-                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(res.stage); };
+                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(cupStage); };
             } else if (canJoinCup) {
-                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(res.stage); };
+                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(cupStage); };
             } else {
                 playBtn.disabled = true;
                 playBtn.style.opacity = '.55';
@@ -5173,6 +5189,7 @@
             }
             stageBox.append(preview, title, creator, playBtn);
             if (eligibilityNotice) stageBox.appendChild(eligibilityNotice);
+            }
 
             if (!res.active) return;
             rankingWrap.style.display = 'block';
@@ -5201,10 +5218,14 @@
             });
         }
 
-        function closeWeeklyCup() { document.getElementById('weekly-cup-overlay').style.display = 'none'; }
+        function closeWeeklyCup() {
+            returnToWeeklyCupAfterGame = false;
+            document.getElementById('weekly-cup-overlay').style.display = 'none';
+        }
 
         function startWeeklyCupGame(stage) {
             stage.isWeeklyCup = true;
+            returnToWeeklyCupAfterGame = true;
             startGame(stage, 'play');
         }
 
@@ -7298,10 +7319,15 @@
             cancelAnimationFrame(gameLoopId);
             stopStageBGM();
             document.getElementById('game-screen').style.display = 'none';
+            const shouldReturnToWeeklyCup = returnToWeeklyCupAfterGame;
+            returnToWeeklyCupAfterGame = false;
             isWeeklyCupMatch = false;
             if (gameMode === 'test') {
                 document.getElementById('editor-screen').style.display = 'block';
                 drawEditor();
+            } else if (shouldReturnToWeeklyCup) {
+                showLoggedInHome(CONFIG.USERNAME);
+                openWeeklyCup();
             } else {
                 // プレイモード終了時はリストを再描画して最新の状態（タイム等）を反映
                 openStageSelect();
