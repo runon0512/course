@@ -2038,10 +2038,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyokoQNR1Zd3slEZUoDHvTB9YtnI47V4PdggdKlCebqsfKy_bFjeOEnCboFLPyn4Pb_/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxUeeZWIqT5SEzQSs9kSOFXZfBihnxNpvB2Viz72F9oNm3gB3y_TuCrhRfMWXr_8JG2/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.11.1"
+            VERSION: "2.11.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -7125,7 +7125,8 @@
 
             if (mode === 'play') {
                 closeStageSelect();
-                // 挑戦数をカウントアップ（非同期で送信）
+                // 大会挑戦も元ステージのプレイ数には加算する。
+                // クリア数・通常ランキングだけは大会記録と分離される。
                 if (stageObj) {
                     // ローカルの数値を更新して、メニューに戻った時に即座に反映されるようにする
                     stageObj.attempts = (stageObj.attempts || 0) + 1;
@@ -7382,22 +7383,24 @@
 
             let rewardGold = 100;
             const stageId = currentStageData ? (currentStageData.id || currentStageData.name) : null;
+            const isCupClear = isWeeklyCupMatch;
 
-            if (stageId) {
+            if (stageId && !isCupClear) {
                 baseRewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
                 rewardGold = Math.round(baseRewardGold * getCurrentGuildGoldMultiplier());
             }
+            if (isCupClear) rewardGold = 0;
             
-            if (!rewardAlreadyAdded) {
+            if (!isCupClear && !rewardAlreadyAdded) {
                 userGold += rewardGold;
                 updateGoldDisplay();
                 rewardAlreadyAdded = true;
             }
 
             // UIを即座に更新して表示
-            const guildMultiplier = getCurrentGuildGoldMultiplier();
+            const guildMultiplier = isCupClear ? 1 : getCurrentGuildGoldMultiplier();
             document.getElementById('reward-amount').style.display = guildMultiplier > 1 ? 'none' : 'inline';
-            document.getElementById('reward-amount').innerText = `${rewardGold} G`;
+            document.getElementById('reward-amount').innerText = isCupClear ? '大会タイムを記録' : `${rewardGold} G`;
             document.getElementById('reward-guild-amount').style.display = guildMultiplier > 1 ? 'inline' : 'none';
             if (guildMultiplier > 1) {
                 document.getElementById('reward-guild-base').innerText = `${baseRewardGold} G`;
@@ -7492,7 +7495,8 @@
                     eventStones: userES, // ES（イベントストーン）も送信
                     // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                     customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
-                    gold: userGold
+                    gold: userGold,
+                    isWeeklyCup: isWeeklyCupMatch
                 }, 40000);
 
                 // 通信エラーやデータサイズ制限で失敗した場合、重いデータ（ゴースト・カスタムスキン）を除外して「タイムのみ」で再送
@@ -7506,9 +7510,10 @@
                         skin: equippedSkin,
                         color: equippedColor,
                         auroraStones: userAS,
-                        eventStones: userES,
-                        customSprite: null, // カスタムスキンデータを除外
-                        gold: userGold
+                    eventStones: userES,
+                    customSprite: null, // カスタムスキンデータを除外
+                    gold: userGold,
+                    isWeeklyCup: isWeeklyCupMatch
                     }, 20000);
                 }
 
@@ -8096,8 +8101,8 @@
                     // sync敵: 横移動シンクロ（縦は固定）
                     en.vy *= 0.9;
                 } else {
-                    // 通常重力
-                    en.vy += 0.015; 
+                    // 月ではプレイヤーと同じく敵の重力も通常の半分
+                    en.vy += (currentStageType === 'moon' ? 0.0075 : 0.015);
                     if(current_tile === 'U') en.vy -= 0.025;
                     if(current_tile === 'd') en.vy += 0.025;
                 }
@@ -8722,7 +8727,7 @@
         }
 
         function handlePlayerDeath() {
-            if (gameMode === 'play' && currentStageData && currentStageData.id) {
+            if (gameMode === 'play' && !isWeeklyCupMatch && currentStageData && currentStageData.id) {
                 // 死亡場所を記録
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
             }
