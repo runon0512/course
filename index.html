@@ -554,6 +554,13 @@
         #leaderboard-overlay table { background:rgba(3,18,42,.78); border-color:#57ddff !important; }
         #leaderboard-overlay th { color:#8cf5ff; background:rgba(0,191,255,.12); }
         #leaderboard-overlay td { border-color:rgba(83,220,255,.25) !important; }
+        #weekly-cup-overlay .auth-box { background:linear-gradient(145deg,rgba(43,29,0,.98),rgba(13,17,30,.96)); border:.2cqw solid #ffd54a; box-shadow:inset 0 0 2cqw rgba(255,194,44,.1),0 0 1.5cqw rgba(0,0,0,.6); }
+        #weekly-cup-content { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(18cqw,.85fr); gap:1.5cqw; align-items:stretch; }
+        #weekly-cup-stage { display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box; min-width:0; }
+        #weekly-cup-ranking-wrap { overflow:auto; min-width:0; max-height:52cqh; }
+        #weekly-cup-ranking tr:nth-child(odd) { background:rgba(255,213,74,.055); }
+        .weekly-cup-winner-badge { display:inline-flex; align-items:center; margin-left:.38em; padding:.05em .3em; border:1px solid #ffe08a; color:#fff0a3; background:linear-gradient(135deg,#7d5100,#d99c12); font-size:.75em; font-weight:900; line-height:1.25; vertical-align:middle; text-shadow:0 1px #4a2e00; box-shadow:0 0 .35em rgba(255,204,65,.65); }
+        @media (max-aspect-ratio: 1/1) { #weekly-cup-content { grid-template-columns:1fr; } #weekly-cup-ranking-wrap { max-height:30cqh; } }
         .profile-container .ovr-box { border-width:.2cqw; }
         .chat-reply-btn {
             background: none;
@@ -1451,6 +1458,9 @@
         <!-- グローバルランキングボタン -->
         <button id="global-rank-btn" class="pixel-btn small" onclick="showGlobalRanking()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
 
+        <!-- 大会ボタン（プレイの左上） -->
+        <button id="weekly-cup-btn" class="pixel-btn small" onclick="openWeeklyCup()" style="position:absolute; top:27cqh; left:2cqw; z-index:15; display:none; background:linear-gradient(135deg,#9a6500,#ffd54a,#fff1a3); color:#322000; border-color:#fff4bd; box-shadow:0 0 1cqw rgba(255,198,45,.65); font-weight:bold;">🏆 大会</button>
+
         <!-- クリエイターズロードボタン -->
         <button id="creators-road-btn" class="pixel-btn small" onclick="openCreatorsRoad()" style="position: absolute; top: 13cqh; right: 2cqw; z-index: 15; display: none; background: linear-gradient(45deg, #ff00ff, #00ffff); color: #fff; border-color: #fff;">💎 Creator Road</button>
 
@@ -1852,6 +1862,25 @@
             </div>
         </div>
 
+        <!-- Pixel Stages Weekly Cup 大会ホーム -->
+        <div id="weekly-cup-overlay" class="screen" style="z-index:151; background:rgba(0,0,0,.95); flex-direction:column; align-items:center; justify-content:center; display:none;">
+            <div class="auth-box" style="width:78%; max-height:88cqh; overflow-y:auto; box-sizing:border-box; text-align:center;">
+                <h2 style="font-size:3cqw; color:#ffd54a; margin:0 0 .8cqh;">PIXEL STAGES WEEKLY CUP</h2>
+                <div id="weekly-cup-period" style="font-size:1.3cqw; color:#aeefff; margin-bottom:1.5cqh;">読み込み中...</div>
+                <div id="weekly-cup-content">
+                    <div id="weekly-cup-stage" style="min-height:38cqh; padding:1.2cqw; border:.16cqw solid #ffd54a; background:rgba(255,180,0,.06);"></div>
+                    <div id="weekly-cup-ranking-wrap" style="padding:1.2cqw; border:.16cqw solid rgba(255,213,74,.6); background:rgba(255,180,0,.035); display:none; box-sizing:border-box;">
+                        <h3 style="color:#ffd54a; font-size:1.7cqw; margin:.4cqh 0 1cqh;">期間内タイムランキング</h3>
+                        <table style="width:100%; border-collapse:collapse; font-size:1.25cqw;">
+                            <thead><tr style="border-bottom:.15cqw solid #ffd54a;"><th style="padding:.8cqh; text-align:left;">RANK</th><th style="padding:.8cqh; text-align:left;">PLAYER</th><th style="padding:.8cqh; text-align:right;">TIME</th></tr></thead>
+                            <tbody id="weekly-cup-ranking"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <button class="pixel-btn small" onclick="closeWeeklyCup()" style="margin-top:2cqh; width:100%; background:#546e7a;">戻る</button>
+            </div>
+        </div>
+
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
             <h2 class="stage-list-title" style="font-size: 3.5cqw; position: relative; z-index: 1;">PUBLISHED STAGES</h2>
@@ -2009,10 +2038,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzdE98UvpLTc01BP_bRS3QgqX5C4czXUENfjXHPxmb--kb8ufM6WG4FPMbuAjLCa0Nv/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyokoQNR1Zd3slEZUoDHvTB9YtnI47V4PdggdKlCebqsfKy_bFjeOEnCboFLPyn4Pb_/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.10.2"
+            VERSION: "2.11.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2032,6 +2061,7 @@
         let guildBulletinRefreshId = null;
         let currentGuildDetails = null; 
         let guildBadgeByMember = Object.create(null);
+        let weeklyCupWinnerCounts = Object.create(null);
         const guildIconDataUrlCache = Object.create(null);
         const GUILD_RANK_EXP = [0, 10000, 60000, 160000, 660000, 1660000, 6660000, 16660000];
 
@@ -2168,7 +2198,7 @@
             'BB': { title: '鉄ブロック', text: '周囲のブロックより少し大きい頑丈な鉄のブロックです。' },
             'LM': { title: 'ランプブロック', text: '暗闇ステージで周囲を明るく照らすブロックです。それ以外のステージでは通常のブロックとして機能します。ミサイルで破壊できます。' },
             'WC': { title: '木箱ブロック', text: '横から押して動かせる木箱です。押していない時は通常のブロックとして機能します。ミサイルで破壊できます。' },
-            'EC': { title: '噴火制御機', text: '火山ステージに1つだけ設置できる装置です。溶岩が上昇する最大の高さを、この装置がある高さまでに制限します。' },
+            'EC': { title: '噴火制御機', text: '火山・海辺ステージに1つだけ設置できる装置です。火山では溶岩の最大上昇高さを、海辺では水面の高さを、この装置がある高さに設定します。' },
             'PB': { title: 'パープル', text: '通常の敵の2倍の大きさを持つボス敵です。ステージに1体だけ配置できます。倒すとステージ上の粘液ブロックがすべて消えます。' },
             'WB': { title: '狼 (No.2)', text: '移動しながら4秒に1回、プレイヤーを追尾する回転する鎌を投げてくるボス敵です。ステージに1体だけ配置できます。' },
             'SM': { title: '粘液ブロック', text: '紫色のブロックです。それ自体に特別な効果はありませんが、ボス「パープル」を倒すとステージから消滅します。' },
@@ -2182,6 +2212,7 @@
         let keys = {};
         let activeStage = [];
         let currentStageData = null; // 現在プレイ中のステージ情報
+        let isWeeklyCupMatch = false; // 大会から開始したプレイ中だけ、専用の金色演出を使う
         let cachedStages = null;    // ステージリストのキャッシュ
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
@@ -3217,10 +3248,11 @@
             document.getElementById('auth-msg').innerText = "データを同期中...";
             
             // 並列で全データを取得
-            const [publishedRes, customSkinsRes, guildRes] = await Promise.all([
+            const [publishedRes, customSkinsRes, guildRes, cupWinnersRes] = await Promise.all([
                 callApi('getPublished', {}),
                 callApi('load', { username: username, key: 'custom_skins' }),
-                callApi('getGuilds', {})
+                callApi('getGuilds', {}),
+                callApi('getWeeklyCupWinners', {})
             ]);
 
             // ステージキャッシュの構築
@@ -3245,6 +3277,7 @@
                 cacheGuildBadgeData(guildRes.guilds);
                 if (userGuild) currentGuildDetails = guildRes.guilds.find(g => g.name === userGuild);
             }
+            if (cupWinnersRes && cupWinnersRes.success) weeklyCupWinnerCounts = cupWinnersRes.counts || Object.create(null);
 
             // UI反映
             document.getElementById('auth-overlay').style.display = 'none';
@@ -3252,6 +3285,7 @@
             document.getElementById('subtitle').style.display = 'block';
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('global-rank-btn').style.display = 'block';
+            document.getElementById('weekly-cup-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
             document.getElementById('chat-btn').style.display = 'block';
@@ -4851,7 +4885,9 @@
             const guildIcon = guild
                 ? `<span class="guild-badge guild-rank-${Math.max(0, Math.min(7, Number(guild.rank) || 0))}" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
                 : '<span class="guild-badge guild-badge-empty" title="ギルド未所属"></span>';
-            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${guildIcon}`;
+            const wins = Number(weeklyCupWinnerCounts[username]) || 0;
+            const winnerBadge = wins > 0 ? `<span class="weekly-cup-winner-badge" title="Weekly Cup 優勝 ${wins} 回">🏆×${wins}</span>` : '';
+            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${guildIcon}${winnerBadge}`;
         }
 
         // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
@@ -5073,6 +5109,105 @@
             }
         }
 
+        // --- Pixel Stages Weekly Cup ---
+        async function openWeeklyCup() {
+            const overlay = document.getElementById('weekly-cup-overlay');
+            const period = document.getElementById('weekly-cup-period');
+            const stageBox = document.getElementById('weekly-cup-stage');
+            const rankingWrap = document.getElementById('weekly-cup-ranking-wrap');
+            const rankingBody = document.getElementById('weekly-cup-ranking');
+            overlay.style.display = 'flex';
+            period.innerText = '読み込み中...';
+            stageBox.innerText = '公式ステージを確認しています...';
+            rankingWrap.style.display = 'none';
+            rankingBody.innerHTML = '';
+
+            if (!cachedStages) {
+                const stagesRes = await callApi('getPublished', {});
+                cachedStages = (stagesRes && stagesRes.stages) || [];
+            }
+            const myOvr = getCachedOVR(CONFIG.USERNAME);
+            const canJoinCup = myOvr >= 16; // Silver 1 以上
+
+            const res = await callApi('getWeeklyCup', {});
+            if (!res || !res.success) {
+                period.innerText = '大会情報を取得できませんでした。';
+                stageBox.innerText = '';
+                return;
+            }
+            if (res.winnerCounts) weeklyCupWinnerCounts = res.winnerCounts;
+            const dateText = `${res.weekStart.replaceAll('-', '/')} 〜 ${res.weekEnd.replaceAll('-', '/')}`;
+            period.innerText = res.active ? `開催中　${dateText}` : `調整期間　次回 ${dateText}`;
+            period.style.color = res.active ? '#7dffcb' : '#ffd36b';
+
+            if (!res.stage) {
+                stageBox.innerText = '公式ステージは調整中です。\nWeeklyCup シートに対象ステージの番号が設定されると表示されます。';
+                return;
+            }
+
+            stageBox.innerHTML = '';
+            const preview = document.createElement('canvas');
+            preview.width = 480; preview.height = 180;
+            preview.style.cssText = 'width:min(100%,58cqw); image-rendering:pixelated; border:.12cqw solid #fff; background:#111;';
+            renderPreview(preview, res.stage.data);
+            const title = document.createElement('div');
+            title.style.cssText = 'font-size:2cqw; color:#fff; margin-top:.8cqh; font-weight:bold;';
+            title.innerText = res.stage.name;
+            const creator = document.createElement('div');
+            creator.style.cssText = 'font-size:1.05cqw; color:#b5cde4; margin:.35cqh 0 1cqh;';
+            creator.innerText = `OFFICIAL STAGE / by ${res.stage.creator}`;
+            const playBtn = document.createElement('button');
+            playBtn.className = 'pixel-btn small';
+            let eligibilityNotice = null;
+            playBtn.innerText = !res.active ? 'ステージを確認' : (canJoinCup ? '大会に挑戦' : 'シルバーランク以上で参加可能');
+            if (!res.active) {
+                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(res.stage); };
+            } else if (canJoinCup) {
+                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(res.stage); };
+            } else {
+                playBtn.disabled = true;
+                playBtn.style.opacity = '.55';
+                eligibilityNotice = document.createElement('div');
+                eligibilityNotice.style.cssText = 'margin-top:.8cqh; color:#ffcf70; font-size:1cqw;';
+                eligibilityNotice.innerText = `現在のランク: ${getBadgeTier(myOvr).label}（Silver 1 / OVR 16 以上が必要です）`;
+            }
+            stageBox.append(preview, title, creator, playBtn);
+            if (eligibilityNotice) stageBox.appendChild(eligibilityNotice);
+
+            if (!res.active) return;
+            rankingWrap.style.display = 'block';
+            const ranks = res.ranking || [];
+            if (!ranks.length) {
+                rankingBody.innerHTML = '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">まだ記録がありません</td></tr>';
+                return;
+            }
+            let currentRank = 0;
+            let lastTime = null;
+            ranks.forEach((record, index) => {
+                if (record.time !== lastTime) { currentRank = index + 1; lastTime = record.time; }
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '.1cqw solid #444';
+                const rank = document.createElement('td'); rank.style.padding = '1cqh'; rank.innerText = currentRank;
+                const player = document.createElement('td'); player.style.padding = '1cqh';
+                const playerName = document.createElement('span');
+                playerName.style.cssText = 'color:var(--primary-color); cursor:pointer; text-decoration:underline;';
+                playerName.innerText = record.name;
+                playerName.onclick = () => openProfile(record.name);
+                player.appendChild(playerName);
+                player.insertAdjacentHTML('beforeend', ` ${renderBadgeChip(record.name, 'small')}`);
+                const time = document.createElement('td'); time.style.cssText = 'padding:1cqh; text-align:right;'; time.innerText = `${Number(record.time).toFixed(3)}s`;
+                tr.append(rank, player, time);
+                rankingBody.appendChild(tr);
+            });
+        }
+
+        function closeWeeklyCup() { document.getElementById('weekly-cup-overlay').style.display = 'none'; }
+
+        function startWeeklyCupGame(stage) {
+            stage.isWeeklyCup = true;
+            startGame(stage, 'play');
+        }
+
         // --- グローバルランキング（1位獲得数） ---
         async function showGlobalRanking(tab = 'player') {
             const overlay = document.getElementById('leaderboard-overlay');
@@ -5115,7 +5250,7 @@
                     <td style="padding: 1.5cqh; display: flex; align-items: center; gap: 1cqw;">
                         <canvas id="lb-guild-icon-${i}" width="32" height="32" style="image-rendering: pixelated; width: 3cqw; height: 3cqw;"></canvas>
                         <span style="color: var(--primary-color);">${g.name}</span>
-                        <button class="pixel-btn small" style="font-size:.8cqw; padding:.4cqw;" onclick='showGuildRankingMembers(${JSON.stringify(g.name)})'>メンバー</button>
+                        <span style="color:#b5cde4; font-size:.85em; white-space:normal;">（${(g.members || []).join('、')}）</span>
                     </td>
                     <td style="padding: 1.5cqh; text-align: right;">${g.totalOvr}</td>
                 </tr>`).join('');
@@ -5576,6 +5711,7 @@
                 document.getElementById('user-info').style.display = 'none';
             }
             document.getElementById('global-rank-btn').style.display = 'none';
+            document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
             document.getElementById('chat-btn').style.display = 'none';
@@ -5650,7 +5786,7 @@
             if(document.getElementById('btn-tool-WB')) document.getElementById('btn-tool-WB').style.display = hasWolfBoss ? 'flex' : 'none';
             if(document.getElementById('btn-tool-FL')) document.getElementById('btn-tool-FL').style.display = hasWolfBoss ? 'flex' : 'none';
 
-            // 噴火制御機（購入済み、かつ火山ステージ選択中のみ表示）
+            // 噴火制御機（購入済み、かつ火山・海辺ステージ選択中のみ表示）
             updateEruptionControlToolVisibility();
 
             // 火山ステージタイプ（ショップで購入するまで選択不可）
@@ -5701,6 +5837,7 @@
             document.getElementById('home-bg-canvas').style.display = 'block';
             startHomeBackgroundEffect();
             document.getElementById('global-rank-btn').style.display = 'block';
+            document.getElementById('weekly-cup-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
             document.getElementById('chat-btn').style.display = 'block';
@@ -5861,8 +5998,8 @@
                 } else {
                     if (currentTool === 'EC') {
                         const stageTypeSel = document.getElementById('stage-type-select');
-                        if (!stageTypeSel || stageTypeSel.value !== 'volcano') {
-                            showQuickMsg('噴火制御機は火山ステージでのみ設置できます。', '#ff5252');
+                        if (!stageTypeSel || !['volcano', 'beach'].includes(stageTypeSel.value)) {
+                            showQuickMsg('噴火制御機は火山・海辺ステージでのみ設置できます。', '#ff5252');
                             return;
                         }
                     }
@@ -5940,7 +6077,8 @@
                     ctx.fill();
                 }
             } else if (editorStageType === 'beach') {
-                const waterTop = editorCanvas.height / 2;
+                const ecRow = findEruptionControlRow(editorGrid);
+                const waterTop = (ecRow === null ? GRID_H / 2 : ecRow) * ch;
                 ctx.fillStyle = 'rgba(0, 110, 190, .34)';
                 ctx.fillRect(0, waterTop, editorCanvas.width, editorCanvas.height - waterTop);
                 ctx.strokeStyle = 'rgba(235,255,255,.7)'; ctx.lineWidth = 2;
@@ -5995,10 +6133,14 @@
 
             if(type === 'B') {
                 // レンガ風ブロック
-                ctx.fillStyle = "#5d4037";
+                ctx.fillStyle = isWeeklyCupMatch ? "#b77b05" : "#5d4037";
                 ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
-                ctx.fillStyle = "#3e2723";
+                ctx.fillStyle = isWeeklyCupMatch ? "#704300" : "#3e2723";
                 ctx.fillRect(x*cw + pad, y*ch + ch*0.4, cw - pad*2, ch*0.1);
+                if (isWeeklyCupMatch) {
+                    ctx.fillStyle = "#fff0a3";
+                    ctx.fillRect(x*cw + pad + 2, y*ch + pad + 2, cw - pad * 2 - 4, Math.max(1, ch * .08));
+                }
             } else if(type === 'S') {
                 // スタートパッド
                 ctx.fillStyle = "#1b5e20";
@@ -6038,13 +6180,19 @@
                     ctx.fillText("G", x*cw + cw/2, y*ch + ch*0.4);
                 }
             } else if(type === 'K') {
-                // スパイク
-                ctx.fillStyle = "#78909c";
+                // 通常スパイク（大会中だけ黄金化）
+                ctx.fillStyle = isWeeklyCupMatch ? "#ffd02e" : "#78909c";
                 ctx.beginPath();
                 ctx.moveTo(x*cw + pad, y*ch + ch - pad);
                 ctx.lineTo(x*cw + cw/2, y*ch + pad);
                 ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
                 ctx.fill();
+                if (isWeeklyCupMatch) {
+                    ctx.strokeStyle = "#fff4ac";
+                    ctx.lineWidth = Math.max(1, Math.min(cw, ch) * .06);
+                    ctx.stroke();
+                    ctx.lineWidth = 1;
+                }
             } else if(type === 'A') {
                 // 弓発射台
                 ctx.fillStyle = "#455a64";
@@ -6889,6 +7037,7 @@
             document.getElementById('home-bg-canvas').style.display = 'block';
             startHomeBackgroundEffect();
             document.getElementById('global-rank-btn').style.display = 'block';
+            document.getElementById('weekly-cup-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
             document.getElementById('chat-btn').style.display = 'block';
@@ -6959,6 +7108,7 @@
 
             gameMode = mode;
             currentStageData = stageObj;
+            isWeeklyCupMatch = mode === 'play' && stageObj && stageObj.isWeeklyCup === true;
             isSwitchOn = true;
             player.onSwitch = false;
             // spriteCache.clear(); // パフォーマンス向上のため全削除を廃止
@@ -6999,6 +7149,7 @@
                 document.getElementById('user-info').style.display = 'none';
             }
             if (document.getElementById('global-rank-btn')) document.getElementById('global-rank-btn').style.display = 'none';
+            if (document.getElementById('weekly-cup-btn')) document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
             document.getElementById('chat-btn').style.display = 'none';
@@ -7015,8 +7166,11 @@
             const container = document.querySelector('.container');
             container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
             
-            // ステージタイプ固有の背景
-            if (currentStageType === 'water') {
+            // 大会はステージタイプにかかわらず新次元（オーロラ）背景を使う。
+            // 物理・水面などのステージタイプ固有の挙動は currentStageType をそのまま利用する。
+            if (isWeeklyCupMatch) {
+                container.classList.add('bg-aurora');
+            } else if (currentStageType === 'water') {
                 container.classList.add('bg-water');
             } else if (currentStageType === 'dark') {
                 container.classList.add('bg-dark');
@@ -7095,13 +7249,17 @@
                 if (en.isBoss) destroyBlocksInsideBoss(en);
             });
 
-            // 噴火制御機（EC）: 火山ステージの場合、設置位置の高さを溶岩上昇の上限として記憶する
+            // 噴火制御機（EC）: 設置位置を開始時に記憶し、毎フレームのグリッド走査を避ける。
             eruptionControlLimitTiles = null;
+            beachWaterSurfaceTiles = GRID_H / 2;
             auroraEruptionControlActive = false;
             if (currentStageType === 'volcano') {
                 const ecRow = findEruptionControlRow(activeStage);
                 if (ecRow !== null) eruptionControlLimitTiles = GRID_H - ecRow;
                 auroraEruptionControlActive = isEruptionControlSurroundedByAurora(activeStage);
+            } else if (currentStageType === 'beach') {
+                const ecRow = findEruptionControlRow(activeStage);
+                if (ecRow !== null) beachWaterSurfaceTiles = ecRow;
             }
             
             player.vx = 0; player.vy = 0; player.hasKey = 0; player.wasInBeachWater = false;
@@ -7139,6 +7297,7 @@
             cancelAnimationFrame(gameLoopId);
             stopStageBGM();
             document.getElementById('game-screen').style.display = 'none';
+            isWeeklyCupMatch = false;
             if (gameMode === 'test') {
                 document.getElementById('editor-screen').style.display = 'block';
                 drawEditor();
@@ -7530,7 +7689,7 @@
             }
 
             let currentSpeed = 0.015; // デフォルトの加速
-            const isBeachWater = currentStageType === 'beach' && (player.y + player.h / 2 >= GRID_H / 2);
+            const isBeachWater = currentStageType === 'beach' && (player.y + player.h / 2 >= beachWaterSurfaceTiles);
             const isWater = (currentStageType === 'water' || isBeachWater);
             // 海辺で水面を下から抜けたフレームだけ、地上ジャンプと同じ推進力を使えるようにする。
             const emergedFromBeachWater = currentStageType === 'beach' && player.wasInBeachWater && !isBeachWater;
@@ -8356,6 +8515,8 @@
         // nullの場合は制限なし。ゲーム開始時（openGame相当の処理）でactiveStageから設置位置を
         // 探して1度だけ計算しておくことで、毎フレームのグリッド走査を避ける。
         let eruptionControlLimitTiles = null;
+        // 海辺の水面（グリッド座標）。噴火制御機がなければ従来どおり下半分を水にする。
+        let beachWaterSurfaceTiles = GRID_H / 2;
         let auroraEruptionControlActive = false;
 
         // 指定したグリッドから噴火制御機（'EC'）の設置行を探す（見つからなければnull）
@@ -8421,14 +8582,14 @@
         let stageTypeWarnPending = false; // タイプ変更警告の確認待ちフラグ
 
 
-        // 噴火制御機ツールは「購入済み」かつ「現在選択中のステージタイプが火山」の場合のみ表示する
+        // 噴火制御機ツールは「購入済み」かつ「現在選択中の火山・海辺ステージ」の場合のみ表示する
         function updateEruptionControlToolVisibility() {
             const btn = document.getElementById('btn-tool-EC');
             if (!btn) return;
             const hasEruptionControl = purchasedSkins.includes('eruption_control');
             const stageTypeSel = document.getElementById('stage-type-select');
-            const isVolcano = stageTypeSel && stageTypeSel.value === 'volcano';
-            btn.style.display = (hasEruptionControl && isVolcano) ? 'flex' : 'none';
+            const supportsEruptionControl = stageTypeSel && ['volcano', 'beach'].includes(stageTypeSel.value);
+            btn.style.display = (hasEruptionControl && supportsEruptionControl) ? 'flex' : 'none';
         }
 
         function onStageTypeChange(sel) {
@@ -8860,7 +9021,7 @@
             // 海辺: 下半分だけを水として描画する（物理も下半分に入った時だけ水中扱い）。
             if (currentStageType === 'beach') {
                 const wt = Date.now() * 0.001;
-                const waterTop = cachedGameCanvas.height / 2;
+                const waterTop = beachWaterSurfaceTiles * ch;
                 cachedGameCtx.fillStyle = `rgba(0, 100, 185, ${0.3 + Math.sin(wt) * 0.04})`;
                 cachedGameCtx.fillRect(0, waterTop, cachedGameCanvas.width, cachedGameCanvas.height - waterTop);
                 cachedGameCtx.strokeStyle = 'rgba(235,255,255,.7)';
