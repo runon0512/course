@@ -8096,8 +8096,8 @@
             if (keys['ArrowLeft']) { player.vx -= currentSpeed; player.facing = 'left'; }
             if (keys['ArrowRight']) { player.vx += currentSpeed; player.facing = 'right'; }
 
-            // ライ・アルバロ: ジャンプまたはスペシャルキーを「押した瞬間」だけ、地上・空中を問わず前方へ約4マス雷ダッシュする。
-            if (currentStageType === 'rai_alvaro' && (justPressedJump || justPressedSpecial) && !isWater &&
+            // ライ・アルバロ: スペシャルキー（↓ / S / SPECIAL）を「押した瞬間」だけ、地上・空中を問わず前方へ約4マス雷ダッシュする。
+            if (currentStageType === 'rai_alvaro' && justPressedSpecial && !isWater &&
                 raiDashFrames <= 0 && raiDashCooldown <= 0 && frameCount > 10) {
                 raiDashFrames = 12;
                 raiDashCooldown = 90; // 1.5秒
