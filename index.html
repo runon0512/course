@@ -181,6 +181,15 @@
             align-items: center;
             gap: 1cqw;
         }
+        #dm-notification-dot { display:none; position:absolute; top:-0.45cqh; right:-0.7cqw; width:0.8cqw; height:0.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:0.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
+        #dm-overlay { display:none; flex-direction:column; align-items:center; justify-content:flex-start; gap:1.2cqh; padding:3cqh 5cqw; box-sizing:border-box; }
+        #dm-header { width:90%; max-width:78cqw; display:flex; align-items:center; justify-content:space-between; padding:1cqh 1.2cqw; box-sizing:border-box; background:linear-gradient(100deg,rgba(22,82,125,.75),rgba(16,29,71,.92)); border:.15cqw solid #64dfff; box-shadow:0 0 1cqw rgba(65,207,255,.25); }
+        #dm-list { width:90%; min-height:0; flex:1 1 auto; }
+        #dm-composer { width:90%; display:flex; gap:1cqw; flex:0 0 auto; }
+        #dm-list .chat-msg-item { width:fit-content; max-width:82%; align-self:flex-start; border-left:.28cqw solid #57ddff; }
+        #dm-list .chat-msg-item.dm-own { align-self:flex-end; flex-direction:row-reverse; border-left:1px solid rgba(255,255,255,.2); border-right:.28cqw solid #ffe16b; background:linear-gradient(260deg,rgba(91,64,9,.74),rgba(43,35,16,.78)); }
+        #dm-list .chat-msg-item canvas { flex-shrink:0; }
+        #dm-input:focus { outline:none; border-color:#64dfff !important; box-shadow:0 0 .8cqw rgba(100,223,255,.5) !important; }
 
         /* 認証画面のスタイル */
         #auth-overlay {
@@ -499,7 +508,7 @@
         }
 
         /* ホーム・ステージ一覧と統一するネオンパネル */
-        #chat-overlay, #profile-overlay, #guild-overlay, #shop-overlay, #explanation-overlay {
+        #chat-overlay, #dm-overlay, #profile-overlay, #guild-overlay, #shop-overlay, #explanation-overlay {
             background:
                 radial-gradient(ellipse at 15% 10%, rgba(0,255,180,.13), transparent 35%),
                 radial-gradient(ellipse at 85% 88%, rgba(0,166,255,.15), transparent 42%),
@@ -511,18 +520,18 @@
                 radial-gradient(ellipse at 80% 90%, rgba(0,166,255,.16), transparent 44%),
                 linear-gradient(135deg, #030a19, #071c38) !important;
         }
-        #chat-overlay h2, #profile-overlay h2, #guild-overlay h2, #shop-overlay h2,
+        #chat-overlay h2, #dm-overlay h2, #profile-overlay h2, #guild-overlay h2, #shop-overlay h2,
         #explanation-overlay h2, #leaderboard-overlay h2 {
             color:#c9fbff !important;
             letter-spacing:.12em;
             text-shadow:0 0 1cqw rgba(0,210,255,.72);
         }
-        #chat-overlay .pixel-btn, #leaderboard-overlay .pixel-btn, #profile-overlay .pixel-btn,
+        #chat-overlay .pixel-btn, #dm-overlay .pixel-btn, #leaderboard-overlay .pixel-btn, #profile-overlay .pixel-btn,
         #guild-overlay .pixel-btn, #shop-overlay .pixel-btn, #explanation-overlay .pixel-btn {
             border-color:#5cddff;
             box-shadow:inset .16cqw 0 0 rgba(125,255,203,.8), 0 .25cqw 0 rgba(0,0,0,.38);
         }
-        #chat-overlay .pixel-btn:hover, #leaderboard-overlay .pixel-btn:hover, #profile-overlay .pixel-btn:hover,
+        #chat-overlay .pixel-btn:hover, #dm-overlay .pixel-btn:hover, #leaderboard-overlay .pixel-btn:hover, #profile-overlay .pixel-btn:hover,
         #guild-overlay .pixel-btn:hover, #shop-overlay .pixel-btn:hover, #explanation-overlay .pixel-btn:hover {
             box-shadow:0 0 1.1cqw rgba(75,226,255,.6);
         }
@@ -1389,14 +1398,14 @@
         .stage-stats { color:#bbb; }
         .stage-preview { background:#70a1ff; border:.1cqw solid #fff; box-shadow:none; }
 
-        #chat-overlay { background:rgba(10,10,30,.95) !important; }
+        #chat-overlay, #dm-overlay { background:rgba(10,10,30,.95) !important; }
         #profile-overlay, #guild-overlay, #shop-overlay, #explanation-overlay { background:rgba(10,10,30,.9) !important; }
         #leaderboard-overlay { background:rgba(0,0,0,.95) !important; }
-        #chat-overlay h2, #profile-overlay h2, #guild-overlay h2, #shop-overlay h2, #explanation-overlay h2, #leaderboard-overlay h2 { color:inherit !important; letter-spacing:normal; text-shadow:none; }
-        #chat-overlay .pixel-btn, #leaderboard-overlay .pixel-btn, #profile-overlay .pixel-btn, #guild-overlay .pixel-btn, #shop-overlay .pixel-btn, #explanation-overlay .pixel-btn { border-color:#fff; box-shadow:none; }
+        #chat-overlay h2, #dm-overlay h2, #profile-overlay h2, #guild-overlay h2, #shop-overlay h2, #explanation-overlay h2, #leaderboard-overlay h2 { color:inherit !important; letter-spacing:normal; text-shadow:none; }
+        #chat-overlay .pixel-btn, #dm-overlay .pixel-btn, #leaderboard-overlay .pixel-btn, #profile-overlay .pixel-btn, #guild-overlay .pixel-btn, #shop-overlay .pixel-btn, #explanation-overlay .pixel-btn { border-color:#fff; box-shadow:none; }
         .chat-msg-list { box-sizing:content-box; padding:0; border:0; background:transparent; box-shadow:none; scrollbar-color:auto; }
         .chat-msg-item { background:rgba(255,255,255,.05); border:0; border-left:0; border-radius:4px; box-shadow:none; }
-        #chat-overlay input, #chat-overlay #chat-stage-search, #chat-overlay .chat-reply-context { background:#1a1a2e !important; border-color:#fff !important; box-shadow:none; }
+        #chat-overlay input, #dm-overlay input, #chat-overlay #chat-stage-search, #chat-overlay .chat-reply-context { background:#1a1a2e !important; border-color:#fff !important; box-shadow:none; }
         #leaderboard-overlay .auth-box, .profile-container .ovr-box { background:rgba(255,255,255,.1) !important; border-color:var(--primary-color) !important; box-shadow:none; }
         #leaderboard-overlay table { background:transparent; border-color:initial !important; }
         #leaderboard-overlay th { color:inherit; background:transparent; }
@@ -1447,7 +1456,7 @@
 
         <!-- ユーザー情報 -->
         <div id="user-info">
-            USER: <span id="current-user">-</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
+            USER: <span style="position:relative; display:inline-block;"><span id="current-user">-</span><span id="dm-notification-dot"></span></span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
             <span style="color:#2ecc71; cursor:pointer; text-decoration:underline;" onclick="toggleOnlineUsers()">ON: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
@@ -1621,7 +1630,8 @@
                     <canvas id="profile-skin-canvas" width="128" height="128" style="display:none; image-rendering: pixelated; width:10cqw; height:10cqw; margin:2cqh auto 0;"></canvas>
                     <div id="profile-username" style="margin-top: 1cqh; font-size: 1.5cqw;">-</div>
                     <div id="profile-badge-holder" style="margin-top: 1cqh;"></div>
-                    <button id="badge-toggle-btn" class="pixel-btn small badge-toggle-btn" style="display:none; margin-top: 1cqh; font-size: 1cqw;" onclick="toggleMyBadgeVisibility()">🏅バッジ表示: ON</button>
+                    <button id="profile-dm-btn" class="pixel-btn small" style="display:none; margin-top:1cqh; font-size:1cqw;" onclick="openDirectMessageFromProfile()">💬 DMを送る</button>
+                    <button id="profile-dm-inbox-btn" class="pixel-btn small" style="display:none; margin-top:1cqh; font-size:1cqw;" onclick="openDirectMessageInbox()">📨 DMを確認</button>
                 </div>
                 <div style="position: relative;">
                     <canvas id="radar-chart" width="400" height="400" style="width: 35cqw; height: 35cqw;"></canvas>
@@ -1668,6 +1678,16 @@
             <div style="width: 90%; display: flex; gap: 1cqw;">
                 <input type="text" id="chat-input" maxlength="50" placeholder="メッセージを入力..." style="flex: 1; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.5cqw;">
                 <button class="pixel-btn small" style="width: 15cqw;" onclick="sendChat()">送信</button>
+            </div>
+        </div>
+
+        <!-- 個別DM画面 -->
+        <div id="dm-overlay" class="screen">
+            <div id="dm-header"><div><div style="font-size:1cqw; color:#9eeaff; letter-spacing:.12em;">DIRECT MESSAGE</div><h2 id="dm-title" style="font-size:2.3cqw; margin:.3cqh 0 0;">DM</h2></div><button class="pixel-btn small" onclick="closeDirectMessage()">戻る</button></div>
+            <div id="dm-list" class="chat-msg-list"></div>
+            <div id="dm-composer">
+                <input type="text" id="dm-input" maxlength="200" placeholder="メッセージを入力..." style="flex:1; background:#1a1a2e; border:.2cqw solid #fff; color:#fff; padding:1cqw; font-size:1.5cqw;">
+                <button id="dm-send-btn" class="pixel-btn small" style="width:15cqw;" onclick="sendDirectMessage()">送信</button>
             </div>
         </div>
 
@@ -2017,8 +2037,8 @@
             <canvas id="game-canvas"></canvas>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
                 <span id="game-controls-label">ARROWS: MOVE | SPACE: JUMP | 
-                    <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw; opacity: 0.5; pointer-events: none;">RETRY</span>
-                    <span id="game-exit-btn" onclick="exitGame()" style="cursor:pointer; text-decoration: underline; opacity: 0.5; pointer-events: none;">EXIT</span> 
+                    <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw;">RETRY</span>
+                    <span id="game-exit-btn" onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span> 
                 </span>
                 <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1.2cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
                     <input type="checkbox" id="toggle-ghosts">
@@ -2048,10 +2068,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzf1DUElRjFujkigrpx6p8PaIvytJ760VComVWL9vow9VsPIHu-oiJNtsWuOi80mam-/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxPCfPcHsUMcyRchRdT0oJFv61NVdnORavQkgnApHymR0F1awStjKi7wjJ_NnLO9m1b/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.2"
+            VERSION: "2.12.3"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2068,6 +2088,8 @@
         
         // 各種リフレッシュIDとグローバル状態
         let chatRefreshId = null;
+        let dmRefreshId = null;
+        let currentDmPartner = null;
         let guildBulletinRefreshId = null;
         let currentGuildDetails = null; 
         let guildBadgeByMember = Object.create(null);
@@ -3468,9 +3490,12 @@
             // 同期完了後に取得済みのスキン・ギルド情報をホームへ反映
             updateHomeCharacter();
             refreshChat();
+            refreshDirectMessageNotifications();
             // 3分(180000ms)ごとにチャットの新着をバックグラウンドで確認し、新着があれば通知バッジを出す
             if (chatRefreshId) clearInterval(chatRefreshId);
             chatRefreshId = setInterval(refreshChat, 180000);
+            if (dmRefreshId) clearInterval(dmRefreshId);
+            dmRefreshId = setInterval(refreshDirectMessageNotifications, 180000);
             updateGoldDisplay();
             startOnlineCountUpdates();
 
@@ -3801,6 +3826,128 @@
             document.getElementById('chat-stage-search').style.display = 'none';
             // 開いている間は止めていたバックグラウンド通知ポーリング(3分間隔)を再開する
             if (!chatRefreshId) chatRefreshId = setInterval(refreshChat, 180000);
+        }
+
+        function dmSeenKey(partner) {
+            return `pixel_dm_seen_${CONFIG.USERNAME}_${partner}`;
+        }
+
+        async function refreshDirectMessageNotifications() {
+            if (!CONFIG.IS_LOGGED_IN) return;
+            const res = await callApi('getDirectMessageInbox', { username: CONFIG.USERNAME });
+            if (!res || !res.success) return;
+            const isOpen = document.getElementById('dm-overlay').style.display === 'flex';
+            let hasUnread = false;
+            (res.conversations || []).forEach(conversation => {
+                const seen = Number(localStorage.getItem(dmSeenKey(conversation.from)) || 0);
+                if (isOpen && String(currentDmPartner) === String(conversation.from)) {
+                    localStorage.setItem(dmSeenKey(conversation.from), String(conversation.time));
+                } else if (Number(conversation.time) > seen) {
+                    hasUnread = true;
+                }
+            });
+            const dot = document.getElementById('dm-notification-dot');
+            if (dot) dot.style.display = hasUnread ? 'block' : 'none';
+        }
+
+        function openDirectMessageFromProfile() {
+            const target = document.getElementById('profile-username').innerText;
+            if (target && target !== '-' && target !== CONFIG.USERNAME) openDirectMessage(target);
+        }
+
+        async function openDirectMessageInbox() {
+            currentDmPartner = null;
+            document.querySelectorAll('.screen').forEach(screen => {
+                if (screen.id !== 'dm-overlay') screen.style.display = 'none';
+            });
+            document.getElementById('dm-overlay').style.display = 'flex';
+            document.getElementById('dm-title').innerText = 'DM受信箱';
+            document.getElementById('dm-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
+            document.getElementById('dm-composer').style.display = 'none';
+            const res = await callApi('getDirectMessageInbox', { username: CONFIG.USERNAME });
+            if (!res || !res.success) return;
+            const container = document.getElementById('dm-list');
+            container.innerHTML = '';
+            const conversations = res.conversations || [];
+            if (!conversations.length) container.innerHTML = '<div style="color:#aaa; text-align:center; padding:5cqh;">受信したDMはありません。</div>';
+            conversations.forEach(conversation => {
+                const seen = Number(localStorage.getItem(dmSeenKey(conversation.from)) || 0);
+                const unread = Number(conversation.time) > seen;
+                const item = document.createElement('button');
+                item.className = 'chat-msg-item';
+                item.style.cssText = 'width:100%; box-sizing:border-box; cursor:pointer; color:#fff; text-align:left; font:inherit; display:block;';
+                item.innerHTML = `<div style="display:flex; justify-content:space-between; gap:1cqw;"><strong style="color:var(--primary-color);">${conversation.from}${unread ? ' <span style="color:#ff5165;">●</span>' : ''}</strong><span class="message-meta">${new Date(conversation.time).toLocaleString()}</span></div><div style="color:#d8e9ff; margin-top:.4cqh; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${linkifyMessage(conversation.message || '')}</div>`;
+                item.onclick = () => openDirectMessage(conversation.from);
+                container.appendChild(item);
+            });
+            refreshDirectMessageNotifications();
+        }
+
+        async function openDirectMessage(partner) {
+            if (!partner || partner === CONFIG.USERNAME) return;
+            currentDmPartner = partner;
+            // DMを開く時は、背後に別画面が残らないよう全画面を閉じる。
+            document.querySelectorAll('.screen').forEach(screen => {
+                if (screen.id !== 'dm-overlay') screen.style.display = 'none';
+            });
+            document.getElementById('dm-overlay').style.display = 'flex';
+            document.getElementById('dm-title').innerText = `${partner} とのDM`;
+            document.getElementById('dm-composer').style.display = 'flex';
+            document.getElementById('dm-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
+            await refreshDirectMessages();
+            document.getElementById('dm-input').focus();
+        }
+
+        function closeDirectMessage() {
+            document.getElementById('dm-overlay').style.display = 'none';
+            currentDmPartner = null;
+            refreshDirectMessageNotifications();
+        }
+
+        async function refreshDirectMessages() {
+            if (!currentDmPartner) return;
+            const partner = currentDmPartner;
+            const res = await callApi('getDirectMessages', { username: CONFIG.USERNAME, partner });
+            if (!res || !res.success || partner !== currentDmPartner) return;
+            const container = document.getElementById('dm-list');
+            container.innerHTML = '';
+            const messages = res.messages || [];
+            if (!messages.length) container.innerHTML = '<div style="color:#aaa; text-align:center; padding:5cqh;">まだDMはありません。</div>';
+            messages.forEach(m => {
+                const isMine = String(m.from) === String(CONFIG.USERNAME);
+                const item = document.createElement('div');
+                item.className = `chat-msg-item${isMine ? ' dm-own' : ''}`;
+                const canvas = document.createElement('canvas');
+                canvas.width = 48; canvas.height = 48;
+                drawPlayer(canvas.getContext('2d'), 0, 0, 48, 48, m.skin, false, m.color, m.customSprite);
+                item.appendChild(canvas);
+                const content = document.createElement('div');
+                content.style.flex = '1';
+                content.innerHTML = `<div class="chat-user" style="color:var(--primary-color); font-weight:bold;">${isMine ? '自分' : m.from}</div><div style="word-break:break-all;">${linkifyMessage(m.message)}</div><div class="message-meta">${new Date(m.time).toLocaleString()}</div>`;
+                item.appendChild(content);
+                container.appendChild(item);
+            });
+            const lastIncoming = messages.filter(m => String(m.to) === String(CONFIG.USERNAME)).pop();
+            if (lastIncoming) localStorage.setItem(dmSeenKey(partner), String(new Date(lastIncoming.time).getTime()));
+            container.scrollTop = container.scrollHeight;
+            refreshDirectMessageNotifications();
+        }
+
+        async function sendDirectMessage() {
+            if (!currentDmPartner) return;
+            const input = document.getElementById('dm-input');
+            const sendBtn = document.getElementById('dm-send-btn');
+            const message = input.value.trim();
+            if (!message) return;
+            input.disabled = true; sendBtn.disabled = true; sendBtn.innerText = '送信中...';
+            try {
+                const res = await callApi('postDirectMessage', { username: CONFIG.USERNAME, to: currentDmPartner, message, skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null });
+                if (!res || !res.success) { alert((res && res.message) || 'DMの送信に失敗しました。'); return; }
+                input.value = '';
+                await refreshDirectMessages();
+            } finally {
+                input.disabled = false; sendBtn.disabled = false; sendBtn.innerText = '送信';
+            }
         }
 
         async function refreshChat() {
@@ -4838,6 +4985,10 @@
 
             renderProfileBadge(targetUser);
             const toggleBtn = document.getElementById('badge-toggle-btn');
+            const dmBtn = document.getElementById('profile-dm-btn');
+            const dmInboxBtn = document.getElementById('profile-dm-inbox-btn');
+            if (dmBtn) dmBtn.style.display = targetUser === CONFIG.USERNAME ? 'none' : 'inline-block';
+            if (dmInboxBtn) dmInboxBtn.style.display = targetUser === CONFIG.USERNAME ? 'inline-block' : 'none';
             if (toggleBtn) {
                 if (targetUser === CONFIG.USERNAME) {
                     toggleBtn.style.display = 'inline-block';
@@ -9221,13 +9372,12 @@
                 if (nextTimerColor && nextTimerColor !== lastGameTimerColor) timerElement.style.color = lastGameTimerColor = nextTimerColor;
             }
 
-            // Retry/Exitの状態更新 (開始から5秒後まで無効)
+            // Retry/Exitはスタートから5秒後に有効化する。
             const gameRetryBtn = gameRetryBtnCache;
             const gameExitBtn = gameExitBtnCache;
             const canUseControls = !isCountingDown && !isGoalTriggered && startTime > 0;
             const elapsed = canUseControls ? (Date.now() - startTime) / 1000 : Infinity;
             const isControlEnabled = canUseControls && elapsed >= 5;
-
             const retryLabel = !isControlEnabled && canUseControls ? `RETRY(${Math.ceil(5 - elapsed)})` : "RETRY";
             if (gameRetryBtn && retryLabel !== lastRetryLabel) {
                 gameRetryBtn.innerText = lastRetryLabel = retryLabel;
