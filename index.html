@@ -3868,14 +3868,14 @@
             const container = document.getElementById('dm-list');
             container.innerHTML = '';
             const conversations = res.conversations || [];
+            // 受信箱を開いたDMは確認済みとして扱う。
+            conversations.forEach(conversation => localStorage.setItem(dmSeenKey(conversation.from), String(conversation.time)));
             if (!conversations.length) container.innerHTML = '<div style="color:#aaa; text-align:center; padding:5cqh;">受信したDMはありません。</div>';
             conversations.forEach(conversation => {
-                const seen = Number(localStorage.getItem(dmSeenKey(conversation.from)) || 0);
-                const unread = Number(conversation.time) > seen;
                 const item = document.createElement('button');
                 item.className = 'chat-msg-item';
                 item.style.cssText = 'width:100%; box-sizing:border-box; cursor:pointer; color:#fff; text-align:left; font:inherit; display:block;';
-                item.innerHTML = `<div style="display:flex; justify-content:space-between; gap:1cqw;"><strong style="color:var(--primary-color);">${conversation.from}${unread ? ' <span style="color:#ff5165;">●</span>' : ''}</strong><span class="message-meta">${new Date(conversation.time).toLocaleString()}</span></div><div style="color:#d8e9ff; margin-top:.4cqh; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${linkifyMessage(conversation.message || '')}</div>`;
+                item.innerHTML = `<div style="display:flex; justify-content:space-between; gap:1cqw;"><strong style="color:var(--primary-color);">${conversation.from}</strong><span class="message-meta">${new Date(conversation.time).toLocaleString()}</span></div><div style="color:#d8e9ff; margin-top:.4cqh; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${linkifyMessage(conversation.message || '')}</div>`;
                 item.onclick = () => openDirectMessage(conversation.from);
                 container.appendChild(item);
             });
@@ -3952,6 +3952,9 @@
         async function refreshChat() {
             const res = await callApi('getChat', {});
             if (!res.success) return;
+
+            // チャット更新時にDMの新着も同時に確認する。
+            await refreshDirectMessageNotifications();
 
             const lastSeen = localStorage.getItem('pixel_chat_last_time');
             const latestTime = res.messages.length > 0 ? new Date(res.messages[0].time).getTime() : 0;
@@ -9565,7 +9568,9 @@
                     const gy = pos[1];
                     const gf = pos[2] === 1 ? 'right' : 'left';
 
-                    drawPlayer(cachedGameCtx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghost.skin || 'default', true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
+                    // ライ・アルバロステージでは、ゴーストも全員ライの専用スキンで統一する。
+                    const ghostSkin = currentStageType === 'rai_alvaro' ? 'rai_alvaro_stage_avatar' : (ghost.skin || 'default');
+                    drawPlayer(cachedGameCtx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghostSkin, true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
                     
                     cachedGameCtx.fillStyle = "#fff";
                     cachedGameCtx.fillText(ghost.name, (gx + player.w/2) * cw, gy * ch - 10);
