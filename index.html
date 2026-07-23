@@ -2036,10 +2036,9 @@
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
-                <span id="game-controls-label">ARROWS: MOVE | SPACE: JUMP | 
-                    <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw;">RETRY</span>
-                    <span id="game-exit-btn" onclick="exitGame()" style="cursor:pointer; text-decoration: underline;">EXIT</span> 
-                </span>
+                <span id="game-controls-label">ARROWS: MOVE | SPACE: JUMP</span>
+                <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration:underline; margin-left:.5cqw; opacity:.5; pointer-events:none;">RETRY</span>
+                <span id="game-exit-btn" onclick="exitGame()" style="cursor:pointer; text-decoration:underline; opacity:.5; pointer-events:none;">EXIT</span>
                 <label style="display: flex; align-items: center; gap: 0.5cqw; cursor: pointer; font-size: 1.2cqw; background: rgba(0,0,0,0.5); padding: 0.5cqh 1cqw; border: 0.1cqw solid #fff;">
                     <input type="checkbox" id="toggle-ghosts">
                     <span>GHOSTS</span>
