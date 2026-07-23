@@ -2016,7 +2016,7 @@
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
-                <span>ARROWS: MOVE | SPACE: JUMP | 
+                <span id="game-controls-label">ARROWS: MOVE | SPACE: JUMP | 
                     <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration: underline; margin-right: 1.5cqw; opacity: 0.5; pointer-events: none;">RETRY</span>
                     <span id="game-exit-btn" onclick="exitGame()" style="cursor:pointer; text-decoration: underline; opacity: 0.5; pointer-events: none;">EXIT</span> 
                 </span>
@@ -2032,7 +2032,8 @@
                     <button id="btn-left" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:5cqw;">◀</button>
                     <button id="btn-right" class="pixel-btn" style="width:12cqw; height:12cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:5cqw;">▶</button>
                 </div>
-                <div style="position:absolute; bottom:0; right:5cqw; pointer-events:auto;">
+                <div style="position:absolute; bottom:0; right:5cqw; pointer-events:auto; display:flex; align-items:end; gap:1.5cqw;">
+                    <button id="btn-special" class="pixel-btn" style="width:13cqw; height:13cqw; min-width:unset; padding:0; display:none; align-items:center; justify-content:center; font-size:2.1cqw; color:#fff36b; border-color:#fff36b;">SPECIAL</button>
                     <button id="btn-jump" class="pixel-btn" style="width:15cqw; height:15cqw; min-width:unset; padding:0; display:flex; align-items:center; justify-content:center; font-size:2.5cqw;">JUMP</button>
                 </div>
             </div>
@@ -2050,7 +2051,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzf1DUElRjFujkigrpx6p8PaIvytJ760VComVWL9vow9VsPIHu-oiJNtsWuOi80mam-/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.1R"
+            VERSION: "2.12.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2214,6 +2215,15 @@
             'SM': { title: '粘液ブロック', text: '紫色のブロックです。それ自体に特別な効果はありませんが、ボス「パープル」を倒すとステージから消滅します。' },
             'FL': { title: '炎ブロック', text: '触れると即死する炎のブロックです。ボス「狼(No.2)」を倒すとステージから消滅します。' }
         };
+        const STAGE_TYPE_DESCRIPTIONS = [
+            { type: 'normal', title: '通常', text: '標準的な物理と背景のステージです。' },
+            { type: 'water', title: '水中', text: '水中では移動に抵抗がかかり、ジャンプキーで上昇します。' },
+            { type: 'dark', title: '暗闇', text: 'プレイヤーとランプの周囲だけが明るく見えるステージです。' },
+            { type: 'volcano', title: '火山', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
+            { type: 'moon', title: '月', text: '重力が通常の半分になるステージです。敵にも影響します。' },
+            { type: 'beach', title: '海辺', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
+            { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' }
+        ];
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
@@ -2221,6 +2231,7 @@
         let isSwitchOn = true;
         let keys = {};
         let pendingJumpPress = false;
+        let pendingSpecialPress = false;
         let raiDashFrames = 0;
         let raiDashCooldown = 0;
         let raiDashHitBoss = false;
@@ -2737,7 +2748,9 @@
                 KeyA: 'ArrowLeft',
                 KeyD: 'ArrowRight',
                 KeyW: 'Space',
-                ArrowUp: 'Space'
+                ArrowUp: 'Space',
+                KeyS: 'Special',
+                ArrowDown: 'Special'
             };
             return aliases[code] || code;
         }
@@ -2747,8 +2760,9 @@
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
             const gameCode = getGameplayKeyCode(e.code);
             if (gameCode === 'Space' && !keys[gameCode]) pendingJumpPress = true;
+            if (gameCode === 'Special' && !keys[gameCode]) pendingSpecialPress = true;
             keys[gameCode] = true;
-            if (gameCode === 'Space' || gameCode === 'ArrowLeft' || gameCode === 'ArrowRight') e.preventDefault();
+            if (gameCode === 'Space' || gameCode === 'Special' || gameCode === 'ArrowLeft' || gameCode === 'ArrowRight') e.preventDefault();
             if (e.code === 'Enter') {
                 const msgOverlay = document.getElementById('msg-overlay');
                 const retryBtn = document.getElementById('retry-btn');
@@ -3289,6 +3303,12 @@
                 });
                 sections.push('</div>');
             });
+            sections.push('<div style="font-size: 2.2cqw; font-weight: bold; margin: 2cqh 0 1.2cqw;">Stage Types</div>');
+            sections.push('<div style="display: grid; gap: 1cqw;">');
+            STAGE_TYPE_DESCRIPTIONS.forEach(stage => {
+                sections.push(`<div class="explanation-item"><canvas class="explanation-icon" data-stage-type="${stage.type}"></canvas><div class="explanation-text"><div style="font-size: 1.2cqw; font-weight: bold; margin-bottom: 0.5cqw;">${stage.title}</div><div>${stage.text}</div></div></div>`);
+            });
+            sections.push('</div>');
             return sections.join('');
         }
 
@@ -3296,12 +3316,32 @@
             const canvases = document.querySelectorAll('.explanation-icon');
             canvases.forEach(canvas => {
                 const type = canvas.dataset.toolType;
+                const stageType = canvas.dataset.stageType;
                 canvas.width = 60;
                 canvas.height = 60;
                 const ctx = canvas.getContext('2d');
-                if (type === 'E') drawEraserIcon(ctx, 60, 60);
+                if (stageType) drawStageTypeGuideIcon(ctx, stageType);
+                else if (type === 'E') drawEraserIcon(ctx, 60, 60);
                 else drawTile(ctx, 0, 0, 60, 60, type);
             });
+        }
+
+        function drawStageTypeGuideIcon(ctx, type) {
+            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
+            ctx.fillStyle = backgrounds[type] || '#70a1ff';
+            ctx.fillRect(0, 0, 60, 60);
+            if (type === 'water' || type === 'beach') {
+                ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(0, type === 'beach' ? 28 : 12, 60, 2);
+                ctx.fillStyle = 'rgba(0,55,145,.55)'; ctx.fillRect(0, type === 'beach' ? 30 : 14, 60, 46);
+            } else if (type === 'dark') {
+                const glow = ctx.createRadialGradient(30, 30, 2, 30, 30, 25); glow.addColorStop(0, '#e7fbff'); glow.addColorStop(1, '#000'); ctx.fillStyle = glow; ctx.fillRect(0, 0, 60, 60);
+            } else if (type === 'volcano') {
+                ctx.fillStyle = '#ff5a00'; ctx.fillRect(0, 42, 60, 18);
+            } else if (type === 'moon') {
+                ctx.fillStyle = '#edf2f8'; ctx.beginPath(); ctx.arc(42, 18, 12, 0, Math.PI * 2); ctx.fill();
+            } else if (type === 'rai_alvaro') {
+                ctx.strokeStyle = '#fff36b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(10, 48); ctx.lineTo(28, 28); ctx.lineTo(34, 37); ctx.lineTo(51, 10); ctx.stroke();
+            }
         }
 
         // --- クリアチェック喪失の警告 ---
@@ -7321,8 +7361,16 @@
 
             activeStage = normalizeGrid(stageObj.data);
             currentStageType = stageObj.stageType || 'normal';
+            const gameControlsLabel = document.getElementById('game-controls-label');
+            if (gameControlsLabel) {
+                gameControlsLabel.innerText = currentStageType === 'rai_alvaro'
+                    ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
+                    : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
+            }
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
+            const specialBtn = document.getElementById('btn-special');
+            if (specialBtn) specialBtn.style.display = (isMobileMode && currentStageType === 'rai_alvaro') ? 'flex' : 'none';
             resizeCanvas('game-canvas');
             
             // 背景の切り替え
@@ -7994,6 +8042,8 @@
 
             const justPressedJump = pendingJumpPress;
             pendingJumpPress = false;
+            const justPressedSpecial = pendingSpecialPress;
+            pendingSpecialPress = false;
 
             if (isCountingDown) {
                 let elapsed = Date.now() - countdownStartTime;
@@ -8046,8 +8096,8 @@
             if (keys['ArrowLeft']) { player.vx -= currentSpeed; player.facing = 'left'; }
             if (keys['ArrowRight']) { player.vx += currentSpeed; player.facing = 'right'; }
 
-            // ライ・アルバロ: 空中でジャンプキーを「押した瞬間」だけ、前方へ約4マス雷ダッシュする。
-            if (currentStageType === 'rai_alvaro' && justPressedJump && !player.onGround && !isWater &&
+            // ライ・アルバロ: ジャンプまたはスペシャルキーを「押した瞬間」だけ、地上・空中を問わず前方へ約4マス雷ダッシュする。
+            if (currentStageType === 'rai_alvaro' && (justPressedJump || justPressedSpecial) && !isWater &&
                 raiDashFrames <= 0 && raiDashCooldown <= 0 && frameCount > 10) {
                 raiDashFrames = 12;
                 raiDashCooldown = 90; // 1.5秒
@@ -8079,6 +8129,7 @@
             
             // Keep the pre-move state for swept stomp detection.
             const playerPreviousBottom = player.y + player.h;
+            const playerPreviousX = player.x;
             const playerWasFalling = player.vy >= 0;
             player.vy += gravity;
 
@@ -8555,17 +8606,25 @@
                 // 判定範囲は「プレイヤーの半径＋敵の半径」を基準にスケール（元は0.9サイズの敵で0.8だった）
                 const proximityThresh = player.w/2 + enHalf - 0.1;
                 const isOverlappingEnemy = Math.abs(px - ex) < proximityThresh && Math.abs(py - ey) < proximityThresh;
+                // 高速移動で敵をすり抜けないよう、ダッシュ前後の横移動全体を使って当たり判定する。
+                const dashLeft = Math.min(playerPreviousX, player.x);
+                const dashRight = Math.max(playerPreviousX + player.w, player.x + player.w);
+                const isRaiDashContact = raiDashFrames > 0 &&
+                    dashRight > en.x && dashLeft < en.x + enSize &&
+                    player.y + player.h > en.y && player.y < en.y + enSize;
                 const enemyTop = Math.min(enemyPreviousTop, en.y);
                 const overlapsEnemyHorizontally = player.x < en.x + enSize - 0.05 && player.x + player.w > en.x + 0.05;
                 const stompedEnemy = playerWasFalling && overlapsEnemyHorizontally &&
                     playerPreviousBottom <= enemyTop + 0.1 && player.y + player.h >= enemyTop - 0.05;
                 // 雷ダッシュ中は、ボス以外の敵を接触だけで倒せる。
-                if (raiDashFrames > 0 && isOverlappingEnemy && !en.isBoss) {
+                if (isRaiDashContact && !en.isBoss) {
                     en.dead = true;
                     continue;
                 }
-                if (en.isBoss && raiDashFrames > 0 && !raiDashHitBoss && isOverlappingEnemy) {
-                    en.hp = Math.max(0, en.hp - 1);
+                if (en.isBoss && isRaiDashContact && !raiDashHitBoss) {
+                    // 雷ダッシュは通常の踏みつけ（10ダメージ）2回分の威力。
+                    en.hp = Math.max(0, en.hp - 20);
+                    en.raiDamageFlash = 30;
                     raiDashHitBoss = true;
                     if (en.hp <= 0) {
                         en.dead = true;
@@ -9385,6 +9444,22 @@
             const gameplaySkin = currentStageType === 'rai_alvaro' ? 'rai_alvaro_stage_avatar' : equippedSkin;
             drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, gameplaySkin, false, equippedColor, customSpriteStore[gameplaySkin], player.facing, CONFIG.USERNAME);
 
+            // ライ・アルバロ: キャラクター横にスペシャルの再使用ゲージを表示
+            if (currentStageType === 'rai_alvaro') {
+                const gaugeX = (player.x + player.w) * cw + 3;
+                const gaugeY = player.y * ch + ch * 0.12;
+                const gaugeW = Math.max(3, cw * 0.1);
+                const gaugeH = ch * 0.76;
+                const ready = Math.max(0, Math.min(1, 1 - raiDashCooldown / 90));
+                cachedGameCtx.fillStyle = 'rgba(0,0,0,0.75)';
+                cachedGameCtx.fillRect(gaugeX, gaugeY, gaugeW, gaugeH);
+                cachedGameCtx.fillStyle = raiDashFrames > 0 ? '#ffffff' : '#fff36b';
+                cachedGameCtx.fillRect(gaugeX, gaugeY + gaugeH * (1 - ready), gaugeW, gaugeH * ready);
+                cachedGameCtx.strokeStyle = '#ffffff';
+                cachedGameCtx.lineWidth = 1;
+                cachedGameCtx.strokeRect(gaugeX, gaugeY, gaugeW, gaugeH);
+            }
+
             // 水中: プレイヤーに青みフィルターを重ねる
             if (currentStageType === 'water') {
                 cachedGameCtx.globalCompositeOperation = 'multiply';
@@ -9577,6 +9652,13 @@
                 cachedGameCtx.fillRect(barX, barY, barW, barH);
                 cachedGameCtx.fillStyle = '#e040fb';
                 cachedGameCtx.fillRect(barX, barY, barW * hpRatio, barH);
+                if (en.raiDamageFlash > 0) {
+                    cachedGameCtx.fillStyle = '#fff36b';
+                    cachedGameCtx.font = `bold ${Math.max(10, ch * 0.28)}px Arial`;
+                    cachedGameCtx.textAlign = 'center';
+                    cachedGameCtx.fillText('-20', barX + barW / 2, barY - 4);
+                    en.raiDamageFlash--;
+                }
             }
 
         }
@@ -9701,16 +9783,20 @@
         }
 
         function setupMobileControls() {
-            const btns = { 'btn-left': 'ArrowLeft', 'btn-right': 'ArrowRight', 'btn-jump': 'Space' };
+            const btns = { 'btn-left': 'ArrowLeft', 'btn-right': 'ArrowRight', 'btn-jump': 'Space', 'btn-special': 'Special' };
             Object.entries(btns).forEach(([id, code]) => {
                 const el = document.getElementById(id);
                 if(!el) return;
-                const setKey = (val, e) => { if(e.cancelable) e.preventDefault(); keys[code] = val; };
+                const setKey = (val, e) => {
+                    if(e.cancelable) e.preventDefault();
+                    if (val && code === 'Special' && !keys[code]) pendingSpecialPress = true;
+                    keys[code] = val;
+                };
                 el.addEventListener('touchstart', (e) => setKey(true, e), {passive: false});
                 el.addEventListener('touchend', (e) => setKey(false, e), {passive: false});
-                el.addEventListener('mousedown', () => keys[code] = true);
-                el.addEventListener('mouseup', () => keys[code] = false);
-                el.addEventListener('mouseleave', () => keys[code] = false);
+                el.addEventListener('mousedown', (e) => setKey(true, e));
+                el.addEventListener('mouseup', (e) => setKey(false, e));
+                el.addEventListener('mouseleave', (e) => setKey(false, e));
             });
         }
 
