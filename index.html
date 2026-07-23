@@ -1553,6 +1553,10 @@
             <span class="cursive-font" style="text-transform: none;">Pixel Stages</span>
         </h1>
         <div id="subtitle" class="cursive-font" style="position: absolute; top: 18cqh; left: 0; width: 100%; text-align: center; font-size: 3.5cqw; color: var(--secondary-color); z-index: 5; opacity: 0.9; display: none;">Season 2 ~Astral~</div>
+        <div id="home-sync-status" style="position:absolute; top:25cqh; left:0; width:100%; text-align:center; color:#aeefff; font-size:1.35cqw; z-index:6; display:none; text-shadow:0 0 .7cqw #00bfff;">
+            <div>データを読み込み中... <span id="home-sync-percent">0%</span></div>
+            <div style="width:26cqw; height:1.1cqh; margin:.7cqh auto 0; border:.12cqw solid #73e8ff; background:rgba(0,8,24,.8); box-shadow:0 0 .7cqw rgba(70,220,255,.35);"><div id="home-sync-gauge" style="height:100%; width:0%; background:linear-gradient(90deg,#56ffd4,#62bfff); transition:width .12s linear;"></div></div>
+        </div>
         
         <canvas id="home-character-canvas" width="256" height="256" style="position: absolute; right: 10cqw; top: 55%; transform: translateY(-50%); width: 35cqw; height: 35cqw; image-rendering: pixelated; pointer-events: none; z-index: 4; display: none;"></canvas>
 
@@ -1740,7 +1744,7 @@
                     <div class="guild-settings-section">
                         <div style="font-size:1.5cqw; font-weight:bold;">参加条件</div>
                         <label style="font-size:1.1cqw;">最低OVR <input id="guild-min-ovr-input" type="number" min="0" value="0" style="width:8cqw; background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"></label>
-                        <label style="font-size:1.1cqw;">加入方法 <select id="guild-join-policy-select" style="background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"><option value="free">自由加入</option><option value="approval">承認制</option></select></label>
+                        <label style="font-size:1.1cqw;">加入方法 <select id="guild-join-policy-select" style="background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"><option value="free">自由加入</option><option value="private">Private</option></select></label>
                         <button class="pixel-btn small" style="background:#00a8a8;" onclick="saveGuildJoinSettings()">参加条件を保存</button>
                         <div id="guild-join-requests" style="font-size:1.1cqw;"></div>
                     </div>
@@ -1942,6 +1946,7 @@
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                         <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
                         <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
+                        <option id="stage-type-option-rai-alvaro" value="rai_alvaro">⚡ ライ・アルバロ（未購入）</option>
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                     <button id="editor-ui-toggle-btn" class="pixel-btn small" style="margin-top:0; background:#607d8b; color:#fff;" onclick="toggleEditorUI()">🙈UI非表示</button>
@@ -2002,7 +2007,7 @@
                     <div class="tool-btn rank-legendary" id="btn-tool-WB" onclick="setTool('WB', this)" title="WOLF (BOSS No.2)" style="display:none;"><canvas id="icon-WB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-SM" onclick="setTool('SM', this)" title="SLIME BLOCK" style="display:none;"><canvas id="icon-SM" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-FL" onclick="setTool('FL', this)" title="FIRE BLOCK" style="display:none;"><canvas id="icon-FL" class="tool-canvas"></canvas></div>
-                    <div id="color-block-palette" style="display:none; gap:0.5cqw; margin-left:1cqw; padding:0.5cqw; background:rgba(255,255,255,0.1); border-radius:4px; align-items:center;"></div>
+                    <div id="color-block-palette" style="display:none; position:fixed; z-index:80; gap:0.5cqw; padding:0.7cqw; background:rgba(4,16,36,.97); border:.15cqw solid #68ddff; box-shadow:0 0 1cqw rgba(74,220,255,.5); align-items:center; flex-wrap:wrap; width:15cqw;"></div>
                 </div>
             </div>
         </div>
@@ -2042,10 +2047,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzddu9jVO3SnIZ0fK0kdp68Jwhnj-XFUFlNIJdUxQ_J73Vp9iZGOl8DdXZG0prb_Zq4/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzf1DUElRjFujkigrpx6p8PaIvytJ760VComVWL9vow9VsPIHu-oiJNtsWuOi80mam-/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.11.5R"
+            VERSION: "2.12.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2215,6 +2220,10 @@
         let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0 };
         let isSwitchOn = true;
         let keys = {};
+        let pendingJumpPress = false;
+        let raiDashFrames = 0;
+        let raiDashCooldown = 0;
+        let raiDashHitBoss = false;
         let activeStage = [];
         let currentStageData = null; // 現在プレイ中のステージ情報
         let isWeeklyCupMatch = false; // 大会から開始したプレイ中だけ、専用の金色演出を使う
@@ -2677,6 +2686,8 @@
             return fireParticleSpriteCanvas;
         }
 
+        const RAI_ALVARO_SPRITE = [[null,null,null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffdbac","#ffdbac","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#ffdbac","#ffffff","#ffdbac","#ffff00","#ffffff","#ffff00",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffdbac","#008000","#ffdbac","#ffdbac","#008000","#ffdbac","#ffff00",null,null,null,null],[null,null,"#ffff00","#ffdbac","#ffff00","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffff00","#ffdbac",null,null,null,null],[null,null,null,"#ffff00","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac",null,null,null,null,null],[null,null,null,"#808000","#808000","#808000","#808000","#808000","#ffffff","#808000","#808000","#808000",null,null,null,null],[null,null,"#808000","#808000","#808000","#808000","#808000","#00ff00","#ffffff","#800000","#808000","#808000",null,null,null,null],[null,null,"#808000","#808000","#808000","#808000","#ffffff","#800000","#800000","#ffffff","#808000","#808000","#808000",null,null,null],[null,null,"#808000","#808000","#808000","#808000","#800000","#800000","#ffffff","#ffffff","#808000","#808000","#808000",null,null,null],[null,"#808000","#808000","#808000","#808000","#800000","#800000","#ffffff","#ffffff","#ffffff","#808000","#808000","#808000","#808000",null,null],[null,"#808000","#808000","#808000","#808000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#808000","#808000","#808000","#808000",null],["#808000","#808000","#808000","#808000","#808000","#000080","#000080","#ffffff","#000080","#000080","#808000","#808000","#808000","#808000","#808000",null],[null,null,null,null,null,"#000080","#808080",null,"#000080","#808080",null,null,null,null,null,null]];
+
         const SKINS = {
             'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE, recolorIndex: '2' },
             'girl': { name: 'GIRL', price: 0, sprite: GIRL_SPRITE, recolorIndex: '2' },
@@ -2704,7 +2715,8 @@
             'beach_stage': { name: 'BEACH STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
-            'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null }
+            'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
+            'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null }
         };
 
         const COLORS = {
@@ -2732,6 +2744,7 @@
 
         window.addEventListener('keydown', e => {
             const gameCode = getGameplayKeyCode(e.code);
+            if (gameCode === 'Space' && !keys[gameCode]) pendingJumpPress = true;
             keys[gameCode] = true;
             if (gameCode === 'Space' || gameCode === 'ArrowLeft' || gameCode === 'ArrowRight') e.preventDefault();
             if (e.code === 'Enter') {
@@ -3012,6 +3025,12 @@
                     msg.innerText = res.message;
                     if (res.success) {
                         msg.style.color = "var(--primary-color)";
+                        if (type === 'register') {
+                            // 登録直後は同じ認証情報でそのままログインへ進む。
+                            msg.innerText = '登録完了。ログインしています...';
+                            handleAuth('login');
+                            return;
+                        }
                         if (type === 'login') {
                             if (remember) {
                                 localStorage.setItem('pixel_stages_user', user);
@@ -3041,7 +3060,10 @@
 
                                 // ホームを先に表示し、重い同期はバックグラウンドで行う。
                                 showLoggedInHome(res.username);
-                                preloadAllData(res.username, res.loginBonusHistory);
+                                startHomeSyncUI();
+                                preloadAllData(res.username, res.loginBonusHistory)
+                                    .catch(error => console.error('初期データ同期エラー:', error))
+                                    .finally(finishHomeSyncUI);
 
                                 // Initialize sort/filter UI on login
                                 document.getElementById('sort-criteria').value = currentSort;
@@ -3088,6 +3110,7 @@
 
             Object.keys(SKINS).forEach(id => {
                 const skin = SKINS[id];
+                if (skin.deprecated) return;
                 const isBlock = !!skin.isBlockSet;
                 const isCollab = !!skin.isCollab;
 
@@ -3143,6 +3166,10 @@
                 ctx.fillStyle = '#fff4b3'; ctx.fillRect(0, 28, 64, 4);
                 ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1;
                 for (let x = 0; x < 64; x += 14) { ctx.beginPath(); ctx.arc(x + 7, 35, 6, Math.PI, Math.PI * 2); ctx.stroke(); }
+            } else if (data.isStageType && id === 'rai_alvaro_stage') {
+                ctx.fillStyle = '#101226'; ctx.fillRect(0, 0, 64, 64);
+                drawPlayer(ctx, 0, 0, 64, 64, 'rai_alvaro_stage_avatar');
+                ctx.strokeStyle = '#fff36b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(8, 48); ctx.lineTo(25, 35); ctx.lineTo(31, 44); ctx.lineTo(54, 17); ctx.stroke();
             } else if (data.isBlockSet) {
                 let previewType = 'o';
                 if (id === 'wire_mesh') previewType = '#';
@@ -3304,6 +3331,42 @@
 
 
         // --- 初期データ読み込み ---
+        let homeSyncProgressTimer = null;
+        const HOME_SYNC_BUTTONS = '#main-menu button, #global-rank-btn, #weekly-cup-btn, #creators-road-btn, #explanation-btn, #chat-btn, #guild-btn, #login-bonus-btn';
+
+        function setHomeSyncLocked(locked) {
+            document.querySelectorAll(HOME_SYNC_BUTTONS).forEach(button => { button.disabled = locked; });
+        }
+
+        function startHomeSyncUI() {
+            const status = document.getElementById('home-sync-status');
+            const percent = document.getElementById('home-sync-percent');
+            const gauge = document.getElementById('home-sync-gauge');
+            if (!status || !percent || !gauge) return;
+            if (homeSyncProgressTimer) clearInterval(homeSyncProgressTimer);
+            const startedAt = performance.now();
+            status.style.display = 'block';
+            percent.innerText = '0%';
+            gauge.style.width = '0%';
+            setHomeSyncLocked(true);
+            homeSyncProgressTimer = setInterval(() => {
+                const value = Math.min(99, Math.floor((performance.now() - startedAt) / 4000 * 99));
+                percent.innerText = `${value}%`;
+                gauge.style.width = `${value}%`;
+            }, 80);
+        }
+
+        function finishHomeSyncUI() {
+            if (homeSyncProgressTimer) { clearInterval(homeSyncProgressTimer); homeSyncProgressTimer = null; }
+            const status = document.getElementById('home-sync-status');
+            const percent = document.getElementById('home-sync-percent');
+            const gauge = document.getElementById('home-sync-gauge');
+            if (percent) percent.innerText = '100%';
+            if (gauge) gauge.style.width = '100%';
+            setHomeSyncLocked(false);
+            if (status) setTimeout(() => { status.style.display = 'none'; }, 180);
+        }
+
         function showLoggedInHome(username) {
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('main-menu').classList.add('active');
@@ -3508,10 +3571,16 @@
         // メッセージ内のURLをクリック可能なリンクに変換する（表示前にHTMLエスケープも行う）
         function linkifyMessage(text) {
             if (text === null || text === undefined) return '';
+            let rawText = String(text);
+            const colorMatch = rawText.match(/^\[(red|blue|yellow|green|white|cyan)\]/i);
+            const chatColors = { red: '#ff5252', blue: '#62a8ff', yellow: '#fff36b', green: '#66f2a0', white: '#ffffff', cyan: '#62efff' };
+            const messageColor = colorMatch ? chatColors[colorMatch[1].toLowerCase()] : null;
+            if (colorMatch) rawText = rawText.slice(colorMatch[0].length);
             const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (ch) => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[ch]));
-            const escaped = escapeHtml(text);
+            // HTMLをエスケープしてから、-文字- の部分だけ取り消し線へ置き換える。
+            const escaped = escapeHtml(rawText).replace(/-([^\-\r\n<>]+)-/g, '<s style="text-decoration-thickness:1px;">$1</s>');
             const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
 
             let withLinks = escaped.replace(urlPattern, (match) => {
@@ -3531,11 +3600,11 @@
 
             // 候補から選択された実在ユーザー名を長い順に照合するため、日本語や空白を含む名前にも対応できる
             const mentionPattern = getMentionRegex();
-            if (!mentionPattern) return withLinks;
-            return withLinks.replace(mentionPattern, (match, username) => {
+            const withMentions = !mentionPattern ? withLinks : withLinks.replace(mentionPattern, (match, username) => {
                 const safeUsername = escapeHtml(username).replace(/'/g, "&#39;");
                 return `<span style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
             });
+            return messageColor ? `<span style="color:${messageColor};">${withMentions}</span>` : withMentions;
         }
 
         // --- @メンション検索（チャット・ギルド掲示板 共通） ---
@@ -4021,6 +4090,12 @@
         function showGuildMain() {
             if (hasCurrentGuild()) { showMyGuild(); return; }
             if (guildBulletinRefreshId) clearInterval(guildBulletinRefreshId);
+            // 退会・キック後に前のギルド情報が一瞬でも残らないよう、会員画面を明示的に隠して初期化する。
+            currentGuildDetails = null;
+            document.getElementById('guild-member-view').classList.remove('guild-home-active');
+            document.getElementById('my-guild-name').innerText = '-';
+            document.getElementById('guild-members-list-tab').innerHTML = '';
+            document.getElementById('guild-bulletin-list').innerHTML = '';
             document.getElementById('guild-main-view').style.display = 'flex';
             document.getElementById('guild-create-view').style.display = 'none';
             document.getElementById('guild-list-view').style.display = 'none';
@@ -4098,6 +4173,8 @@
             container.innerHTML = '読み込み中...';
             const res = await callApi('getGuilds', {});
             container.innerHTML = '';
+            if (!res.success) { container.innerText = 'ギルドを読み込めませんでした。'; return; }
+            const myOvr = Number(getCachedOVR(CONFIG.USERNAME)) || 0;
             res.guilds.forEach(g => {
                 const div = document.createElement('div');
                 div.className = 'shop-item';
@@ -4110,6 +4187,7 @@
                 textInfo.innerHTML = `
                     <div style="font-weight:bold; font-size:1.2cqw;">${g.name}</div>
                     <div style="font-size:0.8cqw; color:#aaa;">Members: ${g.members.length}</div>
+                    <div style="font-size:0.8cqw; color:${g.joinPolicy === 'private' ? '#ff9a9a' : '#8fffc1'};">${g.joinPolicy === 'private' ? 'Private' : 'Free'} / 最低OVR: ${Number(g.minOvr) || 0}</div>
                 `;
 
                 div.appendChild(cvs);
@@ -4133,6 +4211,17 @@
                     };
                 } else {
                     // どこにも所属していない場合は入会ボタンを表示
+                    const canJoinLocally = g.joinPolicy !== 'private' && myOvr >= (Number(g.minOvr) || 0);
+                    if (!canJoinLocally) {
+                        btn.innerText = '入会できませんでした。';
+                        btn.disabled = true;
+                        btn.style.opacity = '0.55';
+                        div.style.borderColor = '#7c4650';
+                        div.title = g.joinPolicy === 'private' ? 'Privateギルドには入会できません。' : `最低OVR ${Number(g.minOvr) || 0} が必要です。`;
+                        div.appendChild(btn);
+                        container.appendChild(div);
+                        return;
+                    }
                     btn.innerText = '入会';
                     btn.onclick = async () => {
                         const originalText = btn.innerText;
@@ -4258,15 +4347,6 @@
             
             if (res.success) {
                 userGuild = null;
-                // ユーザー情報のローカルキャッシュも更新（任意）
-                await callApi('updateSkins', {
-                    username: CONFIG.USERNAME,
-                    gold: userGold,
-                    purchasedSkins: purchasedSkins,
-                    equippedSkin: equippedSkin,
-                    equippedColor: equippedColor,
-                    guild: ""
-                });
                 showGuildMain();
             }
             alert(res.message);
@@ -4669,15 +4749,7 @@
             
             if (res.success) {
                 userGuild = null;
-                // ユーザー情報のローカルキャッシュも更新
-                await callApi('updateSkins', {
-                    username: CONFIG.USERNAME,
-                    gold: userGold,
-                    purchasedSkins: purchasedSkins,
-                    equippedSkin: equippedSkin,
-                    equippedColor: equippedColor,
-                    guild: "" // Clear guild field for current user
-                });
+                currentGuildDetails = null;
                 showGuildMain();
             }
             alert(res.message);
@@ -5304,22 +5376,13 @@
             await ensureBadgeSettingsLoaded();
 
         if (tab === 'guild') {
-            title.innerText = "RANK: GUILD OVR";
+            title.innerText = "RANK: GUILD EXP";
             const guildRes = await callApi('getGuilds', {});
             const guilds = guildRes.guilds || [];
-            
-            const memberOvrs = {};
-            guilds.forEach(g => {
-                g.members.forEach(m => {
-                    if (!memberOvrs[m]) memberOvrs[m] = calculateProfileStats(m).ovr;
-                });
-                g.totalOvr = g.members.reduce((sum, m) => sum + (memberOvrs[m] || 0), 0);
-            });
-
-            const sortedGuilds = guilds.filter(g => g.totalOvr > 0).sort((a, b) => b.totalOvr - a.totalOvr);
+            const sortedGuilds = guilds.sort((a, b) => (Number(b.exp) || 0) - (Number(a.exp) || 0));
             
             const headerRow = body.parentElement.querySelector('thead tr');
-            if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">GUILD</th><th style="padding: 1cqh; text-align: right;">TOTAL OVR</th>`;
+            if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">GUILD</th><th style="padding: 1cqh; text-align: right;">EXP</th>`;
 
             body.innerHTML = sortedGuilds.map((g, i) => `
                 <tr style="border-bottom: 0.1cqw solid #444;">
@@ -5329,7 +5392,7 @@
                         <span style="color: var(--primary-color);">${g.name}</span>
                         <span style="color:#b5cde4; font-size:.85em; white-space:normal;">（${(g.members || []).join('、')}）</span>
                     </td>
-                    <td style="padding: 1.5cqh; text-align: right;">${g.totalOvr}</td>
+                    <td style="padding: 1.5cqh; text-align: right;">${(Number(g.exp) || 0).toLocaleString()}</td>
                 </tr>`).join('');
 
             sortedGuilds.forEach((g, i) => {
@@ -5559,6 +5622,8 @@
 
         function openLocker() {
             document.getElementById('locker-overlay').style.display = 'flex';
+            // 廃止した旧ライ・アルバロスキンを装備していた場合は通常スキンへ戻す。
+            if (!SKINS[equippedSkin]) equippedSkin = 'default';
             tempSelectedSkin = equippedSkin;
             tempSelectedColor = equippedColor;
             renderLockerList();
@@ -5573,7 +5638,7 @@
                 // ブロックセット（噴火制御機・パープルボス・狼ボス等の「ブロック購入」）は
                 // 内部的な購入フラグとしてpurchasedSkinsを共用しているだけで、実際のプレイヤースキンではない。
                 // ロッカー（装備スキン選択）には表示しない。
-                if (skin.isBlockSet) return;
+                if (!skin || skin.isBlockSet || skin.deprecated) return;
                 const item = document.createElement('div');
                 item.className = 'shop-item';
                 item.style.borderColor = (tempSelectedSkin === id) ? 'var(--primary-color)' : '#fff';
@@ -5879,6 +5944,9 @@
             const beachOpt = document.getElementById('stage-type-option-beach');
             const hasBeachStage = purchasedSkins.includes('beach_stage');
             if (beachOpt) { beachOpt.disabled = !hasBeachStage; beachOpt.textContent = hasBeachStage ? '🏖️ 海辺' : '🏖️ 海辺（未購入）'; }
+            const raiAlvaroOpt = document.getElementById('stage-type-option-rai-alvaro');
+            const hasRaiAlvaroStage = purchasedSkins.includes('rai_alvaro_stage') || purchasedSkins.includes('rai_alvaro');
+            if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロ' : '⚡ ライ・アルバロ（未購入）'; }
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -5993,8 +6061,21 @@
                         const d = document.createElement('div');
                         d.style.width = '2.5cqw'; d.style.height = '2.5cqw'; d.style.background = c;
                         d.style.border = '0.1cqw solid #fff'; d.style.cursor = 'pointer';
-                        d.onclick = () => { selectedColorBlockColor = c; };
+                        d.onclick = (event) => {
+                            event.stopPropagation();
+                            selectedColorBlockColor = c;
+                            palette.style.display = 'none';
+                        };
                         palette.appendChild(d);
+                    });
+                }
+                if (type === 'Z') {
+                    // 下部バーのカラーブロックの真上に、画面からはみ出さない位置で表示する。
+                    requestAnimationFrame(() => {
+                        const rect = btn.getBoundingClientRect();
+                        const paletteRect = palette.getBoundingClientRect();
+                        palette.style.left = `${Math.max(8, Math.min(window.innerWidth - paletteRect.width - 8, rect.left + rect.width / 2 - paletteRect.width / 2))}px`;
+                        palette.style.top = `${Math.max(8, rect.top - paletteRect.height - 8)}px`;
                     });
                 }
             }
@@ -7059,6 +7140,7 @@
                                 ${s.stageType === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
                                 ${s.stageType === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
                                 ${s.stageType === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
+                                ${s.stageType === 'rai_alvaro' ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -7123,7 +7205,7 @@
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach', 'rai_alvaro'];
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
@@ -7252,6 +7334,8 @@
                 container.classList.add('bg-water');
             } else if (currentStageType === 'dark') {
                 container.classList.add('bg-dark');
+            } else if (currentStageType === 'rai_alvaro') {
+                container.classList.add('bg-sky');
             } else if (currentStageType === 'volcano') {
                 container.classList.add('bg-volcano');
             } else if (currentStageType === 'moon') {
@@ -7275,6 +7359,9 @@
 
             // 状態リセット 
             frameCount = 0;
+            raiDashFrames = 0;
+            raiDashCooldown = 0;
+            raiDashHitBoss = false;
             isCountingDown = true;
             startTime = 0;
             totalCheckpoints = 0;
@@ -7453,6 +7540,30 @@
         }
 
         let rewardAlreadyAdded = false;
+
+        // クイック送信では通信完了前でも、戻った一覧に今回のベストタイムを即時反映する。
+        // サーバー記録が完了した後は通常の再読み込み結果で置き換わるため、これは表示用の仮記録。
+        function reflectQuickClearLocally(stageId, username, time, ghost) {
+            if (!stageId || isWeeklyCupMatch) return;
+            const id = String(stageId);
+            const stage = currentStageData && String(currentStageData.id || currentStageData.name) === id
+                ? currentStageData
+                : (cachedStages || []).find(s => String(s.id || s.name) === id);
+            if (!stage) return;
+
+            const leaderboard = Array.isArray(stage.leaderboard) ? stage.leaderboard : (stage.leaderboard = []);
+            const oldIndex = leaderboard.findIndex(record => String(record.name) === String(username));
+            const oldRecord = oldIndex >= 0 ? leaderboard[oldIndex] : null;
+            if (oldRecord && Number(oldRecord.time) <= Number(time)) return;
+            const record = { name: username, time: Number(time), ghost: ghost || null, skin: equippedSkin, color: equippedColor, pending: true };
+            if (oldIndex >= 0) leaderboard.splice(oldIndex, 1);
+            leaderboard.push(record);
+            leaderboard.sort((a, b) => Number(a.time) - Number(b.time));
+            stage._topTime = leaderboard.length ? Number(leaderboard[0].time) : null;
+            stage._topPlayers = leaderboard.filter(entry => Number(entry.time) === stage._topTime);
+            stage._myRec = leaderboard.find(entry => String(entry.name) === String(CONFIG.USERNAME)) || null;
+        }
+
         async function showReward() {
             stopStageBGM();
             // タイムを小数第三位まで計算
@@ -7515,6 +7626,7 @@
 
             if (isQuickSend) {
                 // クイック送信: 送信の完了を待たずにOKを押せるようにする（送信は裏で実行）
+                reflectQuickClearLocally(stageId, submitUsername, clearTime, compressedGhost);
                 okBtn.innerText = "OK";
                 okBtn.disabled = false;
                 okBtn.onclick = closeReward;
@@ -7877,6 +7989,9 @@
         function updateGame() {
             if (isGoalTriggered) return;
 
+            const justPressedJump = pendingJumpPress;
+            pendingJumpPress = false;
+
             if (isCountingDown) {
                 let elapsed = Date.now() - countdownStartTime;
                 if (elapsed < 3000) {
@@ -7907,6 +8022,7 @@
             }
 
             let currentSpeed = 0.015; // デフォルトの加速
+            if (currentStageType === 'rai_alvaro') currentSpeed *= 1.3;
             const isBeachWater = currentStageType === 'beach' && (player.y + player.h / 2 >= beachWaterSurfaceTiles);
             const isWater = (currentStageType === 'water' || isBeachWater);
             // 海辺で水面を下から抜けたフレームだけ、地上ジャンプと同じ推進力を使えるようにする。
@@ -7926,6 +8042,15 @@
 
             if (keys['ArrowLeft']) { player.vx -= currentSpeed; player.facing = 'left'; }
             if (keys['ArrowRight']) { player.vx += currentSpeed; player.facing = 'right'; }
+
+            // ライ・アルバロ: 空中でジャンプキーを「押した瞬間」だけ、前方へ約4マス雷ダッシュする。
+            if (currentStageType === 'rai_alvaro' && justPressedJump && !player.onGround && !isWater &&
+                raiDashFrames <= 0 && raiDashCooldown <= 0 && frameCount > 10) {
+                raiDashFrames = 12;
+                raiDashCooldown = 90; // 1.5秒
+                raiDashHitBoss = false;
+                player.vy = 0;
+            }
 
             if (isWater) {
                 // 水中: Spaceで上昇、離すと少し下がる
@@ -7957,6 +8082,13 @@
             let friction = 0.9;
             if (activeStage[footY_sticky] && activeStage[footY_sticky][gx_sticky] === 'I') friction = 0.99; // 氷は滑る
             player.vx *= friction;
+
+            if (raiDashCooldown > 0) raiDashCooldown--;
+            if (raiDashFrames > 0) {
+                raiDashFrames--;
+                player.vy = 0;
+                player.vx = (player.facing === 'left' ? -1 : 1) * (4 / 12);
+            }
             
             if (Math.abs(player.vx) < 0.001) player.vx = 0;
 
@@ -8424,6 +8556,20 @@
                 const overlapsEnemyHorizontally = player.x < en.x + enSize - 0.05 && player.x + player.w > en.x + 0.05;
                 const stompedEnemy = playerWasFalling && overlapsEnemyHorizontally &&
                     playerPreviousBottom <= enemyTop + 0.1 && player.y + player.h >= enemyTop - 0.05;
+                // 雷ダッシュ中は、ボス以外の敵を接触だけで倒せる。
+                if (raiDashFrames > 0 && isOverlappingEnemy && !en.isBoss) {
+                    en.dead = true;
+                    continue;
+                }
+                if (en.isBoss && raiDashFrames > 0 && !raiDashHitBoss && isOverlappingEnemy) {
+                    en.hp = Math.max(0, en.hp - 1);
+                    raiDashHitBoss = true;
+                    if (en.hp <= 0) {
+                        en.dead = true;
+                        if (en.isPurple) removeAllSlimeBlocks();
+                        if (en.isWolf) removeAllFireBlocks();
+                    }
+                }
                 if (isOverlappingEnemy || stompedEnemy) {
                     // 踏みつけ判定: 落下中かつ、プレイヤーの足元が敵の下部2割より高い位置にある場合
                     if (stompedEnemy) {
@@ -8957,6 +9103,7 @@
         }
 
         function handlePlayerDeath() {
+            if (raiDashFrames > 0) return;
             if (gameMode === 'play' && !isWeeklyCupMatch && currentStageData && currentStageData.id) {
                 // 死亡場所を記録
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
@@ -9215,7 +9362,25 @@
                 cachedGameCtx.restore();
             }
             cachedGameCtx.globalAlpha = 1.0;
-            drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin], player.facing, CONFIG.USERNAME);
+            if (raiDashFrames > 0) {
+                const direction = player.facing === 'left' ? -1 : 1;
+                const cx = (player.x + player.w / 2) * cw;
+                const cy = (player.y + player.h / 2) * ch;
+                cachedGameCtx.save();
+                cachedGameCtx.strokeStyle = '#fff36b';
+                cachedGameCtx.shadowColor = '#58eaff';
+                cachedGameCtx.shadowBlur = 12;
+                cachedGameCtx.lineWidth = Math.max(2, cw * .09);
+                cachedGameCtx.beginPath();
+                cachedGameCtx.moveTo(cx - direction * cw * 2.1, cy);
+                cachedGameCtx.lineTo(cx - direction * cw * 1.35, cy - ch * .22);
+                cachedGameCtx.lineTo(cx - direction * cw * .8, cy + ch * .18);
+                cachedGameCtx.lineTo(cx, cy);
+                cachedGameCtx.stroke();
+                cachedGameCtx.restore();
+            }
+            const gameplaySkin = currentStageType === 'rai_alvaro' ? 'rai_alvaro_stage_avatar' : equippedSkin;
+            drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, gameplaySkin, false, equippedColor, customSpriteStore[gameplaySkin], player.facing, CONFIG.USERNAME);
 
             // 水中: プレイヤーに青みフィルターを重ねる
             if (currentStageType === 'water') {
@@ -9414,7 +9579,9 @@
         }
 
         function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
-            const skin = SKINS[skinId] || SKINS['default'];
+            const skin = skinId === 'rai_alvaro_stage_avatar'
+                ? { sprite: RAI_ALVARO_SPRITE, recolorIndex: null }
+                : (SKINS[skinId] || SKINS['default']);
 
             let cachedCanvas;
             if (skin.isCustom && customData) {
@@ -9514,14 +9681,15 @@
 
             sprite.forEach((row, y) => {
                 [...row].forEach((c, x) => {
-                    if (c !== ' ') {
+                    if (c !== null && c !== ' ') {
                         if (colorId === 'calico' && c === rIdx) {
                             let pattern = (x + y * 2) % 3;
                             if (pattern === 0) ctx.fillStyle = '#ffffff';
                             else if (pattern === 1) ctx.fillStyle = '#ff9800';
                             else ctx.fillStyle = '#333333';
                         } else {
-                            ctx.fillStyle = colors[c];
+                            // ライ・アルバロのような「色コードそのもの」で作られたドット絵にも対応する。
+                            ctx.fillStyle = (typeof c === 'string' && c.startsWith('#')) ? c : colors[c];
                         }
                         ctx.fillRect(x, y, 1, 1);
                     }
@@ -9573,9 +9741,9 @@
                 showGhosts = JSON.parse(savedShowGhosts);
                 toggleGhostsCheckbox.checked = showGhosts;
             } else {
-                // 保存された設定がない場合、デフォルトでゴーストを非表示にする
-                showGhosts = false;
-                toggleGhostsCheckbox.checked = false;
+                // 保存された設定がない場合、ゴースト表示はONを初期値にする。
+                showGhosts = true;
+                toggleGhostsCheckbox.checked = true;
             }
             toggleGhostsCheckbox.onchange = function() { showGhosts = this.checked; localStorage.setItem('pixel_stages_show_ghosts', this.checked); };
             
