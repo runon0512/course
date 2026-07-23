@@ -1996,7 +1996,7 @@
                     <div class="tool-btn rank-legendary" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-mg" onclick="setTool('mg', this)" title="MISSILE GUN" style="display:none;"><canvas id="icon-mg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-LM" onclick="setTool('LM', this)" title="LAMP BLOCK" style="display:none;"><canvas id="icon-LM" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn rank-rare" id="btn-tool-WC" onclick="setTool('WC', this)" title="WOOD CRATE" style="display:none;"><canvas id="icon-WC" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-WC" onclick="setTool('WCN', this)" title="PHYSICS WOOD CRATE" style="display:none;"><canvas id="icon-WC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-EC" onclick="setTool('EC', this)" title="ERUPTION CONTROL" style="display:none;"><canvas id="icon-EC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-PB" onclick="setTool('PB', this)" title="PURPLE (BOSS)" style="display:none;"><canvas id="icon-PB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-WB" onclick="setTool('WB', this)" title="WOLF (BOSS No.2)" style="display:none;"><canvas id="icon-WB" class="tool-canvas"></canvas></div>
@@ -2045,7 +2045,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzddu9jVO3SnIZ0fK0kdp68Jwhnj-XFUFlNIJdUxQ_J73Vp9iZGOl8DdXZG0prb_Zq4/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.11.3"
+            VERSION: "2.11.4"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2201,7 +2201,8 @@
             'mg': { title: 'ミサイル銃', text: '右方向にミサイルを発射します。ミサイルはブロックに当たると周囲9マスを破壊します。' },
             'BB': { title: '鉄ブロック', text: '周囲のブロックより少し大きい頑丈な鉄のブロックです。' },
             'LM': { title: 'ランプブロック', text: '暗闇ステージで周囲を明るく照らすブロックです。それ以外のステージでは通常のブロックとして機能します。ミサイルで破壊できます。' },
-            'WC': { title: '木箱ブロック', text: '横から押して動かせる木箱です。押していない時は通常のブロックとして機能します。ミサイルで破壊できます。' },
+            'WC': { title: '木箱ブロック', text: '従来の木箱です。横から押すと1マス単位で動きます。' },
+            'WCN': { title: '物理木箱', text: '重力で落下し、横から押すと1px刻みで動く新しい木箱です。' },
             'EC': { title: '噴火制御機', text: '火山・海辺ステージに1つだけ設置できる装置です。火山では溶岩の最大上昇高さを、海辺では水面の高さを、この装置がある高さに設定します。' },
             'PB': { title: 'パープル', text: '通常の敵の2倍の大きさを持つボス敵です。ステージに1体だけ配置できます。倒すとステージ上の粘液ブロックがすべて消えます。' },
             'WB': { title: '狼 (No.2)', text: '移動しながら4秒に1回、プレイヤーを追尾する回転する鎌を投げてくるボス敵です。ステージに1体だけ配置できます。' },
@@ -2279,6 +2280,9 @@
             }
         }
         let enemies = [];
+        // 木箱はグリッドから独立した物理オブジェクトとして扱う。
+        // 座標はタイル単位だが、移動時は描画キャンバス上の1px以下には進めない。
+        let woodCrates = [];
         let wolfBossRefs = []; // 狼（ボスNo.2）の参照だけを保持するキャッシュ。
         // プレイヤーの当たり判定で毎フレーム全敵(enemies)をスキャンしなくて済むようにする
         // （敵が多いステージで、プレイヤーが横移動するたびに重くなる原因になっていた）。
@@ -2714,8 +2718,22 @@
             'calico': 'multi'
         };
 
+        // 矢印キーに加え、WASDでも同じ操作ができるようにする。
+        // 内部では既存のキー名へ統一し、ゲーム側の挙動は変えない。
+        function getGameplayKeyCode(code) {
+            const aliases = {
+                KeyA: 'ArrowLeft',
+                KeyD: 'ArrowRight',
+                KeyW: 'Space',
+                ArrowUp: 'Space'
+            };
+            return aliases[code] || code;
+        }
+
         window.addEventListener('keydown', e => {
-            keys[e.code] = true;
+            const gameCode = getGameplayKeyCode(e.code);
+            keys[gameCode] = true;
+            if (gameCode === 'Space' || gameCode === 'ArrowLeft' || gameCode === 'ArrowRight') e.preventDefault();
             if (e.code === 'Enter') {
                 const msgOverlay = document.getElementById('msg-overlay');
                 const retryBtn = document.getElementById('retry-btn');
@@ -2729,7 +2747,11 @@
                 }
             }
         });
-        window.addEventListener('keyup', e => keys[e.code] = false);
+        window.addEventListener('keyup', e => {
+            const gameCode = getGameplayKeyCode(e.code);
+            keys[gameCode] = false;
+            if (gameCode === 'Space' || gameCode === 'ArrowLeft' || gameCode === 'ArrowRight') e.preventDefault();
+        });
 
         function initGrid() {
             editorGrid = Array(GRID_H).fill().map(() => Array(GRID_W).fill(null));
@@ -3194,7 +3216,7 @@
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'SM', 'FL'],
+            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'WCN', 'SM', 'FL'],
             epic: ['hr', 'hb', 'e', '#'],
             legendary: ['V', 'sp', 'mg', 'EC', 'PB', 'WB']
         };
@@ -6644,7 +6666,7 @@
                 ctx.fillStyle = "#616161";
                 ctx.fillRect(lampCx - lampR*0.15, y*ch + pad, lampR*0.3, ch*0.12);
                 ctx.fillRect(lampCx - lampR*0.15, y*ch + ch - pad - ch*0.12, lampR*0.3, ch*0.12);
-            } else if(type === 'WC') {
+            } else if(type === 'WC' || type === 'WCN') {
                 // 木箱ブロック（横から押して動かせる。押していない時は通常ブロック扱い）
                 ctx.fillStyle = "#8d6e63";
                 ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
@@ -7107,7 +7129,7 @@
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','S','G','K','M','E','A','T','TD','X','W','L','U','P','H',
             '>','<','v','C','q','k','r','b','!','Y','d','J','j','y',
-            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC',
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC','WCN',
             'EC','PB','WB','SM','FL'
         ]);
 
@@ -7264,11 +7286,16 @@
 
             // 初期位置探し
             enemies = [];
+            woodCrates = [];
             wolfBossRefs = [];
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
                     if(activeStage[y][x] === 'C') totalCheckpoints++;
+                    if(activeStage[y][x] === 'WCN') {
+                        woodCrates.push({ x: x, y: y, vx: 0, vy: 0 });
+                        activeStage[y][x] = null;
+                    }
                     if(activeStage[y][x] === 'M') {
                         enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false});
                         activeStage[y][x] = null; // スポーン後はグリッドから削除
@@ -7721,6 +7748,43 @@
             }
         }
 
+        function getWoodCratePixelStep() {
+            const canvas = cachedGameCanvas || document.getElementById('game-canvas');
+            return canvas ? 1 / (canvas.width / GRID_W) : 1 / 48;
+        }
+
+        // 移動量をキャンバス上の1pxずつに分割することで、細い壁や床を通り抜けないようにする。
+        function moveWoodCrate(crate, dx, dy) {
+            const distance = Math.max(Math.abs(dx), Math.abs(dy));
+            if (!distance) return false;
+            const stepSize = getWoodCratePixelStep();
+            const steps = Math.ceil(distance / stepSize);
+            let moved = false;
+            for (let i = 0; i < steps; i++) {
+                const nx = crate.x + dx / steps;
+                const ny = crate.y + dy / steps;
+                if (isCollideAt(nx, ny, 1, 1, false, dx ? 'x' : 'y', crate)) {
+                    if (dy > 0) crate.vy = 0;
+                    if (dx) crate.vx = 0;
+                    break;
+                }
+                crate.x = nx;
+                crate.y = ny;
+                moved = true;
+            }
+            return moved;
+        }
+
+        function updateWoodCrates() {
+            const crateGravity = currentStageType === 'moon' ? 0.0075 :
+                ((currentStageType === 'water' || currentStageType === 'beach') ? 0.004 : 0.015);
+            for (let i = 0; i < woodCrates.length; i++) {
+                const crate = woodCrates[i];
+                crate.vy = Math.min(crate.vy + crateGravity, 0.25);
+                moveWoodCrate(crate, 0, crate.vy);
+            }
+        }
+
         function updateGame() {
             if (isGoalTriggered) return;
 
@@ -7761,6 +7825,8 @@
             player.wasInBeachWater = isBeachWater;
             const gravity = currentStageType === 'moon' ? 0.0075 : (isWater ? 0.004 : 0.015);  // 月は通常重力の1/2、水中は弱め
             const jumpForce = -0.3;
+
+            updateWoodCrates();
 
             // 粘着ブロックの足元判定
             const footY_sticky = Math.floor(player.y + player.h);
@@ -7841,27 +7907,33 @@
                 }
             }
 
-            // 木箱ブロック(WC)のプッシュ判定：プレイヤーが横から押すと1マス分移動する
+            // 既存ステージのWCは従来どおり、1マス単位で押して動かす。
             if (player.vx !== 0) {
                 const pushDir = player.vx > 0 ? 1 : -1;
                 const rowY = Math.floor(player.y + player.h / 2);
-                const ix = Math.floor((pushDir > 0 ? (player.x + player.vx + player.w) : (player.x + player.vx)));
+                const ix = Math.floor(pushDir > 0 ? player.x + player.vx + player.w : player.x + player.vx);
                 if (activeStage[rowY] && activeStage[rowY][ix] === 'WC') {
-                    const currentEdge = pushDir > 0 ? (player.x + player.w) : player.x;
-                    const isPushingIntoIt = pushDir > 0 ? (currentEdge >= ix - 0.02) : (currentEdge <= ix + 1.02);
-                    if (isPushingIntoIt) {
-                        const targetX = ix + pushDir;
-                        const inBounds = targetX >= 0 && targetX < GRID_W;
-                        const targetTile = inBounds ? activeStage[rowY][targetX] : 'OOB';
-                        if (inBounds && (targetTile === null || targetTile === undefined)) {
-                            activeStage[rowY][ix] = null;
-                            activeStage[rowY][targetX] = 'WC';
-                            // 全マス再走査するupdateStageCache()の代わりに、変化した2マスだけを再描画する
-                            // （押している間ずっと呼ばれるため、フルスキャン版だとラグの原因になっていた）
-                            updateStageCacheTile(ix, rowY);
-                            updateStageCacheTile(targetX, rowY);
-                        }
+                    const edge = pushDir > 0 ? player.x + player.w : player.x;
+                    const touches = pushDir > 0 ? edge >= ix - 0.02 : edge <= ix + 1.02;
+                    const targetX = ix + pushDir;
+                    if (touches && targetX >= 0 && targetX < GRID_W && !activeStage[rowY][targetX]) {
+                        activeStage[rowY][ix] = null;
+                        activeStage[rowY][targetX] = 'WC';
+                        updateStageCacheTile(ix, rowY);
+                        updateStageCacheTile(targetX, rowY);
                     }
+                }
+
+                // 新規配置のWCNだけは、接触中に押した分だけ横へ動く。
+                // 移動はmoveWoodCrate内で1px刻み。
+                const playerEdge = pushDir > 0 ? player.x + player.w : player.x;
+                for (let i = 0; i < woodCrates.length; i++) {
+                    const crate = woodCrates[i];
+                    const overlapsY = player.y + player.h > crate.y + 0.04 && player.y < crate.y + 0.96;
+                    const touchesCrate = pushDir > 0
+                        ? playerEdge <= crate.x + 0.04 && playerEdge + player.vx >= crate.x - 0.04
+                        : playerEdge >= crate.x + 0.96 && playerEdge + player.vx <= crate.x + 1.04;
+                    if (overlapsY && touchesCrate) moveWoodCrate(crate, player.vx, 0);
                 }
             }
 
@@ -8684,7 +8756,7 @@
             updateEruptionControlToolVisibility();
         }
 
-        function isCollideAt(x, y, w, h, isPlayer = false, axis = null) {
+        function isCollideAt(x, y, w, h, isPlayer = false, axis = null, ignoredCrate = null) {
             const inset = 0.05;
             const px0 = x + inset,       py0 = y + inset;
             const px1 = x + w - inset,   py1 = y + h - inset;
@@ -8719,6 +8791,13 @@
                     if (y0 >= 0 && activeStage[y0] && activeStage[y0][ix] === 'BB' && py <= y0 + 1 + extra) return true;
                     if (y1 < GRID_H && activeStage[y1] && activeStage[y1][ix] === 'BB' && py >= y1 - extra) return true;
                 }
+            }
+            // グリッドから分離した木箱との矩形当たり判定。
+            for (let i = 0; i < woodCrates.length; i++) {
+                const crate = woodCrates[i];
+                if (crate === ignoredCrate) continue;
+                if (x + w - inset > crate.x + inset && x + inset < crate.x + 1 - inset &&
+                    y + h - inset > crate.y + inset && y + inset < crate.y + 1 - inset) return true;
             }
             return false;
         }
@@ -8877,6 +8956,12 @@
             for (let i = 0; i < dynamicTiles.length; i++) {
                 const t = dynamicTiles[i];
                 drawTile(cachedGameCtx, t.x, t.y, cw, ch, t.type, time);
+            }
+
+            // 木箱は物理座標で描画するため、静的なステージキャッシュには含めない。
+            for (let i = 0; i < woodCrates.length; i++) {
+                const crate = woodCrates[i];
+                drawTile(cachedGameCtx, crate.x, crate.y, cw, ch, 'WC', time);
             }
 
             // 敵の描画
