@@ -1991,9 +1991,9 @@
                     <div class="tool-btn rank-common" onclick="setTool('U', this)" title="UPDRAFT"><canvas id="icon-U" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('P', this)" title="SPEED BLOCK"><canvas id="icon-P" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('H', this)" title="BRIDGE"><canvas id="icon-H" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn rank-common" onclick="setTool('>', this)" title="ONEWAY RIGHT"><canvas id="icon-owr" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn rank-common" onclick="setTool('<', this)" title="ONEWAY LEFT"><canvas id="icon-owl" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn rank-common" onclick="setTool('v', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('>N', this)" title="ONEWAY RIGHT"><canvas id="icon-owr" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('<N', this)" title="ONEWAY LEFT"><canvas id="icon-owl" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('vN', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-q" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-k" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
@@ -2001,7 +2001,7 @@
                     <div class="tool-btn rank-common" id="btn-tool-b" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-!" onclick="setTool('!', this)" title="R/B SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-Y" onclick="setTool('Y', this)" title="STICKY BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
-                    <div class="tool-btn rank-rare" id="btn-tool-BB" onclick="setTool('BB', this)" title="IRON BLOCK" style="display:none;"><canvas id="icon-BB" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-BB" onclick="setTool('BBN', this)" title="IRON BLOCK" style="display:none;"><canvas id="icon-BB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-j" onclick="setTool('j', this)" title="JUMPER ENEMY" style="display:none;"><canvas id="icon-j" class="tool-canvas"></canvas></div>
@@ -2070,7 +2070,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxPCfPcHsUMcyRchRdT0oJFv61NVdnORavQkgnApHymR0F1awStjKi7wjJ_NnLO9m1b/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.3"
+            VERSION: "2.12.4"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2296,7 +2296,7 @@
             'Z': '#e040fb', 'LM': '#ffca28', 'WC': '#795548', 'default': '#bdbdbd'
         };
         // 破壊できないタイル一覧（ミサイルの爆発・狼の大ジャンプ破壊など、ブロックを壊す処理全体で共有する）
-        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'EC', 'PB', 'WB', 'FL'];
+        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'FL'];
         // ブロック破壊時の破片パーティクルを生成する共通ヘルパー（以前はミサイル爆発処理内のローカル関数だった）
         function spawnBlockDebris(bx, by, tileType) {
             if (!cachedGameCanvas) return;
@@ -3953,9 +3953,6 @@
             const res = await callApi('getChat', {});
             if (!res.success) return;
 
-            // チャット更新時にDMの新着も同時に確認する。
-            await refreshDirectMessageNotifications();
-
             const lastSeen = localStorage.getItem('pixel_chat_last_time');
             const latestTime = res.messages.length > 0 ? new Date(res.messages[0].time).getTime() : 0;
             const isChatOpen = document.getElementById('chat-overlay').style.display === 'flex';
@@ -3971,7 +3968,11 @@
                 }
             }
 
-            if (!isChatOpen) return;
+            if (!isChatOpen) {
+                // 画面を開いていない時も、チャット取得後にDM通知だけを非同期で更新する。
+                refreshDirectMessageNotifications();
+                return;
+            }
 
             // チャット画面が開いている場合は既読にする
             localStorage.setItem('pixel_chat_last_time', latestTime.toString());
@@ -4034,6 +4035,8 @@
                 item.appendChild(content);
                 container.appendChild(item);
             });
+            // チャット本文を表示してからDMの新着確認を始める。
+            refreshDirectMessageNotifications();
         }
 
         let attachedStageId = null;
@@ -6212,10 +6215,10 @@
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
-                {type:'>', id:'icon-owr'}, {type:'<', id:'icon-owl'}, {type:'v', id:'icon-v'}, {type:'C', id:'icon-C'}, 
+                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'C', id:'icon-C'}, 
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
-                {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BB', id:'icon-BB'},
+                {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
                 {type:'LM', id:'icon-LM'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
@@ -6484,9 +6487,7 @@
 
         function drawTile(ctx, x, y, cw, ch, type, time = 0) {
             const pad = 2;
-
-            if(type === 'B') {
-                // レンガ風ブロック
+            const drawNormalBlock = () => {
                 ctx.fillStyle = isWeeklyCupMatch ? "#b77b05" : "#5d4037";
                 ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
                 ctx.fillStyle = isWeeklyCupMatch ? "#704300" : "#3e2723";
@@ -6495,6 +6496,10 @@
                     ctx.fillStyle = "#fff0a3";
                     ctx.fillRect(x*cw + pad + 2, y*ch + pad + 2, cw - pad * 2 - 4, Math.max(1, ch * .08));
                 }
+            };
+
+            if(type === 'B') {
+                drawNormalBlock();
             } else if(type === 'S') {
                 // スタートパッド
                 ctx.fillStyle = "#1b5e20";
@@ -6701,33 +6706,33 @@
                 ctx.fillStyle = "#fff";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
-            } else if(type === '>') {
+            } else if(type === '>' || type === '>N') {
                 // 一方通行（右）
                 ctx.fillStyle = "rgba(0,0,0,0.5)";
                 ctx.fillRect(x*cw, y*ch, cw, ch);
-                ctx.strokeStyle = "#fff";
+                ctx.strokeStyle = type === '>N' ? "#ffeb3b" : "#fff";
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(x*cw + cw*0.3, y*ch + ch*0.2);
                 ctx.lineTo(x*cw + cw*0.7, y*ch + ch*0.5);
                 ctx.lineTo(x*cw + cw*0.3, y*ch + ch*0.8);
                 ctx.stroke();
-            } else if(type === '<') {
+            } else if(type === '<' || type === '<N') {
                 // 一方通行（左）
                 ctx.fillStyle = "rgba(0,0,0,0.5)";
                 ctx.fillRect(x*cw, y*ch, cw, ch);
-                ctx.strokeStyle = "#fff";
+                ctx.strokeStyle = type === '<N' ? "#ffeb3b" : "#fff";
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(x*cw + cw*0.7, y*ch + ch*0.2);
                 ctx.lineTo(x*cw + cw*0.3, y*ch + ch*0.5);
                 ctx.lineTo(x*cw + cw*0.7, y*ch + ch*0.8);
                 ctx.stroke();
-            } else if(type === 'v') {
+            } else if(type === 'v' || type === 'vN') {
                 // 一方通行（下）
                 ctx.fillStyle = "rgba(0,0,0,0.5)";
                 ctx.fillRect(x*cw, y*ch, cw, ch);
-                ctx.strokeStyle = "#fff";
+                ctx.strokeStyle = type === 'vN' ? "#ffeb3b" : "#fff";
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(x*cw + cw*0.2, y*ch + ch*0.3);
@@ -6890,9 +6895,17 @@
                 ctx.strokeStyle = "#fff";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
-            } else if(type === 'BB') {
-                // 鉄ブロック（1.01×1.01マス分を描画）
-                const bw = cw * 1.01, bh = ch * 1.01;
+            } else if(type === 'BB' || type === 'BBN') {
+                // 旧BBだけは少し大きいまま。新規BBNは1マスの鉄ブロック。
+                const isNewIronBlock = type === 'BBN';
+                // 新規版は通常ブロックと同じ余白内だけに描画する。
+                if (isNewIronBlock) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                    ctx.clip();
+                }
+                const bw = cw * (type === 'BB' ? 1.01 : 1), bh = ch * (type === 'BB' ? 1.01 : 1);
                 ctx.fillStyle = "#37474f";
                 ctx.fillRect(x*cw, y*ch, bw, bh);
                 ctx.fillStyle = "#546e7a";
@@ -6911,6 +6924,7 @@
                 ctx.strokeStyle = "#90a4ae";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, bw - pad*2, bh - pad*2);
+                if (isNewIronBlock) ctx.restore();
             } else if(type === 'LM') {
                 // ランプブロック（暗闇ステージで周囲を照らす。それ以外では通常ブロック扱い）
                 ctx.fillStyle = "#37474f";
@@ -7406,8 +7420,8 @@
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','S','G','K','M','E','A','T','TD','X','W','L','U','P','H',
-            '>','<','v','C','q','k','r','b','!','Y','d','J','j','y',
-            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','LM','WC','WCN',
+            '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','BBN','LM','WC','WCN',
             'EC','PB','WB','SM','FL'
         ]);
 
@@ -8971,7 +8985,7 @@
                 // 壁（主要なソリッドブロック）に当たったら消える（矢の壁判定に準拠）
                 const sx_tile = Math.floor(s.x), sy_tile = Math.floor(s.y);
                 const sTile = activeStage[sy_tile] && activeStage[sy_tile][sx_tile];
-                const sHitWall = sTile === 'B' || sTile === 'X' || sTile === 'LM' || sTile === 'WC' || sTile === 'BB';
+                const sHitWall = sTile === 'B' || sTile === 'X' || sTile === 'LM' || sTile === 'WC' || sTile === 'BB' || sTile === 'BBN' || sTile === '>N' || sTile === '<N' || sTile === 'vN';
 
                 if (s.life <= 0 || s.x < -1 || s.x > GRID_W + 1 || s.y < -1 || s.y > GRID_H + 1 || sHitWall) {
                     sickles.splice(i, 1);
@@ -8991,7 +9005,7 @@
 
                 const fx_tile = Math.floor(f.x), fy_tile = Math.floor(f.y);
                 const fTile = activeStage[fy_tile] && activeStage[fy_tile][fx_tile];
-                const fHitWall = fTile === 'B' || fTile === 'X' || fTile === 'LM' || fTile === 'WC' || fTile === 'BB';
+                const fHitWall = fTile === 'B' || fTile === 'X' || fTile === 'LM' || fTile === 'WC' || fTile === 'BB' || fTile === 'BBN' || fTile === '>N' || fTile === '<N' || fTile === 'vN';
 
                 if (f.life <= 0 || f.x < -1 || f.x > GRID_W + 1 || f.y < -1 || f.y > GRID_H + 1 || fHitWall) {
                     fireballs.splice(i, 1);
@@ -9224,7 +9238,7 @@
                     const tc = tile.charCodeAt(0);
                     if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
-                       tile === 'mg' || tile === 'BB' || tile === 'LM' || tile === 'WC' ||
+                       tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === '>N' || tile === '<N' || tile === 'vN' || tile === 'LM' || tile === 'WC' ||
                        tile === 'SM' || tile === 'EC' ||
                        (tc === 90 && tile.length > 1) /* 'Z'... */ ||
                        (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) ||
