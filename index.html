@@ -7778,10 +7778,33 @@
         function updateWoodCrates() {
             const crateGravity = currentStageType === 'moon' ? 0.0075 :
                 ((currentStageType === 'water' || currentStageType === 'beach') ? 0.004 : 0.015);
-            for (let i = 0; i < woodCrates.length; i++) {
+            for (let i = woodCrates.length - 1; i >= 0; i--) {
                 const crate = woodCrates[i];
+                const x0 = Math.floor(crate.x + 0.05), x1 = Math.floor(crate.x + 0.95);
+                const y0 = Math.floor(crate.y + 0.05), y1 = Math.floor(crate.y + 0.95);
+                const touchingFire = (activeStage[y0] && (activeStage[y0][x0] === 'FL' || activeStage[y0][x1] === 'FL')) ||
+                    (activeStage[y1] && (activeStage[y1][x0] === 'FL' || activeStage[y1][x1] === 'FL'));
+                if ((currentStageType === 'volcano' && isTouchingLava(crate.y, crate.y + 1)) || touchingFire) {
+                    spawnBlockDebris(Math.floor(crate.x), Math.floor(crate.y), 'WC');
+                    woodCrates.splice(i, 1);
+                    continue;
+                }
                 crate.vy = Math.min(crate.vy + crateGravity, 0.25);
                 moveWoodCrate(crate, 0, crate.vy);
+            }
+        }
+
+        function pushWoodCratesByBoss(boss, nextX, size) {
+            if (!boss.isBoss || !boss.vx) return;
+            const direction = boss.vx > 0 ? 1 : -1;
+            const bossEdge = direction > 0 ? boss.x + size : boss.x;
+            for (let i = 0; i < woodCrates.length; i++) {
+                const crate = woodCrates[i];
+                const overlapsY = boss.y + size > crate.y + 0.04 && boss.y < crate.y + 0.96;
+                const touches = direction > 0
+                    ? bossEdge <= crate.x + 0.04 && nextX + size >= crate.x - 0.04
+                    : bossEdge >= crate.x + 0.96 && nextX <= crate.x + 1.04;
+                if (overlapsY && touches) moveWoodCrate(crate, boss.vx, 0);
             }
         }
 
@@ -8194,6 +8217,8 @@
                 let nextX = en.x + en.vx;
                 // 狼（ボスNo.2）の大ジャンプ中は、進行方向の壊せるブロックを破壊してから移動する
                 if (en.isWolf && en.isBigJumping && en.vy < 0) destroyBlocksInBox(nextX, en.y, enSize);
+                // ボスは新しい物理木箱を押して進める。
+                pushWoodCratesByBoss(en, nextX, enSize);
                 if (!isEnemyCollide(nextX, en.y, 'x', enSize)) {
                     en.x = nextX;
                 } else {
