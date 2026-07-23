@@ -2045,7 +2045,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzddu9jVO3SnIZ0fK0kdp68Jwhnj-XFUFlNIJdUxQ_J73Vp9iZGOl8DdXZG0prb_Zq4/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.11.4"
+            VERSION: "2.11.5R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -7754,16 +7754,80 @@
         }
 
         // 移動量をキャンバス上の1pxずつに分割することで、細い壁や床を通り抜けないようにする。
-        function moveWoodCrate(crate, dx, dy) {
+        function getWoodCrateOverlapping(x, y, w, h, ignoredCrate) {
+            for (let i = 0; i < woodCrates.length; i++) {
+                const other = woodCrates[i];
+                if (other === ignoredCrate) continue;
+                if (x + w > other.x + 0.05 && x < other.x + 0.95 && y + h > other.y + 0.05 && y < other.y + 0.95) return other;
+            }
+            return null;
+        }
+
+        function isWoodCrateBridgeBelow(crate, nextY) {
+            if (nextY + 1 <= crate.y + 1) return false;
+            const bridgeY = Math.floor(nextY + 1);
+            if (crate.y + 1 > bridgeY + 0.05 || !activeStage[bridgeY]) return false;
+            const x0 = Math.floor(crate.x + 0.05), x1 = Math.floor(crate.x + 0.95);
+            const isBridge = tile => tile === 'H' || tile === 'hr' || tile === 'hb';
+            return isBridge(activeStage[bridgeY][x0]) || isBridge(activeStage[bridgeY][x1]);
+        }
+
+        function isWoodCrateBodyBlocked(crate, x, y, ignoredBody) {
+            const overlaps = (body, size) => body && body !== ignoredBody && !body.dead &&
+                x + 0.95 > body.x && x + 0.05 < body.x + size && y + 0.95 > body.y && y + 0.05 < body.y + size;
+            if (ignoredBody !== player && overlaps(player, player.w)) return true;
+            for (let i = 0; i < enemies.length; i++) {
+                const enemy = enemies[i];
+                if (enemy.isBoss && overlaps(enemy, enemy.size || 0.9)) return true;
+            }
+            return false;
+        }
+
+        function pushPlayerByWoodCrate(crate, dx) {
+            if (!dx) return true;
+            const nextX = player.x + dx;
+            // 木箱自身は無視して、壁などに余裕がある限りプレイヤーを同じ量だけ押し出す。
+            if (isCollideAt(nextX, player.y, player.w, player.h, true, 'x', crate)) return false;
+            player.x = nextX;
+            return true;
+        }
+
+        function bossHasPushPriority(crate) {
+            for (let i = 0; i < enemies.length; i++) {
+                const boss = enemies[i];
+                if (!boss.isBoss || boss.dead || !boss.vx) continue;
+                const size = boss.size || 0.9;
+                const overlapsY = boss.y + size > crate.y + 0.04 && boss.y < crate.y + 0.96;
+                if (!overlapsY) continue;
+                if ((boss.vx > 0 && boss.x + size >= crate.x - 0.08 && boss.x < crate.x) ||
+                    (boss.vx < 0 && boss.x <= crate.x + 1.08 && boss.x + size > crate.x + 1)) return true;
+            }
+            return false;
+        }
+
+        function moveWoodCrate(crate, dx, dy, ignoredBody = null, pushingCrates = null) {
             const distance = Math.max(Math.abs(dx), Math.abs(dy));
             if (!distance) return false;
             const stepSize = getWoodCratePixelStep();
             const steps = Math.ceil(distance / stepSize);
+            const chain = pushingCrates || new Set();
+            chain.add(crate);
             let moved = false;
             for (let i = 0; i < steps; i++) {
                 const nx = crate.x + dx / steps;
                 const ny = crate.y + dy / steps;
-                if (isCollideAt(nx, ny, 1, 1, false, dx ? 'x' : 'y', crate)) {
+                // 横移動時は前方の新木箱も同じ1px分だけ押し、複数の箱を連鎖して動かせる。
+                const blockingCrate = dx ? getWoodCrateOverlapping(nx, ny, 1, 1, crate) : null;
+                if (blockingCrate && !chain.has(blockingCrate)) {
+                    moveWoodCrate(blockingCrate, dx / steps, 0, ignoredBody, chain);
+                }
+                const pushingByBoss = ignoredBody && ignoredBody.isBoss && dx;
+                const wouldPushPlayer = pushingByBoss && nx + 0.95 > player.x && nx + 0.05 < player.x + player.w &&
+                    ny + 0.95 > player.y && ny + 0.05 < player.y + player.h;
+                if (wouldPushPlayer && !pushPlayerByWoodCrate(crate, dx / steps)) break;
+                if ((dy > 0 && isWoodCrateBridgeBelow(crate, ny)) ||
+                    isCollideAt(nx, ny, 1, 1, false, dx ? 'x' : 'y', crate) ||
+                    isWoodCrateBodyBlocked(crate, nx, ny, ignoredBody)) {
                     if (dy > 0) crate.vy = 0;
                     if (dx) crate.vx = 0;
                     break;
@@ -7772,6 +7836,7 @@
                 crate.y = ny;
                 moved = true;
             }
+            chain.delete(crate);
             return moved;
         }
 
@@ -7804,7 +7869,8 @@
                 const touches = direction > 0
                     ? bossEdge <= crate.x + 0.04 && nextX + size >= crate.x - 0.04
                     : bossEdge >= crate.x + 0.96 && nextX <= crate.x + 1.04;
-                if (overlapsY && touches) moveWoodCrate(crate, boss.vx, 0);
+                // プレイヤーより強い力で押す。押されたプレイヤーも木箱と一緒に押し出される。
+                if (overlapsY && touches) moveWoodCrate(crate, boss.vx * 1.8, 0, boss);
             }
         }
 
@@ -7956,7 +8022,7 @@
                     const touchesCrate = pushDir > 0
                         ? playerEdge <= crate.x + 0.04 && playerEdge + player.vx >= crate.x - 0.04
                         : playerEdge >= crate.x + 0.96 && playerEdge + player.vx <= crate.x + 1.04;
-                    if (overlapsY && touchesCrate) moveWoodCrate(crate, player.vx, 0);
+                    if (overlapsY && touchesCrate && !bossHasPushPriority(crate)) moveWoodCrate(crate, player.vx, 0, player);
                 }
             }
 
