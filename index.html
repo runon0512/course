@@ -2050,7 +2050,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzf1DUElRjFujkigrpx6p8PaIvytJ760VComVWL9vow9VsPIHu-oiJNtsWuOi80mam-/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.1"
+            VERSION: "2.12.1R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2743,6 +2743,8 @@
         }
 
         window.addEventListener('keydown', e => {
+            // 入力欄ではゲーム操作へ変換せず、WASDや矢印を通常の文字入力・カーソル操作に使う。
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
             const gameCode = getGameplayKeyCode(e.code);
             if (gameCode === 'Space' && !keys[gameCode]) pendingJumpPress = true;
             keys[gameCode] = true;
@@ -2761,6 +2763,7 @@
             }
         });
         window.addEventListener('keyup', e => {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
             const gameCode = getGameplayKeyCode(e.code);
             keys[gameCode] = false;
             if (gameCode === 'Space' || gameCode === 'ArrowLeft' || gameCode === 'ArrowRight') e.preventDefault();
