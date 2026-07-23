@@ -2400,6 +2400,7 @@
         let countdownStartTime = 0;
         let selectedColorBlockColor = '#ffffff'; 
         const COLOR_BLOCK_COLORS = ['#ffffff', '#ffdbac', '#ff0000', '#800080', '#0000ff', '#00ff00', '#ffff00', '#ff9800', '#ffc0cb', '#795548', '#9e9e9e', '#000000'];
+        let colorPaletteAnchor = null;
         
         let cachedGameCanvas = null;
         let cachedGameCtx = null;
@@ -6254,31 +6255,61 @@
             // カラーブロック用パレットの表示制御
             const palette = document.getElementById('color-block-palette');
             if (palette) {
+                // fixed要素が端末やブラウザによって親要素基準になる問題を避けるため、body直下で表示する。
+                if (palette.parentElement !== document.body) document.body.appendChild(palette);
                 palette.style.display = (type === 'Z') ? 'flex' : 'none';
                 if (type === 'Z' && palette.innerHTML === '') {
                     COLOR_BLOCK_COLORS.forEach(c => {
                         const d = document.createElement('div');
                         d.style.width = '2.5cqw'; d.style.height = '2.5cqw'; d.style.background = c;
                         d.style.border = '0.1cqw solid #fff'; d.style.cursor = 'pointer';
-                        d.onclick = (event) => {
+                        d.addEventListener('pointerdown', (event) => {
+                            event.preventDefault();
                             event.stopPropagation();
                             selectedColorBlockColor = c;
                             palette.style.display = 'none';
-                        };
+                            colorPaletteAnchor = null;
+                        });
                         palette.appendChild(d);
                     });
                 }
                 if (type === 'Z') {
-                    // 下部バーのカラーブロックの真上に、画面からはみ出さない位置で表示する。
-                    requestAnimationFrame(() => {
-                        const rect = btn.getBoundingClientRect();
-                        const paletteRect = palette.getBoundingClientRect();
-                        palette.style.left = `${Math.max(8, Math.min(window.innerWidth - paletteRect.width - 8, rect.left + rect.width / 2 - paletteRect.width / 2))}px`;
-                        palette.style.top = `${Math.max(8, rect.top - paletteRect.height - 8)}px`;
-                    });
+                    colorPaletteAnchor = btn;
+                    positionColorBlockPalette();
+                } else {
+                    colorPaletteAnchor = null;
                 }
             }
         }
+
+        function positionColorBlockPalette() {
+            const palette = document.getElementById('color-block-palette');
+            if (!palette || !colorPaletteAnchor || palette.style.display === 'none') return;
+            // レイアウト確定後の実寸を使うため、端末の画面倍率や回転でも位置が安定する。
+            palette.style.visibility = 'hidden';
+            palette.style.left = '0px';
+            palette.style.top = '0px';
+            requestAnimationFrame(() => {
+                if (!colorPaletteAnchor || palette.style.display === 'none') return;
+                const rect = colorPaletteAnchor.getBoundingClientRect();
+                const paletteRect = palette.getBoundingClientRect();
+                const viewport = window.visualViewport;
+                const leftEdge = viewport ? viewport.offsetLeft : 0;
+                const topEdge = viewport ? viewport.offsetTop : 0;
+                const viewportWidth = viewport ? viewport.width : window.innerWidth;
+                const viewportHeight = viewport ? viewport.height : window.innerHeight;
+                const margin = 8;
+                const left = Math.max(leftEdge + margin, Math.min(leftEdge + viewportWidth - paletteRect.width - margin, rect.left + rect.width / 2 - paletteRect.width / 2));
+                const above = rect.top - paletteRect.height - margin;
+                const top = above >= topEdge + margin ? above : Math.min(topEdge + viewportHeight - paletteRect.height - margin, rect.bottom + margin);
+                palette.style.left = `${left}px`;
+                palette.style.top = `${Math.max(topEdge + margin, top)}px`;
+                palette.style.visibility = 'visible';
+            });
+        }
+
+        window.addEventListener('resize', positionColorBlockPalette);
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', positionColorBlockPalette);
 
         function updateToolDescription(type) {
             const description = TOOL_DESCRIPTIONS[type] || { title: '不明なツール', text: 'このツールの説明はありません。' };
