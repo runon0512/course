@@ -665,6 +665,8 @@
         .guild-home-identity canvas { width:7cqw; height:7cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .65cqw rgba(0,255,65,.65)); }
         .guild-home-members { min-width:0; display:flex; flex-direction:column; padding:1cqw; border:0.2cqw solid #4b6389; background:rgba(5,12,30,.75); }
         .guild-home-members h3, .guild-home-board-title { margin:0 0 0.8cqh; color:#9bdcff; font-size:1.35cqw; letter-spacing:.08em; }
+        .guild-kick-btn { margin-left:1cqw; padding:0; border:0; background:transparent; color:#ff8a80; font:inherit; font-size:.8cqw; cursor:pointer; transition:color .15s ease; }
+        .guild-kick-btn:hover { color:#ff304f; }
         .guild-home-members #guild-members-list-tab { flex:1; min-height:0; }
         .guild-home-board { display:flex; flex-direction:column; min-height:0; flex:1; padding:1cqw; border:0.2cqw solid #3f4f78; background:rgba(0,0,0,.32); }
         .guild-home-board #guild-bulletin-board-tab { flex:1; min-height:0; }
@@ -1701,6 +1703,7 @@
                     <button class="pixel-btn" onclick="showGuildList()">ギルドに入会</button>
                     <button class="pixel-btn" onclick="showGuildCreate()">ギルドを作成</button>
                 </div>
+                <button class="pixel-btn small" onclick="closeGuild()">ホームに戻る</button>
             </div>
 
             <div id="guild-create-view" style="width: 80%; flex-grow: 1; display: none; flex-direction: column; align-items: center; gap: 2cqh;">
@@ -4593,10 +4596,7 @@
 
                 if (isOwner && m !== CONFIG.USERNAME) {
                     const kickBtn = document.createElement('button');
-                    kickBtn.className = 'pixel-btn small';
-                    kickBtn.style.background = '#f44336';
-                    kickBtn.style.fontSize = '0.8cqw';
-                    kickBtn.style.marginLeft = '1cqw';
+                    kickBtn.className = 'guild-kick-btn';
                     kickBtn.innerText = 'キック';
                     kickBtn.onclick = () => confirmKickMember(m);
                     mDiv.appendChild(kickBtn);
