@@ -1379,11 +1379,18 @@
         #subtitle { letter-spacing:normal; text-shadow:none; }
         #subtitle::before, #subtitle::after { content:none; margin:0; }
         #home-character-canvas { filter:none; animation:none; }
-        #main-menu { top:35cqh; left:5cqw; width:35cqw; gap:2.5cqh; padding:0; border:0; background:none; box-shadow:none; box-sizing:content-box; }
+        #main-menu { top:34cqh; left:6cqw; width:34cqw; gap:1.1cqh; padding:0; border:0; background:none; box-shadow:none; box-sizing:content-box; }
         #main-menu::before { content:none; }
-        #main-menu .pixel-btn { width:100%; min-width:18cqw; padding:2% 5%; text-align:center; font-size:2.5cqw; border:.3cqw solid #fff; background:#000; box-shadow:none; }
-        #main-menu .pixel-btn::before { display:none; }
-        #main-menu .pixel-btn:hover { color:#000; background:var(--primary-color); border-color:var(--primary-color); box-shadow:1.2cqw 1.2cqw 0 var(--secondary-color); transform:translate(-2px,-2px); }
+        #main-menu .pixel-btn { width:100%; min-width:18cqw; padding:.55cqh .4cqw; text-align:left; font-size:3cqw; font-weight:700; letter-spacing:.1em; border:0; background:transparent; color:#eafcff; box-shadow:none; text-shadow:0 0 .5cqw rgba(157,235,255,.24); transition:color .2s ease, text-shadow .2s ease, transform .2s ease, letter-spacing .2s ease; }
+        #main-menu .pixel-btn::before { display:inline-block; width:2.4cqw; content:'›'; color:#a9eaff; font-size:1.15em; transition:color .2s ease, transform .2s ease; }
+        #main-menu .pixel-btn:nth-child(1)::before { content:'▶'; } #main-menu .pixel-btn:nth-child(2)::before { content:'✦'; } #main-menu .pixel-btn:nth-child(3)::before { content:'◈'; } #main-menu .pixel-btn:nth-child(4)::before { content:'◇'; }
+        #main-menu .pixel-btn:hover { border:0; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#8dfff2; box-shadow:none; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(.5cqw); letter-spacing:.13em; }
+        #main-menu .pixel-btn:hover::before { color:#fff3a5; transform:translateX(.25cqw); }
+        /* ホーム右側・下側のショートカットも文字ベースに統一 */
+        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #weekly-cup-btn { padding:.35cqh .35cqw !important; border:0 !important; background:transparent !important; box-shadow:none !important; color:#eafcff !important; font-size:1.55cqw !important; font-weight:700; letter-spacing:.06em; text-shadow:0 0 .45cqw rgba(157,235,255,.25); transition:color .2s ease, text-shadow .2s ease, transform .2s ease, letter-spacing .2s ease; }
+        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover { border:0 !important; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#8dfff2 !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(-.25cqw); letter-spacing:.1em; }
+        #weekly-cup-btn { color:#ffe59b !important; text-shadow:0 0 .55cqw rgba(255,204,68,.5); }
+        #weekly-cup-btn:hover { border:0 !important; background:linear-gradient(90deg,#fff7ba,#ffd54a,#c98700,#fff0a0) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#ffd54a !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(255,235,129,.95), 0 0 1.1cqw rgba(255,190,35,.8), 0 0 1.7cqw rgba(191,120,0,.58); transform:translateX(.35cqw); letter-spacing:.1em; }
         #user-info { border-color:var(--primary-color); background:rgba(0,0,0,.5); box-shadow:none; }
 
         #stage-list-overlay { background:radial-gradient(ellipse at 20% 50%, rgba(120,40,180,.35) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(60,0,120,.4) 0%, transparent 55%), radial-gradient(ellipse at 60% 80%, rgba(180,60,120,.25) 0%, transparent 50%), linear-gradient(160deg,#0a0018 0%,#110030 30%,#0d001e 60%,#180028 100%); }
@@ -1488,12 +1495,6 @@
         <!-- ログインボーナスボタン -->
         <button id="login-bonus-btn" class="pixel-btn small" onclick="openLoginBonus()" style="position: absolute; top: 31cqh; right: 2cqw; z-index: 15; display: none; background: #e0a905; color: #fff; border-color: #fff;">🎁 ボーナス</button>
 
-        <!-- ギルドボタン -->
-        <button id="guild-btn" class="pixel-btn small" onclick="openGuild()" style="position: absolute; bottom: 2cqh; right: 2cqw; z-index: 15; display: none; background: #795548; color: #fff; border-color: #fff;">🛡️ ギルド</button>
-
-        <!-- ギルドボタン -->
-        <button id="guild-btn" class="pixel-btn small" onclick="openGuild()" style="position: absolute; bottom: 2cqh; right: 2cqw; z-index: 15; display: none; background: #795548; color: #fff; border-color: #fff;">🛡️ ギルド</button>
-
         <!-- 認証画面 -->
         <div id="auth-overlay">
             <div class="auth-box">
@@ -1569,14 +1570,15 @@
             <div style="width:26cqw; height:1.1cqh; margin:.7cqh auto 0; border:.12cqw solid #73e8ff; background:rgba(0,8,24,.8); box-shadow:0 0 .7cqw rgba(70,220,255,.35);"><div id="home-sync-gauge" style="height:100%; width:0%; background:linear-gradient(90deg,#56ffd4,#62bfff); transition:width .12s linear;"></div></div>
         </div>
         
-        <canvas id="home-character-canvas" width="256" height="256" style="position: absolute; right: 10cqw; top: 55%; transform: translateY(-50%); width: 35cqw; height: 35cqw; image-rendering: pixelated; pointer-events: none; z-index: 4; display: none;"></canvas>
+        <canvas id="home-character-canvas" width="256" height="256" style="position: absolute; right: 10cqw; top: 58%; transform: translateY(-50%); width: 35cqw; height: 35cqw; image-rendering: pixelated; pointer-events: none; z-index: 4; display: none;"></canvas>
 
         <div id="main-menu" class="menu">
             <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
             <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
             <button class="pixel-btn" onclick="openLocker()">ロッカー</button>
             <button class="pixel-btn" onclick="openShop()">ショップ</button>
-        </div>
+            <button id="guild-btn" class="pixel-btn" onclick="openGuild()">ギルド</button>
+            </div>
 
         <!-- ショップ画面 -->
         <div id="shop-overlay" class="screen">
@@ -1896,7 +1898,7 @@
         <!-- Pixel Stages Weekly Cup 大会ホーム -->
         <div id="weekly-cup-overlay" class="screen" style="z-index:151; background:rgba(0,0,0,.95); flex-direction:column; align-items:center; justify-content:center; display:none;">
             <div class="auth-box" style="width:78%; max-height:88cqh; overflow-y:auto; box-sizing:border-box; text-align:center;">
-                <h2 style="font-size:3cqw; color:#ffd54a; margin:0 0 .8cqh;">PIXEL STAGES WEEKLY CUP</h2>
+                <h2 style="font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive; font-style:italic; font-weight:bold; font-size:3.6cqw; color:#ffd54a; margin:0 0 .8cqh;">Pixel Stages Weekly Cup</h2>
                 <div id="weekly-cup-period" style="font-size:1.3cqw; color:#aeefff; margin-bottom:1.5cqh;">読み込み中...</div>
                 <div id="weekly-cup-content">
                     <div id="weekly-cup-stage" style="min-height:38cqh; padding:1.2cqw; border:.16cqw solid #ffd54a; background:rgba(255,180,0,.06);"></div>
@@ -1914,7 +1916,7 @@
 
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
-            <h2 class="stage-list-title" style="font-size: 3.5cqw; position: relative; z-index: 1;">PUBLISHED STAGES</h2>
+            <h2 class="stage-list-title" style="font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive; font-style:italic; font-size:4cqw; position:relative; z-index:1;">Published Stages</h2>
             <div class="stage-filter-bar" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%; position: relative; z-index: 1;">
                 <button class="pixel-btn small" onclick="closeStageSelect()" style="background: #f44336; color: #fff;">戻る</button>
                 <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
@@ -2073,7 +2075,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxPCfPcHsUMcyRchRdT0oJFv61NVdnORavQkgnApHymR0F1awStjKi7wjJ_NnLO9m1b/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.4"
+            VERSION: "2.12.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -6739,8 +6741,9 @@
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
             } else if(type === '>' || type === '>N') {
                 // 一方通行（右）
+                const rightOneWayInset = type === '>N' ? pad : 0;
                 ctx.fillStyle = "rgba(0,0,0,0.5)";
-                ctx.fillRect(x*cw, y*ch, cw, ch);
+                ctx.fillRect(x*cw + rightOneWayInset, y*ch + rightOneWayInset, cw - rightOneWayInset * 2, ch - rightOneWayInset * 2);
                 ctx.strokeStyle = type === '>N' ? "#ffeb3b" : "#fff";
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -6748,10 +6751,17 @@
                 ctx.lineTo(x*cw + cw*0.7, y*ch + ch*0.5);
                 ctx.lineTo(x*cw + cw*0.3, y*ch + ch*0.8);
                 ctx.stroke();
+                if (type === '>N') {
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + cw - pad, y*ch + pad);
+                    ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                    ctx.stroke();
+                }
             } else if(type === '<' || type === '<N') {
                 // 一方通行（左）
+                const leftOneWayInset = type === '<N' ? pad : 0;
                 ctx.fillStyle = "rgba(0,0,0,0.5)";
-                ctx.fillRect(x*cw, y*ch, cw, ch);
+                ctx.fillRect(x*cw + leftOneWayInset, y*ch + leftOneWayInset, cw - leftOneWayInset * 2, ch - leftOneWayInset * 2);
                 ctx.strokeStyle = type === '<N' ? "#ffeb3b" : "#fff";
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -6759,10 +6769,17 @@
                 ctx.lineTo(x*cw + cw*0.3, y*ch + ch*0.5);
                 ctx.lineTo(x*cw + cw*0.7, y*ch + ch*0.8);
                 ctx.stroke();
+                if (type === '<N') {
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + pad, y*ch + pad);
+                    ctx.lineTo(x*cw + pad, y*ch + ch - pad);
+                    ctx.stroke();
+                }
             } else if(type === 'v' || type === 'vN') {
                 // 一方通行（下）
+                const downOneWayInset = type === 'vN' ? pad : 0;
                 ctx.fillStyle = "rgba(0,0,0,0.5)";
-                ctx.fillRect(x*cw, y*ch, cw, ch);
+                ctx.fillRect(x*cw + downOneWayInset, y*ch + downOneWayInset, cw - downOneWayInset * 2, ch - downOneWayInset * 2);
                 ctx.strokeStyle = type === 'vN' ? "#ffeb3b" : "#fff";
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -6770,6 +6787,12 @@
                 ctx.lineTo(x*cw + cw*0.5, y*ch + ch*0.7);
                 ctx.lineTo(x*cw + cw*0.8, y*ch + ch*0.3);
                 ctx.stroke();
+                if (type === 'vN') {
+                    ctx.beginPath();
+                    ctx.moveTo(x*cw + pad, y*ch + ch - pad);
+                    ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                    ctx.stroke();
+                }
             } else if(type === 'C') {
                 // チェックポイント（ゴールゲートの色違い版）
                 const isDone = activeStage.length > 0 && activeCheckpoints.has(`${x},${y}`);
@@ -8416,15 +8439,23 @@
             
             // 一方通行壁（横方向）の判定
             if (!collidedX) {
+                // 新規配置版だけは、見た目を変えずに当たり判定を0.08マス内側へ縮める。
+                const newOneWayHitInset = 0.08;
                 if (player.vx > 0) { // 右移動中：左向き壁'<'にぶつかるか
                     let ix = Math.floor(nextX + player.w), iy1 = Math.floor(player.y + 0.1), iy2 = Math.floor(player.y + player.h - 0.1);
-                    if ((activeStage[iy1] && activeStage[iy1][ix] === '<') || (activeStage[iy2] && activeStage[iy2][ix] === '<')) {
-                        if (player.x + player.w <= ix) { collidedX = true; nextX = ix - player.w; }
+                    const leftOneWayTile = (activeStage[iy1] && ['<', '<N'].includes(activeStage[iy1][ix]) && activeStage[iy1][ix])
+                        || (activeStage[iy2] && ['<', '<N'].includes(activeStage[iy2][ix]) && activeStage[iy2][ix]);
+                    if (leftOneWayTile) {
+                        const wallX = ix + (leftOneWayTile === '<N' ? newOneWayHitInset : 0);
+                        if (player.x + player.w <= wallX) { collidedX = true; nextX = wallX - player.w; }
                     }
                 } else if (player.vx < 0) { // 左移動中：右向き壁'>'にぶつかるか
                     let ix = Math.floor(nextX), iy1 = Math.floor(player.y + 0.1), iy2 = Math.floor(player.y + player.h - 0.1);
-                    if ((activeStage[iy1] && activeStage[iy1][ix] === '>') || (activeStage[iy2] && activeStage[iy2][ix] === '>')) {
-                        if (player.x >= ix + 1) { collidedX = true; nextX = ix + 1; }
+                    const rightOneWayTile = (activeStage[iy1] && ['>', '>N'].includes(activeStage[iy1][ix]) && activeStage[iy1][ix])
+                        || (activeStage[iy2] && ['>', '>N'].includes(activeStage[iy2][ix]) && activeStage[iy2][ix]);
+                    if (rightOneWayTile) {
+                        const wallX = ix + (rightOneWayTile === '>N' ? 1 - newOneWayHitInset : 1);
+                        if (player.x >= wallX) { collidedX = true; nextX = wallX; }
                     }
                 }
             }
@@ -8476,9 +8507,14 @@
             if (!collidedY && player.vy < 0) {
                 let headY = nextY;
                 let ix = Math.floor(player.x + player.w/2), iy = Math.floor(headY);
-                if (activeStage[iy] && activeStage[iy][ix] === 'v' && player.y >= iy + 0.9) {
+                const downOneWayTile = activeStage[iy] && activeStage[iy][ix];
+                // 新規版(vN)は見た目を変えず、下端から少し内側で判定する。
+                const hitsOldDownOneWay = downOneWayTile === 'v' && player.y >= iy + 0.9;
+                const newDownOneWaySurface = iy + 0.92;
+                const hitsNewDownOneWay = downOneWayTile === 'vN' && player.y >= newDownOneWaySurface;
+                if (hitsOldDownOneWay || hitsNewDownOneWay) {
                     collidedY = true;
-                    nextY = iy + 1;
+                    nextY = downOneWayTile === 'vN' ? newDownOneWaySurface : iy + 1;
                     hitDownOneWayCeiling = true;
                 }
             }
@@ -9269,7 +9305,7 @@
                     const tc = tile.charCodeAt(0);
                     if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
-                       tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === '>N' || tile === '<N' || tile === 'vN' || tile === 'LM' || tile === 'WC' ||
+                       tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === 'LM' || tile === 'WC' ||
                        tile === 'SM' || tile === 'EC' ||
                        (tc === 90 && tile.length > 1) /* 'Z'... */ ||
                        (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) ||
