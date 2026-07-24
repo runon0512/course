@@ -44,6 +44,8 @@
         /* テーマ別の背景色 */
         .container.bg-city { background: #050510; } /* ホームの背景を宇宙色に */
         .container.bg-sky  { background: #e1f5fe; }
+        /* 新風・無印ステージ用の、はっきりした青空 */
+        .container.bg-clear-sky { background: linear-gradient(180deg, #35aef2 0%, #76cef8 58%, #c8efff 100%); }
         .container.bg-water { background: linear-gradient(180deg, #003d6b 0%, #005580 40%, #004466 100%); }
         .container.bg-dark  { background: #000; }
         .container.bg-volcano { background: linear-gradient(180deg, #1a0500 0%, #3d0f00 55%, #1a0500 100%); }
@@ -2075,7 +2077,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxPCfPcHsUMcyRchRdT0oJFv61NVdnORavQkgnApHymR0F1awStjKi7wjJ_NnLO9m1b/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.5"
+            VERSION: "2.12.6"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -6038,7 +6040,7 @@
             activeStage = [];
             // エディタ背景をリセット
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano');
+            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-clear-sky');
             container.classList.add('bg-sky');
 
             // プレイ画面同様、ホームの要素を非表示にする
@@ -6192,7 +6194,7 @@
             document.getElementById('login-bonus-btn').style.display = 'block';
             
             const container = document.querySelector('.container');
-            container.classList.remove('bg-sky');
+            container.classList.remove('bg-sky', 'bg-clear-sky');
             container.classList.add('bg-city');
         }
 
@@ -7596,7 +7598,7 @@
             
             // 背景の切り替え
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
+            container.classList.remove('bg-city', 'bg-sky', 'bg-clear-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
             
             // 大会はステージタイプにかかわらず新次元（オーロラ）背景を使う。
             // 物理・水面などのステージタイプ固有の挙動は currentStageType をそのまま利用する。
@@ -7624,9 +7626,9 @@
                 else if (cr <= 3) container.classList.add('bg-hell'); // 鬼
                 else if (cr <= 10) container.classList.add('bg-sunset'); // 超難関
                 else if (cr <= 25) container.classList.add('bg-cloudy'); // 難関
-                else container.classList.add('bg-sky'); // 通常
+                else container.classList.add('bg-clear-sky'); // 無印
             } else {
-                container.classList.add('bg-sky');
+                container.classList.add('bg-clear-sky'); // 新風
             }
 
             // 状態リセット 
