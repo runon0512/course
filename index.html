@@ -2074,7 +2074,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxPCfPcHsUMcyRchRdT0oJFv61NVdnORavQkgnApHymR0F1awStjKi7wjJ_NnLO9m1b/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxhdUd7eA-PkeP2OsC8XZcxrPrtUKhb-4L5i1FmZ8_Tjo8T31ezrZH2Vz024KQZ2ekz/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.12.6"
@@ -2101,7 +2101,7 @@
         let guildBadgeByMember = Object.create(null);
         let weeklyCupWinnerCounts = Object.create(null);
         const guildIconDataUrlCache = Object.create(null);
-        const GUILD_RANK_EXP = [0, 10000, 60000, 160000, 660000, 1660000, 6660000, 16660000];
+        const GUILD_RANK_EXP = [0, 10000, 50000, 100000, 300000, 500000, 1000000, 2500000];
 
         function renderGuildRankProgress(guild) {
             const holder = document.getElementById('my-guild-rank-progress');
@@ -2112,12 +2112,10 @@
                 holder.innerHTML = '<div class="guild-exp-gauge"><div style="width:100%"></div></div><div class="guild-exp-caption">MAX RANK</div>';
                 return;
             }
-            const start = GUILD_RANK_EXP[rank];
             const end = GUILD_RANK_EXP[rank + 1];
-            const gained = Math.max(0, exp - start);
-            const needed = end - start;
-            const percent = Math.min(100, gained / needed * 100);
-            holder.innerHTML = `<div class="guild-exp-gauge"><div style="width:${percent}%"></div></div><div class="guild-exp-caption">${gained.toLocaleString()} / ${needed.toLocaleString()} EXP</div>`;
+            const totalExp = Math.max(0, exp);
+            const percent = Math.min(100, totalExp / end * 100);
+            holder.innerHTML = `<div class="guild-exp-gauge"><div style="width:${percent}%"></div></div><div class="guild-exp-caption">累計 ${totalExp.toLocaleString()} / ${end.toLocaleString()} EXP</div>`;
         }
 
         function cacheGuildBadgeData(guilds) {
