@@ -51,7 +51,8 @@
         .container.bg-volcano { background: linear-gradient(180deg, #1a0500 0%, #3d0f00 55%, #1a0500 100%); }
         .container.bg-night { background: #0b1026; }
         .container.bg-moon { background: radial-gradient(circle at 72% 20%, #e9edf5 0 7%, transparent 7.3%), radial-gradient(1px 1px at 16% 24%, #fff 0 100%, transparent 100%), radial-gradient(1px 1px at 38% 66%, #cce6ff 0 100%, transparent 100%), radial-gradient(1px 1px at 84% 72%, #fff 0 100%, transparent 100%), linear-gradient(180deg, #050816, #141b36); }
-        .container.bg-beach { background: linear-gradient(180deg, #74d6ff 0%, #d9f6ff 47%, #16aee1 48%, #00699e 100%); }
+        /* 海辺の背景は空と砂浜のみ。水面はゲーム内の水エフェクトで表示する。 */
+        .container.bg-beach { background: radial-gradient(ellipse at 74% 16%, rgba(255,250,194,.95) 0 4%, transparent 12%), linear-gradient(180deg, #6fd4ff 0%, #d8f5ff 62%, #f5d68c 63%, #dba95b 100%); }
 
         /* 難易度別の新背景 */
         .container.bg-cloudy { background: radial-gradient(ellipse at 50% -10%, rgba(221, 170, 255, .55), transparent 43%), linear-gradient(180deg, #4a2379 0%, #6c3d9a 48%, #30144f 100%); } /* 難関: 紫 */
@@ -1511,7 +1512,7 @@
                 </div>
                 <label class="remember-wrap">
                     <input type="checkbox" id="remember-me">
-                    <span>REMEMBER ME</span>
+                    <span>次回から自動ログイン</span>
                 </label>
                 <label class="remember-wrap">
                     <input type="checkbox" id="mobile-mode" onchange="isMobileMode = this.checked; localStorage.setItem('pixel_stages_mobile', this.checked)">
@@ -2075,10 +2076,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbydK_01XJqBIL2jzujoCwlrKo4TTGySjS4JcMhI_w8ZdwSeQBy-l65ioI61ACp8au2z/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx2VuBfngqyo6IbTVp61J9tpheYLbT7oMF0H6wy6-d5JRfPqBQvGKdCh58lO-fqzfMQ/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.6"
+            VERSION: "2.12.7"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3051,6 +3052,24 @@
             window.onlineCountTimer = setInterval(refreshOnlineCount, 15000);
         }
 
+        const AUTH_SESSION_COOKIE = 'pixel_stages_session';
+
+        function setAuthSessionCookie(token) {
+            const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
+            const secure = location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = `${AUTH_SESSION_COOKIE}=${encodeURIComponent(token)}; expires=${expires}; path=/; SameSite=Strict${secure}`;
+        }
+
+        function getAuthSessionCookie() {
+            const prefix = `${AUTH_SESSION_COOKIE}=`;
+            const entry = document.cookie.split('; ').find(cookie => cookie.startsWith(prefix));
+            return entry ? decodeURIComponent(entry.slice(prefix.length)) : '';
+        }
+
+        function clearAuthSessionCookie() {
+            document.cookie = `${AUTH_SESSION_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Strict`;
+        }
+
         function handleAuth(type) {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
@@ -3065,7 +3084,7 @@
             msg.innerText = "通信中...";
 
             // google.script.run ではなく、定義済みの callApi を使用します
-            callApi(type, { username: user, password: pass, version: CONFIG.VERSION })
+            callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember: type === 'login' && remember })
                 .then((res) => {
                     msg.innerText = res.message;
                     if (res.success) {
@@ -3078,46 +3097,17 @@
                         }
                         if (type === 'login') {
                             if (remember) {
-                                localStorage.setItem('pixel_stages_user', user);
-                                localStorage.setItem('pixel_stages_pass', pass);
-                                localStorage.setItem('pixel_stages_remember', 'true');
+                                // パスワードではなく、期限付きのセッショントークンだけをCookieへ保存する。
+                                if (res.sessionToken) setAuthSessionCookie(res.sessionToken);
                             } else {
-                                localStorage.removeItem('pixel_stages_user');
-                                localStorage.removeItem('pixel_stages_pass');
-                                localStorage.removeItem('pixel_stages_remember');
+                                clearAuthSessionCookie();
                             }
+                            // 旧バージョンが保存した認証情報を消去する。
+                            localStorage.removeItem('pixel_stages_user');
+                            localStorage.removeItem('pixel_stages_pass');
+                            localStorage.removeItem('pixel_stages_remember');
 
-                            setTimeout(() => {
-                                // ログイン成功時の処理
-                                CONFIG.IS_LOGGED_IN = true;
-                                CONFIG.USERNAME = res.username;
-
-                                userGold = res.gold || 0;
-                                userCP = res.cp || 0;
-                                userAS = res.auroraStones || 0;
-                                userES = res.eventStones || 0;
-                                purchasedSkins = res.purchasedSkins || ['default', 'girl'];
-                                equippedSkin = res.equippedSkin || 'default';
-                                equippedColor = res.equippedColor || 'default';
-                                claimedRoadRewards = res.claimedRoadRewards || [];
-                                userGuild = res.guild;
-                                 userBadgeVisible = res.badgeVisible !== false;
-
-                                // ホームを先に表示し、重い同期はバックグラウンドで行う。
-                                showLoggedInHome(res.username);
-                                startHomeSyncUI();
-                                preloadAllData(res.username, res.loginBonusHistory)
-                                    .catch(error => console.error('初期データ同期エラー:', error))
-                                    .finally(finishHomeSyncUI);
-
-                                // Initialize sort/filter UI on login
-                                document.getElementById('sort-criteria').value = currentSort;
-                                document.getElementById('filter-my-stages').checked = filterMyStages;
-                                document.getElementById('filter-creator').value = filterCreatorName;
-                                document.getElementById('filter-stage-name').value = filterStageName;
-                                document.getElementById('filter-stage-type').value = filterStageType;
-                                updateGoldDisplay();
-                            }, 1000);
+                            completeLogin(res);
                         }
                     } else {
                         msg.style.color = "var(--secondary-color)";
@@ -3174,6 +3164,52 @@
                 const currency = skin.isES ? 'ES' : (skin.isAS ? 'AS' : 'gold');
                 createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target, currency));
             });
+        }
+
+        function completeLogin(res) {
+            setTimeout(() => {
+                CONFIG.IS_LOGGED_IN = true;
+                CONFIG.USERNAME = res.username;
+                userGold = res.gold || 0;
+                userCP = res.cp || 0;
+                userAS = res.auroraStones || 0;
+                userES = res.eventStones || 0;
+                purchasedSkins = res.purchasedSkins || ['default', 'girl'];
+                equippedSkin = res.equippedSkin || 'default';
+                equippedColor = res.equippedColor || 'default';
+                claimedRoadRewards = res.claimedRoadRewards || [];
+                userGuild = res.guild;
+                userBadgeVisible = res.badgeVisible !== false;
+                showLoggedInHome(res.username);
+                startHomeSyncUI();
+                preloadAllData(res.username, res.loginBonusHistory)
+                    .catch(error => console.error('初期データ同期エラー:', error))
+                    .finally(finishHomeSyncUI);
+                document.getElementById('sort-criteria').value = currentSort;
+                document.getElementById('filter-my-stages').checked = filterMyStages;
+                document.getElementById('filter-creator').value = filterCreatorName;
+                document.getElementById('filter-stage-name').value = filterStageName;
+                document.getElementById('filter-stage-type').value = filterStageType;
+                updateGoldDisplay();
+            }, 1000);
+        }
+
+        async function resumeLoginFromCookie() {
+            const token = getAuthSessionCookie();
+            if (!token) return;
+            const msg = document.getElementById('auth-msg');
+            msg.style.color = '#fff';
+            msg.innerText = '自動ログイン中...';
+            const res = await callApi('resumeSession', { sessionToken: token });
+            if (res?.success) {
+                msg.style.color = 'var(--primary-color)';
+                msg.innerText = res.message;
+                completeLogin(res);
+            } else {
+                clearAuthSessionCookie();
+                msg.style.color = 'var(--secondary-color)';
+                msg.innerText = res?.message || '自動ログインに失敗しました。';
+            }
         }
 
         function createShopItem(container, id, data, isPurchased, isEquipped, onBuy) {
@@ -7420,11 +7456,6 @@
                             onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
                             onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
-                        ${s.creator === CONFIG.USERNAME ? `
-                        <button class="pixel-btn small" style="background:#5c6bc0; color:#fff;"
-                            onclick="event.stopPropagation(); renameMyStage('${escapedId}')">名前変更</button>
-                        <button class="pixel-btn small" style="background:#b71c1c; color:#fff;"
-                            onclick="event.stopPropagation(); deleteMyStage('${escapedId}')">削除</button>` : ''}
                     </div>
                     <div style="display:flex; flex-direction:column;">${bestRecordHtml}${myRecordHtml}</div>
                 `;
@@ -7439,36 +7470,6 @@
                     if (renderVersion === stageListRenderVersion && document.contains(canvas)) renderPreview(canvas, s.data);
                 }, idx * 20);
             });
-        }
-
-        async function renameMyStage(stageId) {
-            const stage = (cachedStages || []).find(s => String(s.id || s.name) === String(stageId));
-            if (!stage || stage.creator !== CONFIG.USERNAME) return;
-            const name = prompt('新しいステージ名を入力してください（1〜50文字）', stage.name);
-            if (name === null) return;
-            const trimmedName = name.trim();
-            if (!trimmedName || trimmedName.length > 50) {
-                alert('ステージ名は1〜50文字で入力してください。');
-                return;
-            }
-            const res = await callApi('renameStage', { stageId: stage.id, username: CONFIG.USERNAME, stageName: trimmedName });
-            alert(res?.message || '名前変更に失敗しました。');
-            if (res?.success) {
-                cachedStages = null;
-                openStageSelect(true);
-            }
-        }
-
-        async function deleteMyStage(stageId) {
-            const stage = (cachedStages || []).find(s => String(s.id || s.name) === String(stageId));
-            if (!stage || stage.creator !== CONFIG.USERNAME) return;
-            if (!confirm(`「${stage.name}」を削除しますか？\nこの操作は元に戻せません。`)) return;
-            const res = await callApi('deleteStage', { stageId: stage.id, username: CONFIG.USERNAME });
-            alert(res?.message || '削除に失敗しました。');
-            if (res?.success) {
-                cachedStages = null;
-                openStageSelect(true);
-            }
         }
 
         function renderPreview(canvas, data) {
@@ -10074,9 +10075,11 @@
 
         // 起動時に保存された情報を読み込む
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('pixel_stages_user');
-            const savedPass = localStorage.getItem('pixel_stages_pass');
-            const remember = localStorage.getItem('pixel_stages_remember') === 'true';
+            // 旧ローカルストレージのパスワードは、利用せず直ちに削除する。
+            localStorage.removeItem('pixel_stages_user');
+            localStorage.removeItem('pixel_stages_pass');
+            localStorage.removeItem('pixel_stages_remember');
+            const savedSession = getAuthSessionCookie();
             
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
@@ -10114,13 +10117,9 @@
             setupMentionAutocomplete('chat-input');
             setupMentionAutocomplete('guild-bulletin-input');
 
-            if (savedUser && savedPass) {
-                document.getElementById('username').value = savedUser;
-                document.getElementById('password').value = savedPass;
-                document.getElementById('remember-me').checked = remember;
-                
-                // 自動ログイン実行
-                handleAuth('login');
+            if (savedSession) {
+                document.getElementById('remember-me').checked = true;
+                resumeLoginFromCookie();
             }
         });
     </script>
