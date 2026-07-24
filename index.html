@@ -54,17 +54,18 @@
         .container.bg-beach { background: linear-gradient(180deg, #74d6ff 0%, #d9f6ff 47%, #16aee1 48%, #00699e 100%); }
 
         /* 難易度別の新背景 */
-        .container.bg-cloudy { background: #90a4ae; } /* 難関: 曇り */
+        .container.bg-cloudy { background: radial-gradient(ellipse at 50% -10%, rgba(221, 170, 255, .55), transparent 43%), linear-gradient(180deg, #4a2379 0%, #6c3d9a 48%, #30144f 100%); } /* 難関: 紫 */
         .container.bg-sunset { background: linear-gradient(#ff7043, #3f51b5); } /* 超難関: 夕方 */
         .container.bg-hell   { background: linear-gradient(#000, #b71c1c); } /* 鬼: 地獄 */
-        .container.bg-heaven { background: linear-gradient(#e3f2fd, #ffffff); } /* 神: 天国 */
+        .container.bg-heaven { background: radial-gradient(circle at 72% 18%, rgba(255, 249, 196, .98) 0 4%, rgba(255, 232, 134, .5) 9%, transparent 21%), radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.96) 0 25%, transparent 57%), linear-gradient(180deg, #63bcff 0%, #a8dcff 42%, #e4f6ff 70%, #fff9df 100%); } /* 神: 天界 */
         .container.bg-bw     { background: #ffffff; } /* 未知: 白黒 */
         .container.bg-aurora { background: #050510; } /* 新次元: オーロラ */
 
         /* 各背景でのレイヤー調整 */
         .container.bg-bw .clouds { filter: grayscale(1) brightness(0); opacity: 0.2; }
         .container.bg-hell .clouds { display: none; }
-        .container.bg-cloudy .clouds { filter: brightness(0.7); opacity: 0.8; }
+        .container.bg-cloudy .clouds { filter: hue-rotate(45deg) saturate(1.35) brightness(.7); opacity: .72; }
+        .container.bg-heaven .clouds { filter: brightness(1.35) sepia(.12); opacity: .92; }
 
         /* オーロラレイヤー */
         .aurora-layer {
@@ -2074,7 +2075,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxhdUd7eA-PkeP2OsC8XZcxrPrtUKhb-4L5i1FmZ8_Tjo8T31ezrZH2Vz024KQZ2ekz/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbydK_01XJqBIL2jzujoCwlrKo4TTGySjS4JcMhI_w8ZdwSeQBy-l65ioI61ACp8au2z/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.12.6"
@@ -7419,6 +7420,11 @@
                             onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
                             onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
+                        ${s.creator === CONFIG.USERNAME ? `
+                        <button class="pixel-btn small" style="background:#5c6bc0; color:#fff;"
+                            onclick="event.stopPropagation(); renameMyStage('${escapedId}')">名前変更</button>
+                        <button class="pixel-btn small" style="background:#b71c1c; color:#fff;"
+                            onclick="event.stopPropagation(); deleteMyStage('${escapedId}')">削除</button>` : ''}
                     </div>
                     <div style="display:flex; flex-direction:column;">${bestRecordHtml}${myRecordHtml}</div>
                 `;
@@ -7433,6 +7439,36 @@
                     if (renderVersion === stageListRenderVersion && document.contains(canvas)) renderPreview(canvas, s.data);
                 }, idx * 20);
             });
+        }
+
+        async function renameMyStage(stageId) {
+            const stage = (cachedStages || []).find(s => String(s.id || s.name) === String(stageId));
+            if (!stage || stage.creator !== CONFIG.USERNAME) return;
+            const name = prompt('新しいステージ名を入力してください（1〜50文字）', stage.name);
+            if (name === null) return;
+            const trimmedName = name.trim();
+            if (!trimmedName || trimmedName.length > 50) {
+                alert('ステージ名は1〜50文字で入力してください。');
+                return;
+            }
+            const res = await callApi('renameStage', { stageId: stage.id, username: CONFIG.USERNAME, stageName: trimmedName });
+            alert(res?.message || '名前変更に失敗しました。');
+            if (res?.success) {
+                cachedStages = null;
+                openStageSelect(true);
+            }
+        }
+
+        async function deleteMyStage(stageId) {
+            const stage = (cachedStages || []).find(s => String(s.id || s.name) === String(stageId));
+            if (!stage || stage.creator !== CONFIG.USERNAME) return;
+            if (!confirm(`「${stage.name}」を削除しますか？\nこの操作は元に戻せません。`)) return;
+            const res = await callApi('deleteStage', { stageId: stage.id, username: CONFIG.USERNAME });
+            alert(res?.message || '削除に失敗しました。');
+            if (res?.success) {
+                cachedStages = null;
+                openStageSelect(true);
+            }
         }
 
         function renderPreview(canvas, data) {
@@ -9384,7 +9420,8 @@
 
         // ボスの巨大化領域と重なる、破壊可能なブロックを取り除く
         function destroyBlocksInsideBoss(boss) {
-            const protectedTiles = new Set(['S', 'G', 'C', 'EC', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg']);
+            // 鉄ブロック（旧BB・新BBN）はオーロラ(V)と同様、ボス出現時にも破壊しない。
+            const protectedTiles = new Set(['S', 'G', 'C', 'EC', 'sp', 'sp_blue', 'mg', 'V', 'BB', 'BBN', '!', 'A', 'ug', 'dg', 'rg']);
             const size = boss.size || 1.8;
             const minX = Math.max(0, Math.floor(boss.x));
             const maxX = Math.min(GRID_W - 1, Math.ceil(boss.x + size) - 1);
