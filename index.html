@@ -2079,7 +2079,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzp2J3kBz9YevOIV4hj7pyPMGXCR4BpLT-JImnmkC0cYMxEnhR72LTQho0cYwvvqIkY/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwmV1Nj4BLCgF1pcAlPOXakylUqDxPurpXSB_nK1G8_ZDDhM6YHenhpVZJpH1jiz_Lc/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.12.7R"
@@ -3058,21 +3058,26 @@
         }
 
         const AUTH_SESSION_COOKIE = 'pixel_stages_session';
+        const AUTH_SESSION_STORAGE_KEY = 'pixel_stages_session_token';
 
         function setAuthSessionCookie(token) {
             const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
             const secure = location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = `${AUTH_SESSION_COOKIE}=${encodeURIComponent(token)}; expires=${expires}; path=/; SameSite=Strict${secure}`;
+            // file:// などCookieを保持できない起動方法でも、パスワードではない期限付きトークンだけを保持する。
+            try { localStorage.setItem(AUTH_SESSION_STORAGE_KEY, token); } catch (e) { /* Cookieのみで継続 */ }
         }
 
         function getAuthSessionCookie() {
             const prefix = `${AUTH_SESSION_COOKIE}=`;
             const entry = document.cookie.split('; ').find(cookie => cookie.startsWith(prefix));
-            return entry ? decodeURIComponent(entry.slice(prefix.length)) : '';
+            if (entry) return decodeURIComponent(entry.slice(prefix.length));
+            try { return localStorage.getItem(AUTH_SESSION_STORAGE_KEY) || ''; } catch (e) { return ''; }
         }
 
         function clearAuthSessionCookie() {
             document.cookie = `${AUTH_SESSION_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Strict`;
+            try { localStorage.removeItem(AUTH_SESSION_STORAGE_KEY); } catch (e) { /* 無視 */ }
         }
 
         function handleAuth(type) {
@@ -10142,6 +10147,7 @@
 
             // @メンション検索をチャット・ギルド掲示板の入力欄に登録
             setupMentionAutocomplete('chat-input');
+            setupMentionAutocomplete('dm-input');
             setupMentionAutocomplete('guild-bulletin-input');
 
             if (savedSession) {
