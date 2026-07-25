@@ -2022,6 +2022,7 @@
                     <div class="tool-btn rank-rare" id="btn-tool-dg" onclick="setTool('dg', this)" title="DOWN GUN" style="display:none;"><canvas id="icon-dg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-rg" onclick="setTool('rg', this)" title="RIGHT GUN" style="display:none;"><canvas id="icon-rg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-I" onclick="setTool('I', this)" title="ICE BLOCK" style="display:none;"><canvas id="icon-I" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-KG" onclick="setTool('KG', this)" title="KILLER GOAL" style="display:none;"><canvas id="icon-KG" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-Z" onclick="setTool('Z', this)" title="COLOR BLOCK" style="display:none;"><canvas id="icon-Z" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-o" onclick="setTool('o', this)" title="KEY" style="display:none;"><canvas id="icon-o" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-D" onclick="setTool('D', this)" title="KEY BLOCK" style="display:none;"><canvas id="icon-D" class="tool-canvas"></canvas></div>
@@ -2176,6 +2177,7 @@
             { id: 11, cp: 30000, unlock: 'y', text: "黄色いトゲ" },
             { id: 9, cp: 40000, unlock: 'GUNS', text: "銃セット (上/下/右)" },
             { id: 10, cp: 50000, unlock: 'ICE', text: "氷ブロック" },
+            { id: 16, cp: 60000, unlock: 'KG', text: "キラーゴール" },
             { id: 14, cp: 75000, unlock: 'RB_BRIDGE', text: "R/B橋" },
             { id: 13, cp: 100000, unlock: 'SYNC_ENEMY', auroraStone: 1, text: "シンクロ敵 + AS" }
         ];
@@ -2196,6 +2198,7 @@
             'B': { title: 'ブロック', text: '通常の足場ブロック。ステージの基本構造に使います。' },
             'S': { title: 'スタート', text: 'プレイヤーの開始位置を設定するブロックです。ステージに1つだけ配置します。' },
             'G': { title: 'ゴール', text: 'プレイヤーが到達するとクリアになるゴールブロックです。' },
+            'KG': { title: 'キラーゴール', text: '紫の特殊ゴールです。すべてのチェックポイントを取り、ボスを含む敵を全滅させるまで開きません。' },
             'K': { title: 'スパイク', text: '触れるとプレイヤーがやられる危険なトゲです。' },
             'M': { title: '敵', text: '動く敵キャラクターです。ぶつかると死亡します。' },
             'E': { title: '消しゴム', text: '配置したブロックやアイテムを消すツールです。' },
@@ -2392,6 +2395,9 @@
         let lastControlEnabled = null;
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
+        let killerGoalActive = false;
+        let killerGoalTiles = [];
+        let lastKillerGoalEnemyCount = -1;
         let lastTime = 0;
         let dynamicTiles = []; // 動的ギミックのキャッシュ用
         let lampPositions = []; // 暗闇ステージのランプ位置キャッシュ（毎フレームのグリッド走査を防ぐ）
@@ -3334,7 +3340,7 @@
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'WCN', 'SM', 'FL'],
+            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'WCN', 'SM', 'FL'],
             epic: ['hr', 'hb', 'e', '#'],
             legendary: ['V', 'sp', 'mg', 'EC', 'PB', 'WB']
         };
@@ -6135,6 +6141,9 @@
             // 氷ブロック
             const hasIce = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(10));
             if(document.getElementById('btn-tool-I')) document.getElementById('btn-tool-I').style.display = hasIce ? 'flex' : 'none';
+            // キラーゴール
+            const hasKillerGoal = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(16));
+            if(document.getElementById('btn-tool-KG')) document.getElementById('btn-tool-KG').style.display = hasKillerGoal ? 'flex' : 'none';
             // カラーブロック
             if(document.getElementById('btn-tool-Z')) document.getElementById('btn-tool-Z').style.display = (CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(12)) ? 'flex' : 'none';
             // R/B橋
@@ -6263,7 +6272,7 @@
 
         function renderToolIcons() {
             const toolList = [
-                {type:'B', id:'icon-B'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'K', id:'icon-K'}, 
+                {type:'B', id:'icon-B'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
@@ -6592,12 +6601,14 @@
                 ctx.font = `bold ${ch*0.3}px sans-serif`;
                 ctx.textAlign = "center";
                 ctx.fillText("S", x*cw + cw/2, y*ch + ch*0.3);
-            } else if(type === 'G') {
-                const isLocked = activeStage.length > 0 && activeCheckpoints.size < totalCheckpoints;
+            } else if(type === 'G' || type === 'KG') {
+                const isKillerGoal = type === 'KG';
+                const remainingEnemies = isKillerGoal ? getRemainingKillerGoalEnemies() : 0;
+                const isLocked = activeStage.length > 0 && (activeCheckpoints.size < totalCheckpoints || (isKillerGoal && remainingEnemies > 0));
                 // ゴールゲート
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
-                ctx.strokeStyle = isLocked ? "#777" : "#d32f2f";
+                ctx.strokeStyle = isLocked ? "#777" : (isKillerGoal ? "#c85cff" : "#d32f2f");
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
                 
@@ -6618,7 +6629,13 @@
                     ctx.fillStyle = "#fff";
                     ctx.font = `bold ${ch*0.3}px sans-serif`;
                     ctx.textAlign = "center";
-                    ctx.fillText("G", x*cw + cw/2, y*ch + ch*0.4);
+                    ctx.fillText(isKillerGoal ? "G" : "G", x*cw + cw/2, y*ch + ch*0.4);
+                }
+                if (isKillerGoal) {
+                    ctx.fillStyle = "#ff5a6b";
+                    ctx.font = `bold ${Math.max(7, ch*0.19)}px sans-serif`;
+                    ctx.textAlign = "right";
+                    ctx.fillText(`👾 残り ${remainingEnemies}`, x*cw + cw*0.98, y*ch + ch*0.2);
                 }
             } else if(type === 'K') {
                 // 通常スパイク（大会中だけ黄金化）
@@ -7542,7 +7559,7 @@
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','S','G','K','M','E','A','T','TD','X','W','L','U','P','H',
+            'B','S','G','KG','K','M','E','A','T','TD','X','W','L','U','P','H',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','BBN','LM','WC','WCN',
             'EC','PB','WB','SM','FL'
@@ -7650,6 +7667,14 @@
             document.getElementById('login-bonus-btn').style.display = 'none';
 
             activeStage = normalizeGrid(stageObj.data);
+            killerGoalTiles = [];
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    if (activeStage[y] && activeStage[y][x] === 'KG') killerGoalTiles.push({ x, y });
+                }
+            }
+            killerGoalActive = killerGoalTiles.length > 0;
+            lastKillerGoalEnemyCount = -1;
             currentStageType = stageObj.stageType || 'normal';
             const gameControlsLabel = document.getElementById('game-controls-label');
             if (gameControlsLabel) {
@@ -7791,6 +7816,7 @@
                 }
             }
             updateStageCache();
+            updateKillerGoalStatus();
             isGoalTriggered = false;
             if(gameLoopId) cancelAnimationFrame(gameLoopId);
             rewardAlreadyAdded = false;
@@ -8144,8 +8170,9 @@
         }
 
         function testPlay() {
-            if (!editorGrid.some(row => row.includes('S')) || !editorGrid.some(row => row.includes('G'))) {
-                showQuickMsg("SとGを配置してください！", "var(--secondary-color)");
+            const hasGoal = editorGrid.some(row => row.includes('G') || row.includes('KG'));
+            if (!editorGrid.some(row => row.includes('S')) || !hasGoal) {
+                showQuickMsg("Sとゴールを配置してください！", "var(--secondary-color)");
                 return;
             }
             const stageType = document.getElementById('stage-type-select')?.value || 'normal';
@@ -9167,9 +9194,17 @@
                 if (p.life <= 0) debrisParticles.splice(i, 1);
             }
 
+            // キラーゴール用の残敵数（通常敵・スポーン敵・ボスを共通のenemies配列から数える）。
+            updateKillerGoalStatus();
+
             // ゴール判定
             const gx = Math.floor(player.x + player.w / 2), gy = Math.floor(player.y + player.h / 2);
-            if(!isGoalTriggered && frameCount > 60 && gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy][gx] === 'G' && activeCheckpoints.size >= totalCheckpoints) {
+            const goalTile = gy >= 0 && gy < GRID_H && gx >= 0 && gx < GRID_W && activeStage[gy] ? activeStage[gy][gx] : null;
+            const isKillerGoal = goalTile === 'KG';
+            const isGoalOpen = goalTile === 'G'
+                ? activeCheckpoints.size >= totalCheckpoints
+                : (isKillerGoal && activeCheckpoints.size >= totalCheckpoints && getRemainingKillerGoalEnemies() === 0);
+            if(!isGoalTriggered && frameCount > 60 && isGoalOpen) {
                 isGoalTriggered = true;
                 // フレーム数に基づいた正確なタイムを計算（1秒=60フレーム）
                 recordedClearTime = Number((frameCount / 60).toFixed(3));
@@ -9195,6 +9230,24 @@
                 } else {
                     showReward();
                 }
+            }
+        }
+
+        function getRemainingKillerGoalEnemies() {
+            let remaining = 0;
+            for (let i = 0; i < enemies.length; i++) {
+                if (!enemies[i].dead) remaining++;
+            }
+            return remaining;
+        }
+
+        function updateKillerGoalStatus() {
+            if (!killerGoalActive) return;
+            const remaining = getRemainingKillerGoalEnemies();
+            if (remaining === lastKillerGoalEnemyCount) return;
+            lastKillerGoalEnemyCount = remaining;
+            for (let i = 0; i < killerGoalTiles.length; i++) {
+                updateStageCacheTile(killerGoalTiles[i].x, killerGoalTiles[i].y);
             }
         }
 
