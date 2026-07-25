@@ -659,6 +659,9 @@
         @keyframes guildRankPrism { 0%,100% { filter:hue-rotate(0deg) brightness(1); } 50% { filter:hue-rotate(85deg) brightness(1.3); } }
         .chat-delete-btn { margin-left:.7cqw; padding:0; border:0; background:transparent; color:#a6b4c6; font-size:.78em; cursor:pointer; }
         .chat-delete-btn:hover { color:#ff697d; }
+        .stage-manage-btn { padding:0; border:0; background:transparent; font:inherit; font-size:.82cqw; cursor:pointer; transition:color .15s ease, text-shadow .15s ease; }
+        .stage-rename-btn { color:#a9d8ff; }
+        .stage-rename-btn:hover { color:#fff; text-shadow:0 0 .55cqw #4ab8ff; }
         #my-guild-rank-frame { position:absolute; right:-.25cqw; bottom:-.25cqh; padding:.25cqw .45cqw; background:#061325; border:1px solid #55dfff; color:#b9fff2; font-size:.85cqw; font-weight:bold; }
         .guild-exp-gauge { width:20cqw; max-width:100%; height:1.2cqh; margin-top:.35cqh; border:1px solid #6d9bc9; background:#07111f; overflow:hidden; }
         .guild-exp-gauge > div { height:100%; background:linear-gradient(90deg,#20d89a,#65c7ff); transition:width .35s ease; }
@@ -2076,10 +2079,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx2VuBfngqyo6IbTVp61J9tpheYLbT7oMF0H6wy6-d5JRfPqBQvGKdCh58lO-fqzfMQ/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzp2J3kBz9YevOIV4hj7pyPMGXCR4BpLT-JImnmkC0cYMxEnhR72LTQho0cYwvvqIkY/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.12.7"
+            VERSION: "2.12.7R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2756,7 +2759,9 @@
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
-            'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null }
+            'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
+            // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
+            'rai_alvaro': { name: 'RAI ALVARO', price: 0, sprite: RAI_ALVARO_SPRITE, recolorIndex: null, isHiddenShop: true }
         };
 
         const COLORS = {
@@ -3145,7 +3150,7 @@
 
             Object.keys(SKINS).forEach(id => {
                 const skin = SKINS[id];
-                if (skin.deprecated) return;
+                if (skin.deprecated || skin.isHiddenShop) return;
                 const isBlock = !!skin.isBlockSet;
                 const isCollab = !!skin.isCollab;
 
@@ -5861,8 +5866,8 @@
 
         function openLocker() {
             document.getElementById('locker-overlay').style.display = 'flex';
-            // 廃止した旧ライ・アルバロスキンを装備していた場合は通常スキンへ戻す。
-            if (!SKINS[equippedSkin]) equippedSkin = 'default';
+            // RAIスキンはRAI ALVARO STAGEの購入特典。購入権がない場合だけ通常スキンへ戻す。
+            if (!SKINS[equippedSkin] || (equippedSkin === 'rai_alvaro' && !purchasedSkins.includes('rai_alvaro_stage'))) equippedSkin = 'default';
             tempSelectedSkin = equippedSkin;
             tempSelectedColor = equippedColor;
             renderLockerList();
@@ -5872,12 +5877,14 @@
         function renderLockerList() {
             const container = document.getElementById('locker-container');
             container.innerHTML = '';
-            purchasedSkins.forEach(id => {
+            const lockerSkinIds = purchasedSkins.slice();
+            if (purchasedSkins.includes('rai_alvaro_stage') && !lockerSkinIds.includes('rai_alvaro')) lockerSkinIds.push('rai_alvaro');
+            lockerSkinIds.forEach(id => {
                 const skin = SKINS[id];
                 // ブロックセット（噴火制御機・パープルボス・狼ボス等の「ブロック購入」）は
                 // 内部的な購入フラグとしてpurchasedSkinsを共用しているだけで、実際のプレイヤースキンではない。
                 // ロッカー（装備スキン選択）には表示しない。
-                if (!skin || skin.isBlockSet || skin.deprecated) return;
+                if (!skin || skin.isBlockSet || skin.isStageType || skin.deprecated) return;
                 const item = document.createElement('div');
                 item.className = 'shop-item';
                 item.style.borderColor = (tempSelectedSkin === id) ? 'var(--primary-color)' : '#fff';
@@ -7456,6 +7463,8 @@
                             onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
                             onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
+                        ${s.creator === CONFIG.USERNAME ? `
+                        <button class="stage-manage-btn stage-rename-btn" onclick="event.stopPropagation(); renameMyStage('${escapedId}')">名前変更</button>` : ''}
                     </div>
                     <div style="display:flex; flex-direction:column;">${bestRecordHtml}${myRecordHtml}</div>
                 `;
@@ -7470,6 +7479,24 @@
                     if (renderVersion === stageListRenderVersion && document.contains(canvas)) renderPreview(canvas, s.data);
                 }, idx * 20);
             });
+        }
+
+        async function renameMyStage(stageId) {
+            const stage = (cachedStages || []).find(s => String(s.id || s.name) === String(stageId));
+            if (!stage || stage.creator !== CONFIG.USERNAME) return;
+            const stageName = prompt('新しいステージ名を入力してください（1〜50文字）', stage.name);
+            if (stageName === null) return;
+            const trimmedName = stageName.trim();
+            if (!trimmedName || trimmedName.length > 50) {
+                alert('ステージ名は1〜50文字で入力してください。');
+                return;
+            }
+            const res = await callApi('renameStage', { stageId: stage.id, username: CONFIG.USERNAME, stageName: trimmedName });
+            alert(res?.message || '名前変更に失敗しました。');
+            if (res?.success) {
+                cachedStages = null;
+                openStageSelect(true);
+            }
         }
 
         function renderPreview(canvas, data) {
