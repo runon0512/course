@@ -1703,6 +1703,7 @@
                 <input id="profile-current-password" type="password" autocomplete="current-password" placeholder="現在のパスワード" style="width:100%; box-sizing:border-box; margin-bottom:1cqh;">
                 <input id="profile-new-password" type="password" autocomplete="new-password" placeholder="新しいパスワード（8文字以上）" style="width:100%; box-sizing:border-box; margin-bottom:1cqh;">
                 <input id="profile-confirm-password" type="password" autocomplete="new-password" placeholder="新しいパスワード（確認）" style="width:100%; box-sizing:border-box; margin-bottom:1cqh;">
+                <button id="password-show-toggle" class="pixel-btn small" type="button" style="margin:-.2cqh 0 1.2cqh; background:#455a64;" onclick="togglePasswordChangeVisibility()">SHOW</button>
                 <div style="display:flex; gap:1cqw; justify-content:center;">
                     <button class="pixel-btn small" onclick="submitPasswordChange()">保存</button>
                     <button class="pixel-btn small" style="background:#546e7a;" onclick="closePasswordChange()">キャンセル</button>
@@ -1755,6 +1756,17 @@
         <!-- 個別DM画面 -->
         <div id="dm-overlay" class="screen">
             <div id="dm-header"><div><div style="font-size:1cqw; color:#9eeaff; letter-spacing:.12em;">DIRECT MESSAGE</div><h2 id="dm-title" style="font-size:2.3cqw; margin:.3cqh 0 0;">DM</h2></div><button class="pixel-btn small" onclick="closeDirectMessage()">戻る</button></div>
+            <div id="dm-attachment-actions" style="display:flex; gap:1cqw; width:90%; margin-bottom:1cqh;">
+                <button id="dm-stage-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleDmStageSearch()">📎 ステージを添付</button>
+                <button id="dm-image-attach-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('dm-image-input').click()">🖼️ 画像を添付</button>
+                <input type="file" id="dm-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleDmImageSelect(event)">
+            </div>
+            <div id="dm-stage-search" style="display:none; width:90%; flex-direction:column; gap:.5cqh; margin-bottom:1cqh;">
+                <input id="dm-stage-input" type="text" placeholder="ステージ名で検索" oninput="searchStagesForDm()" style="background:#1a1a2e; border:.2cqw solid #fff; color:#fff; padding:.8cqw; font-size:1.3cqw;">
+                <div id="dm-stage-results" style="max-height:16cqh; overflow-y:auto;"></div>
+            </div>
+            <div id="dm-selected-stage-info" style="display:none; width:90%; box-sizing:border-box; background:#4caf50; color:#000; padding:.5cqw; font-size:1.2cqw; margin-bottom:1cqh; justify-content:space-between;"><span>添付中: <span id="dm-attached-name" style="font-weight:bold;"></span></span><button onclick="clearDmAttachedStage()" style="background:none;border:none;cursor:pointer;font-weight:bold;">✕</button></div>
+            <div id="dm-selected-image-info" style="display:none; width:90%; box-sizing:border-box; background:#2196f3; color:#000; padding:.5cqw; font-size:1.2cqw; margin-bottom:1cqh; justify-content:space-between;align-items:center;"><span style="display:flex;align-items:center;gap:.8cqw;">画像添付中 <img id="dm-attached-image-preview" style="height:3cqw;width:auto;border:.1cqw solid #000;"></span><button onclick="clearDmAttachedImage()" style="background:none;border:none;cursor:pointer;font-weight:bold;">✕</button></div>
             <div id="dm-list" class="chat-msg-list"></div>
             <div id="dm-composer">
                 <input type="text" id="dm-input" maxlength="200" placeholder="メッセージを入力..." style="flex:1; background:#1a1a2e; border:.2cqw solid #fff; color:#fff; padding:1cqw; font-size:1.5cqw;">
@@ -2140,10 +2152,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx0P9HxYXGzhNsg2DjvY_AiGKjJ7ERsAdttznIHcDS6J6OvF6q3j0knh4bGvhoOJad1/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz2f3aluNcFvzAObpzGpnxpFNIEea0D_I2tltQzHy0thS6kt0kFpz3BGfiiYfaHUWqo/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.13.3"
+            VERSION: "2.13.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -4031,6 +4043,10 @@
             document.getElementById('dm-title').innerText = 'DM受信箱';
             document.getElementById('dm-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
             document.getElementById('dm-composer').style.display = 'none';
+            document.getElementById('dm-attachment-actions').style.display = 'none';
+            document.getElementById('dm-stage-search').style.display = 'none';
+            document.getElementById('dm-selected-stage-info').style.display = 'none';
+            document.getElementById('dm-selected-image-info').style.display = 'none';
             const res = await callApi('getDirectMessageInbox', { username: CONFIG.USERNAME });
             if (!res || !res.success) return;
             const container = document.getElementById('dm-list');
@@ -4060,6 +4076,7 @@
             document.getElementById('dm-overlay').style.display = 'flex';
             document.getElementById('dm-title').innerText = `${partner} とのDM`;
             document.getElementById('dm-composer').style.display = 'flex';
+            document.getElementById('dm-attachment-actions').style.display = 'flex';
             document.getElementById('dm-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
             await refreshDirectMessages();
             document.getElementById('dm-input').focus();
@@ -4091,6 +4108,20 @@
                 const content = document.createElement('div');
                 content.style.flex = '1';
                 content.innerHTML = `<div class="chat-user" style="color:var(--primary-color); font-weight:bold;">${isMine ? '自分' : m.from}</div><div style="word-break:break-all;">${linkifyMessage(m.message)}</div><div class="message-meta">${new Date(m.time).toLocaleString()}</div>`;
+                if (m.attachedStageId) {
+                    const stageBtn = document.createElement('button');
+                    stageBtn.className = 'chat-stage-link';
+                    stageBtn.innerText = `🎮 プレイ: ${m.attachedStageName || '添付ステージ'}`;
+                    stageBtn.onclick = () => playAttachedStage(m.attachedStageId);
+                    content.appendChild(stageBtn);
+                }
+                if (m.image) {
+                    const image = document.createElement('img');
+                    image.className = 'chat-image';
+                    image.src = m.image;
+                    image.addEventListener('click', () => showImageLightbox(m.image));
+                    content.appendChild(image);
+                }
                 item.appendChild(content);
                 container.appendChild(item);
             });
@@ -4104,17 +4135,103 @@
             if (!currentDmPartner) return;
             const input = document.getElementById('dm-input');
             const sendBtn = document.getElementById('dm-send-btn');
-            const message = input.value.trim();
-            if (!message) return;
+            const message = input.value.trim() || (dmAttachedStageId ? 'このステージを遊んでみて！' : (dmAttachedImageData ? '画像を送信しました。' : ''));
+            if (!message && !dmAttachedStageId && !dmAttachedImageData) return;
             input.disabled = true; sendBtn.disabled = true; sendBtn.innerText = '送信中...';
             try {
-                const res = await callApi('postDirectMessage', { username: CONFIG.USERNAME, to: currentDmPartner, message, skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null });
+                const res = await callApi('postDirectMessage', { username: CONFIG.USERNAME, to: currentDmPartner, message, skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null, attachedStageId: dmAttachedStageId, attachedStageName: dmAttachedStageName, image: dmAttachedImageData });
                 if (!res || !res.success) { alert((res && res.message) || 'DMの送信に失敗しました。'); return; }
                 input.value = '';
+                clearDmAttachedStage();
+                clearDmAttachedImage();
                 await refreshDirectMessages();
             } finally {
                 input.disabled = false; sendBtn.disabled = false; sendBtn.innerText = '送信';
             }
+        }
+
+        let dmAttachedStageId = null;
+        let dmAttachedStageName = null;
+        let dmAttachedImageData = null;
+
+        function toggleDmStageSearch() {
+            const search = document.getElementById('dm-stage-search');
+            const visible = search.style.display === 'flex';
+            search.style.display = visible ? 'none' : 'flex';
+            if (!visible) {
+                document.getElementById('dm-stage-input').focus();
+                searchStagesForDm();
+            }
+        }
+
+        async function searchStagesForDm() {
+            if (!cachedStages) {
+                const res = await callApi('getPublished', {});
+                cachedStages = res.stages || [];
+            }
+            const query = document.getElementById('dm-stage-input').value.toLowerCase();
+            const results = document.getElementById('dm-stage-results');
+            results.innerHTML = '';
+            cachedStages.filter(stage => stage.name.toLowerCase().includes(query)).slice(0, 10).forEach(stage => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.style.cssText = 'display:block;width:100%;background:#222;border:.1cqw solid #fff;padding:.5cqw;cursor:pointer;font-size:1.2cqw;color:var(--primary-color);text-align:left;';
+                button.innerText = `${stage.name} (by ${stage.creator})`;
+                button.onclick = () => {
+                    dmAttachedStageId = stage.id || stage.name;
+                    dmAttachedStageName = stage.name;
+                    document.getElementById('dm-attached-name').innerText = stage.name;
+                    document.getElementById('dm-selected-stage-info').style.display = 'flex';
+                    document.getElementById('dm-stage-search').style.display = 'none';
+                };
+                results.appendChild(button);
+            });
+        }
+
+        function clearDmAttachedStage() {
+            dmAttachedStageId = null;
+            dmAttachedStageName = null;
+            document.getElementById('dm-selected-stage-info').style.display = 'none';
+        }
+
+        function handleDmImageSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = '';
+            if (!file) return;
+            if (!file.type.startsWith('image/') || file.size > CHAT_IMAGE_MAX_FILE_SIZE) {
+                alert('5MB以下の画像ファイルを選択してください。');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                const image = new Image();
+                image.onload = () => {
+                    let width = image.width, height = image.height;
+                    if (width > height && width > CHAT_IMAGE_MAX_DIMENSION) { height = Math.round(height * CHAT_IMAGE_MAX_DIMENSION / width); width = CHAT_IMAGE_MAX_DIMENSION; }
+                    else if (height >= width && height > CHAT_IMAGE_MAX_DIMENSION) { width = Math.round(width * CHAT_IMAGE_MAX_DIMENSION / height); height = CHAT_IMAGE_MAX_DIMENSION; }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width; canvas.height = height;
+                    const context = canvas.getContext('2d');
+                    context.fillStyle = '#fff'; context.fillRect(0, 0, width, height); context.drawImage(image, 0, 0, width, height);
+                    let quality = .8;
+                    let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    while (dataUrl.length > CHAT_IMAGE_MAX_DATA_LENGTH && quality > .3) { quality -= .15; dataUrl = canvas.toDataURL('image/jpeg', quality); }
+                    if (dataUrl.length > CHAT_IMAGE_MAX_DATA_LENGTH) { alert('画像が大きすぎるため送信できません。'); return; }
+                    dmAttachedImageData = dataUrl;
+                    document.getElementById('dm-attached-image-preview').src = dataUrl;
+                    document.getElementById('dm-selected-image-info').style.display = 'flex';
+                };
+                image.onerror = () => alert('画像の読み込みに失敗しました。');
+                image.src = e.target.result;
+            };
+            reader.onerror = () => alert('ファイルの読み込みに失敗しました。');
+            reader.readAsDataURL(file);
+        }
+
+        function clearDmAttachedImage() {
+            dmAttachedImageData = null;
+            document.getElementById('dm-attached-image-preview').src = '';
+            document.getElementById('dm-selected-image-info').style.display = 'none';
         }
 
         async function refreshChat() {
@@ -4193,6 +4310,14 @@
                 replyBtn.innerText = '返信';
                 replyBtn.onclick = () => setChatReply(m.username, m.message);
                 content.appendChild(replyBtn);
+                const thumbsUpUsers = Array.isArray(m.thumbsUp) ? m.thumbsUp : [];
+                const thumbsUpBtn = document.createElement('button');
+                thumbsUpBtn.className = 'chat-reply-btn';
+                thumbsUpBtn.style.marginLeft = '.7cqw';
+                thumbsUpBtn.innerText = `👍 ${thumbsUpUsers.length || ''}`.trim();
+                if (thumbsUpUsers.includes(CONFIG.USERNAME)) thumbsUpBtn.style.color = '#ffd54a';
+                thumbsUpBtn.onclick = () => toggleChatThumbsUp(m.id);
+                content.appendChild(thumbsUpBtn);
                 if (String(m.username) === String(CONFIG.USERNAME)) {
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'chat-delete-btn';
@@ -4220,6 +4345,12 @@
             } else {
                 alert((res && res.message) || '削除に失敗しました。');
             }
+        }
+
+        async function toggleChatThumbsUp(messageId) {
+            const res = await callApi('toggleChatThumbsUp', { username: CONFIG.USERNAME, messageId });
+            if (res && res.success) refreshChat();
+            else alert((res && res.message) || 'リアクションの更新に失敗しました。');
         }
 
         function setChatReply(username, message) {
@@ -5191,8 +5322,17 @@
             if (overlay) overlay.style.display = 'none';
             ['profile-current-password', 'profile-new-password', 'profile-confirm-password'].forEach(id => {
                 const input = document.getElementById(id);
-                if (input) input.value = '';
+                if (input) { input.value = ''; input.type = 'password'; }
             });
+            const toggle = document.getElementById('password-show-toggle');
+            if (toggle) toggle.innerText = 'SHOW';
+        }
+
+        function togglePasswordChangeVisibility() {
+            const ids = ['profile-current-password', 'profile-new-password', 'profile-confirm-password'];
+            const isHidden = document.getElementById(ids[0]).type === 'password';
+            ids.forEach(id => { document.getElementById(id).type = isHidden ? 'text' : 'password'; });
+            document.getElementById('password-show-toggle').innerText = isHidden ? 'HIDE' : 'SHOW';
         }
 
         async function submitPasswordChange() {
@@ -9684,7 +9824,6 @@
         }
 
         function handlePlayerDeath() {
-            if (raiDashFrames > 0) return;
             if (gameMode === 'play' && !isWeeklyCupMatch && currentStageData && currentStageData.id) {
                 // 死亡場所を記録
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
