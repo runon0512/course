@@ -28,16 +28,36 @@
             overflow: hidden;
         }
 
-        /* 公式プレイヤー名の特別表示 */
-        .runon-name {
-            color: #ffd54a !important;
-            font-weight: bold;
-            text-shadow: 0 0 2px #fff9c4, 0 0 6px #ffd54a, 0 0 12px #ffab00;
-            animation: runonGoldGlow 1.5s ease-in-out infinite alternate;
+        .verified-name::before,
+        .verified-gold-name::before,
+        .verified-denied-name::before {
+            content: '✓';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.05em;
+            height: 1.05em;
+            margin-right: .28em;
+            border-radius: 50%;
+            background: #31b9ff;
+            color: #fff;
+            font-size: .72em;
+            font-weight: 900;
+            line-height: 1;
+            vertical-align: .08em;
+            text-shadow: none;
+            box-shadow: 0 0 .5em rgba(49,185,255,.9);
         }
-        @keyframes runonGoldGlow {
-            from { color: #fff3a1; text-shadow: 0 0 2px #fff, 0 0 5px #ffd54a, 0 0 10px #ff9800; }
-            to { color: #ffbf24; text-shadow: 0 0 4px #fffde7, 0 0 10px #ffd54a, 0 0 18px #ff8f00; }
+        .verified-gold-name::before {
+            background: #f4bd21;
+            color: #fffdf1;
+            box-shadow: 0 0 .5em rgba(244,189,33,.95);
+        }
+        .verified-denied-name::before {
+            content: '×';
+            background: #ef3d4b;
+            color: #fff;
+            box-shadow: 0 0 .5em rgba(239,61,75,.9);
         }
 
         .container {
@@ -2120,7 +2140,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzzhTV_bTSQUo4SJkypJU9Si0yp2Awj4FyWy_OR5-NfY63mwtfirvIiU01OjUh6CsPY/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbx0P9HxYXGzhNsg2DjvY_AiGKjJ7ERsAdttznIHcDS6J6OvF6q3j0knh4bGvhoOJad1/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.13.2"
@@ -2172,6 +2192,15 @@
                     guildBadgeByMember[member] = { name: guild.name, icon: guild.icon || 'default', rank: Number(guild.rank) || 0 };
                 });
             });
+        }
+
+        function getUserNameClasses(username) {
+            const classes = [];
+            const verificationStatus = verifiedUsernames.get(String(username));
+            if (verificationStatus === '1') classes.push('verified-name');
+            else if (verificationStatus === '2') classes.push('verified-gold-name');
+            else if (verificationStatus === '3') classes.push('verified-denied-name');
+            return classes.join(' ');
         }
 
         const guildCustomIconCache = new Map();
@@ -2320,6 +2349,7 @@
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
         let cachedAllUsernames = null; // @メンション検索用の全ユーザー名一覧
+        let verifiedUsernames = new Map(); // UsersシートI列の認証状態
         let cachedMentionRegexSource = undefined; // メンション検出用正規表現をキャッシュしたときのcachedAllUsernames参照
         let cachedMentionRegex = null; // linkifyMessageで使い回すメンション検出用正規表現（毎回のsort/エスケープ/コンパイルを避けるため）
         let mentionActiveInput = null; // 現在メンション検索対象になっている入力欄
@@ -3083,7 +3113,7 @@
             onlineUsernames.forEach(username => {
                 const row = document.createElement('div');
                 row.style.cssText = 'padding:.35cqh 0; color:#e8fff5; cursor:pointer; border-bottom:1px solid rgba(125,255,203,.16);';
-                row.innerHTML = `● <span class="${username === 'Runon' ? 'runon-name' : ''}">${username}</span>`;
+                row.innerHTML = `● <span class="${getUserNameClasses(username)}">${username}</span>`;
                 row.onclick = () => openProfile(username);
                 list.appendChild(row);
             });
@@ -3571,7 +3601,7 @@
             document.getElementById('chat-btn').style.display = 'block';
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
-            document.getElementById('current-user').innerHTML = `<span class="${username === 'Runon' ? 'runon-name' : ''}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
+            document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(username)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
             updateGoldDisplay();
@@ -3584,12 +3614,18 @@
             loginBonusHistory = loginHistory || [];
 
             // 並列で全データを取得
-            const [publishedRes, customSkinsRes, guildRes, cupWinnersRes] = await Promise.all([
+            const [publishedRes, customSkinsRes, guildRes, cupWinnersRes, verifiedUsersRes] = await Promise.all([
                 callApi('getPublished', {}),
                 callApi('load', { username: username, key: 'custom_skins' }),
                 callApi('getGuilds', {}),
-                callApi('getWeeklyCupWinners', {})
+                callApi('getWeeklyCupWinners', {}),
+                callApi('getVerifiedUsers', {})
             ]);
+
+            if (verifiedUsersRes?.success) {
+                verifiedUsernames = new Map((verifiedUsersRes.users || []).map(user => [String(user.username), String(user.status)]));
+                document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(CONFIG.USERNAME)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${CONFIG.USERNAME}</span>`;
+            }
 
             // ステージキャッシュの構築
             if (publishedRes.success) {
@@ -3800,7 +3836,7 @@
             const mentionPattern = getMentionRegex();
             const withMentions = !mentionPattern ? withLinks : withLinks.replace(mentionPattern, (match, username) => {
                 const safeUsername = escapeHtml(username).replace(/'/g, "&#39;");
-                return `<span class="${username === 'Runon' ? 'runon-name' : ''}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
+                return `<span class="${getUserNameClasses(username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
             });
             const renderedMessage = messageColor ? `<span style="color:${messageColor};">${withMentions}</span>` : withMentions;
             return isAnnouncement ? `<div class="chat-announcement">${renderedMessage}</div>` : renderedMessage;
@@ -4132,7 +4168,7 @@
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
                 const replyInfo = '';
                 content.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span class="${m.username === 'Runon' ? 'runon-name' : ''}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
                     ${replyInfo}
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
@@ -4722,7 +4758,7 @@
                 const nameSpan = document.createElement('span');
                 nameSpan.style.cursor = 'pointer';
                 const contribution = Number(contributions[m]) || 0;
-                nameSpan.innerHTML = `<span style="color:var(--primary-color);">${m === currentGuildDetails.owner ? '👑' : '👤'}</span> <span class="${m === 'Runon' ? 'runon-name' : ''}">${m}</span> ${renderBadgeChip(m, 'small')}<span style="display:block; color:#9fb4c9; font-size:.85em; margin-top:.2cqh;">OVR ${getCachedOVR(m)} ・ 貢献 ${contribution.toLocaleString()} EXP</span>`;
+                nameSpan.innerHTML = `<span style="color:var(--primary-color);">${m === currentGuildDetails.owner ? '👑' : '👤'}</span> <span class="${getUserNameClasses(m)}">${m}</span> ${renderBadgeChip(m, 'small')}<span style="display:block; color:#9fb4c9; font-size:.85em; margin-top:.2cqh;">OVR ${getCachedOVR(m)} ・ 貢献 ${contribution.toLocaleString()} EXP</span>`;
                 nameSpan.onclick = () => openProfile(m);
                 mDiv.appendChild(nameSpan);
 
@@ -4781,7 +4817,7 @@
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
                 contentDiv.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span class="${m.username === 'Runon' ? 'runon-name' : ''}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
                     <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
@@ -5672,7 +5708,7 @@
             title.innerText = cupStage.name;
             const creator = document.createElement('div');
             creator.style.cssText = 'font-size:1.05cqw; color:#b5cde4; margin:.35cqh 0 1cqh;';
-            creator.innerHTML = `OFFICIAL STAGE / by <span class="${cupStage.creator === 'Runon' ? 'runon-name' : ''}">${cupStage.creator}</span>`;
+            creator.innerHTML = `OFFICIAL STAGE / by <span class="${getUserNameClasses(cupStage.creator)}">${cupStage.creator}</span>`;
             const playBtn = document.createElement('button');
             playBtn.className = 'pixel-btn small';
             let eligibilityNotice = null;
@@ -5708,7 +5744,7 @@
                 const rank = document.createElement('td'); rank.style.padding = '1cqh'; rank.innerText = currentRank;
                 const player = document.createElement('td'); player.style.padding = '1cqh';
                 const playerName = document.createElement('span');
-                playerName.className = record.name === 'Runon' ? 'runon-name' : '';
+                playerName.className = getUserNameClasses(record.name);
                 playerName.style.cssText = 'color:var(--primary-color); cursor:pointer; text-decoration:underline;';
                 playerName.innerText = record.name;
                 playerName.onclick = () => openProfile(record.name);
@@ -5811,7 +5847,7 @@
             const users = Object.keys(stats);
             let sorted = [], headerHtml = "", rowFunc = null;
 
-            const nameCell = (u) => `<td style="padding: 1.5cqh;"><span class="${u === 'Runon' ? 'runon-name' : ''}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
+            const nameCell = (u) => `<td style="padding: 1.5cqh;"><span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
 
             if (tab === 'player') {
                 title.innerText = "RANK: CROWNS";
@@ -5886,7 +5922,7 @@
             } else {
                 top10.forEach((rec, idx) => {
                     const isMe = rec.name === CONFIG.USERNAME;
-                    lbHtml += `<div style="display:flex; justify-content:space-between; ${isMe ? 'color:#00ff41;' : ''}"><span>${idx+1}. <span class="${rec.name === 'Runon' ? 'runon-name' : ''}">${rec.name}</span></span><span>${rec.time.toFixed(3)}s</span></div>`;
+                    lbHtml += `<div style="display:flex; justify-content:space-between; ${isMe ? 'color:#00ff41;' : ''}"><span>${idx+1}. <span class="${getUserNameClasses(rec.name)}">${rec.name}</span></span><span>${rec.time.toFixed(3)}s</span></div>`;
                 });
             }
             lbHtml += `<div style="margin-top:0.5cqh; padding-top:0.5cqh; border-top:0.1cqw dashed #666; color:#00ff41; display:flex; justify-content:space-between;">`;
@@ -5959,7 +5995,7 @@
                 body.innerHTML += `
                     <tr style="border-bottom: 0.1cqw solid #444;">
                         <td style="padding: 1.5cqh;">${currentRank}</td>
-                        <td style="padding: 1.5cqh;"><span class="${rec.name === 'Runon' ? 'runon-name' : ''}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
+                        <td style="padding: 1.5cqh;"><span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
                     </tr>`;
             });
@@ -7595,7 +7631,7 @@
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
-                            <div style="font-size:0.8cqw; color:#aaa;">by <span class="${s.creator === 'Runon' ? 'runon-name' : ''}">${s.creator}</span></div>
+                            <div style="font-size:0.8cqw; color:#aaa;">by <span class="${getUserNameClasses(s.creator)}">${s.creator}</span></div>
                         </div>
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
