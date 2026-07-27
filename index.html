@@ -2050,7 +2050,8 @@
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                         <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
                         <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
-                        <option id="stage-type-option-rai-alvaro" value="rai_alvaro">⚡ ライ・アルバロ（未購入）</option>
+                        <option id="stage-type-option-rai-alvaro" value="rai_alvaro_v2">⚡ ライ・アルバロVer2（未購入）</option>
+                        <option value="rai_alvaro" hidden>⚡ ライ・アルバロ（旧版）</option>
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                     <button id="editor-ui-toggle-btn" class="pixel-btn small" style="margin-top:0; background:#607d8b; color:#fff;" onclick="toggleEditorUI()">🙈UI非表示</button>
@@ -2338,7 +2339,8 @@
             { type: 'volcano', title: '火山', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
             { type: 'moon', title: '月', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: '海辺', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
-            { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' }
+            { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' },
+            { type: 'rai_alvaro_v2', title: 'ライ・アルバロVer2', text: '新しく作るライ・アルバロステージです。雷ダッシュ中も無敵にはなりません。' }
         ];
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
@@ -3517,7 +3519,7 @@
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a', rai_alvaro_v2: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach') {
@@ -3529,7 +3531,7 @@
                 ctx.fillStyle = '#ff5a00'; ctx.fillRect(0, 42, 60, 18);
             } else if (type === 'moon') {
                 ctx.fillStyle = '#edf2f8'; ctx.beginPath(); ctx.arc(42, 18, 12, 0, Math.PI * 2); ctx.fill();
-            } else if (type === 'rai_alvaro') {
+            } else if (type === 'rai_alvaro' || type === 'rai_alvaro_v2') {
                 ctx.strokeStyle = '#fff36b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(10, 48); ctx.lineTo(28, 28); ctx.lineTo(34, 37); ctx.lineTo(51, 10); ctx.stroke();
             }
         }
@@ -6502,7 +6504,7 @@
             if (beachOpt) { beachOpt.disabled = !hasBeachStage; beachOpt.textContent = hasBeachStage ? '🏖️ 海辺' : '🏖️ 海辺（未購入）'; }
             const raiAlvaroOpt = document.getElementById('stage-type-option-rai-alvaro');
             const hasRaiAlvaroStage = purchasedSkins.includes('rai_alvaro_stage') || purchasedSkins.includes('rai_alvaro');
-            if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロ' : '⚡ ライ・アルバロ（未購入）'; }
+            if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロVer2' : '⚡ ライ・アルバロVer2（未購入）'; }
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -7768,6 +7770,7 @@
                                 ${s.stageType === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
                                 ${s.stageType === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
                                 ${s.stageType === 'rai_alvaro' ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
+                                ${s.stageType === 'rai_alvaro_v2' ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロVer2</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -7853,7 +7856,8 @@
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach', 'rai_alvaro'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
+        function isRaiAlvaroStageType(type) { return type === 'rai_alvaro' || type === 'rai_alvaro_v2'; }
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
@@ -7977,14 +7981,14 @@
             currentStageType = stageObj.stageType || 'normal';
             const gameControlsLabel = document.getElementById('game-controls-label');
             if (gameControlsLabel) {
-                gameControlsLabel.innerText = currentStageType === 'rai_alvaro'
+                gameControlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
                     ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
                     : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
             }
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             const specialBtn = document.getElementById('btn-special');
-            if (specialBtn) specialBtn.style.display = (isMobileMode && currentStageType === 'rai_alvaro') ? 'flex' : 'none';
+            if (specialBtn) specialBtn.style.display = (isMobileMode && isRaiAlvaroStageType(currentStageType)) ? 'flex' : 'none';
             resizeCanvas('game-canvas');
             
             // 背景の切り替え
@@ -7999,7 +8003,7 @@
                 container.classList.add('bg-water');
             } else if (currentStageType === 'dark') {
                 container.classList.add('bg-dark');
-            } else if (currentStageType === 'rai_alvaro') {
+            } else if (isRaiAlvaroStageType(currentStageType)) {
                 container.classList.add('bg-sky');
             } else if (currentStageType === 'volcano') {
                 container.classList.add('bg-volcano');
@@ -8682,7 +8686,7 @@
             }
 
             let currentSpeed = 0.015; // デフォルトの加速
-            if (currentStageType === 'rai_alvaro') currentSpeed *= 1.3;
+            if (isRaiAlvaroStageType(currentStageType)) currentSpeed *= 1.3;
             const isBeachWater = currentStageType === 'beach' && (player.y + player.h / 2 >= beachWaterSurfaceTiles);
             const isWater = (currentStageType === 'water' || isBeachWater);
             // 海辺で水面を下から抜けたフレームだけ、地上ジャンプと同じ推進力を使えるようにする。
@@ -8704,7 +8708,7 @@
             if (keys['ArrowRight']) { player.vx += currentSpeed; player.facing = 'right'; }
 
             // ライ・アルバロ: スペシャルキー（↓ / S / SPECIAL）を「押した瞬間」だけ、地上・空中を問わず前方へ約4マス雷ダッシュする。
-            if (currentStageType === 'rai_alvaro' && justPressedSpecial && !isWater &&
+            if (isRaiAlvaroStageType(currentStageType) && justPressedSpecial && !isWater &&
                 raiDashFrames <= 0 && raiDashCooldown <= 0 && frameCount > 10) {
                 raiDashFrames = 12;
                 raiDashCooldown = 90; // 1.5秒
@@ -9824,6 +9828,7 @@
         }
 
         function handlePlayerDeath() {
+            if (currentStageType === 'rai_alvaro' && raiDashFrames > 0) return;
             if (gameMode === 'play' && !isWeeklyCupMatch && currentStageData && currentStageData.id) {
                 // 死亡場所を記録
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
@@ -10074,7 +10079,7 @@
                     const gf = pos[2] === 1 ? 'right' : 'left';
 
                     // ライ・アルバロステージでは、ゴーストも全員ライの専用スキンで統一する。
-                    const ghostSkin = currentStageType === 'rai_alvaro' ? 'rai_alvaro_stage_avatar' : (ghost.skin || 'default');
+                    const ghostSkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : (ghost.skin || 'default');
                     drawPlayer(cachedGameCtx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghostSkin, true, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
                     
                     cachedGameCtx.fillStyle = "#fff";
@@ -10100,11 +10105,11 @@
                 cachedGameCtx.stroke();
                 cachedGameCtx.restore();
             }
-            const gameplaySkin = currentStageType === 'rai_alvaro' ? 'rai_alvaro_stage_avatar' : equippedSkin;
+            const gameplaySkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : equippedSkin;
             drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, gameplaySkin, false, equippedColor, customSpriteStore[gameplaySkin], player.facing, CONFIG.USERNAME);
 
             // ライ・アルバロ: キャラクター横にスペシャルの再使用ゲージを表示
-            if (currentStageType === 'rai_alvaro') {
+            if (isRaiAlvaroStageType(currentStageType)) {
                 const gaugeX = (player.x + player.w) * cw + 3;
                 const gaugeY = player.y * ch + ch * 0.12;
                 const gaugeW = Math.max(3, cw * 0.1);
