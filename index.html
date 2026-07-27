@@ -1718,6 +1718,7 @@
                 <button class="pixel-btn small" onclick="closeChat()">戻る</button>
                 <button id="chat-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleStageSearch()">📎 ステージを添付</button>
                 <button id="chat-image-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('chat-image-input').click()">🖼️ 画像を送る</button>
+                <button id="chat-show-all-btn" class="pixel-btn small" style="background:#5b4b9a;" onclick="showAllChatMessages()">すべてを表示</button>
                 <input type="file" id="chat-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleChatImageSelect(event)">
             </div>
 
@@ -2152,7 +2153,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz2f3aluNcFvzAObpzGpnxpFNIEea0D_I2tltQzHy0thS6kt0kFpz3BGfiiYfaHUWqo/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxIpdJWAzJKRyvQ7k28RWRwVxHXFMYW3PGt-ZVzNt_NqkNKG06iYdFdG41HINE3oZS5/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.13.7"
@@ -3994,6 +3995,9 @@
 
         async function openChat() {
             document.getElementById('chat-overlay').style.display = 'flex';
+            chatHistoryLimit = 50;
+            const showAllBtn = document.getElementById('chat-show-all-btn');
+            if (showAllBtn) { showAllBtn.disabled = false; showAllBtn.innerText = 'すべてを表示'; }
             clearAttachedStage();
             clearChatReply();
             document.getElementById('chat-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
@@ -4234,8 +4238,21 @@
             document.getElementById('dm-selected-image-info').style.display = 'none';
         }
 
+        let chatHistoryLimit = 50;
+
+        async function showAllChatMessages() {
+            const button = document.getElementById('chat-show-all-btn');
+            chatHistoryLimit = 1000;
+            if (button) { button.disabled = true; button.innerText = '読み込み中...'; }
+            try {
+                await refreshChat();
+            } finally {
+                if (button) button.innerText = '直近1000件を表示中';
+            }
+        }
+
         async function refreshChat() {
-            const res = await callApi('getChat', {});
+            const res = await callApi('getChat', { limit: chatHistoryLimit });
             if (!res.success) return;
 
             const lastSeen = localStorage.getItem('pixel_chat_last_time');
