@@ -2050,8 +2050,7 @@
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                         <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
                         <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
-                        <option id="stage-type-option-rai-alvaro" value="rai_alvaro_v2">⚡ ライ・アルバロVer2（未購入）</option>
-                        <option value="rai_alvaro" hidden>⚡ ライ・アルバロ（旧版）</option>
+                        <option id="stage-type-option-rai-alvaro" value="rai_alvaro">⚡ ライ・アルバロ（未購入）</option>
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                     <button id="editor-ui-toggle-btn" class="pixel-btn small" style="margin-top:0; background:#607d8b; color:#fff;" onclick="toggleEditorUI()">🙈UI非表示</button>
@@ -2156,7 +2155,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz2f3aluNcFvzAObpzGpnxpFNIEea0D_I2tltQzHy0thS6kt0kFpz3BGfiiYfaHUWqo/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.13.6"
+            VERSION: "2.13.7"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2339,8 +2338,7 @@
             { type: 'volcano', title: '火山', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
             { type: 'moon', title: '月', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: '海辺', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
-            { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' },
-            { type: 'rai_alvaro_v2', title: 'ライ・アルバロVer2', text: '新しく作るライ・アルバロステージです。雷ダッシュ中も無敵にはなりません。' }
+            { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' }
         ];
         const GRID_W = 20, GRID_H = 10;
         let isDrawing = false; // エディタでの描画中フラグ 
@@ -3519,7 +3517,7 @@
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a', rai_alvaro_v2: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach') {
@@ -3531,7 +3529,7 @@
                 ctx.fillStyle = '#ff5a00'; ctx.fillRect(0, 42, 60, 18);
             } else if (type === 'moon') {
                 ctx.fillStyle = '#edf2f8'; ctx.beginPath(); ctx.arc(42, 18, 12, 0, Math.PI * 2); ctx.fill();
-            } else if (type === 'rai_alvaro' || type === 'rai_alvaro_v2') {
+            } else if (type === 'rai_alvaro') {
                 ctx.strokeStyle = '#fff36b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(10, 48); ctx.lineTo(28, 28); ctx.lineTo(34, 37); ctx.lineTo(51, 10); ctx.stroke();
             }
         }
@@ -6504,7 +6502,7 @@
             if (beachOpt) { beachOpt.disabled = !hasBeachStage; beachOpt.textContent = hasBeachStage ? '🏖️ 海辺' : '🏖️ 海辺（未購入）'; }
             const raiAlvaroOpt = document.getElementById('stage-type-option-rai-alvaro');
             const hasRaiAlvaroStage = purchasedSkins.includes('rai_alvaro_stage') || purchasedSkins.includes('rai_alvaro');
-            if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロVer2' : '⚡ ライ・アルバロVer2（未購入）'; }
+            if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロ' : '⚡ ライ・アルバロ（未購入）'; }
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -7769,8 +7767,7 @@
                                 ${s.stageType === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
                                 ${s.stageType === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
                                 ${s.stageType === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
-                                ${s.stageType === 'rai_alvaro' ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
-                                ${s.stageType === 'rai_alvaro_v2' ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロVer2</span>' : ''}
+                                ${(s.stageType === 'rai_alvaro' || s.stageType === 'rai_alvaro_v2') ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -7856,8 +7853,8 @@
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
-        function isRaiAlvaroStageType(type) { return type === 'rai_alvaro' || type === 'rai_alvaro_v2'; }
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach', 'rai_alvaro'];
+        function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
@@ -7978,7 +7975,8 @@
             }
             killerGoalActive = killerGoalTiles.length > 0;
             lastKillerGoalEnemyCount = -1;
-            currentStageType = stageObj.stageType || 'normal';
+            // 既に投稿済みのVer2は、廃止後も従来のライ・アルバロとして再生する。
+            currentStageType = stageObj.stageType === 'rai_alvaro_v2' ? 'rai_alvaro' : (stageObj.stageType || 'normal');
             const gameControlsLabel = document.getElementById('game-controls-label');
             if (gameControlsLabel) {
                 gameControlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
@@ -9828,7 +9826,7 @@
         }
 
         function handlePlayerDeath() {
-            if (currentStageType === 'rai_alvaro' && raiDashFrames > 0) return;
+            if (isRaiAlvaroStageType(currentStageType) && raiDashFrames > 0) return;
             if (gameMode === 'play' && !isWeeklyCupMatch && currentStageData && currentStageData.id) {
                 // 死亡場所を記録
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
