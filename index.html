@@ -3672,7 +3672,6 @@
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
             updateGoldDisplay();
-            showPendingLevelUpEffect();
             updatePasswordSecurityNotification();
             updateHomeCharacter();
         }
@@ -7945,7 +7944,6 @@
             document.getElementById('home-bg-canvas').style.display = 'block';
             startHomeBackgroundEffect();
             updateGoldDisplay();
-            showPendingLevelUpEffect();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
             document.getElementById('weekly-cup-btn').style.display = 'block';
@@ -8498,13 +8496,6 @@
                     userPlayerLevel = Number(res.playerLevel) || userPlayerLevel;
                     userPlayerLevelExp = Number(res.playerLevelExp) || 0;
                     userPlayerLevelNextExp = Number(res.playerLevelNextExp) || 400;
-                    if (res.playerLeveledUp || userPlayerLevel > previousLevel) {
-                        pendingLevelUp = { level: userPlayerLevel };
-                        // 通信完了より先にホームへ戻っていた場合も、そこで演出を表示する。
-                        if (document.getElementById('main-menu').classList.contains('active') && document.getElementById('stage-list-overlay').style.display === 'none') {
-                            showPendingLevelUpEffect();
-                        }
-                    }
                     updateGoldDisplay();
                 }
                 if (res && res.success && currentGuildDetails && res.guildRank !== null && res.guildRank !== undefined) {
@@ -8548,20 +8539,6 @@
             exitGame();
         }
 
-        function showPendingLevelUpEffect() {
-            if (!pendingLevelUp) return;
-            const level = pendingLevelUp.level;
-            pendingLevelUp = null;
-            const effect = document.getElementById('level-up-effect');
-            const detail = document.getElementById('level-up-detail');
-            if (!effect || !detail) return;
-            detail.innerText = `PLAYER LEVEL ${level}`;
-            effect.classList.remove('show');
-            // 同じ演出を連続で発火できるよう、再描画後にクラスを付与する。
-            void effect.offsetWidth;
-            effect.classList.add('show');
-            setTimeout(() => effect.classList.remove('show'), 1750);
-        }
 
         function updateGoldDisplay() {
             const display = document.getElementById('user-gold');
