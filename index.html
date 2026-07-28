@@ -59,6 +59,20 @@
             color: #fff;
             box-shadow: 0 0 .5em rgba(239,61,75,.9);
         }
+        #level-up-effect {
+            display:none; position:fixed; inset:0; z-index:250; pointer-events:none;
+            align-items:center; justify-content:center; text-align:center;
+            background:radial-gradient(circle,rgba(255,234,105,.32),rgba(0,0,0,0) 58%);
+        }
+        #level-up-effect.show { display:flex; animation:levelUpFlash 1.7s ease-out forwards; }
+        #level-up-effect .level-up-text { color:#fff36b; font-size:clamp(32px,7cqw,92px); font-weight:900; letter-spacing:.08em; text-shadow:0 0 5px #fff,0 0 18px #ffd54a,0 0 42px #ff8f00; animation:levelUpText 1.7s ease-out forwards; }
+        #level-up-effect .level-up-sub { display:block; margin-top:1cqh; color:#fff; font-size:.38em; }
+        @keyframes levelUpFlash { from{opacity:0} 18%{opacity:1} 78%{opacity:1} to{opacity:0} }
+        @keyframes levelUpText { from{transform:scale(.45) rotate(-4deg)} 35%{transform:scale(1.14) rotate(0)} 70%{transform:scale(1)} to{transform:scale(1.22)} }
+        #home-level-gauge { display:none; position:absolute; right:2.5cqw; bottom:3cqh; z-index:16; width:min(30cqw,360px); padding:1cqw; box-sizing:border-box; background:rgba(4,16,39,.82); border:.14cqw solid #fff36b; box-shadow:0 0 1cqw rgba(255,213,74,.32); }
+        #home-level-gauge-title { color:#fff36b; font-weight:900; font-size:1.35cqw; display:flex; justify-content:space-between; }
+        #home-level-gauge-track { height:1.15cqh; margin-top:.65cqh; background:#101827; border:.08cqw solid #eafcff; }
+        #home-level-gauge-fill { height:100%; width:0; background:linear-gradient(90deg,#ff9d00,#fff36b,#fff); transition:width .35s ease; }
 
         .container {
             /* 10:5 (2:1) の比率を厳密に固定 */
@@ -1515,13 +1529,16 @@
             <img id="image-lightbox-img" src="" onclick="event.stopPropagation()">
             <button id="image-lightbox-close" onclick="closeImageLightbox()">✕</button>
         </div>
+        <div id="level-up-effect"><div class="level-up-text">Level Up!!<span id="level-up-detail" class="level-up-sub"></span></div></div>
+        <div id="home-level-gauge"><div id="home-level-gauge-title"><span>PLAYER LEVEL <span id="home-level-gauge-level">Lv.1</span></span><span id="home-level-gauge-exp">0 / 400 EXP</span></div><div id="home-level-gauge-track"><div id="home-level-gauge-fill"></div></div></div>
 
         <!-- ユーザー情報 -->
         <div id="user-info">
-            USER: <span style="position:relative; display:inline-block;"><span id="current-user">-</span><span id="dm-notification-dot"></span></span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
+            USER: <span id="user-level" style="color:#fff36b; font-weight:bold;">Lv.1</span> <span style="position:relative; display:inline-block;"><span id="current-user">-</span><span id="dm-notification-dot"></span></span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
             <span style="color:#2ecc71; cursor:pointer; text-decoration:underline;" onclick="toggleOnlineUsers()">ON: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
+            <span style="color:#e8f7ff;">EXP: <span id="user-level-exp"></span></span> | 
             <span style="color:#e0f7fa;">AS: <span id="user-as">0</span></span> | 
             <span style="color:#ff6f00;">ES:<span id="user-es">0</span></span>
         </div>
@@ -2153,14 +2170,19 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxIpdJWAzJKRyvQ7k28RWRwVxHXFMYW3PGt-ZVzNt_NqkNKG06iYdFdG41HINE3oZS5/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxCrZ2Vo3F9Ho6N2HxkUbflesDK7SBYrO1HCmoMqMUq6NyPfXJ-5G_X2S_-M_upBlw/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.13.7"
+            VERSION: "2.13.8"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
         let userCP = 0;
+        let userPlayerExp = 0;
+        let userPlayerLevel = 1;
+        let userPlayerLevelExp = 0;
+        let userPlayerLevelNextExp = 400;
+        let pendingLevelUp = null;
         let userDiamond = 0;
         let userAS = 0;
         let userES = 0; // ES（イベントストーン）: 超難関以上のステージクリアで獲得できるコラボ用の通貨
@@ -2214,6 +2236,18 @@
             else if (verificationStatus === '2') classes.push('verified-gold-name');
             else if (verificationStatus === '3') classes.push('verified-denied-name');
             return classes.join(' ');
+        }
+
+        function getPlayerLevelPrefix(username) {
+            const level = String(username) === String(CONFIG.USERNAME) ? userPlayerLevel : (playerLevelsByUsername.get(String(username)) || 1);
+            return `<span style="color:#fff36b; font-size:.82em; font-weight:900; margin-right:.32em;">Lv.${level}</span>`;
+        }
+
+        async function ensurePlayerLevelsLoaded() {
+            if (playerLevelsByUsername.size) return playerLevelsByUsername;
+            const res = await callApi('getPlayerLevels', {});
+            if (res?.success) playerLevelsByUsername = new Map(Object.entries(res.levels || {}));
+            return playerLevelsByUsername;
         }
 
         const guildCustomIconCache = new Map();
@@ -2363,6 +2397,7 @@
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
         let cachedAllUsernames = null; // @メンション検索用の全ユーザー名一覧
         let verifiedUsernames = new Map(); // UsersシートI列の認証状態
+        let playerLevelsByUsername = new Map();
         let cachedMentionRegexSource = undefined; // メンション検出用正規表現をキャッシュしたときのcachedAllUsernames参照
         let cachedMentionRegex = null; // linkifyMessageで使い回すメンション検出用正規表現（毎回のsort/エスケープ/コンパイルを避けるため）
         let mentionActiveInput = null; // 現在メンション検索対象になっている入力欄
@@ -3285,6 +3320,10 @@
                 CONFIG.USERNAME = res.username;
                 userGold = res.gold || 0;
                 userCP = res.cp || 0;
+                userPlayerExp = Number(res.playerExp) || 0;
+                userPlayerLevel = Number(res.playerLevel) || 1;
+                userPlayerLevelExp = Number(res.playerLevelExp) || 0;
+                userPlayerLevelNextExp = Number(res.playerLevelNextExp) || 400;
                 userAS = res.auroraStones || 0;
                 userES = res.eventStones || 0;
                 purchasedSkins = res.purchasedSkins || ['default', 'girl'];
@@ -3601,11 +3640,29 @@
             if (status) setTimeout(() => { status.style.display = 'none'; }, 180);
         }
 
+        // EXPゲージはホームメニューだけで表示する。
+        function syncHomeLevelGaugeVisibility() {
+            const gauge = document.getElementById('home-level-gauge');
+            const menu = document.getElementById('main-menu');
+            if (!gauge || !menu) return;
+            const screenOpen = [...document.querySelectorAll('.screen')].some(screen => screen.style.display === 'flex' || screen.style.display === 'block');
+            const stageListOpen = document.getElementById('stage-list-overlay')?.style.display === 'flex';
+            gauge.style.display = menu.classList.contains('active') && !screenOpen && !stageListOpen ? 'block' : 'none';
+        }
+
+        const homeLevelGaugeObserver = new MutationObserver(syncHomeLevelGaugeVisibility);
+        document.querySelectorAll('.screen, #stage-list-overlay').forEach(element => {
+            homeLevelGaugeObserver.observe(element, { attributes:true, attributeFilter:['style'] });
+        });
+        homeLevelGaugeObserver.observe(document.getElementById('main-menu'), { attributes:true, attributeFilter:['class'] });
+
         function showLoggedInHome(username) {
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('main-menu').classList.add('active');
             document.getElementById('subtitle').style.display = 'block';
             document.getElementById('user-info').style.display = 'block';
+            document.getElementById('home-level-gauge').style.display = 'block';
+            syncHomeLevelGaugeVisibility();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
             document.getElementById('weekly-cup-btn').style.display = 'block';
@@ -3618,6 +3675,7 @@
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
             updateGoldDisplay();
+            showPendingLevelUpEffect();
             updatePasswordSecurityNotification();
             updateHomeCharacter();
         }
@@ -3627,18 +3685,20 @@
             loginBonusHistory = loginHistory || [];
 
             // 並列で全データを取得
-            const [publishedRes, customSkinsRes, guildRes, cupWinnersRes, verifiedUsersRes] = await Promise.all([
+            const [publishedRes, customSkinsRes, guildRes, cupWinnersRes, verifiedUsersRes, playerLevelsRes] = await Promise.all([
                 callApi('getPublished', {}),
                 callApi('load', { username: username, key: 'custom_skins' }),
                 callApi('getGuilds', {}),
                 callApi('getWeeklyCupWinners', {}),
-                callApi('getVerifiedUsers', {})
+                callApi('getVerifiedUsers', {}),
+                callApi('getPlayerLevels', {})
             ]);
 
             if (verifiedUsersRes?.success) {
                 verifiedUsernames = new Map((verifiedUsersRes.users || []).map(user => [String(user.username), String(user.status)]));
                 document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(CONFIG.USERNAME)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${CONFIG.USERNAME}</span>`;
             }
+            if (playerLevelsRes?.success) playerLevelsByUsername = new Map(Object.entries(playerLevelsRes.levels || {}));
 
             // ステージキャッシュの構築
             if (publishedRes.success) {
@@ -4301,7 +4361,9 @@
                 cachedStages = stageRes.stages || [];
             }
             await ensureBadgeSettingsLoaded();
+            await ensurePlayerLevelsLoaded();
             await ensureUsernamesLoaded(); // 日本語・空白を含むメンションの表示判定に使用
+            await ensurePlayerLevelsLoaded();
 
             const container = document.getElementById('chat-list');
             container.innerHTML = '';
@@ -4318,7 +4380,7 @@
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
                 const replyInfo = '';
                 content.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
                     ${replyInfo}
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
@@ -4981,7 +5043,7 @@
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
                 contentDiv.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;"><span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
                     <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
@@ -6020,7 +6082,7 @@
             const users = Object.keys(stats);
             let sorted = [], headerHtml = "", rowFunc = null;
 
-            const nameCell = (u) => `<td style="padding: 1.5cqh;"><span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
+            const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
 
             if (tab === 'player') {
                 title.innerText = "RANK: CROWNS";
@@ -6155,6 +6217,7 @@
             if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">TIME</th>`;
 
             await ensureBadgeSettingsLoaded();
+            await ensurePlayerLevelsLoaded();
 
             const sortedRecords = (stage.leaderboard || []).sort((a, b) => a.time - b.time);
             
@@ -6168,7 +6231,7 @@
                 body.innerHTML += `
                     <tr style="border-bottom: 0.1cqw solid #444;">
                         <td style="padding: 1.5cqh;">${currentRank}</td>
-                        <td style="padding: 1.5cqh;"><span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
+                        <td style="padding: 1.5cqh;">${getPlayerLevelPrefix(rec.name)}<span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
                     </tr>`;
             });
@@ -7639,6 +7702,7 @@
 
         // --- プレイ・ゲームロジック ---
         async function openStageSelect(forceRefresh = false) {
+            document.getElementById('home-level-gauge').style.display = 'none';
             const overlay = document.getElementById('stage-list-overlay');
             const container = document.getElementById('stage-list-container');
             overlay.style.display = 'flex';
@@ -7873,8 +7937,12 @@
             document.getElementById('home-character-canvas').style.display = 'block';
             document.getElementById('main-menu').classList.add('active'); // Ensure main menu is active when exiting editor
             document.getElementById('user-info').style.display = 'block';
+            document.getElementById('home-level-gauge').style.display = 'block';
+            syncHomeLevelGaugeVisibility();
             document.getElementById('home-bg-canvas').style.display = 'block';
             startHomeBackgroundEffect();
+            updateGoldDisplay();
+            showPendingLevelUpEffect();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
             document.getElementById('weekly-cup-btn').style.display = 'block';
@@ -8421,6 +8489,21 @@
                         if (esVal) esVal.innerText = String(res.eventStoneAwarded);
                     }
                 }
+                if (res && res.success && res.playerExp !== undefined && res.playerLevel !== undefined) {
+                    const previousLevel = userPlayerLevel;
+                    userPlayerExp = Number(res.playerExp) || userPlayerExp;
+                    userPlayerLevel = Number(res.playerLevel) || userPlayerLevel;
+                    userPlayerLevelExp = Number(res.playerLevelExp) || 0;
+                    userPlayerLevelNextExp = Number(res.playerLevelNextExp) || 400;
+                    if (res.playerLeveledUp || userPlayerLevel > previousLevel) {
+                        pendingLevelUp = { level: userPlayerLevel };
+                        // 通信完了より先にホームへ戻っていた場合も、そこで演出を表示する。
+                        if (document.getElementById('main-menu').classList.contains('active') && document.getElementById('stage-list-overlay').style.display === 'none') {
+                            showPendingLevelUpEffect();
+                        }
+                    }
+                    updateGoldDisplay();
+                }
                 if (res && res.success && currentGuildDetails && res.guildRank !== null && res.guildRank !== undefined) {
                     currentGuildDetails.exp = Number(res.guildExp) || currentGuildDetails.exp || 0;
                     currentGuildDetails.rank = Number(res.guildRank) || 0;
@@ -8462,11 +8545,36 @@
             exitGame();
         }
 
+        function showPendingLevelUpEffect() {
+            if (!pendingLevelUp) return;
+            const level = pendingLevelUp.level;
+            pendingLevelUp = null;
+            const effect = document.getElementById('level-up-effect');
+            const detail = document.getElementById('level-up-detail');
+            if (!effect || !detail) return;
+            detail.innerText = `PLAYER LEVEL ${level}`;
+            effect.classList.remove('show');
+            // 同じ演出を連続で発火できるよう、再描画後にクラスを付与する。
+            void effect.offsetWidth;
+            effect.classList.add('show');
+            setTimeout(() => effect.classList.remove('show'), 1750);
+        }
+
         function updateGoldDisplay() {
             const display = document.getElementById('user-gold');
             if (display) display.innerText = userGold;
             const cpDisplay = document.getElementById('user-cp'); // RunonのCP∞表示を削除
             if (cpDisplay) cpDisplay.innerText = userCP;
+            const levelDisplay = document.getElementById('user-level');
+            const levelExpDisplay = document.getElementById('user-level-exp');
+            if (levelDisplay) levelDisplay.innerText = `Lv.${userPlayerLevel}`;
+            if (levelExpDisplay) levelExpDisplay.innerText = `${userPlayerLevelExp}/${userPlayerLevelNextExp}`;
+            const gaugeLevel = document.getElementById('home-level-gauge-level');
+            const gaugeExp = document.getElementById('home-level-gauge-exp');
+            const gaugeFill = document.getElementById('home-level-gauge-fill');
+            if (gaugeLevel) gaugeLevel.innerText = `Lv.${userPlayerLevel}`;
+            if (gaugeExp) gaugeExp.innerText = `${userPlayerLevelExp} / ${userPlayerLevelNextExp} EXP`;
+            if (gaugeFill) gaugeFill.style.width = `${Math.max(0, Math.min(100, userPlayerLevelExp / Math.max(1, userPlayerLevelNextExp) * 100))}%`;
             const asDisplay = document.getElementById('user-as');
             if (asDisplay) asDisplay.innerText = userAS;
             const esDisplay = document.getElementById('user-es');
