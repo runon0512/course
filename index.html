@@ -1590,10 +1590,6 @@
                     <span>School Mode（音無し）</span>
                 </label>
                 <label class="remember-wrap">
-                    <input type="checkbox" id="manual-reload" onchange="isManualReloadOnly = this.checked; localStorage.setItem('pixel_stages_manual_reload', this.checked)">
-                    <span>再読み込みは手動のみ</span>
-                </label>
-                <label class="remember-wrap">
                     <input type="checkbox" id="quick-send" onchange="isQuickSend = this.checked; localStorage.setItem('pixel_stages_quick_send', this.checked)">
                     <span>クイック送信（送信を待たずにOK）</span>
                 </label>
@@ -1725,6 +1721,7 @@
                     <button class="pixel-btn small" onclick="submitPasswordChange()">保存</button>
                     <button class="pixel-btn small" style="background:#546e7a;" onclick="closePasswordChange()">キャンセル</button>
                 </div>
+                <button class="pixel-btn small" style="margin-top:1.5cqh; background:#b71c1c;" onclick="logoutUser()">ログアウト</button>
             </div>
         </div>
 
@@ -2170,10 +2167,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxCrZ2Vo3F9Ho6N2HxkUbflesDK7SBYrO1HCmoMqMUq6NyPfXJ-5G_X2S_-M_upBlw/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz-UBTKvYVtAe49gUBb4QupZxVTSRfAdCeV1VQAgxqCKBzjxxWmsivU830fdNr3fAbv/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.13.8"
+            VERSION: "2.13.9"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2243,8 +2240,8 @@
             return `<span style="color:#fff36b; font-size:.82em; font-weight:900; margin-right:.32em;">Lv.${level}</span>`;
         }
 
-        async function ensurePlayerLevelsLoaded() {
-            if (playerLevelsByUsername.size) return playerLevelsByUsername;
+        async function ensurePlayerLevelsLoaded(forceRefresh = false) {
+            if (!forceRefresh && playerLevelsByUsername.size) return playerLevelsByUsername;
             const res = await callApi('getPlayerLevels', {});
             if (res?.success) playerLevelsByUsername = new Map(Object.entries(res.levels || {}));
             return playerLevelsByUsername;
@@ -4361,9 +4358,8 @@
                 cachedStages = stageRes.stages || [];
             }
             await ensureBadgeSettingsLoaded();
-            await ensurePlayerLevelsLoaded();
+            await ensurePlayerLevelsLoaded(true); // チャット表示時は全員分を最新化
             await ensureUsernamesLoaded(); // 日本語・空白を含むメンションの表示判定に使用
-            await ensurePlayerLevelsLoaded();
 
             const container = document.getElementById('chat-list');
             container.innerHTML = '';
@@ -5421,6 +5417,13 @@
             });
             const toggle = document.getElementById('password-show-toggle');
             if (toggle) toggle.innerText = 'SHOW';
+        }
+
+        function logoutUser() {
+            clearAuthSessionCookie();
+            activeSessionToken = null;
+            CONFIG.IS_LOGGED_IN = false;
+            location.reload();
         }
 
         function togglePasswordChangeVisibility() {
@@ -10622,8 +10625,8 @@
             isSchoolMode = localStorage.getItem('pixel_stages_school_mode') === 'true';
             document.getElementById('school-mode').checked = isSchoolMode;
 
-            isManualReloadOnly = localStorage.getItem('pixel_stages_manual_reload') === 'true';
-            document.getElementById('manual-reload').checked = isManualReloadOnly;
+            isManualReloadOnly = false;
+            localStorage.removeItem('pixel_stages_manual_reload');
 
             isQuickSend = localStorage.getItem('pixel_stages_quick_send') === 'true';
             document.getElementById('quick-send').checked = isQuickSend;
