@@ -2102,8 +2102,8 @@
                     <button id="editor-ui-toggle-btn" class="pixel-btn small" style="margin-top:0; background:#607d8b; color:#fff;" onclick="toggleEditorUI()">🙈UI非表示</button>
                 </div>
                 <div class="editor-right-bar">
-                    <div class="toolbar-label basic-label">Basic</div>
                     <div class="tool-btn tool-block basic" id="btn-tool-B" onclick="setTool('B', this)" title="BLOCK"><canvas id="icon-B" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn basic" onclick="setTool('AC', this)" title="ACTION BLOCK"><canvas id="icon-AC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-start basic" id="btn-tool-S" onclick="setTool('S', this)" title="START"><canvas id="icon-S" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-goal basic" id="btn-tool-G" onclick="setTool('G', this)" title="GOAL"><canvas id="icon-G" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-spike basic" id="btn-tool-K" onclick="setTool('K', this)" title="SPIKE"><canvas id="icon-K" class="tool-canvas"></canvas></div>
@@ -2201,7 +2201,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz-UBTKvYVtAe49gUBb4QupZxVTSRfAdCeV1VQAgxqCKBzjxxWmsivU830fdNr3fAbv/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.13.10"
+            VERSION: "2.14.1β"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2360,6 +2360,7 @@
             '<': { title: '一方通行（左）', text: '左方向にのみ通行できる通行ブロックです。' },
             'v': { title: '一方通行（下）', text: '下方向にのみ通行できる通行ブロックです。' },
             'C': { title: 'チェックポイント', text: '設置すると、すべて通らないとゴールできないようになります。ルート制限に使えます。' },
+            'AC': { title: 'アクションブロック', text: '横に触れている間は壁ズリで落下が遅くなります。ジャンプボタンで壁を蹴り、反対方向へ跳べます。' },
             'q': { title: '青いトゲ', text: '赤青モードが現在のモードと一致していないと表示されないトゲです。' },
             'k': { title: '赤いトゲ', text: '赤青モードの赤状態でのみ実体化するトゲです。青状態では無効化されます。' },
             'r': { title: '赤ブロック', text: '赤青モードの赤状態でだけ実体化する足場ブロックです。青状態では透明になります。' },
@@ -6718,7 +6719,7 @@
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
-                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'C', id:'icon-C'}, 
+                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
@@ -7588,6 +7589,24 @@
                 ctx.strokeStyle = "#ffca28";
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.9);
+            } else if(type === 'AC') {
+                // アクションブロック: シンプルな黄色ブロック
+                const ax = x * cw, ay = y * ch;
+                ctx.fillStyle = '#fbc02d';
+                ctx.fillRect(ax + pad, ay + pad, cw - pad * 2, ch - pad * 2);
+                ctx.strokeStyle = '#f57f17';
+                ctx.lineWidth = Math.max(1, Math.min(cw, ch) * 0.045);
+                ctx.strokeRect(ax + pad, ay + pad, cw - pad * 2, ch - pad * 2);
+                ctx.beginPath();
+                ctx.moveTo(ax + cw * 0.50, ay + ch * 0.20);
+                ctx.lineTo(ax + cw * 0.70, ay + ch * 0.48);
+                ctx.lineTo(ax + cw * 0.57, ay + ch * 0.48);
+                ctx.lineTo(ax + cw * 0.57, ay + ch * 0.78);
+                ctx.lineTo(ax + cw * 0.43, ay + ch * 0.78);
+                ctx.lineTo(ax + cw * 0.43, ay + ch * 0.48);
+                ctx.lineTo(ax + cw * 0.30, ay + ch * 0.48);
+                ctx.closePath();
+                ctx.fill();
             } else if(type === 'SM') {
                 // 粘液ブロック (Slime Block): 紫色の通常ブロック。特別な効果はない
                 ctx.fillStyle = "#8e24aa";
@@ -8015,7 +8034,7 @@
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','S','G','KG','K','M','E','A','T','TD','X','W','L','U','P','H',
+            'B','S','G','KG','K','M','E','A','T','TD','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','BBN','LM','WC','WCN',
             'EC','PB','WB','SM','FL'
@@ -8823,6 +8842,20 @@
             }
         }
 
+        // 接しているアクションブロックの方向。左壁なら +1（右へキック）、右壁なら -1。
+        function getActionWallKickDirection() {
+            if (!activeStage || player.onGround) return 0;
+            const top = Math.max(0, Math.floor(player.y + 0.08));
+            const bottom = Math.min(GRID_H - 1, Math.floor(player.y + player.h - 0.08));
+            const leftTileX = Math.floor(player.x - 0.04);
+            const rightTileX = Math.floor(player.x + player.w + 0.04);
+            for (let iy = top; iy <= bottom; iy++) {
+                if (leftTileX >= 0 && activeStage[iy] && activeStage[iy][leftTileX] === 'AC' && player.x <= leftTileX + 1.08) return 1;
+                if (rightTileX < GRID_W && activeStage[iy] && activeStage[iy][rightTileX] === 'AC' && player.x + player.w >= rightTileX - 0.08) return -1;
+            }
+            return 0;
+        }
+
         function updateGame() {
             if (isGoalTriggered) return;
 
@@ -8869,6 +8902,9 @@
             player.wasInBeachWater = isBeachWater;
             const gravity = currentStageType === 'moon' ? 0.0075 : (isWater ? 0.004 : 0.015);  // 月は通常重力の1/2、水中は弱め
             const jumpForce = -0.3;
+            // アクションブロックの横にいる間は壁ズリで落下を抑える。
+            const actionWallKickDirection = !isWater ? getActionWallKickDirection() : 0;
+            if (actionWallKickDirection && player.vy > 0) player.vy = Math.min(player.vy, 0.065);
 
             updateWoodCrates();
 
@@ -8910,6 +8946,11 @@
                             en.onGround = false;
                         }
                     });
+                } else if (justPressedJump && actionWallKickDirection && frameCount > 10) {
+                    // 押した瞬間だけ壁キック。反対側へ一定の横速度を与える。
+                    player.vy = jumpForce;
+                    player.vx = actionWallKickDirection * 0.19;
+                    player.facing = actionWallKickDirection > 0 ? 'right' : 'left';
                 }
             }
             
@@ -9906,7 +9947,7 @@
                 const tile = activeStage[iy][ix];
                 if(tile) {
                     const tc = tile.charCodeAt(0);
-                    if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' ||
+                    if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'AC' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
                        tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === 'LM' || tile === 'WC' ||
                        tile === 'SM' || tile === 'EC' ||
