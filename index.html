@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pixel Stages</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -26,6 +26,15 @@
             font-family: 'Roboto', 'Noto Sans JP', sans-serif;
             color: var(--text-color);
             overflow: hidden;
+        }
+        /* スマートフォンでプレイ中は、スワイプ・引っ張り更新・ピンチ操作で画面を動かさない。 */
+        html.mobile-game-lock,
+        html.mobile-game-lock body,
+        html.mobile-game-lock #game-screen,
+        html.mobile-game-lock #game-canvas,
+        html.mobile-game-lock #mobile-controls {
+            touch-action: none;
+            overscroll-behavior: none;
         }
 
         .verified-name::before,
@@ -8161,6 +8170,7 @@
                     : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
             }
             document.getElementById('game-screen').style.display = 'block';
+            setMobileGameViewportLock(isMobileMode);
             document.getElementById('mobile-controls').style.display = isMobileMode ? 'block' : 'none';
             const specialBtn = document.getElementById('btn-special');
             if (specialBtn) specialBtn.style.display = (isMobileMode && isRaiAlvaroStageType(currentStageType)) ? 'flex' : 'none';
@@ -8312,6 +8322,7 @@
             cancelAnimationFrame(gameLoopId);
             stopStageBGM();
             document.getElementById('game-screen').style.display = 'none';
+            setMobileGameViewportLock(false);
             const shouldReturnToWeeklyCup = returnToWeeklyCupAfterGame;
             returnToWeeklyCupAfterGame = false;
             isWeeklyCupMatch = false;
@@ -10661,6 +10672,18 @@
                 });
             });
         }
+
+        function setMobileGameViewportLock(locked) {
+            document.documentElement.classList.toggle('mobile-game-lock', !!locked);
+        }
+
+        // touch-action非対応の古いブラウザでも、プレイ中だけページ移動を止める。
+        document.addEventListener('touchmove', (event) => {
+            if (document.documentElement.classList.contains('mobile-game-lock') && event.cancelable) event.preventDefault();
+        }, { passive: false });
+        document.addEventListener('gesturestart', (event) => {
+            if (document.documentElement.classList.contains('mobile-game-lock') && event.cancelable) event.preventDefault();
+        }, { passive: false });
 
         function setupMobileControls() {
             const btns = { 'btn-left': 'ArrowLeft', 'btn-right': 'ArrowRight', 'btn-jump': 'Space', 'btn-special': 'Special' };
