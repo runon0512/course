@@ -2201,7 +2201,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz-UBTKvYVtAe49gUBb4QupZxVTSRfAdCeV1VQAgxqCKBzjxxWmsivU830fdNr3fAbv/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.14.1β"
+            VERSION: "2.14.2β"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -10669,14 +10669,25 @@
                 if(!el) return;
                 const setKey = (val, e) => {
                     if(e.cancelable) e.preventDefault();
+                    // JUMPは押した瞬間を記録する。壁キックはこの1フレーム入力で発動する。
+                    if (val && code === 'Space' && !keys[code]) pendingJumpPress = true;
                     if (val && code === 'Special' && !keys[code]) pendingSpecialPress = true;
                     keys[code] = val;
                 };
-                el.addEventListener('touchstart', (e) => setKey(true, e), {passive: false});
-                el.addEventListener('touchend', (e) => setKey(false, e), {passive: false});
-                el.addEventListener('mousedown', (e) => setKey(true, e));
-                el.addEventListener('mouseup', (e) => setKey(false, e));
-                el.addEventListener('mouseleave', (e) => setKey(false, e));
+                // Pointer Events対応端末ではこれだけを使い、touch後の疑似mouseイベントによる二重入力を防ぐ。
+                if (window.PointerEvent) {
+                    el.addEventListener('pointerdown', (e) => { el.setPointerCapture?.(e.pointerId); setKey(true, e); });
+                    el.addEventListener('pointerup', (e) => setKey(false, e));
+                    el.addEventListener('pointercancel', (e) => setKey(false, e));
+                    el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') setKey(false, e); });
+                } else {
+                    el.addEventListener('touchstart', (e) => setKey(true, e), {passive: false});
+                    el.addEventListener('touchend', (e) => setKey(false, e), {passive: false});
+                    el.addEventListener('touchcancel', (e) => setKey(false, e), {passive: false});
+                    el.addEventListener('mousedown', (e) => setKey(true, e));
+                    el.addEventListener('mouseup', (e) => setKey(false, e));
+                    el.addEventListener('mouseleave', (e) => setKey(false, e));
+                }
             });
         }
 
