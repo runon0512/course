@@ -1462,8 +1462,8 @@
         #main-menu .pixel-btn:hover { border:0; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#8dfff2; box-shadow:none; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(.5cqw); letter-spacing:.13em; }
         #main-menu .pixel-btn:hover::before { color:#fff3a5; transform:translateX(.25cqw); }
         /* ホーム右側・下側のショートカットも文字ベースに統一 */
-        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #weekly-cup-btn, #password-settings-btn { padding:.35cqh .35cqw !important; border:0 !important; background:transparent !important; box-shadow:none !important; color:#eafcff !important; font-size:1.55cqw !important; font-weight:700; letter-spacing:.06em; text-shadow:0 0 .45cqw rgba(157,235,255,.25); transition:color .2s ease, text-shadow .2s ease, transform .2s ease, letter-spacing .2s ease; }
-        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #password-settings-btn:hover { border:0 !important; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#8dfff2 !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(-.25cqw); letter-spacing:.1em; }
+        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #weekly-cup-btn, #password-settings-btn { padding:.35cqh .35cqw !important; border:0 !important; background:transparent !important; box-shadow:none !important; color:#eafcff !important; font-size:1.55cqw !important; font-weight:700; letter-spacing:.06em; text-shadow:0 0 .45cqw rgba(157,235,255,.25); transition:color .2s ease, text-shadow .2s ease, transform .2s ease, letter-spacing .2s ease; }
+        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #patch-notes-btn:hover, #password-settings-btn:hover { border:0 !important; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#8dfff2 !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(-.25cqw); letter-spacing:.1em; }
         #password-settings-btn.has-password-warning::after { content:''; position:absolute; top:-.15cqw; right:-.35cqw; width:.8cqw; height:.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
         #weekly-cup-btn { color:#ffe59b !important; text-shadow:0 0 .55cqw rgba(255,204,68,.5); }
         #weekly-cup-btn:hover { border:0 !important; background:linear-gradient(90deg,#fff7ba,#ffd54a,#c98700,#fff0a0) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#ffd54a !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(255,235,129,.95), 0 0 1.1cqw rgba(255,190,35,.8), 0 0 1.7cqw rgba(191,120,0,.58); transform:translateX(.35cqw); letter-spacing:.1em; }
@@ -1575,6 +1575,9 @@
         <!-- ログインボーナスボタン -->
         <button id="login-bonus-btn" class="pixel-btn small" onclick="openLoginBonus()" style="position: absolute; top: 31cqh; right: 2cqw; z-index: 15; display: none; background: #e0a905; color: #fff; border-color: #fff;">🎁 ボーナス</button>
 
+        <!-- パッチノートボタン -->
+        <button id="patch-notes-btn" class="pixel-btn small" onclick="openPatchNotes()" style="position: absolute; top: 36cqh; right: 2cqw; z-index: 15; display: none;">パッチノート</button>
+
         <!-- 認証画面 -->
         <div id="auth-overlay">
             <div class="auth-box">
@@ -1655,6 +1658,24 @@
             <button class="pixel-btn" onclick="openShop()">ショップ</button>
             <button id="guild-btn" class="pixel-btn" onclick="openGuild()">ギルド</button>
             </div>
+
+        <!-- パッチノート -->
+        <div id="patch-notes-overlay" class="screen" style="z-index:190; display:none; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,5,14,.94);">
+            <div class="auth-box" style="width:min(72cqw,800px); max-height:76cqh; overflow-y:auto; text-align:left; border-color:#74ecff; box-shadow:0 0 2cqw rgba(90,225,255,.35);">
+                <h2 style="text-align:center; margin:0 0 1.8cqh; color:#bdf8ff; letter-spacing:.12em;">PATCH NOTES</h2>
+                <div style="padding:1.3cqw; border:1px solid rgba(116,236,255,.55); background:rgba(8,28,50,.78);">
+                    <div style="font-size:1.35em; font-weight:bold; color:#fff36b; margin-bottom:1cqh;">LATEST UPDATE</div>
+                    <ul style="margin:0; padding-left:1.6em; line-height:1.85; color:#e8f8ff;">
+                        <li>炎ブロックの炎を、揺らめく多層の火炎デザインへ強化。</li>
+                        <li>プレイヤーレベルとEXPを追加。</li>
+                        <li>チャットに👍リアクション、DMにステージ・画像添付を追加。</li>
+                        <li>認証マーク・BAN表示、リンク表示などのチャット機能を改善。</li>
+                        <li>未知ステージの背景を赤いノイズの演出に更新。</li>
+                    </ul>
+                </div>
+                <div style="text-align:center; margin-top:2cqh;"><button class="pixel-btn small" onclick="closePatchNotes()">戻る</button></div>
+            </div>
+        </div>
 
         <!-- ショップ画面 -->
         <div id="shop-overlay" class="screen">
@@ -3271,6 +3292,14 @@
         }
 
         // --- ショップ関連 ---
+        function openPatchNotes() {
+            document.getElementById('patch-notes-overlay').style.display = 'flex';
+        }
+
+        function closePatchNotes() {
+            document.getElementById('patch-notes-overlay').style.display = 'none';
+        }
+
         function openShop(tab = currentShopTab) {
             currentShopTab = tab;
             document.getElementById('shop-overlay').style.display = 'flex';
@@ -3612,7 +3641,7 @@
 
         // --- 初期データ読み込み ---
         let homeSyncProgressTimer = null;
-        const HOME_SYNC_BUTTONS = '#main-menu button, #global-rank-btn, #weekly-cup-btn, #creators-road-btn, #explanation-btn, #chat-btn, #guild-btn, #login-bonus-btn, #password-settings-btn';
+        const HOME_SYNC_BUTTONS = '#main-menu button, #global-rank-btn, #weekly-cup-btn, #creators-road-btn, #explanation-btn, #chat-btn, #guild-btn, #login-bonus-btn, #patch-notes-btn, #password-settings-btn';
 
         function setHomeSyncLocked(locked) {
             document.querySelectorAll(HOME_SYNC_BUTTONS).forEach(button => { button.disabled = locked; });
@@ -3678,6 +3707,7 @@
             document.getElementById('chat-btn').style.display = 'block';
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
+            document.getElementById('patch-notes-btn').style.display = 'block';
             document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(username)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
@@ -6525,6 +6555,7 @@
             document.getElementById('chat-btn').style.display = 'none';
             document.getElementById('guild-btn').style.display = 'none';
             document.getElementById('login-bonus-btn').style.display = 'none';
+            document.getElementById('patch-notes-btn').style.display = 'none';
 
             document.getElementById('editor-screen').style.display = 'block';
             
@@ -6658,6 +6689,7 @@
             document.getElementById('chat-btn').style.display = 'block';
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
+            document.getElementById('patch-notes-btn').style.display = 'block';
             
             const container = document.querySelector('.container');
             container.classList.remove('bg-sky', 'bg-clear-sky');
@@ -7571,23 +7603,30 @@
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
             } else if(type === 'FL') {
-                // 炎ブロック: 触れると即死。ウルフ（ボスNo.2）を倒すとステージから消滅する
-                const flicker = 0.5 + 0.5 * Math.sin(time * 8 + x * 1.7 + y * 2.3);
-                const grad = ctx.createLinearGradient(0, y*ch + ch, 0, y*ch);
-                grad.addColorStop(0, '#b71c1c');
-                grad.addColorStop(0.5, '#ff5722');
-                grad.addColorStop(1, `rgba(255,235,59,${0.7 + flicker * 0.3})`);
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.moveTo(x*cw + cw*0.5, y*ch + ch*(0.08 - flicker*0.06));
-                ctx.quadraticCurveTo(x*cw + cw*0.85, y*ch + ch*0.4, x*cw + cw*0.6, y*ch + ch*0.55);
-                ctx.quadraticCurveTo(x*cw + cw*0.8, y*ch + ch*0.7, x*cw + cw*0.55, y*ch + ch*0.95);
-                ctx.quadraticCurveTo(x*cw + cw*0.75, y*ch + ch*0.75, x*cw + cw*0.5, y*ch + ch*0.98);
-                ctx.quadraticCurveTo(x*cw + cw*0.25, y*ch + ch*0.75, x*cw + cw*0.45, y*ch + ch*0.95);
-                ctx.quadraticCurveTo(x*cw + cw*0.2, y*ch + ch*0.7, x*cw + cw*0.4, y*ch + ch*0.55);
-                ctx.quadraticCurveTo(x*cw + cw*0.15, y*ch + ch*0.4, x*cw + cw*0.5, y*ch + ch*(0.08 - flicker*0.06));
-                ctx.closePath();
-                ctx.fill();
+                // 炎ブロック: 当たり判定は従来どおり。見た目だけを多層の炎にする。
+                const bx = x * cw, by = y * ch;
+                const flicker = 0.5 + 0.5 * Math.sin(time * 9 + x * 1.7 + y * 2.3);
+                const drawFlame = (center, width, tip, color) => {
+                    const base = 0.96;
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.moveTo(bx + (center - width) * cw, by + base * ch);
+                    ctx.quadraticCurveTo(bx + (center - width * 0.25) * cw, by + (tip + 0.18) * ch, bx + center * cw, by + tip * ch);
+                    ctx.quadraticCurveTo(bx + (center + width * 0.25) * cw, by + (tip + 0.2) * ch, bx + (center + width) * cw, by + base * ch);
+                    ctx.closePath();
+                    ctx.fill();
+                };
+                ctx.fillStyle = '#3a0500';
+                ctx.fillRect(bx + pad, by + ch * 0.72, cw - pad * 2, ch * 0.28);
+                drawFlame(0.22, 0.22, 0.39 + flicker * 0.08, '#e62700');
+                drawFlame(0.50, 0.30, 0.06 + (1 - flicker) * 0.10, '#ff3d00');
+                drawFlame(0.78, 0.22, 0.32 + flicker * 0.09, '#e62700');
+                drawFlame(0.50, 0.17, 0.25 + flicker * 0.07, '#ffb300');
+                drawFlame(0.22, 0.11, 0.54 + flicker * 0.05, '#ff8f00');
+                drawFlame(0.78, 0.11, 0.48 + (1 - flicker) * 0.05, '#ff8f00');
+                ctx.strokeStyle = 'rgba(255,225,120,.6)';
+                ctx.lineWidth = Math.max(1, Math.min(cw, ch) * 0.035);
+                ctx.strokeRect(bx + pad, by + pad, cw - pad * 2, ch - pad * 2);
             } else if(type === 'd') {
                 // 下降気流（上昇気流と同様、clip()と複数回のstroke()呼び出しをやめて1回にまとめる）
                 ctx.strokeStyle = "rgba(100, 100, 255, 0.8)";
@@ -7967,6 +8006,7 @@
             document.getElementById('chat-btn').style.display = 'block';
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
+            document.getElementById('patch-notes-btn').style.display = 'block';
         }
 
         // このバージョンで対応しているステージタイプ
@@ -8082,6 +8122,7 @@
             document.getElementById('chat-btn').style.display = 'none';
             document.getElementById('guild-btn').style.display = 'none';
             document.getElementById('login-bonus-btn').style.display = 'none';
+            document.getElementById('patch-notes-btn').style.display = 'none';
 
             activeStage = normalizeGrid(stageObj.data);
             killerGoalTiles = [];
