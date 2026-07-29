@@ -105,11 +105,20 @@
         .container.bg-sunset { background: linear-gradient(#ff7043, #3f51b5); } /* 超難関: 夕方 */
         .container.bg-hell   { background: linear-gradient(#000, #b71c1c); } /* 鬼: 地獄 */
         .container.bg-heaven { background: radial-gradient(circle at 72% 18%, rgba(255, 249, 196, .98) 0 4%, rgba(255, 232, 134, .5) 9%, transparent 21%), radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.96) 0 25%, transparent 57%), linear-gradient(180deg, #63bcff 0%, #a8dcff 42%, #e4f6ff 70%, #fff9df 100%); } /* 神: 天界 */
-        .container.bg-bw     { background: #ffffff; } /* 未知: 白黒 */
+        .container.bg-bw {
+            background-color:#030000;
+            background-image:
+                repeating-radial-gradient(circle at 18% 30%, rgba(255,0,0,.34) 0 1px, transparent 1px 5px),
+                repeating-radial-gradient(circle at 76% 68%, rgba(190,0,0,.28) 0 1px, transparent 1px 4px),
+                linear-gradient(125deg, #000 0%, #190000 48%, #000 100%);
+            background-size: 17px 13px, 11px 19px, 100% 100%;
+            animation: unknownRedNoise .16s steps(2) infinite;
+        } /* 未知: 黒地に赤ノイズ */
+        @keyframes unknownRedNoise { 0% { background-position:0 0,0 0,0 0; } 100% { background-position:17px -13px,-11px 19px,0 0; } }
         .container.bg-aurora { background: #050510; } /* 新次元: オーロラ */
 
         /* 各背景でのレイヤー調整 */
-        .container.bg-bw .clouds { filter: grayscale(1) brightness(0); opacity: 0.2; }
+        .container.bg-bw .clouds { display:none; }
         .container.bg-hell .clouds { display: none; }
         .container.bg-cloudy .clouds { filter: hue-rotate(45deg) saturate(1.35) brightness(.7); opacity: .72; }
         .container.bg-heaven .clouds { filter: brightness(1.35) sepia(.12); opacity: .92; }
@@ -1968,6 +1977,7 @@
                 <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin-bottom: 2cqh; width: 100%;">閉じる</button>
                 <div id="lb-tabs" style="display:none; gap:1cqw; margin-bottom:2cqh; justify-content:center;">
                     <button class="pixel-btn small" onclick="showGlobalRanking('player')" style="min-width:12cqw;">Player</button>
+                    <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('gods')" style="min-width:12cqw;">Gods</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
@@ -2170,7 +2180,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz-UBTKvYVtAe49gUBb4QupZxVTSRfAdCeV1VQAgxqCKBzjxxWmsivU830fdNr3fAbv/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.13.9"
+            VERSION: "2.13.10"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -6086,7 +6096,12 @@
 
             const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
 
-            if (tab === 'player') {
+            if (tab === 'ovr') {
+                title.innerText = "RANK: OVR";
+                sorted = users.slice().sort((a, b) => getCachedOVR(b) - getCachedOVR(a) || String(a).localeCompare(String(b)));
+                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">OVR</th>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#fff36b;">${getCachedOVR(u)}</td>`;
+            } else if (tab === 'player') {
                 title.innerText = "RANK: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th>`;
