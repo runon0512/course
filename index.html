@@ -1476,6 +1476,8 @@
         #password-settings-btn.has-password-warning::after { content:''; position:absolute; top:-.15cqw; right:-.35cqw; width:.8cqw; height:.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
         #weekly-cup-btn { color:#ffe59b !important; text-shadow:0 0 .55cqw rgba(255,204,68,.5); }
         #weekly-cup-btn:hover { border:0 !important; background:linear-gradient(90deg,#fff7ba,#ffd54a,#c98700,#fff0a0) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#ffd54a !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(255,235,129,.95), 0 0 1.1cqw rgba(255,190,35,.8), 0 0 1.7cqw rgba(191,120,0,.58); transform:translateX(.35cqw); letter-spacing:.1em; }
+        /* PSWCは通常ステージ一覧から参加するため、ホームの旧大会ボタンは表示しない。 */
+        #weekly-cup-btn { display:none !important; }
         #user-info { border-color:var(--primary-color); background:rgba(0,0,0,.5); box-shadow:none; }
 
         #stage-list-overlay { background:radial-gradient(ellipse at 20% 50%, rgba(120,40,180,.35) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(60,0,120,.4) 0%, transparent 55%), radial-gradient(ellipse at 60% 80%, rgba(180,60,120,.25) 0%, transparent 50%), linear-gradient(160deg,#0a0018 0%,#110030 30%,#0d001e 60%,#180028 100%); }
@@ -2005,11 +2007,13 @@
             <div class="auth-box" style="width: 70%; max-height: 80cqh;">
                 <h2 id="lb-title" style="font-size: 2.5cqw; color: #ffc107; margin-bottom: 2cqh;">LEADERBOARD</h2>
                 <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin-bottom: 2cqh; width: 100%;">閉じる</button>
-                <div id="lb-tabs" style="display:none; gap:1cqw; margin-bottom:2cqh; justify-content:center;">
+                <div id="lb-tabs" style="display:none; gap:1cqw; margin-bottom:2cqh; justify-content:center; flex-wrap:wrap;">
                     <button class="pixel-btn small" onclick="showGlobalRanking('player')" style="min-width:12cqw;">Player</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('gods')" style="min-width:12cqw;">Gods</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
+                    <button class="pixel-btn small" onclick="showGlobalRanking('chat')" style="min-width:12cqw;">Chat</button>
+                    <button class="pixel-btn small" onclick="showGlobalRanking('level')" style="min-width:12cqw;">Level</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
                 </div>
                 <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
@@ -2207,10 +2211,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz-UBTKvYVtAe49gUBb4QupZxVTSRfAdCeV1VQAgxqCKBzjxxWmsivU830fdNr3fAbv/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxbP5BbTcXWWgovXfwsS7gdnhuFy_ybSv8iBINn6gl33o_tLf0GW4kbfciHgOhPFRQ1/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.14.2β"
+            VERSION: "2.14.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -4019,6 +4023,13 @@
         async function showMentionSuggestions(query) {
             await ensureUsernamesLoaded();
             await ensureBadgeSettingsLoaded();
+
+            let chatCounts = {};
+            if (tab === 'chat') {
+                const chatRes = await callApi('getChatCounts', {});
+                if (chatRes?.success) chatCounts = chatRes.counts || {};
+            }
+            if (tab === 'level') await ensurePlayerLevelsLoaded(true);
             if (!cachedStages) {
                 const res = await callApi('getPublished', {});
                 cachedStages = res.stages || [];
@@ -6131,7 +6142,11 @@
                 stats[creator].plays += (s.attempts || 0);
             });
 
-            const users = Object.keys(stats);
+            const users = Array.from(new Set([
+                ...Object.keys(stats),
+                ...Object.keys(chatCounts),
+                ...(tab === 'level' ? Array.from(playerLevelsByUsername.keys()) : [])
+            ]));
             let sorted = [], headerHtml = "", rowFunc = null;
 
             const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
@@ -6141,6 +6156,16 @@
                 sorted = users.slice().sort((a, b) => getCachedOVR(b) - getCachedOVR(a) || String(a).localeCompare(String(b)));
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">OVR</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#fff36b;">${getCachedOVR(u)}</td>`;
+            } else if (tab === 'level') {
+                title.innerText = "RANK: LEVEL";
+                sorted = users.slice().sort((a, b) => (Number(playerLevelsByUsername.get(b)) || 1) - (Number(playerLevelsByUsername.get(a)) || 1) || String(a).localeCompare(String(b)));
+                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">LEVEL</th>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#fff36b;">Lv.${Number(playerLevelsByUsername.get(u)) || 1}</td>`;
+            } else if (tab === 'chat') {
+                title.innerText = "RANK: CHAT";
+                sorted = users.filter(u => Number(chatCounts[u]) > 0).sort((a, b) => Number(chatCounts[b]) - Number(chatCounts[a]) || String(a).localeCompare(String(b)));
+                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CHAT</th>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#7dffcb;">${Number(chatCounts[u]) || 0}</td>`;
             } else if (tab === 'player') {
                 title.innerText = "RANK: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
@@ -7848,16 +7873,19 @@
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
 
-            // SYSTEM作成のステージを最上部に配置（Pick up!表示用）
+            // PSWC作成の大会ステージを最上部、その次にSYSTEMのPick up!を配置する。
+            const isPswcCreator = s => String(s.creator || '').trim().toUpperCase() === 'PSWC';
+            const pswcStages = filtered.filter(isPswcCreator);
             const systemStages = filtered.filter(s => s.creator === 'SYSTEM');
-            const otherStages = filtered.filter(s => s.creator !== 'SYSTEM');
-            const sortedStages = [...systemStages, ...otherStages];
+            const otherStages = filtered.filter(s => !isPswcCreator(s) && s.creator !== 'SYSTEM');
+            const sortedStages = [...pswcStages, ...systemStages, ...otherStages];
 
             container.innerHTML = "";
             sortedStages.forEach((s, idx) => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
                 const isPickUp = s.creator === 'SYSTEM';
+                const isPswcStage = isPswcCreator(s);
                 const escapedId = s._idStr.replace(/'/g, "\\'");
             
                 // 難易度バッジと枠線スタイルの計算
@@ -7902,7 +7930,8 @@
 
                 if (customFrameStyle) div.style.cssText += customFrameStyle;
                 // Pick up は難易度に関わらず黄色キラキラエフェクト
-                if (isPickUp) div.classList.add('stage-item-pickup');
+                if (isPickUp || isPswcStage) div.classList.add('stage-item-pickup');
+                if (isPswcStage) div.style.cssText += 'border-color:#ffd54a; box-shadow:0 0 1.2cqw rgba(255,202,40,.6), inset 0 0 1cqw rgba(255,180,0,.15);';
             
                 const canvas = document.createElement('canvas');
                 canvas.className = 'stage-preview';
@@ -7943,6 +7972,7 @@
                         <div style="color:var(--primary-color); flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.4cqw;">
                                 ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">Pick up!</span>' : ''}
+                                ${isPswcStage ? '<span style="background:linear-gradient(135deg,#805200,#ffd54a,#fff0a0); color:#2c1c00; font-size:0.65cqw; padding:2px 4px; border-radius:2px; font-weight:bold; border:1px solid #fff2af;">🏆 PSWC</span>' : ''}
                                 ${s.stageType === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
                                 ${s.stageType === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
                                 ${s.stageType === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
@@ -8093,6 +8123,11 @@
                     showIncompatibleMsg(incompatible);
                     return;
                 }
+                // 製作者PSWCのステージは常設大会。従来の大会と同じくシルバー以上で参加できる。
+                if (String(stageObj?.creator || '').trim().toUpperCase() === 'PSWC' && getCachedOVR(CONFIG.USERNAME) < 16) {
+                    alert('PSWCへの参加にはシルバーランク以上が必要です。');
+                    return;
+                }
             }
 
             // 「プレイ」を押してからゲーム画面を始めるまでの間に一度だけ変換する。
@@ -8101,7 +8136,8 @@
 
             gameMode = mode;
             currentStageData = stageObj;
-            isWeeklyCupMatch = mode === 'play' && stageObj && stageObj.isWeeklyCup === true;
+            // PSWC名義の通常ステージは、期間設定なしで常に大会ルールを適用する。
+            isWeeklyCupMatch = mode === 'play' && stageObj && (stageObj.isWeeklyCup === true || String(stageObj.creator || '').trim().toUpperCase() === 'PSWC');
             isSwitchOn = true;
             player.onSwitch = false;
             // spriteCache.clear(); // パフォーマンス向上のため全削除を廃止
@@ -8188,8 +8224,6 @@
                 container.classList.add('bg-water');
             } else if (currentStageType === 'dark') {
                 container.classList.add('bg-dark');
-            } else if (isRaiAlvaroStageType(currentStageType)) {
-                container.classList.add('bg-sky');
             } else if (currentStageType === 'volcano') {
                 container.classList.add('bg-volcano');
             } else if (currentStageType === 'moon') {
@@ -8397,7 +8431,7 @@
 
         let rewardAlreadyAdded = false;
 
-        // クイック送信では通信完了前でも、戻った一覧に今回のベストタイムを即時反映する。
+        // クイック送信では通信完了前でも、戻った一覧へ今回のクリアを即時反映する。
         // サーバー記録が完了した後は通常の再読み込み結果で置き換わるため、これは表示用の仮記録。
         function reflectQuickClearLocally(stageId, username, time, ghost) {
             if (!stageId || isWeeklyCupMatch) return;
@@ -8407,9 +8441,21 @@
                 : (cachedStages || []).find(s => String(s.id || s.name) === id);
             if (!stage) return;
 
+            // 今回のクリア数も即時に反映する。これにより、通信待ちの間でも次回プレイ時の
+            // 難易度判定・報酬計算が、これまでのクイック送信分を含んだ値になる。
+            const stageCopies = [stage];
+            const cachedCopy = (cachedStages || []).find(s => String(s.id || s.name) === id);
+            if (cachedCopy && cachedCopy !== stage) stageCopies.push(cachedCopy);
+            stageCopies.forEach(s => {
+                s.clears = (Number(s.clears) || 0) + 1;
+                s._cr = s.attempts > 0 ? s.clears / s.attempts : -1;
+                s._reward = calculateStageRewardValue(s, CONFIG.USERNAME);
+            });
+
             const leaderboard = Array.isArray(stage.leaderboard) ? stage.leaderboard : (stage.leaderboard = []);
             const oldIndex = leaderboard.findIndex(record => String(record.name) === String(username));
             const oldRecord = oldIndex >= 0 ? leaderboard[oldIndex] : null;
+            // ベスト更新でない場合も、上のクリア数更新は維持する。
             if (oldRecord && Number(oldRecord.time) <= Number(time)) return;
             const record = { name: username, time: Number(time), ghost: ghost || null, skin: equippedSkin, color: equippedColor, pending: true };
             if (oldIndex >= 0) leaderboard.splice(oldIndex, 1);
@@ -9688,9 +9734,16 @@
                     continue;
                 }
 
-                // 往路・復路を問わず、プレイヤーに触れたら死亡
+                // 往路・復路を問わず、プレイヤーに触れたら死亡。
+                // 命中後もこのフレームの敵・弾処理を続けると死亡表示が重複するため、即時終了する。
                 const scPx = player.x + player.w / 2, scPy = player.y + player.h / 2;
-                if (Math.hypot(s.x - scPx, s.y - scPy) < 0.4) handlePlayerDeath();
+                if (Math.hypot(s.x - scPx, s.y - scPy) < 0.4) {
+                    // ライ・アルバロの雷ダッシュ中は従来どおり無敵で、鎌も消さない。
+                    if (isRaiAlvaroStageType(currentStageType) && raiDashFrames > 0) continue;
+                    sickles.splice(i, 1);
+                    handlePlayerDeath();
+                    return;
+                }
             }
 
             // 炎の飛び道具（狼が8秒ごとに放つ）の更新: 発射時の方向へ直進する
