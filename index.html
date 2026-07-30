@@ -7809,6 +7809,13 @@
         // --- プレイ・ゲームロジック ---
         async function openStageSelect(forceRefresh = false) {
             document.getElementById('home-level-gauge').style.display = 'none';
+            // 一覧はホーム背景を完全に覆うため、見えない星アニメーションを止めて描画負荷を減らす。
+            const homeBgCanvas = document.getElementById('home-bg-canvas');
+            if (homeBgCanvas) homeBgCanvas.style.display = 'none';
+            if (homeBgAnimationId) {
+                cancelAnimationFrame(homeBgAnimationId);
+                homeBgAnimationId = null;
+            }
             const overlay = document.getElementById('stage-list-overlay');
             const container = document.getElementById('stage-list-container');
             overlay.style.display = 'flex';
@@ -7878,6 +7885,7 @@
             const sortedStages = [...pswcStages, ...systemStages, ...otherStages];
 
             container.innerHTML = "";
+            const previewJobs = [];
             sortedStages.forEach((s, idx) => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
@@ -8001,11 +8009,10 @@
                 div.onclick = () => startGame(s);
                 container.appendChild(div);
 
-                // プレビュー描画を少しずつ遅延させてUIのフリーズを防ぐ
-                setTimeout(() => {
-                    if (renderVersion === stageListRenderVersion && document.contains(canvas)) renderPreview(canvas, s.data);
-                }, idx * 20);
+                // タイマーをステージ数ぶん作らず、後で少数ずつ描画する。
+                previewJobs.push({ canvas, data: s.data });
             });
+            renderStagePreviewsInBatches(previewJobs, renderVersion);
         }
 
         async function renameMyStage(stageId) {
@@ -8038,6 +8045,21 @@
                     if(data[y][x]) drawTile(ctx, x, y, cw, ch, data[y][x]);
                 }
             }
+        }
+
+        // 大量ステージでもプレビューを数枚ずつ描画し、メインスレッドを長時間占有しない。
+        function renderStagePreviewsInBatches(jobs, renderVersion) {
+            let index = 0;
+            const renderNext = () => {
+                if (renderVersion !== stageListRenderVersion) return;
+                const end = Math.min(index + 3, jobs.length);
+                for (; index < end; index++) {
+                    const job = jobs[index];
+                    if (document.contains(job.canvas)) renderPreview(job.canvas, job.data);
+                }
+                if (index < jobs.length) requestAnimationFrame(renderNext);
+            };
+            requestAnimationFrame(renderNext);
         }
 
         function closeStageSelect() {
