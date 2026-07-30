@@ -1494,6 +1494,15 @@
         .stage-stats { color:#bbb; }
         .stage-preview { background:#70a1ff; border:.1cqw solid #fff; box-shadow:none; }
 
+        /* ステージ選択は一覧を優先し、見出し・検索・絞り込みを上部へコンパクトに配置する。 */
+        #stage-list-overlay { padding-top:1cqh; }
+        #stage-list-overlay .stage-list-title { margin:.15cqh 0 .55cqh !important; font-size:3.1cqw !important; line-height:1.1; }
+        #stage-list-overlay .stage-filter-bar { gap:.45cqw !important; margin-bottom:.45cqh !important; }
+        #stage-list-overlay .stage-filter-bar .pixel-btn,
+        #stage-list-overlay .stage-filter-bar .filter-control,
+        #stage-list-overlay .stage-filter-bar .remember-wrap { min-height:0; }
+        #stage-list-container { padding:.5cqh 2cqw 1cqh !important; }
+
         #chat-overlay, #dm-overlay { background:rgba(10,10,30,.95) !important; }
         #profile-overlay, #guild-overlay, #shop-overlay, #explanation-overlay { background:rgba(10,10,30,.9) !important; }
         #leaderboard-overlay { background:rgba(0,0,0,.95) !important; }
@@ -2012,7 +2021,6 @@
                     <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('gods')" style="min-width:12cqw;">Gods</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
-                    <button class="pixel-btn small" onclick="showGlobalRanking('chat')" style="min-width:12cqw;">Chat</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('level')" style="min-width:12cqw;">Level</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
                 </div>
@@ -2211,7 +2219,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxbP5BbTcXWWgovXfwsS7gdnhuFy_ybSv8iBINn6gl33o_tLf0GW4kbfciHgOhPFRQ1/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz6OzFXA81KhCSTsV1P5HVuY7YeMyoFqsLNGe4gNLU5jwK2VZbj4CL53OY1ZzKGzVze/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.14.1"
@@ -4024,11 +4032,6 @@
             await ensureUsernamesLoaded();
             await ensureBadgeSettingsLoaded();
 
-            let chatCounts = {};
-            if (tab === 'chat') {
-                const chatRes = await callApi('getChatCounts', {});
-                if (chatRes?.success) chatCounts = chatRes.counts || {};
-            }
             if (tab === 'level') await ensurePlayerLevelsLoaded(true);
             if (!cachedStages) {
                 const res = await callApi('getPublished', {});
@@ -6144,7 +6147,6 @@
 
             const users = Array.from(new Set([
                 ...Object.keys(stats),
-                ...Object.keys(chatCounts),
                 ...(tab === 'level' ? Array.from(playerLevelsByUsername.keys()) : [])
             ]));
             let sorted = [], headerHtml = "", rowFunc = null;
@@ -6161,11 +6163,6 @@
                 sorted = users.slice().sort((a, b) => (Number(playerLevelsByUsername.get(b)) || 1) - (Number(playerLevelsByUsername.get(a)) || 1) || String(a).localeCompare(String(b)));
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">LEVEL</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#fff36b;">Lv.${Number(playerLevelsByUsername.get(u)) || 1}</td>`;
-            } else if (tab === 'chat') {
-                title.innerText = "RANK: CHAT";
-                sorted = users.filter(u => Number(chatCounts[u]) > 0).sort((a, b) => Number(chatCounts[b]) - Number(chatCounts[a]) || String(a).localeCompare(String(b)));
-                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CHAT</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#7dffcb;">${Number(chatCounts[u]) || 0}</td>`;
             } else if (tab === 'player') {
                 title.innerText = "RANK: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
