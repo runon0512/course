@@ -2084,15 +2084,9 @@
                 </label>
                 <input type="text" id="filter-creator" placeholder="作者名で絞り込み" class="filter-control" oninput="debouncedStageSelect()">
                 <input type="text" id="filter-stage-name" placeholder="ステージ名で絞り込み" class="filter-control" oninput="debouncedStageSelect()">
-                <select id="filter-stage-type" class="filter-control" onchange="openStageSelect()">
-                    <option value="">全ステージタイプ</option>
-                    <option value="normal">通常</option>
-                    <option value="water">水中</option>
-                    <option value="dark">暗闇</option>
-                    <option value="volcano">火山</option>
-                    <option value="moon">月</option>
-                    <option value="beach">海辺</option>
-                </select>
+                <span id="stage-page-info" style="align-self:center; font-size:1.05cqw; color:#d9f8ff;"></span>
+                <button id="stage-prev-page" class="pixel-btn small" onclick="changeStagePage(-1)">前のページ</button>
+                <button id="stage-next-page" class="pixel-btn small" onclick="changeStagePage(1)">次のページ</button>
             </div>
             <div id="stage-list-container" style="width: 100%; overflow-y: auto; flex-grow: 1; padding: 2cqw; box-sizing: border-box; position: relative; z-index: 1;"></div>
         </div>
@@ -2219,10 +2213,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz6OzFXA81KhCSTsV1P5HVuY7YeMyoFqsLNGe4gNLU5jwK2VZbj4CL53OY1ZzKGzVze/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwWhF2GoFfp5R7tyEZZz3TkdW2NYhQBh89QmkML3xznSpYevxQh_W41RidsPHjS9BZL/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.14.1"
+            VERSION: "2.14.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2461,8 +2455,10 @@
         let filterUnplayed = false;
         let filterCreatorName = '';
         let filterStageName = '';
-        let filterStageType = '';
         let stageListRenderVersion = 0;
+        let stageListPage = 0;
+        let stageListTotal = 0;
+        let stageListPageStages = [];
         let arrows = [];
         let missiles = [];
         let sickles = []; // 狼（ボスNo.2）が投げる、プレイヤーを追尾する回転する鎌
@@ -3400,7 +3396,6 @@
                 document.getElementById('filter-my-stages').checked = filterMyStages;
                 document.getElementById('filter-creator').value = filterCreatorName;
                 document.getElementById('filter-stage-name').value = filterStageName;
-                document.getElementById('filter-stage-type').value = filterStageType;
                 updateGoldDisplay();
             }, 1000);
         }
@@ -7807,7 +7802,7 @@
         }
 
         // --- プレイ・ゲームロジック ---
-        async function openStageSelect(forceRefresh = false) {
+        async function openStageSelect(forceRefresh = false, requestedPage = 0) {
             document.getElementById('home-level-gauge').style.display = 'none';
             // 一覧はホーム背景を完全に覆うため、見えない星アニメーションを止めて描画負荷を減らす。
             const homeBgCanvas = document.getElementById('home-bg-canvas');
@@ -7825,16 +7820,28 @@
             filterUnplayed = document.getElementById('filter-unplayed').checked;
             filterCreatorName = document.getElementById('filter-creator').value.trim().toLowerCase();
             filterStageName = document.getElementById('filter-stage-name').value.trim().toLowerCase();
-            filterStageType = document.getElementById('filter-stage-type').value;
             currentSort = document.getElementById('sort-criteria').value;
-            
-            if (!cachedStages || forceRefresh) {
-                container.innerHTML = "LOADING STAGES...";
-                const res = await callApi('getPublished', {});
-                cachedStages = (res.stages || []).filter(s => s && s.data); // 無効なデータを事前に除外
-                
-                // 高速化のためにメタデータを事前計算
-                cachedStages.forEach(s => {
+            stageListPage = Math.max(0, Number(requestedPage) || 0);
+
+            // 一覧はサーバーで絞り込み・並び替えを行い、現在ページの100件だけ取得する。
+            container.innerHTML = "LOADING STAGES...";
+            const res = await callApi('getPublishedPage', {
+                username: CONFIG.USERNAME,
+                page: stageListPage,
+                sort: currentSort,
+                mine: filterMyStages,
+                unplayed: filterUnplayed,
+                creator: filterCreatorName,
+                name: filterStageName
+            });
+            if (renderVersion !== stageListRenderVersion) return;
+            const pageStages = (res?.stages || []).filter(s => s && s.data);
+            stageListPageStages = pageStages;
+            stageListPage = Number(res?.page) || 0;
+            stageListTotal = Number(res?.total) || 0;
+
+            // 高速化のために、表示する100件だけメタデータを事前計算する。
+            pageStages.forEach(s => {
                     const lb = Array.isArray(s.leaderboard) ? s.leaderboard : [];
                     s._cr = s.attempts > 0 ? (s.clears || 0) / s.attempts : -1;
                     s._reward = calculateStageRewardValue(s, CONFIG.USERNAME);
@@ -7842,17 +7849,24 @@
                     s._topPlayers = lb.filter(r => r.time === s._topTime);
                     s._myRec = lb.find(r => r.name === CONFIG.USERNAME);
                     s._idStr = String(s.id || s.name);
-                });
-            }
+            });
 
-            let filtered = cachedStages.filter(s => {
+            const pageInfo = document.getElementById('stage-page-info');
+            const prevPageBtn = document.getElementById('stage-prev-page');
+            const nextPageBtn = document.getElementById('stage-next-page');
+            const first = stageListTotal ? stageListPage * 100 + 1 : 0;
+            const last = Math.min((stageListPage + 1) * 100, stageListTotal);
+            pageInfo.textContent = `${first}-${last} / ${stageListTotal}`;
+            prevPageBtn.disabled = stageListPage <= 0;
+            nextPageBtn.disabled = last >= stageListTotal;
+
+            let filtered = pageStages.filter(s => {
                 const matchMine = !filterMyStages || s.creator === CONFIG.USERNAME;
                 const isCleared = s.leaderboard && s.leaderboard.some(r => r.name === CONFIG.USERNAME);
                 const matchUnplayed = !filterUnplayed || !isCleared;
                 const matchCreator = !filterCreatorName || String(s.creator || '').toLowerCase().includes(filterCreatorName);
                 const matchStageName = !filterStageName || String(s.name || '').toLowerCase().includes(filterStageName);
-                const matchStageType = !filterStageType || (s.stageType || 'normal') === filterStageType;
-                return matchMine && matchCreator && matchStageName && matchStageType && matchUnplayed;
+                return matchMine && matchCreator && matchStageName && matchUnplayed;
             });
 
             // ソート処理
@@ -7995,9 +8009,9 @@
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
-                            onclick="event.stopPropagation(); startGame(cachedStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
+                            onclick="event.stopPropagation(); startGame(stageListPageStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
-                            onclick="event.stopPropagation(); showLeaderboard(cachedStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
+                            onclick="event.stopPropagation(); showLeaderboard(stageListPageStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
                         ${s.creator === CONFIG.USERNAME ? `
                         <button class="stage-manage-btn stage-rename-btn" onclick="event.stopPropagation(); renameMyStage('${escapedId}')">名前変更</button>` : ''}
                     </div>
@@ -8016,7 +8030,8 @@
         }
 
         async function renameMyStage(stageId) {
-            const stage = (cachedStages || []).find(s => String(s.id || s.name) === String(stageId));
+            const stage = (stageListPageStages || []).find(s => String(s.id || s.name) === String(stageId))
+                || (cachedStages || []).find(s => String(s.id || s.name) === String(stageId));
             if (!stage || stage.creator !== CONFIG.USERNAME) return;
             const stageName = prompt('新しいステージ名を入力してください（1〜50文字）', stage.name);
             if (stageName === null) return;
@@ -8051,7 +8066,8 @@
         function renderStagePreviewsInBatches(jobs, renderVersion) {
             let index = 0;
             const renderNext = () => {
-                if (renderVersion !== stageListRenderVersion) return;
+                const overlay = document.getElementById('stage-list-overlay');
+                if (renderVersion !== stageListRenderVersion || !overlay || overlay.style.display !== 'flex') return;
                 const end = Math.min(index + 3, jobs.length);
                 for (; index < end; index++) {
                     const job = jobs[index];
@@ -8063,6 +8079,8 @@
         }
 
         function closeStageSelect() {
+            // 非表示になった一覧のプレビュー描画を即時中止し、戻るボタン後の負荷を残さない。
+            stageListRenderVersion++;
             document.getElementById('stage-list-overlay').style.display = 'none';
             // メインメニューに戻る際にホーム画面の要素を再表示
             document.querySelector('h1').style.display = 'block';
@@ -8084,6 +8102,12 @@
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
             document.getElementById('patch-notes-btn').style.display = 'block';
+        }
+
+        function changeStagePage(delta) {
+            const nextPage = Math.max(0, stageListPage + Number(delta || 0));
+            if (nextPage === stageListPage) return;
+            openStageSelect(false, nextPage);
         }
 
         // このバージョンで対応しているステージタイプ
@@ -8135,6 +8159,14 @@
         }
 
         function startGame(stageObj, mode = 'play', isRetry = false) {
+            // ステージ一覧からのプレイ開始時、残っているプレビュー描画を中断して操作を優先する。
+            stageListRenderVersion++;
+            // プレイ中のRETRYなどで開始された場合、前のゲームループを確実に止める。
+            // これを行わないとRetryのたびにrequestAnimationFrameが重複し、操作・描画が徐々に重くなる。
+            if (gameLoopId !== null) {
+                cancelAnimationFrame(gameLoopId);
+                gameLoopId = null;
+            }
             // プレイモード時のみ互換チェック
             if (mode === 'play') {
                 const incompatible = checkStageCompatibility(stageObj);
