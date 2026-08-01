@@ -2216,7 +2216,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwWhF2GoFfp5R7tyEZZz3TkdW2NYhQBh89QmkML3xznSpYevxQh_W41RidsPHjS9BZL/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.14.2"
+            VERSION: "2.14.3"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2459,6 +2459,8 @@
         let stageListPage = 0;
         let stageListTotal = 0;
         let stageListPageStages = [];
+        // 同じ検索条件・ページは、明示的な再読み込みまで再取得しない。
+        const stageListPageCache = new Map();
         let arrows = [];
         let missiles = [];
         let sickles = []; // 狼（ボスNo.2）が投げる、プレイヤーを追尾する回転する鎌
@@ -7824,8 +7826,8 @@
             stageListPage = Math.max(0, Number(requestedPage) || 0);
 
             // 一覧はサーバーで絞り込み・並び替えを行い、現在ページの100件だけ取得する。
-            container.innerHTML = "LOADING STAGES...";
-            const res = await callApi('getPublishedPage', {
+            // 同じ条件・同じページは、手動再読み込みまで取得済みの内容を使う。
+            const pageRequest = {
                 username: CONFIG.USERNAME,
                 page: stageListPage,
                 sort: currentSort,
@@ -7833,8 +7835,16 @@
                 unplayed: filterUnplayed,
                 creator: filterCreatorName,
                 name: filterStageName
-            });
-            if (renderVersion !== stageListRenderVersion) return;
+            };
+            const pageCacheKey = JSON.stringify(pageRequest);
+            if (forceRefresh) stageListPageCache.clear();
+            let res = stageListPageCache.get(pageCacheKey);
+            if (!res) {
+                container.innerHTML = "LOADING STAGES...";
+                res = await callApi('getPublishedPage', pageRequest);
+                if (renderVersion !== stageListRenderVersion) return;
+                stageListPageCache.set(pageCacheKey, res);
+            }
             const pageStages = (res?.stages || []).filter(s => s && s.data);
             stageListPageStages = pageStages;
             stageListPage = Number(res?.page) || 0;
@@ -8482,39 +8492,41 @@
 
         let rewardAlreadyAdded = false;
 
-        // クイック送信では通信完了前でも、戻った一覧へ今回のクリアを即時反映する。
-        // サーバー記録が完了した後は通常の再読み込み結果で置き換わるため、これは表示用の仮記録。
-        function reflectQuickClearLocally(stageId, username, time, ghost) {
+        // 手動再読み込みまで、今回のクリアをローカルの一覧・計算に即時反映する。
+        function reflectStageClearLocally(stageId, username, time, ghost) {
             if (!stageId || isWeeklyCupMatch) return;
             const id = String(stageId);
-            const stage = currentStageData && String(currentStageData.id || currentStageData.name) === id
-                ? currentStageData
-                : (cachedStages || []).find(s => String(s.id || s.name) === id);
-            if (!stage) return;
+            const stageCopies = [];
+            const addCopy = s => {
+                if (s && String(s.id || s.name) === id && !stageCopies.includes(s)) stageCopies.push(s);
+            };
+            addCopy(currentStageData);
+            (cachedStages || []).forEach(addCopy);
+            (stageListPageStages || []).forEach(addCopy);
+            stageListPageCache.forEach(page => (page?.stages || []).forEach(addCopy));
+            if (!stageCopies.length) return;
 
-            // 今回のクリア数も即時に反映する。これにより、通信待ちの間でも次回プレイ時の
-            // 難易度判定・報酬計算が、これまでのクイック送信分を含んだ値になる。
-            const stageCopies = [stage];
-            const cachedCopy = (cachedStages || []).find(s => String(s.id || s.name) === id);
-            if (cachedCopy && cachedCopy !== stage) stageCopies.push(cachedCopy);
+            // 同じステージを持つ各キャッシュへ、今回のプレイ・クリアを同じ数値で反映する。
+            const attempts = Math.max(...stageCopies.map(s => Number(s.attempts) || 0));
+            const clears = Math.max(...stageCopies.map(s => Number(s.clears) || 0)) + 1;
             stageCopies.forEach(s => {
-                s.clears = (Number(s.clears) || 0) + 1;
+                s.attempts = attempts;
+                s.clears = clears;
                 s._cr = s.attempts > 0 ? s.clears / s.attempts : -1;
                 s._reward = calculateStageRewardValue(s, CONFIG.USERNAME);
+                const leaderboard = Array.isArray(s.leaderboard) ? s.leaderboard : (s.leaderboard = []);
+                const oldIndex = leaderboard.findIndex(record => String(record.name) === String(username));
+                const oldRecord = oldIndex >= 0 ? leaderboard[oldIndex] : null;
+                if (!oldRecord || Number(oldRecord.time) > Number(time)) {
+                    const record = { name: username, time: Number(time), ghost: ghost || null, skin: equippedSkin, color: equippedColor, pending: true };
+                    if (oldIndex >= 0) leaderboard.splice(oldIndex, 1);
+                    leaderboard.push(record);
+                    leaderboard.sort((a, b) => Number(a.time) - Number(b.time));
+                }
+                s._topTime = leaderboard.length ? Number(leaderboard[0].time) : null;
+                s._topPlayers = leaderboard.filter(entry => Number(entry.time) === s._topTime);
+                s._myRec = leaderboard.find(entry => String(entry.name) === String(CONFIG.USERNAME)) || null;
             });
-
-            const leaderboard = Array.isArray(stage.leaderboard) ? stage.leaderboard : (stage.leaderboard = []);
-            const oldIndex = leaderboard.findIndex(record => String(record.name) === String(username));
-            const oldRecord = oldIndex >= 0 ? leaderboard[oldIndex] : null;
-            // ベスト更新でない場合も、上のクリア数更新は維持する。
-            if (oldRecord && Number(oldRecord.time) <= Number(time)) return;
-            const record = { name: username, time: Number(time), ghost: ghost || null, skin: equippedSkin, color: equippedColor, pending: true };
-            if (oldIndex >= 0) leaderboard.splice(oldIndex, 1);
-            leaderboard.push(record);
-            leaderboard.sort((a, b) => Number(a.time) - Number(b.time));
-            stage._topTime = leaderboard.length ? Number(leaderboard[0].time) : null;
-            stage._topPlayers = leaderboard.filter(entry => Number(entry.time) === stage._topTime);
-            stage._myRec = leaderboard.find(entry => String(entry.name) === String(CONFIG.USERNAME)) || null;
         }
 
         async function showReward() {
@@ -8577,9 +8589,11 @@
                 p.f === 'right' ? 1 : 0
             ]) : null;
 
+            // 報酬額は今回のクリア前の難易度で決めた後、次回以降の難易度・報酬へ今回の結果を反映する。
+            if (!isCupClear) reflectStageClearLocally(stageId, submitUsername, clearTime, compressedGhost);
+
             if (isQuickSend) {
                 // クイック送信: 送信の完了を待たずにOKを押せるようにする（送信は裏で実行）
-                reflectQuickClearLocally(stageId, submitUsername, clearTime, compressedGhost);
                 okBtn.innerText = "OK";
                 okBtn.disabled = false;
                 okBtn.onclick = closeReward;
@@ -10837,7 +10851,8 @@
             isSchoolMode = localStorage.getItem('pixel_stages_school_mode') === 'true';
             document.getElementById('school-mode').checked = isSchoolMode;
 
-            isManualReloadOnly = false;
+            // データの再取得は画面上の「再読み込み」を押した時だけにする。
+            isManualReloadOnly = true;
             localStorage.removeItem('pixel_stages_manual_reload');
 
             isQuickSend = localStorage.getItem('pixel_stages_quick_send') === 'true';
