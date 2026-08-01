@@ -4171,8 +4171,18 @@
             if (target && target !== '-' && target !== CONFIG.USERNAME) openDirectMessage(target);
         }
 
+        function hideStageListForDirectMessage() {
+            const stageList = document.getElementById('stage-list-overlay');
+            if (stageList && stageList.style.display === 'flex') {
+                // 一覧のプレビュー描画も止め、DM表示中に背後で負荷が残らないようにする。
+                stageListRenderVersion++;
+                stageList.style.display = 'none';
+            }
+        }
+
         async function openDirectMessageInbox() {
             currentDmPartner = null;
+            hideStageListForDirectMessage();
             document.querySelectorAll('.screen').forEach(screen => {
                 if (screen.id !== 'dm-overlay') screen.style.display = 'none';
             });
@@ -4207,6 +4217,7 @@
             if (!partner || partner === CONFIG.USERNAME) return;
             currentDmPartner = partner;
             // DMを開く時は、背後に別画面が残らないよう全画面を閉じる。
+            hideStageListForDirectMessage();
             document.querySelectorAll('.screen').forEach(screen => {
                 if (screen.id !== 'dm-overlay') screen.style.display = 'none';
             });
