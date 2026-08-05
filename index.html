@@ -2213,10 +2213,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwWhF2GoFfp5R7tyEZZz3TkdW2NYhQBh89QmkML3xznSpYevxQh_W41RidsPHjS9BZL/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzwVVFVG8o-gcv2ld47eOyGHWNgO3qd5EzllgD2rpCtzqWOZcCGjCTJmkqoCujn3w2v/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.14.3"
+            VERSION: "2.14.4"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2523,7 +2523,6 @@
             const ghosts = leaderboard
                 .slice()
                 .sort((a, b) => a.time - b.time)
-                .slice(0, 5)
                 .map(ghost => ({
                     ...ghost,
                     frames: Array.isArray(ghost.ghost)
@@ -3072,7 +3071,7 @@
         }
 
         async function callApi(action, payload, timeoutMs = 20000) {
-            const maxAttempts = isRetryableReadAction(action) ? 2 : 1; // 読み取り系のみ通信不安定時に1回だけ再試行
+            const maxAttempts = action === 'getChat' ? 3 : (isRetryableReadAction(action) ? 2 : 1);
             let lastError = null;
 
             for (let i = 0; i < maxAttempts; i++) {
@@ -3102,6 +3101,8 @@
                     clearTimeout(timeoutId);
                     lastError = error;
                     console.warn(`API attempt ${i + 1}/${maxAttempts} failed (${action}):`, error);
+                    // GASの一時的な混雑時に即時連打しないよう、読み取り再試行には短い待機を入れる。
+                    if (i + 1 < maxAttempts) await new Promise(resolve => setTimeout(resolve, 350 * (i + 1)));
                 }
             }
             console.error(`API call failed (${action}):`, lastError);
@@ -4140,6 +4141,7 @@
         function closeChat() {
             document.getElementById('chat-overlay').style.display = 'none';
             document.getElementById('chat-stage-search').style.display = 'none';
+            chatHistoryLimit = 50;
             // 開いている間は止めていたバックグラウンド通知ポーリング(3分間隔)を再開する
             if (!chatRefreshId) chatRefreshId = setInterval(refreshChat, 180000);
         }
@@ -4389,15 +4391,32 @@
             chatHistoryLimit = 1000;
             if (button) { button.disabled = true; button.innerText = '読み込み中...'; }
             try {
+                // 直前の通知取得（50件）が進行中なら、完了後に1000件を改めて取得する。
+                const hadInFlightRequest = !!chatRefreshInFlight;
                 await refreshChat();
+                if (hadInFlightRequest) await refreshChat();
             } finally {
                 if (button) button.innerText = '直近1000件を表示中';
             }
         }
 
+        let chatRefreshInFlight = null;
         async function refreshChat() {
-            const res = await callApi('getChat', { limit: chatHistoryLimit });
-            if (!res.success) return;
+            // 開く操作・定期通知・手動表示が重なっても、同じ取得を共有する。
+            if (chatRefreshInFlight) return chatRefreshInFlight;
+            chatRefreshInFlight = refreshChatNow().finally(() => { chatRefreshInFlight = null; });
+            return chatRefreshInFlight;
+        }
+
+        async function refreshChatNow() {
+            const res = await callApi('getChat', { limit: chatHistoryLimit }, 30000);
+            if (!res?.success) {
+                const overlay = document.getElementById('chat-overlay');
+                if (overlay?.style.display === 'flex') {
+                    document.getElementById('chat-list').innerHTML = `<div style="color:#ff8080; font-size:1.3cqw; text-align:center; padding:5cqh;">チャットを読み込めませんでした。<br><button class="pixel-btn small" style="margin-top:1cqh;" onclick="refreshChat()">再試行</button></div>`;
+                }
+                return;
+            }
 
             const lastSeen = localStorage.getItem('pixel_chat_last_time');
             const latestTime = res.messages.length > 0 ? new Date(res.messages[0].time).getTime() : 0;
@@ -4424,12 +4443,8 @@
             localStorage.setItem('pixel_chat_last_time', latestTime.toString());
             document.getElementById('chat-btn').classList.remove('has-notification');
 
-            if (!cachedStages) {
-                const stageRes = await callApi('getPublished', {});
-                cachedStages = stageRes.stages || [];
-            }
             await ensureBadgeSettingsLoaded();
-            await ensurePlayerLevelsLoaded(true); // チャット表示時は全員分を最新化
+            await ensurePlayerLevelsLoaded();
             await ensureUsernamesLoaded(); // 日本語・空白を含むメンションの表示判定に使用
 
             const container = document.getElementById('chat-list');
@@ -8589,16 +8604,15 @@
             const retryBtn = document.getElementById('reward-retry-btn');
             rewardOverlay.style.display = 'flex';
 
-            // タイムがトップ5に入る可能性がある場合のみゴーストデータを送信する
-            // （サーバー側の負荷軽減と、データ肥大化による送信失敗を防ぐため）
-            const isTop5Candidate = (playbackGhosts.length < 5 || clearTime <= (playbackGhosts[playbackGhosts.length - 1]?.time || Infinity));
+            // 全プレイヤーのゴーストを表示できるよう、順位に関係なくゴーストを保存する。
+            const isTop5Candidate = true;
             
             // 通信量を削減するため、座標データを配列形式 [x, y, facing] に圧縮 (1=right, 0=left)
-            const compressedGhost = isTop5Candidate ? currentGhostData.slice(0, 1500).map(p => [
+            const compressedGhost = currentGhostData.slice(0, 1500).map(p => [
                 Math.round(p.x * 100) / 100, 
                 Math.round(p.y * 100) / 100, 
                 p.f === 'right' ? 1 : 0
-            ]) : null;
+            ]);
 
             // 報酬額は今回のクリア前の難易度で決めた後、次回以降の難易度・報酬へ今回の結果を反映する。
             if (!isCupClear) reflectStageClearLocally(stageId, submitUsername, clearTime, compressedGhost);
