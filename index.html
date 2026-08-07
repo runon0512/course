@@ -2213,10 +2213,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzwVVFVG8o-gcv2ld47eOyGHWNgO3qd5EzllgD2rpCtzqWOZcCGjCTJmkqoCujn3w2v/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwD5pcFS0PSQy5D226k55WgXoSMv8w47-wrGorvcI-GCBeEW484E-TXnoaivMXvZRwE/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.14.4"
+            VERSION: "2.14.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -4468,12 +4468,12 @@
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                     ${stageBtn}
                 `;
-                if (m.image) {
-                    const imgEl = document.createElement('img');
-                    imgEl.className = 'chat-image';
-                    imgEl.src = m.image;
-                    imgEl.addEventListener('click', () => showImageLightbox(m.image));
-                    content.appendChild(imgEl);
+                if (m.hasImage || m.image) {
+                    const loadImageBtn = document.createElement('button');
+                    loadImageBtn.className = 'chat-reply-btn';
+                    loadImageBtn.innerText = '🖼️ 画像を表示';
+                    loadImageBtn.onclick = () => loadChatImage(m.id, loadImageBtn, m.image || null);
+                    content.appendChild(loadImageBtn);
                 }
                 if (m.replyToUsername) {
                     const sourceBtn = document.createElement('button');
@@ -4507,6 +4507,24 @@
             });
             // チャット本文を表示してからDMの新着確認を始める。
             refreshDirectMessageNotifications();
+        }
+
+        async function loadChatImage(messageId, button, cachedImage = null) {
+            if (!button) return;
+            button.disabled = true;
+            button.innerText = '画像を読み込み中...';
+            const res = cachedImage ? { success: true, image: cachedImage }
+                : await callApi('getChatImage', { messageId }, 30000);
+            if (!res?.success || !res.image) {
+                button.disabled = false;
+                button.innerText = '画像を読み込めませんでした。再試行';
+                return;
+            }
+            const image = document.createElement('img');
+            image.className = 'chat-image';
+            image.src = res.image;
+            image.addEventListener('click', () => showImageLightbox(res.image));
+            button.replaceWith(image);
         }
 
         let attachedStageId = null;
@@ -4721,6 +4739,12 @@
             document.getElementById('selected-stage-info').style.display = 'none';
         }
 
+        function closeAttachedStageSource() {
+            // 添付元がDMならDMも閉じる。画面が残るとゲーム側の背景切り替えが覆われてしまう。
+            if (document.getElementById('chat-overlay').style.display === 'flex') closeChat();
+            if (document.getElementById('dm-overlay').style.display === 'flex') closeDirectMessage();
+        }
+
         async function playAttachedStage(stageId) {
             if (!cachedStages) {
                 const res = await callApi('getPublished', {});
@@ -4728,7 +4752,7 @@
             }
             const stage = cachedStages.find(s => String(s.id || s.name) === String(stageId));
             if (stage) {
-                closeChat();
+                closeAttachedStageSource();
                 startGame(stage, 'play');
             } else {
                 alert("ステージが見つかりませんでした。再読み込みします。");
@@ -4736,7 +4760,7 @@
                 cachedStages = res.stages || [];
                 const stageRetry = cachedStages.find(s => String(s.id || s.name) === String(stageId));
                 if (stageRetry) {
-                    closeChat();
+                    closeAttachedStageSource();
                     startGame(stageRetry, 'play');
                 }
             }
