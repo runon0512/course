@@ -2594,13 +2594,35 @@
         let lavaAnimStart = 0;
 
         // --- BGM管理 ---
+        const STAGE_BGM_FALLBACK_URL = 'https://raw.githubusercontent.com/runon0512/course/a925c70b5da70ad2924f4dee10e259232fcf81a9/Stage.wav';
         const stageBGM = new Audio();
         stageBGM.loop = true;
+        const horizonBGM = new Audio();
+        horizonBGM.loop = true;
+
+        function playHorizonBGM() {
+            if (isSchoolMode || document.getElementById('game-screen')?.style.display === 'block') return;
+            if (!horizonBGM.src) {
+                horizonBGM.onerror = () => {
+                    // ローカルに無い場合はStage.wavと同じ配布先から取得する。
+                    horizonBGM.onerror = null;
+                    horizonBGM.src = STAGE_BGM_FALLBACK_URL.replace(/Stage\.wav$/, 'Horizon.wav');
+                    horizonBGM.play().catch(() => {});
+                };
+                horizonBGM.src = 'Horizon.wav';
+            }
+            horizonBGM.play().catch(() => {});
+        }
+        function stopHorizonBGM() {
+            horizonBGM.pause();
+            horizonBGM.currentTime = 0;
+        }
         function playStageBGM() {
             if (isSchoolMode) return;
+            stopHorizonBGM();
             stageBGM.onerror = () => {
                 stageBGM.onerror = null;
-                stageBGM.src = 'https://raw.githubusercontent.com/runon0512/course/a925c70b5da70ad2924f4dee10e259232fcf81a9/Stage.wav';
+                stageBGM.src = STAGE_BGM_FALLBACK_URL;
                 stageBGM.play().catch(() => {});
             };
             stageBGM.src = 'Stage.wav';
@@ -3734,6 +3756,7 @@
             updateGoldDisplay();
             updatePasswordSecurityNotification();
             updateHomeCharacter();
+            playHorizonBGM();
         }
 
         async function preloadAllData(username, loginHistory = []) {
@@ -8467,6 +8490,7 @@
             cancelAnimationFrame(gameLoopId);
             stopStageBGM();
             document.getElementById('game-screen').style.display = 'none';
+            playHorizonBGM();
             setMobileGameViewportLock(false);
             const shouldReturnToWeeklyCup = returnToWeeklyCupAfterGame;
             returnToWeeklyCupAfterGame = false;
@@ -8486,6 +8510,7 @@
         function showMessage(title, content, showRetry = false) {
             const overlay = document.getElementById('msg-overlay');
             stopStageBGM();
+            playHorizonBGM();
             document.getElementById('msg-title').innerText = title;
             document.getElementById('msg-content').innerText = content;
             document.getElementById('retry-btn').style.display = showRetry ? 'block' : 'none';
@@ -8581,6 +8606,7 @@
 
         async function showReward() {
             stopStageBGM();
+            playHorizonBGM();
             // タイムを小数第三位まで計算
             if (recordedClearTime === 0) {
                 recordedClearTime = Number((frameCount / 60).toFixed(3));
@@ -10883,6 +10909,8 @@
 
         // 起動時に保存された情報を読み込む
         window.addEventListener('DOMContentLoaded', () => {
+            // ブラウザの自動再生制限対策: 最初の操作を音声再生の許可操作として利用する。
+            document.addEventListener('pointerdown', () => playHorizonBGM(), { once: true, passive: true });
             // 旧ローカルストレージのパスワードは、利用せず直ちに削除する。
             localStorage.removeItem('pixel_stages_user');
             localStorage.removeItem('pixel_stages_pass');
