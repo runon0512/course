@@ -1782,7 +1782,6 @@
                 <button class="pixel-btn small" onclick="closeChat()">戻る</button>
                 <button id="chat-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleStageSearch()">📎 ステージを添付</button>
                 <button id="chat-image-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('chat-image-input').click()">🖼️ 画像を送る</button>
-                <button id="chat-show-all-btn" class="pixel-btn small" style="background:#5b4b9a;" onclick="showAllChatMessages()">すべてを表示</button>
                 <input type="file" id="chat-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleChatImageSelect(event)">
             </div>
 
@@ -2213,7 +2212,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwD5pcFS0PSQy5D226k55WgXoSMv8w47-wrGorvcI-GCBeEW484E-TXnoaivMXvZRwE/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycby5IgbKtJvmeHFdtyqXS9GCR3hEpObToti8PyRlHWbPfptbvlrMmFTv5JH8pXddKpml/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.14.5"
@@ -2437,6 +2436,11 @@
         let weeklyCupStageCacheWeek = null;
         let returnToWeeklyCupAfterGame = false;
         let cachedStages = null;    // ステージリストのキャッシュ
+        function getCachedStagesArray() {
+            // 通信失敗時の応答などが混入しても、配列前提の画面処理を止めない。
+            if (!Array.isArray(cachedStages)) cachedStages = [];
+            return cachedStages;
+        }
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
         let cachedAllUsernames = null; // @メンション検索用の全ユーザー名一覧
@@ -4054,9 +4058,9 @@
             await ensureBadgeSettingsLoaded();
 
             if (tab === 'level') await ensurePlayerLevelsLoaded(true);
-            if (!cachedStages) {
+            if (!Array.isArray(cachedStages)) {
                 const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
+                cachedStages = Array.isArray(res?.stages) ? res.stages : [];
             }
 
             const q = query.toLowerCase();
@@ -4152,9 +4156,7 @@
 
         async function openChat() {
             document.getElementById('chat-overlay').style.display = 'flex';
-            chatHistoryLimit = 50;
-            const showAllBtn = document.getElementById('chat-show-all-btn');
-            if (showAllBtn) { showAllBtn.disabled = false; showAllBtn.innerText = 'すべてを表示'; }
+            chatHistoryLimit = 20;
             clearAttachedStage();
             clearChatReply();
             document.getElementById('chat-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
@@ -4164,7 +4166,7 @@
         function closeChat() {
             document.getElementById('chat-overlay').style.display = 'none';
             document.getElementById('chat-stage-search').style.display = 'none';
-            chatHistoryLimit = 50;
+            chatHistoryLimit = 20;
             // 開いている間は止めていたバックグラウンド通知ポーリング(3分間隔)を再開する
             if (!chatRefreshId) chatRefreshId = setInterval(refreshChat, 180000);
         }
@@ -4407,11 +4409,11 @@
             document.getElementById('dm-selected-image-info').style.display = 'none';
         }
 
-        let chatHistoryLimit = 50;
+        let chatHistoryLimit = 20;
 
         async function showAllChatMessages() {
             const button = document.getElementById('chat-show-all-btn');
-            chatHistoryLimit = 1000;
+            chatHistoryLimit = 20;
             if (button) { button.disabled = true; button.innerText = '読み込み中...'; }
             try {
                 // 直前の通知取得（50件）が進行中なら、完了後に1000件を改めて取得する。
@@ -4419,7 +4421,7 @@
                 await refreshChat();
                 if (hadInFlightRequest) await refreshChat();
             } finally {
-                if (button) button.innerText = '直近1000件を表示中';
+                if (button) button.innerText = '直近20件を表示中';
             }
         }
 
@@ -4441,8 +4443,9 @@
                 return;
             }
 
+            const messages = Array.isArray(res.messages) ? res.messages : [];
             const lastSeen = localStorage.getItem('pixel_chat_last_time');
-            const latestTime = res.messages.length > 0 ? new Date(res.messages[0].time).getTime() : 0;
+            const latestTime = messages.length > 0 ? new Date(messages[0].time).getTime() : 0;
             const isChatOpen = document.getElementById('chat-overlay').style.display === 'flex';
 
             // 通知処理
@@ -4472,7 +4475,7 @@
 
             const container = document.getElementById('chat-list');
             container.innerHTML = '';
-            res.messages.forEach(m => {
+            messages.forEach(m => {
                 const item = document.createElement('div');
                 item.className = 'chat-msg-item';
                 
@@ -5486,9 +5489,9 @@
                 ? null
                 : callApi('getUserProfile', { username: targetUser });
             
-            if (!cachedStages) {
+            if (!Array.isArray(cachedStages)) {
                 const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
+                cachedStages = Array.isArray(res?.stages) ? res.stages : [];
             }
             await ensureBadgeSettingsLoaded();
 
@@ -5590,10 +5593,11 @@
         }
 
         function calculateProfileStats(targetUser) {
+            const stages = getCachedStagesArray();
             const allUsers = {}; // 全ユーザーの集計用
             
             // ステージを難易度順（クリア率昇順）にソート
-            const sortedByDifficulty = [...cachedStages].sort((a, b) => {
+            const sortedByDifficulty = [...stages].sort((a, b) => {
                 const crA = a.attempts > 0 ? a.clears / a.attempts : 1;
                 const crB = b.attempts > 0 ? b.clears / b.attempts : 1;
                 return crA - crB;
@@ -5601,7 +5605,7 @@
 
             const userHardestClearedRank = {}; 
 
-            cachedStages.forEach(s => {
+            stages.forEach(s => {
                 const stageRank = sortedByDifficulty.findIndex(st => (st.id || st.name) === (s.id || s.name)) + 1;
                 
                 const registerUser = (name, skin = 'default', color = 'default', custom = null) => {
@@ -5652,7 +5656,7 @@
             }
  
             // 各種計算
-            const totalStages = cachedStages.length || 1;
+            const totalStages = stages.length || 1;
             const totalUserCount = Object.keys(allUsers).length || 1;
  
             // 1. Leader (クリアしたステージ数: 1位のプレイヤーを100とした相対評価)
@@ -5678,7 +5682,7 @@
                 return top5.reduce((a, b) => a + b, 0) / top5.length;
             };
 
-            const totalPlaysOverall = cachedStages.reduce((sum, s) => sum + (s.attempts || 0), 0);
+            const totalPlaysOverall = stages.reduce((sum, s) => sum + (s.attempts || 0), 0);
             const globalAvgPlays = totalPlaysOverall / totalStages;
             const maxAvgPlays = Math.max(...Object.values(allUsers).map(u => getUserTop5Avg(u)), 1);
             const myAvgPlays = getUserTop5Avg(allUsers[targetUser]);
