@@ -1569,7 +1569,8 @@
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
             <span style="color:#e8f7ff;">EXP: <span id="user-level-exp"></span></span> | 
             <span style="color:#e0f7fa;">AS: <span id="user-as">0</span></span> | 
-            <span style="color:#ff6f00;">ES:<span id="user-es">0</span></span>
+            <span style="color:#ff6f00;">ES:<span id="user-es">0</span></span> | 
+            <span style="color:#9eeaff; cursor:pointer; text-decoration:underline;" onclick="copyReferralLink()">紹介リンク</span>
         </div>
         <div id="online-users-popup" style="position:absolute; top:5.5cqh; left:1cqw; z-index:30; display:none; min-width:18cqw; max-width:34cqw; max-height:34cqh; overflow-y:auto; padding:1cqw; background:rgba(4,20,40,.96); border:.15cqw solid #2ecc71; box-shadow:0 0 1cqw rgba(46,204,113,.35);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.7cqh; color:#7dffcb; font-weight:bold;">オンライン <button onclick="toggleOnlineUsers(false)" style="border:0; background:transparent; color:#fff; cursor:pointer;">✕</button></div>
@@ -1609,6 +1610,12 @@
                     <input type="password" id="password" placeholder="PASSWORD">
                     <button type="button" class="toggle-pass" onclick="togglePassword()">SHOW</button>
                 </div>
+                <div id="referrer-input-wrap" style="display:none;">
+                <div class="input-group">
+                    <input type="text" id="referrer-code" placeholder="紹介者のユーザー名（任意）" maxlength="12">
+                </div>
+                <div style="font-size:0.9cqw; color:#aeeeff; margin:-.7cqh 0 1cqh;">紹介者の名前を入力して新規登録すると、15,000Gでスタート！</div>
+                </div>
                 <label class="remember-wrap">
                     <input type="checkbox" id="remember-me">
                     <span>次回から自動ログイン</span>
@@ -1626,7 +1633,7 @@
                     <span>クイック送信（送信を待たずにOK）</span>
                 </label>
                 <div style="display: flex; gap: 2cqw; justify-content: center;">
-                    <button class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
+                    <button id="login-btn" class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
                     <button class="pixel-btn small" onclick="handleAuth('register')">新規登録</button>
                 </div>
                 <div id="auth-msg" class="auth-msg"></div>
@@ -2212,7 +2219,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycby5IgbKtJvmeHFdtyqXS9GCR3hEpObToti8PyRlHWbPfptbvlrMmFTv5JH8pXddKpml/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyGksHnCKWjQiVaIKSJkVEEydQxMdyenmIQjLprBpnAVoY5I4TKfsYdw9EmOxUmuonY/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.14.5"
@@ -3261,6 +3268,8 @@
         const AUTH_SESSION_COOKIE = 'pixel_stages_session';
         const AUTH_SESSION_STORAGE_KEY = 'pixel_stages_session_token';
         let activeSessionToken = '';
+        let isReferralRegistrationMode = false;
+        let pendingReferralBonusNotice = false;
 
         function setAuthSessionCookie(token) {
             const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
@@ -3282,6 +3291,47 @@
             try { localStorage.removeItem(AUTH_SESSION_STORAGE_KEY); } catch (e) { /* 無視 */ }
         }
 
+        function getReferralLink() {
+            const url = new URL(location.href);
+            url.search = '';
+            url.hash = '';
+            url.searchParams.set('ref', CONFIG.USERNAME || '');
+            return url.toString();
+        }
+
+        async function copyReferralLink() {
+            const link = getReferralLink();
+            let copied = false;
+            try {
+                await navigator.clipboard.writeText(link);
+                copied = true;
+            } catch (e) {
+                const helper = document.createElement('textarea');
+                helper.value = link;
+                helper.style.cssText = 'position:fixed;left:-9999px;top:0;';
+                document.body.appendChild(helper);
+                helper.select();
+                try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
+                helper.remove();
+                if (!copied) prompt('紹介リンクをコピーしてください。', link);
+            }
+            if (copied) showReferralCopyNotice();
+        }
+
+        function showReferralCopyNotice() {
+            let notice = document.getElementById('referral-copy-notice');
+            if (!notice) {
+                notice = document.createElement('div');
+                notice.id = 'referral-copy-notice';
+                notice.style.cssText = 'position:fixed;z-index:1000;left:50%;top:12%;transform:translateX(-50%);padding:1cqh 1.4cqw;background:rgba(5,30,55,.96);border:.15cqw solid #62efff;color:#dfffff;font-size:1.35cqw;box-shadow:0 0 1.4cqw rgba(70,230,255,.55);pointer-events:none;';
+                document.body.appendChild(notice);
+            }
+            notice.textContent = 'リンクをコピーしました';
+            notice.style.display = 'block';
+            clearTimeout(notice._hideTimer);
+            notice._hideTimer = setTimeout(() => { notice.style.display = 'none'; }, 1800);
+        }
+
         function setAutoLoginInputState(isLoading) {
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
@@ -3296,8 +3346,14 @@
         function handleAuth(type) {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
+            const referrer = document.getElementById('referrer-code').value;
             const msg = document.getElementById('auth-msg');
             const remember = document.getElementById('remember-me').checked;
+            if (type === 'login' && isReferralRegistrationMode) {
+                msg.style.color = 'var(--secondary-color)';
+                msg.innerText = '紹介リンクからは新規登録してください。';
+                return;
+            }
             if (!user || !pass) {
                 msg.innerText = "入力してください！";
                 return;
@@ -3306,12 +3362,23 @@
             msg.innerText = "通信中...";
 
             // google.script.run ではなく、定義済みの callApi を使用します
-            callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember: type === 'login' && remember })
+            callApi(type, { username: user, password: pass, referrer: type === 'register' ? referrer : '', version: CONFIG.VERSION, remember: type === 'login' && remember })
                 .then((res) => {
                     msg.innerText = res.message;
                     if (res.success) {
                         msg.style.color = "var(--primary-color)";
                         if (type === 'register') {
+                            if (isReferralRegistrationMode) {
+                                // URLを通常リンクへ戻し、以後は通常のログイン画面として扱う。
+                                const cleanUrl = new URL(location.href);
+                                cleanUrl.searchParams.delete('ref');
+                                history.replaceState(null, '', cleanUrl.toString());
+                                isReferralRegistrationMode = false;
+                                document.getElementById('referrer-input-wrap').style.display = 'none';
+                                const loginBtn = document.getElementById('login-btn');
+                                if (loginBtn) { loginBtn.disabled = false; loginBtn.style.opacity = '1'; loginBtn.title = ''; }
+                                pendingReferralBonusNotice = res.referralApplied === true;
+                            }
                             // 登録直後は同じ認証情報でそのままログインへ進む。
                             msg.innerText = '登録完了。ログインしています...';
                             handleAuth('login');
@@ -3417,6 +3484,10 @@
                 userBadgeVisible = res.badgeVisible !== false;
                 passwordIsHashed = res.passwordHashed !== false;
                 showLoggedInHome(res.username);
+                if (pendingReferralBonusNotice) {
+                    pendingReferralBonusNotice = false;
+                    showQuickMsg('紹介特典を獲得、15000G', 'var(--primary-color)');
+                }
                 startHomeSyncUI();
                 preloadAllData(res.username, res.loginBonusHistory)
                     .catch(error => console.error('初期データ同期エラー:', error))
@@ -10919,7 +10990,28 @@
             localStorage.removeItem('pixel_stages_user');
             localStorage.removeItem('pixel_stages_pass');
             localStorage.removeItem('pixel_stages_remember');
-            const savedSession = getAuthSessionCookie();
+            // 紹介リンク（?ref=紹介者名）で開いた場合は、新規登録欄へ自動入力する。
+            const referralRaw = new URLSearchParams(location.search).get('ref');
+            // 紹介者名の後に付いた /1 などの末尾識別子は、紹介者の判定には使わない。
+            const referralFromLink = referralRaw ? referralRaw.split('/')[0].trim() : '';
+            if (referralFromLink) {
+                // 紹介リンクでは既存アカウントへ自動ログインせず、新規登録を必ず選べる状態にする。
+                clearAuthSessionCookie();
+                activeSessionToken = '';
+                const referrerInput = document.getElementById('referrer-code');
+                referrerInput.value = referralFromLink.slice(0, 12);
+                referrerInput.readOnly = true;
+                referrerInput.title = '紹介リンクから設定された紹介者は変更できません';
+                document.getElementById('referrer-input-wrap').style.display = 'block';
+                isReferralRegistrationMode = true;
+                const loginBtn = document.getElementById('login-btn');
+                if (loginBtn) {
+                    loginBtn.disabled = true;
+                    loginBtn.style.opacity = '0.45';
+                    loginBtn.title = '紹介リンクからは新規登録のみ利用できます';
+                }
+            }
+            const savedSession = referralFromLink ? '' : getAuthSessionCookie();
             
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
