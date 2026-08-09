@@ -2220,7 +2220,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyle8LuLXRscxHSFVTZJai3mQ-btaSHxAdXtYlW12Ml4mkI6kZ9uRYc6dEcdvm0DYnu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.15.1"
+            VERSION: "2.15.1R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -8312,7 +8312,7 @@
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','S','G','KG','K','M','E','A','T','TD','X','W','L','U','P','H','AC',
+            'B','CB','S','G','KG','K','M','E','A','T','TD','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','BBN','LM','WC','WCN',
             'EC','PB','WB','BL','SM','FL','CA','GB'
@@ -8636,7 +8636,8 @@
             document.getElementById('retry-btn').style.display = showRetry ? 'block' : 'none';
             overlay.style.display = 'flex';
             // ゲームを停止
-            cancelAnimationFrame(gameLoopId);
+            if (gameLoopId !== null) cancelAnimationFrame(gameLoopId);
+            gameLoopId = null;
         }
 
         function retryGame() {
@@ -10484,19 +10485,21 @@
         }
 
         function handlePlayerDeath() {
+            // 同一フレーム内で複数の危険物に触れても、死亡処理と画面停止は一度だけにする。
+            if (isGoalTriggered) return;
             if (isRaiAlvaroStageType(currentStageType) && raiDashFrames > 0) return;
+            isGoalTriggered = true;
             if (gameMode === 'play' && !isWeeklyCupMatch && currentStageData && currentStageData.id) {
                 // 死亡場所を記録
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
             }
             if (gameMode === 'test') {
-                isGoalTriggered = true;
                 showMessage("TEST FAILED", "ミスしてしまいました。", true);
             } else if (gameMode === 'play') {
                 // プレイモードでもメッセージを出して「OK（戻る）」を押せるように修正
-                isGoalTriggered = true;
                 showMessage("GAME OVER", "ステージ失敗！", true);
             } else {
+                isGoalTriggered = false;
                 resetPlayer();
             }
         }
