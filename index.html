@@ -1823,6 +1823,7 @@
             <div id="dm-attachment-actions" style="display:flex; gap:1cqw; width:90%; margin-bottom:1cqh;">
                 <button id="dm-stage-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleDmStageSearch()">📎 ステージを添付</button>
                 <button id="dm-image-attach-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('dm-image-input').click()">🖼️ 画像を添付</button>
+                <button id="dm-gift-btn" class="pixel-btn small" style="background:#f5b700; color:#161000;" onclick="sendDirectGift()">🎁 ギフト</button>
                 <input type="file" id="dm-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleDmImageSelect(event)">
             </div>
             <div id="dm-stage-search" style="display:none; width:90%; flex-direction:column; gap:.5cqh; margin-bottom:1cqh;">
@@ -2145,6 +2146,7 @@
                     <div class="tool-btn rank-common" id="btn-tool-b" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-!" onclick="setTool('!', this)" title="R/B SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-Y" onclick="setTool('Y', this)" title="STICKY BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-CB" onclick="setTool('CB', this)" title="CRACK BLOCK" style="display:none;"><canvas id="icon-CB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-BB" onclick="setTool('BBN', this)" title="IRON BLOCK" style="display:none;"><canvas id="icon-BB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
@@ -2166,12 +2168,15 @@
                     <div class="tool-btn rank-legendary" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-mg" onclick="setTool('mg', this)" title="MISSILE GUN" style="display:none;"><canvas id="icon-mg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-LM" onclick="setTool('LM', this)" title="LAMP BLOCK" style="display:none;"><canvas id="icon-LM" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-CA" onclick="setTool('CA', this)" title="CANDLE" style="display:none;"><canvas id="icon-CA" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-WC" onclick="setTool('WCN', this)" title="PHYSICS WOOD CRATE" style="display:none;"><canvas id="icon-WC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-EC" onclick="setTool('EC', this)" title="ERUPTION CONTROL" style="display:none;"><canvas id="icon-EC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-PB" onclick="setTool('PB', this)" title="PURPLE (BOSS)" style="display:none;"><canvas id="icon-PB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-WB" onclick="setTool('WB', this)" title="WOLF (BOSS No.2)" style="display:none;"><canvas id="icon-WB" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-BL" onclick="setTool('BL', this)" title="BLACK (BOSS)" style="display:none;"><canvas id="icon-BL" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-SM" onclick="setTool('SM', this)" title="SLIME BLOCK" style="display:none;"><canvas id="icon-SM" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-FL" onclick="setTool('FL', this)" title="FIRE BLOCK" style="display:none;"><canvas id="icon-FL" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-GB" onclick="setTool('GB', this)" title="GOLD BLOCK" style="display:none;"><canvas id="icon-GB" class="tool-canvas"></canvas></div>
                     <div id="color-block-palette" style="display:none; position:fixed; z-index:80; gap:0.5cqw; padding:0.7cqw; background:rgba(4,16,36,.97); border:.15cqw solid #68ddff; box-shadow:0 0 1cqw rgba(74,220,255,.5); align-items:center; flex-wrap:wrap; width:15cqw;"></div>
                 </div>
             </div>
@@ -2212,7 +2217,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxham58fAANFm00LwNW-GY5tgFAu0uVtNqmiIHLKLTFgwo4-F7S6Kgcdsm266GQAbyz/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyle8LuLXRscxHSFVTZJai3mQ-btaSHxAdXtYlW12Ml4mkI6kZ9uRYc6dEcdvm0DYnu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "2.14.5"
@@ -2355,6 +2360,7 @@
         let currentTool = 'B';
         const TOOL_DESCRIPTIONS = {
             'B': { title: 'ブロック', text: '通常の足場ブロック。ステージの基本構造に使います。' },
+            'CB': { title: 'クラックブロック', text: '乗ると0.5秒後に崩壊する、ひび割れた足場ブロックです。' },
             'S': { title: 'スタート', text: 'プレイヤーの開始位置を設定するブロックです。ステージに1つだけ配置します。' },
             'G': { title: 'ゴール', text: 'プレイヤーが到達するとクリアになるゴールブロックです。' },
             'KG': { title: 'キラーゴール', text: '紫の特殊ゴールです。すべてのチェックポイントを取り、ボスを含む敵を全滅させるまで開きません。' },
@@ -2407,7 +2413,10 @@
             'PB': { title: 'パープル', text: '通常の敵の2倍の大きさを持つボス敵です。ステージに1体だけ配置できます。倒すとステージ上の粘液ブロックがすべて消えます。' },
             'WB': { title: '狼 (No.2)', text: '移動しながら4秒に1回、プレイヤーを追尾する回転する鎌を投げてくるボス敵です。ステージに1体だけ配置できます。' },
             'SM': { title: '粘液ブロック', text: '紫色のブロックです。それ自体に特別な効果はありませんが、ボス「パープル」を倒すとステージから消滅します。' },
-            'FL': { title: '炎ブロック', text: '触れると即死する炎のブロックです。ボス「狼(No.2)」を倒すとステージから消滅します。' }
+            'FL': { title: '炎ブロック', text: '触れると即死する炎のブロックです。ボス「狼(No.2)」を倒すとステージから消滅します。' },
+            'CA': { title: 'キャンドル', text: '踏むと消えるキャンドルです。ブラックのシールドを解除する鍵になります。' },
+            'BL': { title: 'ブラック', text: '金色の目を持つボスです。すべてのキャンドルを踏み消すまで攻撃できず、撃破すると金ブロックが消えます。' },
+            'GB': { title: '金ブロック', text: 'ブラックを倒すと、ステージからすべて消える頑丈な金のブロックです。' }
         };
         const STAGE_TYPE_DESCRIPTIONS = [
             { type: 'normal', title: '通常', text: '標準的な物理と背景のステージです。' },
@@ -2473,14 +2482,14 @@
 
         // ブロックの色マッピング（破片色用）
         const BLOCK_DEBRIS_COLOR = {
-            'B': '#78909c', 'X': '#546e7a', '!': '#ff8f00',
+            'B': '#78909c', 'CB': '#8d6e63', 'X': '#546e7a', '!': '#ff8f00',
             'Y': '#7b1fa2', 'I': '#81d4fa', 'T': '#8d6e63', 'TD': '#6d4c41',
             'H': '#a1887f', 'hr': '#ef9a9a', 'hb': '#90caf9',
             '#': '#b0bec5', 'r': '#f44336', 'b': '#2196f3',
-            'Z': '#e040fb', 'LM': '#ffca28', 'WC': '#795548', 'default': '#bdbdbd'
+            'Z': '#e040fb', 'LM': '#ffca28', 'CA': '#ffb300', 'GB': '#ffd54f', 'WC': '#795548', 'default': '#bdbdbd'
         };
         // 破壊できないタイル一覧（ミサイルの爆発・狼の大ジャンプ破壊など、ブロックを壊す処理全体で共有する）
-        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'FL'];
+        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'BL', 'CA', 'GB', 'FL'];
         // ブロック破壊時の破片パーティクルを生成する共通ヘルパー（以前はミサイル爆発処理内のローカル関数だった）
         function spawnBlockDebris(bx, by, tileType) {
             if (!cachedGameCanvas) return;
@@ -2508,7 +2517,10 @@
         // 木箱はグリッドから独立した物理オブジェクトとして扱う。
         // 座標はタイル単位だが、移動時は描画キャンバス上の1px以下には進めない。
         let woodCrates = [];
+        // クラックブロックは、最初に踏まれたフレームから30フレーム（0.5秒）で崩壊する。
+        const crackBlockTimers = new Map();
         let wolfBossRefs = []; // 狼（ボスNo.2）の参照だけを保持するキャッシュ。
+        let blackBossRefs = [];
         // プレイヤーの当たり判定で毎フレーム全敵(enemies)をスキャンしなくて済むようにする
         // （敵が多いステージで、プレイヤーが横移動するたびに重くなる原因になっていた）。
         let playbackGhosts = [];
@@ -2571,6 +2583,7 @@
         let lastTime = 0;
         let dynamicTiles = []; // 動的ギミックのキャッシュ用
         let lampPositions = []; // 暗闇ステージのランプ位置キャッシュ（毎フレームのグリッド走査を防ぐ）
+        let candlePositions = [];
         let spawnerPositions = [];
         let arrowLauncherPositions = [];
         let missileLauncherPositions = [];
@@ -2951,12 +2964,14 @@
             'big_block': { name: 'IRON BLOCK', price: 10000, isBlockSet: true, sprite: null },
             'lamp_block': { name: 'LAMP BLOCK', price: 15000, isBlockSet: true, sprite: null },
             'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null },
+            'crack_block': { name: 'CRACK BLOCK', price: 50000, isBlockSet: true, sprite: null },
             'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'moon_stage': { name: 'MOON STAGE', price: 40000, isBlockSet: true, isStageType: true, sprite: null },
             'beach_stage': { name: 'BEACH STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
+            'black_boss': { name: 'BLACK + CANDLE + GOLD BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
             // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
             'rai_alvaro': { name: 'RAI ALVARO', price: 0, sprite: RAI_ALVARO_SPRITE, recolorIndex: null, isHiddenShop: true }
@@ -3042,6 +3057,7 @@
             stageCacheCanvas.height = canvas.height;
             dynamicTiles = [];
             lampPositions = [];
+            candlePositions = [];
             spawnerPositions = [];
             arrowLauncherPositions = [];
             missileLauncherPositions = [];
@@ -3059,11 +3075,12 @@
                     if (!type) continue;
 
                     if (type === 'LM') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
+                    if (type === 'CA') candlePositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
                     if (type === 'sp' || type === 'sp_blue') spawnerPositions.push({ x, y, blue: type === 'sp_blue' });
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
 
-                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'EC'].includes(type)) {
+                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC'].includes(type)) {
                         dynamicTiles.push({x, y, type});
                     } else {
                         drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
@@ -3507,9 +3524,11 @@
                 if (id === 'big_block') previewType = 'BB';
                 if (id === 'lamp_block') previewType = 'LM';
                 if (id === 'wood_crate') previewType = 'WC';
+                if (id === 'crack_block') previewType = 'CB';
                 if (id === 'eruption_control') previewType = 'EC';
                 if (id === 'purple_boss') previewType = 'PB';
                 if (id === 'wolf_boss') previewType = 'WB';
+                if (id === 'black_boss') previewType = 'BL';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -3572,9 +3591,9 @@
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'WC', 'WCN', 'SM', 'FL'],
+            rare: ['Y', 'CB', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['hr', 'hb', 'e', '#'],
-            legendary: ['V', 'sp', 'mg', 'EC', 'PB', 'WB']
+            legendary: ['V', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -4296,6 +4315,26 @@
                     image.src = m.image;
                     image.addEventListener('click', () => showImageLightbox(m.image));
                     content.appendChild(image);
+                }
+                if (m.giftId) {
+                    const gift = document.createElement('div');
+                    gift.style.cssText = 'margin-top:.7cqh;padding:.65cqw;border:.12cqw solid #ffd740;background:rgba(86,57,0,.45);color:#fff3b0;font-weight:bold;';
+                    const currency = String(m.giftCurrency || 'G');
+                    const amount = Number(m.giftAmount || 0).toLocaleString();
+                    if (isMine) {
+                        gift.textContent = `🎁 ${amount} ${currency} を送付しました${m.giftClaimedBy ? '（受取済み）' : ''}`;
+                    } else if (m.giftClaimedBy) {
+                        gift.textContent = `🎁 ${amount} ${currency}（受取済み）`;
+                    } else {
+                        gift.textContent = `🎁 ${amount} ${currency} が届きました`;
+                        const claimBtn = document.createElement('button');
+                        claimBtn.className = 'pixel-btn small';
+                        claimBtn.style.cssText = 'margin:0 0 0 1cqw;background:#ffd740;color:#1a1200;';
+                        claimBtn.textContent = '受け取る';
+                        claimBtn.onclick = () => claimDirectGift(m.giftId, claimBtn);
+                        gift.appendChild(claimBtn);
+                    }
+                    content.appendChild(gift);
                 }
                 item.appendChild(content);
                 container.appendChild(item);
@@ -6674,6 +6713,8 @@
 
             // 粘着ブロック
             document.getElementById('btn-tool-Y').style.display = claimedRoadRewards.includes(3) ? 'flex' : 'none';
+            // クラックブロック
+            if(document.getElementById('btn-tool-CB')) document.getElementById('btn-tool-CB').style.display = purchasedSkins.includes('crack_block') ? 'flex' : 'none';
             if(document.getElementById('btn-tool-BB')) document.getElementById('btn-tool-BB').style.display = purchasedSkins.includes('big_block') ? 'flex' : 'none';
             // 昇降リフト
             document.getElementById('btn-tool-d').style.display = claimedRoadRewards.includes(7) ? 'flex' : 'none';
@@ -6733,6 +6774,12 @@
             const hasWolfBoss = purchasedSkins.includes('wolf_boss');
             if(document.getElementById('btn-tool-WB')) document.getElementById('btn-tool-WB').style.display = hasWolfBoss ? 'flex' : 'none';
             if(document.getElementById('btn-tool-FL')) document.getElementById('btn-tool-FL').style.display = hasWolfBoss ? 'flex' : 'none';
+
+            // ブラックボスセット（キャンドル、金ブロックを含む）
+            const hasBlackBoss = purchasedSkins.includes('black_boss');
+            if(document.getElementById('btn-tool-BL')) document.getElementById('btn-tool-BL').style.display = hasBlackBoss ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-CA')) document.getElementById('btn-tool-CA').style.display = hasBlackBoss ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-GB')) document.getElementById('btn-tool-GB').style.display = hasBlackBoss ? 'flex' : 'none';
 
             // 噴火制御機（購入済み、かつ火山・海辺ステージ選択中のみ表示）
             updateEruptionControlToolVisibility();
@@ -6820,7 +6867,7 @@
 
         function renderToolIcons() {
             const toolList = [
-                {type:'B', id:'icon-B'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
+                {type:'B', id:'icon-B'}, {type:'CB', id:'icon-CB'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
@@ -6828,7 +6875,7 @@
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
-                {type:'LM', id:'icon-LM'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}
+                {type:'LM', id:'icon-LM'}, {type:'CA', id:'icon-CA'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'BL', id:'icon-BL'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}, {type:'GB', id:'icon-GB'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -7000,7 +7047,7 @@
                         }
                     }
                     // 噴火制御機・パープル（ボス）・狼（ボス）はステージに1つだけ配置できるツール
-                    if ((currentTool === 'EC' || currentTool === 'PB' || currentTool === 'WB') && editorGrid[y][x] !== currentTool) {
+                    if ((currentTool === 'EC' || currentTool === 'PB' || currentTool === 'WB' || currentTool === 'BL') && editorGrid[y][x] !== currentTool) {
                         for(let r=0; r<GRID_H; r++) {
                             for(let c=0; c<GRID_W; c++) {
                                 if(editorGrid[r][c] === currentTool) editorGrid[r][c] = null;
@@ -7139,6 +7186,24 @@
 
             if(type === 'B') {
                 drawNormalBlock();
+            } else if(type === 'CB') {
+                // クラックブロック: 通常ブロックより少し明るく、ひびで崩れやすさを示す。
+                ctx.fillStyle = '#795548';
+                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+                ctx.fillStyle = '#5d4037';
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.4, cw - pad*2, ch*0.1);
+                ctx.strokeStyle = '#25150f';
+                ctx.lineWidth = Math.max(1, Math.min(cw, ch) * 0.055);
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*0.50, y*ch + ch*0.08);
+                ctx.lineTo(x*cw + cw*0.42, y*ch + ch*0.35);
+                ctx.lineTo(x*cw + cw*0.58, y*ch + ch*0.52);
+                ctx.lineTo(x*cw + cw*0.45, y*ch + ch*0.88);
+                ctx.moveTo(x*cw + cw*0.42, y*ch + ch*0.35);
+                ctx.lineTo(x*cw + cw*0.20, y*ch + ch*0.28);
+                ctx.moveTo(x*cw + cw*0.58, y*ch + ch*0.52);
+                ctx.lineTo(x*cw + cw*0.78, y*ch + ch*0.66);
+                ctx.stroke();
             } else if(type === 'S') {
                 // スタートパッド
                 ctx.fillStyle = "#1b5e20";
@@ -7593,6 +7658,38 @@
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, bw - pad*2, bh - pad*2);
                 if (isNewIronBlock) ctx.restore();
+            } else if(type === 'GB') {
+                // 金ブロック: ブラック撃破まで残る、壊れない金の足場。
+                const gx = x * cw, gy = y * ch;
+                const goldGrad = ctx.createLinearGradient(gx, gy, gx, gy + ch);
+                goldGrad.addColorStop(0, '#fff59d');
+                goldGrad.addColorStop(.35, '#ffd54f');
+                goldGrad.addColorStop(1, '#b8860b');
+                ctx.fillStyle = goldGrad;
+                ctx.fillRect(gx + pad, gy + pad, cw - pad * 2, ch - pad * 2);
+                ctx.strokeStyle = '#795500';
+                ctx.lineWidth = Math.max(1, Math.min(cw, ch) * .05);
+                ctx.strokeRect(gx + pad, gy + pad, cw - pad * 2, ch - pad * 2);
+                ctx.fillStyle = 'rgba(255,255,255,.65)';
+                ctx.fillRect(gx + cw * .18, gy + ch * .18, cw * .28, ch * .10);
+            } else if(type === 'CA') {
+                // キャンドル: 踏むと消える、ブラックのシールド源。
+                const cx = x * cw + cw * .5, cy = y * ch;
+                const flicker = .82 + Math.sin(time * 9 + x * 2 + y) * .18;
+                ctx.fillStyle = '#6d4c41';
+                ctx.fillRect(x*cw + cw*.30, y*ch + ch*.60, cw*.40, ch*.30);
+                ctx.fillStyle = '#fff3c4';
+                ctx.fillRect(x*cw + cw*.36, y*ch + ch*.36, cw*.28, ch*.28);
+                ctx.fillStyle = '#ff9800';
+                ctx.beginPath();
+                ctx.moveTo(cx, cy + ch * (.12 + (1 - flicker) * .10));
+                ctx.quadraticCurveTo(cx - cw*.16, cy + ch*.40, cx, cy + ch*.49);
+                ctx.quadraticCurveTo(cx + cw*.16, cy + ch*.40, cx, cy + ch*(.12 + (1 - flicker) * .10));
+                ctx.fill();
+                ctx.fillStyle = '#fffde7';
+                ctx.beginPath();
+                ctx.arc(cx, cy + ch*.34, Math.min(cw, ch)*.08, 0, Math.PI * 2);
+                ctx.fill();
             } else if(type === 'LM') {
                 // ランプブロック（暗闇ステージで周囲を照らす。それ以外では通常ブロック扱い）
                 ctx.fillStyle = "#37474f";
@@ -7694,6 +7791,18 @@
                 ctx.strokeStyle = "#ffca28";
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.9);
+            } else if(type === 'BL') {
+                // ブラック（ボス）の配置マーカー。
+                ctx.fillStyle = '#080808';
+                ctx.fillRect(x*cw + cw*0.05, y*ch + ch*0.08, cw*0.9, ch*0.9);
+                ctx.fillStyle = '#202020';
+                ctx.fillRect(x*cw + cw*0.05, y*ch + ch*0.08, cw*0.9, ch*0.18);
+                ctx.fillStyle = '#ffd740';
+                ctx.fillRect(x*cw + cw*0.22, y*ch + ch*0.38, cw*0.18, ch*0.16);
+                ctx.fillRect(x*cw + cw*0.60, y*ch + ch*0.38, cw*0.18, ch*0.16);
+                ctx.strokeStyle = '#ffd740';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*0.05, y*ch + ch*0.08, cw*0.9, ch*0.9);
             } else if(type === 'AC') {
                 // アクションブロック: シンプルな黄色ブロック
                 const ax = x * cw, ay = y * ch;
@@ -8206,7 +8315,7 @@
             'B','S','G','KG','K','M','E','A','T','TD','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','BBN','LM','WC','WCN',
-            'EC','PB','WB','SM','FL'
+            'EC','PB','WB','BL','SM','FL','CA','GB'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -8400,7 +8509,9 @@
             // 初期位置探し
             enemies = [];
             woodCrates = [];
+            crackBlockTimers.clear();
             wolfBossRefs = [];
+            blackBossRefs = [];
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
@@ -8434,11 +8545,16 @@
                         enemies.push({x: x, y: y, vx: -0.0525, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.4, isWolf: true, isBoss: true, name: 'WOLF', hp: 80, maxHp: 80, hitCooldown: 0, sickleTimer: 240, fireballTimer: 480, bigJumpTimer: 180, isBigJumping: false, bigJumpFrames: 0, directionTimer: 60});
                         activeStage[y][x] = null;
                     }
+                    if(activeStage[y][x] === 'BL') {
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isBlack: true, isBoss: true, name: 'BLACK', hp: 100, maxHp: 100, hitCooldown: 0, raiDamageFlash: 0});
+                        activeStage[y][x] = null;
+                    }
                 }
             }
             // 狼ボスの参照をキャッシュ（プレイヤーの当たり判定で毎フレーム全敵をスキャンしないため。
             // ステージ開始時の1回だけ抽出すればよい）
             wolfBossRefs = enemies.filter(en => en.isWolf);
+            blackBossRefs = enemies.filter(en => en.isBlack);
 
             // ボスが巨大化する領域に埋まっている通常ブロックを開幕時に破壊する
             enemies.forEach(en => {
@@ -9057,6 +9173,94 @@
             return 0;
         }
 
+        async function sendDirectGift() {
+            if (!currentDmPartner) return;
+            const currencyInput = prompt('送る通貨を入力してください（G または AS）', 'G');
+            if (currencyInput === null) return;
+            const currency = String(currencyInput).trim().toUpperCase();
+            if (currency !== 'G' && currency !== 'AS') { alert('G または AS を入力してください。'); return; }
+            const amountInput = prompt(`${currency} をいくつ送りますか？`, '100');
+            if (amountInput === null) return;
+            const amount = Math.floor(Number(amountInput));
+            if (!Number.isFinite(amount) || amount < 1) { alert('1以上の数値を入力してください。'); return; }
+            const giftBtn = document.getElementById('dm-gift-btn');
+            if (giftBtn) { giftBtn.disabled = true; giftBtn.textContent = '送信中...'; }
+            try {
+                const res = await callApi('sendDirectGift', { username: CONFIG.USERNAME, to: currentDmPartner, currency, amount, skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null });
+                if (!res || !res.success) { alert((res && res.message) || 'ギフトの送信に失敗しました。'); return; }
+                if (currency === 'G') userGold = Number(res.gold) || 0;
+                else userAS = Number(res.auroraStones) || 0;
+                updateGoldDisplay();
+                await refreshDirectMessages();
+            } finally {
+                if (giftBtn) { giftBtn.disabled = false; giftBtn.textContent = '🎁 ギフト'; }
+            }
+        }
+
+        async function claimDirectGift(giftId, button) {
+            if (!giftId || !button) return;
+            button.disabled = true;
+            button.textContent = '受取中...';
+            const res = await callApi('claimDirectGift', { username: CONFIG.USERNAME, giftId });
+            if (!res || !res.success) {
+                alert((res && res.message) || 'ギフトの受取に失敗しました。');
+                button.disabled = false;
+                button.textContent = '受け取る';
+                return;
+            }
+            if (res.currency === 'G') userGold = Number(res.gold) || userGold;
+            if (res.currency === 'AS') userAS = Number(res.auroraStones) || userAS;
+            updateGoldDisplay();
+            showQuickMsg(res.message || 'ギフトを受け取りました！', 'var(--primary-color)');
+            await refreshDirectMessages();
+        }
+
+        function extinguishSteppedCandles() {
+            if (!player.onGround) return;
+            const footY = Math.floor(player.y + player.h + 0.01);
+            const leftX = Math.floor(player.x + 0.05);
+            const rightX = Math.floor(player.x + player.w - 0.05);
+            let extinguished = false;
+            if (activeStage[footY]) {
+                for (let x = leftX; x <= rightX; x++) {
+                    if (activeStage[footY][x] === 'CA') {
+                        spawnBlockDebris(x, footY, 'CA');
+                        activeStage[footY][x] = null;
+                        extinguished = true;
+                    }
+                }
+            }
+            // キャンドル位置と動的タイルのキャッシュも同時に更新する。
+            if (extinguished) updateStageCache();
+        }
+
+        function updateCrackBlocks() {
+            // 着地したマスだけを調べるため、全グリッドを毎フレーム走査しない。
+            if (player.onGround) {
+                const footY = Math.floor(player.y + player.h + 0.01);
+                const leftX = Math.floor(player.x + 0.05);
+                const rightX = Math.floor(player.x + player.w - 0.05);
+                if (activeStage[footY]) {
+                    for (let x = leftX; x <= rightX; x++) {
+                        if (activeStage[footY][x] === 'CB') {
+                            const key = `${x},${footY}`;
+                            if (!crackBlockTimers.has(key)) crackBlockTimers.set(key, frameCount);
+                        }
+                    }
+                }
+            }
+            for (const [key, startedFrame] of crackBlockTimers) {
+                if (frameCount - startedFrame < 30) continue;
+                const [x, y] = key.split(',').map(Number);
+                if (activeStage[y] && activeStage[y][x] === 'CB') {
+                    spawnBlockDebris(x, y, 'CB');
+                    activeStage[y][x] = null;
+                    updateStageCacheTile(x, y);
+                }
+                crackBlockTimers.delete(key);
+            }
+        }
+
         function updateGame() {
             if (isGoalTriggered) return;
 
@@ -9374,6 +9578,9 @@
                 player.vy = 0;
             }
 
+            extinguishSteppedCandles();
+            updateCrackBlocks();
+
             // ギミック判定
             checkGimmicks();
 
@@ -9670,7 +9877,7 @@
                     en.dead = true;
                     continue;
                 }
-                if (en.isBoss && isRaiDashContact && !raiDashHitBoss) {
+                if (en.isBoss && isRaiDashContact && !raiDashHitBoss && !(en.isBlack && isBlackBossShieldActive())) {
                     // 雷ダッシュは通常の踏みつけ（10ダメージ）2回分の威力。
                     en.hp = Math.max(0, en.hp - 20);
                     en.raiDamageFlash = 30;
@@ -9679,6 +9886,7 @@
                         en.dead = true;
                         if (en.isPurple) removeAllSlimeBlocks();
                         if (en.isWolf) removeAllFireBlocks();
+                        if (en.isBlack) removeAllGoldBlocks();
                     }
                 }
                 if (isOverlappingEnemy || stompedEnemy) {
@@ -9690,13 +9898,14 @@
                         player.onGround = false;
                         player.vy = -0.3; // 踏んで跳ねる
                         if (en.isBoss) {
-                            if (en.hitCooldown <= 0) {
+                            if (en.hitCooldown <= 0 && !(en.isBlack && isBlackBossShieldActive())) {
                                 en.hp = Math.max(0, en.hp - 10);
                                 en.hitCooldown = 20;
                                 if (en.hp <= 0) {
                                     en.dead = true;
                                     if (en.isPurple) removeAllSlimeBlocks();
                                     if (en.isWolf) removeAllFireBlocks();
+                                    if (en.isBlack) removeAllGoldBlocks();
                                 }
                             }
                         } else {
@@ -10155,9 +10364,9 @@
                 const tile = activeStage[iy][ix];
                 if(tile) {
                     const tc = tile.charCodeAt(0);
-                    if(tile === 'B' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'AC' ||
+                    if(tile === 'B' || tile === 'CB' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'AC' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
-                       tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === 'LM' || tile === 'WC' ||
+                       tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === 'GB' || tile === 'CA' || tile === 'LM' || tile === 'WC' ||
                        tile === 'SM' || tile === 'EC' ||
                        (tc === 90 && tile.length > 1) /* 'Z'... */ ||
                        (tile === 'r' && isSwitchOn) || (tile === 'b' && !isSwitchOn) ||
@@ -10226,6 +10435,29 @@
             for (let y = 0; y < GRID_H; y++) {
                 for (let x = 0; x < GRID_W; x++) {
                     if (activeStage[y] && activeStage[y][x] === 'FL') {
+                        activeStage[y][x] = null;
+                        removedAny = true;
+                    }
+                }
+            }
+            if (removedAny) updateStageCache();
+        }
+
+        // ブラックは、ステージ内にキャンドルが1つでも残っている間は攻撃を受けない。
+        // 攻撃が当たる瞬間だけ確認するため、通常フレームには全マス走査を行わない。
+        function isBlackBossShieldActive() {
+            for (let y = 0; y < GRID_H; y++) {
+                if (activeStage[y] && activeStage[y].includes('CA')) return true;
+            }
+            return false;
+        }
+
+        // ブラック撃破時: 金ブロック（'GB'）をすべて取り除く。
+        function removeAllGoldBlocks() {
+            let removedAny = false;
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    if (activeStage[y] && activeStage[y][x] === 'GB') {
                         activeStage[y][x] = null;
                         removedAny = true;
                     }
@@ -10338,6 +10570,27 @@
             // キャッシュされた静的レイヤー（ブロック等）を描画
             cachedGameCtx.drawImage(stageCacheCanvas, 0, 0);
 
+            // ブラックのキャンドルシールド。残っている全キャンドルへ金色の線を伸ばす。
+            if (blackBossRefs.length && candlePositions.length) {
+                cachedGameCtx.save();
+                cachedGameCtx.strokeStyle = 'rgba(255, 215, 64, .7)';
+                cachedGameCtx.lineWidth = Math.max(1, cw * .045);
+                cachedGameCtx.setLineDash([Math.max(2, cw * .10), Math.max(2, cw * .08)]);
+                for (let b = 0; b < blackBossRefs.length; b++) {
+                    const boss = blackBossRefs[b];
+                    if (boss.dead) continue;
+                    const bossX = (boss.x + (boss.size || 1.8) / 2) * cw;
+                    const bossY = (boss.y + (boss.size || 1.8) / 2) * ch;
+                    for (let l = 0; l < candlePositions.length; l++) {
+                        cachedGameCtx.beginPath();
+                        cachedGameCtx.moveTo(bossX, bossY);
+                        cachedGameCtx.lineTo(candlePositions[l].x, candlePositions[l].y);
+                        cachedGameCtx.stroke();
+                    }
+                }
+                cachedGameCtx.restore();
+            }
+
             // 動的なタイル（風など）のみをリストから高速に描画
             for (let i = 0; i < dynamicTiles.length; i++) {
                 const t = dynamicTiles[i];
@@ -10384,6 +10637,21 @@
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.2, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.6, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
 
+                    } else if (en.isBlack) {
+                        // ブラック: 金の目と、キャンドルが残っている間の金色シールド。
+                        const shielded = candlePositions.length > 0;
+                        if (shielded) {
+                            cachedGameCtx.strokeStyle = 'rgba(255,215,64,.9)';
+                            cachedGameCtx.lineWidth = Math.max(2, cw * .07);
+                            cachedGameCtx.strokeRect(en.x * cw - 2, en.y * ch - 2, cw * enSize + 4, ch * enSize + 4);
+                        }
+                        cachedGameCtx.fillStyle = '#050505';
+                        cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw * enSize, ch * enSize);
+                        cachedGameCtx.fillStyle = '#1c1c1c';
+                        cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw * enSize, ch * enSize * .22);
+                        cachedGameCtx.fillStyle = '#ffd740';
+                        cachedGameCtx.fillRect(en.x * cw + cw * enSize * .20, en.y * ch + ch * enSize * .40, cw * enSize * .20, ch * enSize * .18);
+                        cachedGameCtx.fillRect(en.x * cw + cw * enSize * .60, en.y * ch + ch * enSize * .40, cw * enSize * .20, ch * enSize * .18);
                     } else if (en.isWolf) {
                         // 狼（ボスNo.2）: 指定のドット絵で描画。移動方向に応じて左右反転する
                         const facing = en.vx < 0 ? 'left' : 'right';
@@ -10736,9 +11004,9 @@
                 const hpRatio = Math.max(0, en.hp / en.maxHp);
                 cachedGameCtx.fillStyle = 'rgba(0,0,0,0.8)';
                 cachedGameCtx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
-                cachedGameCtx.fillStyle = '#4a148c';
+                cachedGameCtx.fillStyle = en.isBlack ? '#4a3900' : '#4a148c';
                 cachedGameCtx.fillRect(barX, barY, barW, barH);
-                cachedGameCtx.fillStyle = '#e040fb';
+                cachedGameCtx.fillStyle = en.isBlack ? '#ffd740' : '#e040fb';
                 cachedGameCtx.fillRect(barX, barY, barW * hpRatio, barH);
                 if (en.raiDamageFlash > 0) {
                     cachedGameCtx.fillStyle = '#fff36b';
