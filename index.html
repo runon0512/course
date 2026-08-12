@@ -2220,7 +2220,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyle8LuLXRscxHSFVTZJai3mQ-btaSHxAdXtYlW12Ml4mkI6kZ9uRYc6dEcdvm0DYnu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2.15.1R"
+            VERSION: "2-Final"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2524,6 +2524,10 @@
         // プレイヤーの当たり判定で毎フレーム全敵(enemies)をスキャンしなくて済むようにする
         // （敵が多いステージで、プレイヤーが横移動するたびに重くなる原因になっていた）。
         let playbackGhosts = [];
+        let isGhostSpectatorMode = false;
+        let selectedSpectatorGhost = null;
+        let leaderboardWatchStage = null;
+        let leaderboardWatchRecords = [];
         // ステージごとに準備済みのゴーストを保持する。
         // Retry はこのデータを再利用し、再変換を発生させない。
         const preloadedGhostCache = new WeakMap();
@@ -6406,27 +6410,51 @@
             // Runonの手動追加ボタンの制御を削除
 
             const headerRow = body.parentElement.querySelector('thead tr');
-            if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">TIME</th>`;
+            if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">TIME</th><th style="padding: 1cqh; text-align: right;">観る</th>`;
 
             await ensureBadgeSettingsLoaded();
             await ensurePlayerLevelsLoaded();
 
-            const sortedRecords = (stage.leaderboard || []).sort((a, b) => a.time - b.time);
+            // 観戦できる（ゴーストを持つ）記録を先頭に集め、同じ区分内ではタイム順にする。
+            // 表示する順位は本来のタイム順位を維持する。
+            const rankedRecords = (stage.leaderboard || []).slice().sort((a, b) => a.time - b.time);
+            let rank = 0, previousTime = null;
+            rankedRecords.forEach((record, index) => {
+                if (record.time !== previousTime) { rank = index + 1; previousTime = record.time; }
+                record._displayRank = rank;
+            });
+            const sortedRecords = rankedRecords.slice().sort((a, b) => {
+                const aWatchable = Array.isArray(a.ghost) && a.ghost.length ? 1 : 0;
+                const bWatchable = Array.isArray(b.ghost) && b.ghost.length ? 1 : 0;
+                return bWatchable - aWatchable || a.time - b.time;
+            });
+            leaderboardWatchStage = stage;
+            leaderboardWatchRecords = sortedRecords;
             
-            let currentRank = 0;
-            let lastTime = -1;
             sortedRecords.forEach((rec, idx) => {
-                if (rec.time !== lastTime) {
-                    currentRank = idx + 1;
-                    lastTime = rec.time;
-                }
                 body.innerHTML += `
                     <tr style="border-bottom: 0.1cqw solid #444;">
-                        <td style="padding: 1.5cqh;">${currentRank}</td>
+                        <td style="padding: 1.5cqh;">${rec._displayRank}</td>
                         <td style="padding: 1.5cqh;">${getPlayerLevelPrefix(rec.name)}<span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
+                        <td style="padding: 1.5cqh; text-align: right;"><button class="pixel-btn small" style="margin:0; padding:.45cqh .7cqw; ${Array.isArray(rec.ghost) && rec.ghost.length ? '' : 'opacity:.45;'}" ${Array.isArray(rec.ghost) && rec.ghost.length ? `onclick="watchLeaderboardGhost(${idx})"` : 'disabled'}>観る</button></td>
                     </tr>`;
             });
+        }
+
+        function watchLeaderboardGhost(recordIndex) {
+            const stage = leaderboardWatchStage;
+            const record = leaderboardWatchRecords[Number(recordIndex)];
+            if (!stage || !record || !Array.isArray(record.ghost) || !record.ghost.length) {
+                alert('この記録には観戦できるゴーストがありません。');
+                return;
+            }
+            const frames = record.ghost.map(pos => Array.isArray(pos)
+                ? pos
+                : [pos.x, pos.y, pos.f === 'right' ? 1 : 0]);
+            selectedSpectatorGhost = { ...record, frames };
+            document.getElementById('leaderboard-overlay').style.display = 'none';
+            startGame(stage, 'watch');
         }
 
         async function addManualRecord(stageId) {
@@ -8380,8 +8408,11 @@
             // 「プレイ」を押してからゲーム画面を始めるまでの間に一度だけ変換する。
             // Retry 時は既存の playbackGhosts をそのまま使う。
             if (!isRetry) playbackGhosts = preloadStageGhosts(stageObj);
+            // 観戦では、通常ゴーストの読み込み結果を必ず選択中の1人だけで上書きする。
+            if (mode === 'watch') playbackGhosts = selectedSpectatorGhost ? [selectedSpectatorGhost] : [];
 
             gameMode = mode;
+            isGhostSpectatorMode = mode === 'watch';
             currentStageData = stageObj;
             // PSWC名義の通常ステージは、期間設定なしで常に大会ルールを適用する。
             isWeeklyCupMatch = mode === 'play' && stageObj && (stageObj.isWeeklyCup === true || String(stageObj.creator || '').trim().toUpperCase() === 'PSWC');
@@ -8408,6 +8439,9 @@
                     stageObj.attempts = (stageObj.attempts || 0) + 1;
                 }
                 callApi('recordAttempt', { stageId: stageObj.id || stageObj.name });
+            } else if (mode === 'watch') {
+                // 観戦も通常プレイと同じ画面遷移にし、ステージ一覧を背後に残さない。
+                closeStageSelect();
             } else {
                 document.getElementById('editor-screen').style.display = 'none';
             }
@@ -8477,7 +8511,7 @@
                 container.classList.add('bg-moon');
             } else if (currentStageType === 'beach') {
                 container.classList.add('bg-beach');
-            } else if (mode === 'play' && stageObj && stageObj.attempts >= 5) {
+            } else if ((mode === 'play' || mode === 'watch') && stageObj && stageObj.attempts >= 5) {
                 const att = stageObj.attempts;
                 const cr = (stageObj.clears || 0) / att * 100;
                 
@@ -9290,7 +9324,7 @@
             }
 
             // タイムアップ判定
-            if (!isCountingDown && startTime > 0) {
+            if (gameMode !== 'watch' && !isCountingDown && startTime > 0) {
                 const elapsed = frameCount / 60;
                 if (elapsed >= 100) {
                     isGoalTriggered = true;
@@ -10144,7 +10178,7 @@
             const isGoalOpen = goalTile === 'G'
                 ? activeCheckpoints.size >= totalCheckpoints
                 : (isKillerGoal && activeCheckpoints.size >= totalCheckpoints && getRemainingKillerGoalEnemies() === 0);
-            if(!isGoalTriggered && frameCount > 60 && isGoalOpen) {
+            if(gameMode !== 'watch' && !isGoalTriggered && frameCount > 60 && isGoalOpen) {
                 isGoalTriggered = true;
                 // フレーム数に基づいた正確なタイムを計算（1秒=60フレーム）
                 recordedClearTime = Number((frameCount / 60).toFixed(3));
@@ -10546,10 +10580,10 @@
             // Retry/Exitはスタートから5秒後に有効化する。
             const gameRetryBtn = gameRetryBtnCache;
             const gameExitBtn = gameExitBtnCache;
-            const canUseControls = !isCountingDown && !isGoalTriggered && startTime > 0;
+            const canUseControls = isGhostSpectatorMode || (!isCountingDown && !isGoalTriggered && startTime > 0);
             const elapsed = canUseControls ? (Date.now() - startTime) / 1000 : Infinity;
-            const isControlEnabled = canUseControls && elapsed >= 5;
-            const retryLabel = !isControlEnabled && canUseControls ? `RETRY(${Math.ceil(5 - elapsed)})` : "RETRY";
+            const isControlEnabled = isGhostSpectatorMode || (canUseControls && elapsed >= 5);
+            const retryLabel = !isGhostSpectatorMode && !isControlEnabled && canUseControls ? `RETRY(${Math.ceil(5 - elapsed)})` : "RETRY";
             if (gameRetryBtn && retryLabel !== lastRetryLabel) {
                 gameRetryBtn.innerText = lastRetryLabel = retryLabel;
             }
@@ -10754,10 +10788,10 @@
                 }
             }
 
-            // ゴーストの描画
-            if (!isCountingDown && showGhosts && playbackGhosts.length > 0) {
+            // ゴーストの描画。観戦中は選択した1人だけを通常色で描画する。
+            if (!isGhostSpectatorMode && !isCountingDown && showGhosts && playbackGhosts.length > 0) {
                 cachedGameCtx.save();
-                cachedGameCtx.globalAlpha = 0.5; // 透明度を一括設定
+                cachedGameCtx.globalAlpha = isGhostSpectatorMode ? 1 : 0.5;
                 cachedGameCtx.font = `${ch * 0.3}px sans-serif`; // フォント設定をループの外へ
                 cachedGameCtx.textAlign = "center";
                 const frameIdx = Math.floor(frameCount / 5);
@@ -10800,11 +10834,13 @@
                 cachedGameCtx.stroke();
                 cachedGameCtx.restore();
             }
-            const gameplaySkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : equippedSkin;
-            drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, gameplaySkin, false, equippedColor, customSpriteStore[gameplaySkin], player.facing, CONFIG.USERNAME);
+            if (!isGhostSpectatorMode) {
+                const gameplaySkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : equippedSkin;
+                drawPlayer(cachedGameCtx, player.x * cw, player.y * ch, player.w * cw, player.h * ch, gameplaySkin, false, equippedColor, customSpriteStore[gameplaySkin], player.facing, CONFIG.USERNAME);
+            }
 
             // ライ・アルバロ: キャラクター横にスペシャルの再使用ゲージを表示
-            if (isRaiAlvaroStageType(currentStageType)) {
+            if (!isGhostSpectatorMode && isRaiAlvaroStageType(currentStageType)) {
                 const gaugeX = (player.x + player.w) * cw + 3;
                 const gaugeY = player.y * ch + ch * 0.12;
                 const gaugeW = Math.max(3, cw * 0.1);
@@ -11018,6 +11054,26 @@
                     cachedGameCtx.fillText('-20', barX + barW / 2, barY - 4);
                     en.raiDamageFlash--;
                 }
+            }
+
+            // 観戦ゴーストは水・暗闇などの全画面効果やボスHP表示よりも前面に描画する。
+            if (isGhostSpectatorMode && !isCountingDown && playbackGhosts.length > 0) {
+                cachedGameCtx.save();
+                cachedGameCtx.globalAlpha = 1;
+                cachedGameCtx.font = `${ch * 0.3}px sans-serif`;
+                cachedGameCtx.textAlign = 'center';
+                const ghost = playbackGhosts[0];
+                const frames = ghost.frames || [];
+                const pos = frames[Math.floor(frameCount / 5)] || frames[frames.length - 1];
+                if (pos) {
+                    const gx = pos[0], gy = pos[1];
+                    const gf = pos[2] === 1 ? 'right' : 'left';
+                    const ghostSkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : (ghost.skin || 'default');
+                    drawPlayer(cachedGameCtx, gx * cw, gy * ch, player.w * cw, player.h * ch, ghostSkin, false, ghost.color || 'default', ghost.customSprite, gf, ghost.name);
+                    cachedGameCtx.fillStyle = '#fff';
+                    cachedGameCtx.fillText(ghost.name || 'GHOST', (gx + player.w / 2) * cw, gy * ch - 10);
+                }
+                cachedGameCtx.restore();
             }
 
         }
