@@ -805,6 +805,15 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        .chat-video-embed {
+            display:block;
+            width:min(42cqw, 100%);
+            aspect-ratio:16 / 9;
+            max-height:28cqh;
+            margin-top:.8cqh;
+            border:.12cqw solid rgba(98,239,255,.65);
+            background:#000;
+        }
         #image-lightbox {
             display: none;
             position: fixed;
@@ -4037,6 +4046,50 @@
             return isAnnouncement ? `<div class="chat-announcement">${renderedMessage}</div>` : renderedMessage;
         }
 
+        // チャット本文から安全に埋め込める動画URLだけを取り出す。
+        // YouTube は専用プレーヤー、d.kuku.lu は投稿URLをそのままフレームで表示する。
+        function getEmbeddableVideoUrls(text) {
+            const matches = String(text || '').match(/(?:https?:\/\/|www\.)[^\s<>'"`]+/gi) || [];
+            const embeds = [];
+            const seen = new Set();
+            for (let raw of matches) {
+                raw = raw.replace(/[.,;:!?、。！？）」』\]\)"'>]+$/, '');
+                let parsed;
+                try { parsed = new URL(raw.startsWith('http') ? raw : `https://${raw}`); } catch (_) { continue; }
+                const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+                let src = '';
+                let provider = '';
+                if (host === 'youtu.be') {
+                    const id = parsed.pathname.split('/').filter(Boolean)[0];
+                    if (id && /^[A-Za-z0-9_-]{6,}$/.test(id)) { src = `https://www.youtube.com/embed/${id}`; provider = 'youtube'; }
+                } else if (host === 'youtube.com' || host === 'm.youtube.com') {
+                    const parts = parsed.pathname.split('/').filter(Boolean);
+                    const id = parsed.pathname === '/watch' ? parsed.searchParams.get('v') : (parts[0] === 'shorts' || parts[0] === 'embed' ? parts[1] : '');
+                    if (id && /^[A-Za-z0-9_-]{6,}$/.test(id)) { src = `https://www.youtube.com/embed/${id}`; provider = 'youtube'; }
+                } else if (host === 'd.kuku.lu' || host.endsWith('.d.kuku.lu')) {
+                    src = parsed.href;
+                    provider = 'kuku';
+                }
+                if (src && !seen.has(src)) { seen.add(src); embeds.push({ src, provider }); }
+            }
+            return embeds.slice(0, 2);
+        }
+
+        function appendMessageVideoEmbeds(container, text) {
+            const embeds = getEmbeddableVideoUrls(text);
+            for (const embed of embeds) {
+                const frame = document.createElement('iframe');
+                frame.className = 'chat-video-embed';
+                frame.src = embed.src;
+                frame.title = embed.provider === 'youtube' ? 'YouTube 動画' : 'd.kuku.lu 動画';
+                frame.loading = 'lazy';
+                frame.referrerPolicy = 'strict-origin-when-cross-origin';
+                frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+                frame.allowFullscreen = true;
+                container.appendChild(frame);
+            }
+        }
+
         // --- @メンション検索（チャット・ギルド掲示板 共通） ---
 
         // 全ユーザー名を取得（初回のみサーバーに問い合わせ、以後はキャッシュを利用）
@@ -4306,6 +4359,7 @@
                 const content = document.createElement('div');
                 content.style.flex = '1';
                 content.innerHTML = `<div class="chat-user" style="color:var(--primary-color); font-weight:bold;">${isMine ? '自分' : m.from}</div><div style="word-break:break-all;">${linkifyMessage(m.message)}</div><div class="message-meta">${new Date(m.time).toLocaleString()}</div>`;
+                appendMessageVideoEmbeds(content, m.message);
                 if (m.attachedStageId) {
                     const stageBtn = document.createElement('button');
                     stageBtn.className = 'chat-stage-link';
@@ -4537,6 +4591,7 @@
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                     ${stageBtn}
                 `;
+                appendMessageVideoEmbeds(content, m.message);
                 if (m.hasImage || m.image) {
                     const loadImageBtn = document.createElement('button');
                     loadImageBtn.className = 'chat-reply-btn';
@@ -5222,6 +5277,7 @@
                     <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
+                appendMessageVideoEmbeds(contentDiv, m.message);
                 item.appendChild(contentDiv);
                 container.appendChild(item);
             });
@@ -11077,7 +11133,6 @@
             }
 
         }
-
         function drawPlayer(ctx, px, py, pw, ph, skinId = 'default', isGhost = false, colorId = 'default', customData = null, facing = 'right') {
             const skin = skinId === 'rai_alvaro_stage_avatar'
                 ? { sprite: RAI_ALVARO_SPRITE, recolorIndex: null }
