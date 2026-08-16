@@ -2621,7 +2621,8 @@
 
         let isGoalTriggered = false;
         let gameMode = 'play';
-        let lavaAnimStart = 0;
+        // 溶岩専用の経過フレーム。実時間ではなく物理更新と同じFで進める。
+        let lavaFrameCount = 0;
 
         // --- BGM管理 ---
         const STAGE_BGM_FALLBACK_URL = 'https://raw.githubusercontent.com/runon0512/course/a925c70b5da70ad2924f4dee10e259232fcf81a9/Stage.wav';
@@ -8584,6 +8585,7 @@
 
             // 状態リセット 
             frameCount = 0;
+            lavaFrameCount = 0;
             raiDashFrames = 0;
             raiDashCooldown = 0;
             raiDashHitBoss = false;
@@ -8665,7 +8667,6 @@
             }
             
             player.vx = 0; player.vy = 0; player.hasKey = 0; player.wasInBeachWater = false;
-            lavaAnimStart = Date.now();
             
             arrows = [];
             missiles = [];
@@ -9077,6 +9078,7 @@
             // 経過した時間分だけ物理演算を回して追いつく（最大5回まで）
             while (elapsed >= frameTime && updates < 5) {
                 frameCount++;
+                lavaFrameCount++;
                 updateGame();
                 elapsed -= frameTime;
                 lastTime += frameTime;
@@ -10373,8 +10375,8 @@
         // maxOverrideを渡すと、そのタイル数を溶岩の高さの上限として使用する（エディタのプレビュー用）。
         // 省略時はゲーム中に設定されるeruptionControlLimitTilesを使用する。
         function getLavaHeightTiles(maxOverride) {
-            if (!lavaAnimStart) lavaAnimStart = Date.now();
-            const t = (Date.now() - lavaAnimStart) * 0.0006 - Math.PI / 2;
+            // 60FPS時に従来と同じ速さになるよう、1Fあたりの位相を換算する。
+            const t = lavaFrameCount * 0.036 - Math.PI / 2;
             const limit = (maxOverride !== undefined) ? maxOverride : eruptionControlLimitTiles;
             // 制御機がある場合は、その設置高度を波の頂点として実際に到達させる
             const maxHeight = (limit !== null && limit !== undefined) ? Math.max(0.2, limit) : 3;
@@ -10970,7 +10972,7 @@
 
             // 火山オーバーレイ（1〜4マスの高さで上下する溶岩。オーロラ化した噴火制御機の場合は天井として上から迫る）
             if (currentStageType === 'volcano') {
-                const lt = Date.now() * 0.002;
+                const lt = lavaFrameCount / 30;
                 const fromAbove = auroraEruptionControlActive;
                 const lavaY = getLavaSurfaceY() * ch;
                 // 溶岩本体が占める領域（上から迫る場合は0〜lavaY、下から迫り上がる場合はlavaY〜画面下端）
