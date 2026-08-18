@@ -3305,7 +3305,7 @@
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
 
-                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC'].includes(type)) {
+                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG'].includes(type)) {
                         dynamicTiles.push({x, y, type});
                     } else {
                         drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
@@ -7942,13 +7942,27 @@
                 }
             } else if(type === 'WG') {
                 // ゴールと同じ形の緑版。文字だけ W にして、入口であることを明確にする。
-                ctx.fillStyle = '#000';
+                ctx.fillStyle = '#07133a';
                 ctx.fillRect(x*cw + cw*.2, y*ch + ch*.1, cw*.6, ch*.9);
                 ctx.strokeStyle = '#39d46a';
                 ctx.lineWidth = Math.max(2, Math.min(cw, ch)*.055);
                 ctx.strokeRect(x*cw + cw*.2, y*ch + ch*.1, cw*.6, ch*.9);
-                ctx.fillStyle = 'rgba(48,255,132,.18)';
+                ctx.fillStyle = 'rgba(48,255,132,.14)';
                 ctx.fillRect(x*cw + cw*.25, y*ch + ch*.15, cw*.5, ch*.8);
+                // 紺色の奥へ吸い込まれる渦。time=0でも制作・プレビューでは静止画として見える。
+                const gateCx = x*cw + cw/2, gateCy = y*ch + ch*.54;
+                const gateR = Math.min(cw, ch)*.22;
+                ctx.save();
+                ctx.translate(gateCx, gateCy);
+                ctx.rotate(time * 2.8);
+                ctx.strokeStyle = 'rgba(115,255,190,.78)';
+                ctx.lineWidth = Math.max(1, gateR*.16);
+                for (let ring = 0; ring < 3; ring++) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, gateR*(1 - ring*.24), ring*.9, ring*.9 + Math.PI*1.35);
+                    ctx.stroke();
+                }
+                ctx.restore();
                 ctx.fillStyle = '#eaffef';
                 ctx.font = `bold ${ch*.31}px sans-serif`;
                 ctx.textAlign = 'center';
