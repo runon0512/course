@@ -2405,7 +2405,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwMTTY8ZZ8srwz-84UL1R3uEDEinbv5LapW60YORZWCHALVNc9lNEQfTWkIidJPrc7f/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz1K9f_Xz4QeRrQ_F84wh27-Vvwe0DiMoeqaW0mua89-EKvEOvOFg5S3UgL4H1IQWNZ/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "3.0.1"
@@ -5956,9 +5956,8 @@
             skinLoading.style.display = 'flex';
             skinCanvas.style.display = 'none';
             // 自分以外は、クリア記録に残った過去の見た目ではなく現在装備中のスキンを取得する。
-            const currentSkinRequest = targetUser === CONFIG.USERNAME
-                ? null
-                : callApi('getUserProfile', { username: targetUser });
+            // I列の状態もプロフィール表示に使うため、自分自身を含めて現在のプロフィール情報を取得する。
+            const currentSkinRequest = callApi('getUserProfile', { username: targetUser });
             
             if (!Array.isArray(cachedStages)) {
                 const res = await callApi('getPublished', {});
@@ -5969,11 +5968,11 @@
             const stats = calculateProfileStats(targetUser);
             drawRadarChart(stats);
             
-            document.getElementById('profile-ovr').innerText = stats.ovr;
+            const currentSkin = await currentSkinRequest;
+            document.getElementById('profile-ovr').innerText = currentSkin?.success && currentSkin.iStatus === '0' ? 'NaN' : stats.ovr;
             document.getElementById('profile-username').innerText = targetUser;
             document.getElementById('profile-title').innerText = targetUser === CONFIG.USERNAME ? "MY PROFILE" : targetUser + "'S PROFILE";
             
-            const currentSkin = currentSkinRequest ? await currentSkinRequest : null;
             const sCtx = skinCanvas.getContext('2d');
             sCtx.clearRect(0, 0, 128, 128);
             const profileSkin = targetUser === CONFIG.USERNAME ? equippedSkin : (currentSkin?.success ? currentSkin.skin : stats.skin);
@@ -9091,6 +9090,7 @@
             }
             return fallback;
         }
+
         function getFrontStageType(stageType) {
             return getStageTypeForFace(stageType, 'front');
         }
@@ -9826,6 +9826,12 @@
             if (!editorFrontGrid.some(row => row.includes('S')) || !hasGoal) {
                 showQuickMsg("表面にS、表面または裏面にゴールを配置してください！", "var(--secondary-color)");
                 return;
+            }
+            // 選択直後にテストした場合でも、表示中の面のタイプを必ずテスト用データへ反映する。
+            const stageTypeSelect = document.getElementById('stage-type-select');
+            if (stageTypeSelect) {
+                if (editorFace === 'front') editorFrontStageType = stageTypeSelect.value;
+                else editorBackStageType = stageTypeSelect.value;
             }
             const stageType = { front: editorFrontStageType, back: editorBackStageType };
             startGame({data: { front: editorFrontGrid, back: editorBackGrid }, name: 'TEST', stageType}, 'test');
