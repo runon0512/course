@@ -2289,6 +2289,7 @@
                         <option value="water">🌊 水中</option>
                         <option value="dark">🌑 暗闇</option>
                         <option value="timeattack">⌛ タイムアタック</option>
+                        <option id="stage-type-option-hard" value="hard">💀 HARD（未購入）</option>
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                         <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
                         <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
@@ -3178,6 +3179,7 @@
             'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'moon_stage': { name: 'MOON STAGE', price: 40000, isBlockSet: true, isStageType: true, sprite: null },
             'beach_stage': { name: 'BEACH STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
+            'hard_stage': { name: 'HARD STAGE', price: 20000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
@@ -7449,6 +7451,9 @@
             const beachOpt = document.getElementById('stage-type-option-beach');
             const hasBeachStage = purchasedSkins.includes('beach_stage');
             if (beachOpt) { beachOpt.disabled = !hasBeachStage; beachOpt.textContent = hasBeachStage ? '🏖️ 海辺' : '🏖️ 海辺（未購入）'; }
+            const hardOpt = document.getElementById('stage-type-option-hard');
+            const hasHardStage = purchasedSkins.includes('hard_stage');
+            if (hardOpt) { hardOpt.disabled = !hasHardStage; hardOpt.textContent = hasHardStage ? '💀 HARD' : '💀 HARD（未購入）'; }
             const raiAlvaroOpt = document.getElementById('stage-type-option-rai-alvaro');
             const hasRaiAlvaroStage = purchasedSkins.includes('rai_alvaro_stage') || purchasedSkins.includes('rai_alvaro');
             if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロ' : '⚡ ライ・アルバロ（未購入）'; }
@@ -7742,18 +7747,18 @@
             ctx.clearRect(0,0,editorCanvas.width, editorCanvas.height);
             // 背景はCSSのレイヤーを表示するため、キャンバス内は透明にクリアするのみ
             const time = Date.now() * 0.002;
+            const editorStageType = document.getElementById('stage-type-select')?.value || 'normal';
             
             for(let y=0; y<GRID_H; y++){
                 for(let x=0; x<GRID_W; x++){
                     ctx.strokeStyle = "rgba(255,255,255,0.3)";
                     ctx.strokeRect(x*cw, y*ch, cw, ch);
                     const tile = editorGrid[y] && editorGrid[y][x];
-                    if(tile) drawTile(ctx, x, y, cw, ch, tile, time);
+                    if(tile) drawTile(ctx, x, y, cw, ch, tile, time, editorStageType);
                 }
             }
 
             // エディタのステージタイププレビュー
-            const editorStageType = document.getElementById('stage-type-select')?.value || 'normal';
 
             if (editorStageType === 'water') {
                 // 水中: 青いオーバーレイ + 泡
@@ -7825,7 +7830,7 @@
             for (let y = 0; y < GRID_H; y++) {
                 for (let x = 0; x < GRID_W; x++) {
                     if (oppositeGrid[y] && oppositeGrid[y][x] === 'WG') {
-                        drawTile(ctx, x, y, cw, ch, 'WG', time);
+                        drawTile(ctx, x, y, cw, ch, 'WG', time, editorStageType);
                     }
                 }
             }
@@ -7853,7 +7858,7 @@
             }
         }
 
-        function drawTile(ctx, x, y, cw, ch, type, time = 0) {
+        function drawTile(ctx, x, y, cw, ch, type, time = 0, stageType = currentStageType) {
             const pad = 2;
             const drawNormalBlock = () => {
                 ctx.fillStyle = isWeeklyCupMatch ? "#b77b05" : "#5d4037";
@@ -7903,7 +7908,7 @@
                 // ゴールゲート
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
-                if (isTimeAttackStageType(currentStageType)) {
+                if (isTimeAttackStageType(stageType)) {
                     drawTimeAttackChecker(ctx, x*cw + cw*0.23, y*ch + ch*0.13, cw*0.54, ch*0.84);
                 }
                 ctx.strokeStyle = isLocked ? "#777" : (isKillerGoal ? "#c85cff" : "#d32f2f");
@@ -7936,14 +7941,18 @@
                     ctx.fillText(`👾 残り ${remainingEnemies}`, x*cw + cw*0.98, y*ch + ch*0.2);
                 }
             } else if(type === 'WG') {
-                const cx = x*cw + cw/2, cy = y*ch + ch/2;
-                const radius = Math.min(cw, ch) * .34;
-                const portal = ctx.createRadialGradient(cx, cy, radius*.18, cx, cy, radius);
-                portal.addColorStop(0, '#e8fbff'); portal.addColorStop(.3, '#55ddff'); portal.addColorStop(.72, '#2762d9'); portal.addColorStop(1, '#151750');
-                ctx.fillStyle = portal;
-                ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
-                ctx.strokeStyle = '#baf7ff'; ctx.lineWidth = Math.max(1, radius*.16); ctx.stroke();
-                ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(cx - radius*.23, cy - radius*.22, radius*.12, 0, Math.PI*2); ctx.fill();
+                // ゴールと同じ形の緑版。文字だけ W にして、入口であることを明確にする。
+                ctx.fillStyle = '#000';
+                ctx.fillRect(x*cw + cw*.2, y*ch + ch*.1, cw*.6, ch*.9);
+                ctx.strokeStyle = '#39d46a';
+                ctx.lineWidth = Math.max(2, Math.min(cw, ch)*.055);
+                ctx.strokeRect(x*cw + cw*.2, y*ch + ch*.1, cw*.6, ch*.9);
+                ctx.fillStyle = 'rgba(48,255,132,.18)';
+                ctx.fillRect(x*cw + cw*.25, y*ch + ch*.15, cw*.5, ch*.8);
+                ctx.fillStyle = '#eaffef';
+                ctx.font = `bold ${ch*.31}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('W', x*cw + cw/2, y*ch + ch*.44);
             } else if(type === 'K') {
                 // 通常スパイク（大会中だけ黄金化）
                 ctx.fillStyle = isWeeklyCupMatch ? "#ffd02e" : "#78909c";
@@ -8185,7 +8194,7 @@
                 const isDone = activeStage.length > 0 && activeCheckpoints.has(getCheckpointKey(x, y));
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
-                if (isTimeAttackStageType(currentStageType)) {
+                if (isTimeAttackStageType(stageType)) {
                     drawTimeAttackChecker(ctx, x*cw + cw*0.23, y*ch + ch*0.13, cw*0.54, ch*0.84);
                 }
                 ctx.strokeStyle = "#ffeb3b"; // 黄色の縁
@@ -9063,7 +9072,7 @@
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'timeattack', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'timeattack', 'hard', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -9109,12 +9118,15 @@
         function getStageTypeSource(stageObj) {
             const directType = stageObj?.stageType;
             // 壊れた "[object Object]" より、ステージデータ側の正しい種類を優先する。
+            // 表／裏面用の正しいオブジェクト形式まで壊れた値として扱わない。
+            if (directType && typeof directType === 'object' && !Array.isArray(directType)) return directType;
             if (directType !== undefined && !(/^\[?object object\]?$/i.test(String(directType).trim()))) return directType;
             const data = stageObj?.data;
             return data?.stageTypes || data?.stageType || 'normal';
         }
         function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
+        function getNormalEnemyMaxHp() { return currentStageType === 'hard' ? 30 : 10; }
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
@@ -9386,6 +9398,14 @@
                     }
                 }
             }
+            // HARDでは通常敵もボスと同じく体力を持ち、踏みつけ3回で倒れる。
+            enemies.forEach(en => {
+                if (!en.isBoss) {
+                    en.maxHp = getNormalEnemyMaxHp();
+                    en.hp = en.maxHp;
+                    en.hitCooldown = 0;
+                }
+            });
             // 狼ボスの参照をキャッシュ（プレイヤーの当たり判定で毎フレーム全敵をスキャンしないため。
             // ステージ開始時の1回だけ抽出すればよい）
             wolfBossRefs = enemies.filter(en => en.isWolf);
@@ -10778,6 +10798,12 @@
                                     if (en.isBlack) removeAllGoldBlocks();
                                 }
                             }
+                        } else if (en.maxHp > 10) {
+                            if (en.hitCooldown <= 0) {
+                                en.hp = Math.max(0, (Number(en.hp) || en.maxHp) - 10);
+                                en.hitCooldown = 8;
+                                if (en.hp <= 0) en.dead = true;
+                            }
                         } else {
                             en.dead = true;
                         }
@@ -10817,7 +10843,10 @@
                                         onGround: false, 
                                         jumper: isBlueSpawner, // 青スポナーからはジャンプ敵
                                         sync: false,
-                                        blue: isBlueSpawner // 青スポナー由来は青色
+                                        blue: isBlueSpawner, // 青スポナー由来は青色
+                                        maxHp: getNormalEnemyMaxHp(),
+                                        hp: getNormalEnemyMaxHp(),
+                                        hitCooldown: 0
                                     });
                                 }
                             }
