@@ -796,8 +796,9 @@
         }
         .chat-image {
             display: block;
-            max-width: 18cqw;  /* 全角文字15個分 (1.2cqw * 15) を上限に */
-            max-height: 18cqw;
+            /* 本文の文字サイズを基準に、横15文字・縦12文字分まで表示する。 */
+            max-width: 15em;
+            max-height: 12em;
             width: auto;
             height: auto;
             margin-top: 0.5cqh;
@@ -1010,6 +1011,21 @@
             cursor: crosshair;
         }
 
+        /* 制作画面専用: 1ブロックごとの青地・白線グリッド。ゲーム／テストプレイには適用しない。 */
+        #editor-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: #68c9ee;
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.8) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.8) 1px, transparent 1px);
+            background-size:
+                5% 10%,
+                5% 10%;
+            image-rendering: pixelated;
+        }
+
         .editor-top-bar {
             position: absolute;
             top: 0;
@@ -1108,6 +1124,7 @@
         .tool-btn:hover { transform: scale(1.1); z-index: 45; }
         .tool-btn.basic { border-color: #81d4fa; background: rgba(129,212,250,0.15); }
         .tool-btn.basic.active { background: rgba(255,255,0,0.4); }
+        .editor-bottom-bar .tool-btn.special-hidden-by-user { display:none !important; }
         .tool-btn.rank-common { border-color: #2ecc71; }
         .tool-btn.rank-rare { border-color: #2196f3; }
         .tool-btn.rank-epic { border-color: #ff9800; }
@@ -1143,8 +1160,8 @@
         }
 
         .editor-right-bar .tool-btn {
-            width: 5.5cqw;
-            height: 5.5cqw;
+            width: 4.5cqw;
+            height: 4.5cqw;
         }
 
         .tool-description {
@@ -1320,6 +1337,11 @@
             image-rendering: pixelated;
             box-shadow: 0 0 .8cqw rgba(0, 191, 255, .3);
         }
+
+        #face-warp-effect { display:none; position:absolute; z-index:85; pointer-events:none; width:0; height:0; }
+        #face-warp-effect.active { display:block; }
+        #face-warp-effect::after { content:''; position:absolute; left:-4cqw; top:-4cqw; width:8cqw; height:8cqw; border:.16cqw solid rgba(230,196,255,.95); border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.95) 0 6%, rgba(193,115,255,.7) 18%, rgba(58,26,130,.34) 43%, transparent 72%); box-shadow:0 0 1.5cqw .45cqw rgba(164,93,255,.55); animation:faceWarpFlash .48s ease-out forwards; }
+        @keyframes faceWarpFlash { 0% { opacity:0; transform:scale(.28) rotate(-7deg); } 25% { opacity:1; } 100% { opacity:0; transform:scale(2.1) rotate(7deg); } }
 
         .stage-list-title { color:#c7fbff; letter-spacing:.13em; text-shadow:0 0 1cqw rgba(0, 210, 255, .75); }
         .stage-filter-bar { width:min(84%, 94cqw) !important; padding:.9cqw; box-sizing:border-box; border:.12cqw solid rgba(103,220,255,.52); background:rgba(3,17,39,.7); box-shadow:inset 0 0 1.5cqw rgba(0,191,255,.08); }
@@ -1520,6 +1542,13 @@
         .chat-msg-list { box-sizing:content-box; padding:0; border:0; background:transparent; box-shadow:none; scrollbar-color:auto; }
         .chat-msg-item { background:rgba(255,255,255,.05); border:0; border-left:0; border-radius:4px; box-shadow:none; }
         #chat-overlay input, #dm-overlay input, #chat-overlay #chat-stage-search, #chat-overlay .chat-reply-context { background:#1a1a2e !important; border-color:#fff !important; box-shadow:none; }
+        /* ステージ一覧と同様に、チャット本文を優先して広く表示する。 */
+        #chat-overlay { padding:1.1cqh 8cqw 1.4cqh; overflow:hidden; }
+        #chat-overlay > h2 { margin:.15cqh 0 .35cqh !important; font-size:3.1cqw !important; line-height:1.1; }
+        #chat-overlay .chat-safety-notice { width:80%; margin:0 0 .65cqh; padding:.55cqh .8cqw; box-sizing:border-box; color:#ffe8a5; background:rgba(255,193,7,.09); border-left:.22cqw solid #ffd34d; font-size:1.05cqw; text-align:center; }
+        #chat-overlay .chat-toolbar { width:80%; margin-bottom:.65cqh !important; }
+        #chat-list { width:80%; min-height:0; margin-bottom:.65cqh; flex:1 1 auto; }
+        #chat-reply-context, #chat-overlay > div:last-child { width:80% !important; }
         #leaderboard-overlay .auth-box, .profile-container .ovr-box { background:rgba(255,255,255,.1) !important; border-color:var(--primary-color) !important; box-shadow:none; }
         #leaderboard-overlay table { background:transparent; border-color:initial !important; }
         #leaderboard-overlay th { color:inherit; background:transparent; }
@@ -1543,6 +1572,143 @@
         #profile-overlay > h2, #profile-overlay > button, #profile-overlay > .profile-container { flex-shrink:0; }
         .profile-container { width:min(90%, 92cqw); height:auto; min-height:52cqh; margin:0 auto; justify-content:center; }
         #radar-chart { display:block; margin:0 auto; background:radial-gradient(circle, rgba(0,191,255,.09), rgba(5,12,30,.08) 65%, transparent 66%); border:.14cqw solid rgba(130,220,255,.4); }
+
+        /* Season 3: Multiverse ── ホーム画面専用の中世ファンタジーUI */
+        .container.bg-city {
+            background:
+                radial-gradient(ellipse at 72% 15%, rgba(255,224,138,.24) 0 4%, transparent 17%),
+                radial-gradient(ellipse at 30% 8%, rgba(92,53,150,.26), transparent 31%),
+                linear-gradient(180deg, #151128 0%, #29204a 42%, #49312b 72%, #1c171c 100%);
+        }
+        .container.bg-city::before {
+            content:'';
+            position:absolute;
+            inset:0;
+            z-index:2;
+            pointer-events:none;
+            opacity:.8;
+            background:
+                linear-gradient(90deg, rgba(5,3,10,.52) 0 10%, transparent 10% 90%, rgba(5,3,10,.52) 90%),
+                linear-gradient(90deg, transparent 0 8%, rgba(236,194,104,.08) 8.15% 8.3%, transparent 8.45% 91.55%, rgba(236,194,104,.08) 91.7% 91.85%, transparent 92%),
+                repeating-linear-gradient(90deg, transparent 0 14cqw, rgba(255,229,167,.045) 14.1cqw 14.18cqw);
+        }
+        .container.bg-city::after {
+            content:'';
+            position:absolute;
+            left:0; right:0; bottom:0;
+            height:25%;
+            z-index:2;
+            pointer-events:none;
+            opacity:.86;
+            background:
+                linear-gradient(90deg, #17131a 0 5%, transparent 5% 8%, #17131a 8% 17%, transparent 17% 22%, #17131a 22% 35%, transparent 35% 39%, #17131a 39% 48%, transparent 48% 55%, #17131a 55% 69%, transparent 69% 74%, #17131a 74% 85%, transparent 85% 90%, #17131a 90%),
+                linear-gradient(180deg, transparent 0 43%, rgba(9,7,12,.94) 44% 100%);
+            clip-path:polygon(0 100%,0 42%,4% 42%,4% 25%,7% 25%,7% 42%,14% 42%,14% 9%,18% 9%,18% 42%,27% 42%,27% 30%,31% 30%,31% 42%,42% 42%,42% 14%,47% 14%,47% 42%,59% 42%,59% 27%,64% 27%,64% 42%,75% 42%,75% 7%,80% 7%,80% 42%,89% 42%,89% 23%,94% 23%,94% 42%,100% 42%,100% 100%);
+        }
+        .container.bg-city .scanlines { opacity:.14; mix-blend-mode:soft-light; }
+        #home-bg-canvas { opacity:.23 !important; mix-blend-mode:screen; }
+        #home-medieval-crest {
+            position:absolute; top:2.1cqh; left:5.4cqw; z-index:6;
+            width:5.2cqw; height:5.2cqw; display:flex; align-items:center; justify-content:center;
+            color:#ffdf8b; font-family:Georgia,serif; font-size:2.15cqw; font-weight:bold;
+            background:linear-gradient(145deg,#8e6530,#342113 48%,#bd9145);
+            border:.18cqw solid #f7d57b;
+            clip-path:polygon(50% 0,94% 15%,88% 75%,50% 100%,12% 75%,6% 15%);
+            text-shadow:0 .13cqw 0 #36200e,0 0 .6cqw rgba(255,221,134,.75);
+            box-shadow:0 0 0 .16cqw #301b18, 0 0 1cqw rgba(0,0,0,.55);
+        }
+        #home-fantasy-motto {
+            position:absolute; top:29cqh; left:0; width:100%; z-index:5;
+            color:#d7c38d; font:italic 1.1cqw Georgia,serif; letter-spacing:.28em;
+            text-shadow:0 .12cqw .2cqw #120c16;
+        }
+        h1 { top:5.1cqh; font-family:Georgia,'Times New Roman',serif; font-size:8.1cqw; letter-spacing:.055em; text-shadow:0 .24cqw 0 #271623, 0 0 1.1cqw rgba(255,212,117,.35); }
+        h1 .cursive-font { display:inline; color:#f8df9b; background:none; -webkit-text-fill-color:initial; filter:none; }
+        #subtitle { top:18.8cqh !important; color:#f3d687 !important; font-family:Georgia,'Times New Roman',serif; font-size:2.5cqw !important; font-style:italic; letter-spacing:.18em; text-shadow:0 .14cqw 0 #24152a, 0 0 .7cqw rgba(255,205,99,.42); }
+        #subtitle::before, #subtitle::after { content:'❧'; display:inline; margin:0 1.2cqw; color:#dba54d; }
+        #home-character-canvas { right:8cqw !important; top:61% !important; filter:drop-shadow(0 .45cqw 0 #110d13) drop-shadow(0 0 1.1cqw rgba(255,197,77,.24)); animation:homeCharacterFloat 4s ease-in-out infinite; }
+        #main-menu {
+            top:35cqh; left:5.5cqw; width:30cqw; gap:.72cqh; padding:1.45cqw 1.7cqw 1.7cqw;
+            box-sizing:border-box; border:.16cqw solid #be944a;
+            background:linear-gradient(110deg,rgba(36,22,22,.94),rgba(69,40,27,.9) 48%,rgba(29,19,27,.94));
+            box-shadow:inset 0 0 0 .13cqw rgba(255,224,143,.17), 0 .65cqw 1.5cqw rgba(0,0,0,.45);
+        }
+        #main-menu::before { content:none; display:none; }
+        #main-menu .pixel-btn {
+            width:100%; min-width:0; padding:.72cqh .3cqw; border:0; border-bottom:.07cqw solid rgba(242,205,130,.29);
+            background:transparent; color:#f7edce; box-shadow:none; text-align:left; font:700 2.15cqw Georgia,'Noto Sans JP',serif;
+            letter-spacing:.08em; text-transform:none; text-shadow:0 .12cqw 0 #1b1015; transition:color .18s ease,transform .18s ease,background .18s ease;
+        }
+        #main-menu .pixel-btn::before { width:2.4cqw; color:#e8b950; text-align:center; }
+        #main-menu .pixel-btn:nth-child(1)::before { content:'⚔'; } #main-menu .pixel-btn:nth-child(2)::before { content:'✎'; } #main-menu .pixel-btn:nth-child(3)::before { content:'♜'; } #main-menu .pixel-btn:nth-child(4)::before { content:'⚖'; } #main-menu .pixel-btn:nth-child(5)::before { content:'♛'; }
+        #main-menu .pixel-btn:hover { -webkit-text-fill-color:initial; color:#fff5be; background:linear-gradient(90deg,rgba(220,168,71,.22),transparent); box-shadow:none; text-shadow:0 0 .7cqw rgba(255,219,119,.8); transform:translateX(.42cqw); letter-spacing:.11em; }
+        #main-menu .pixel-btn:hover::before { color:#fff1a3; transform:none; }
+        /* タイムアタック追加後もホーム内に全項目を収める。 */
+        #main-menu { top:auto; bottom:3.1cqh; gap:.55cqh; padding:1.2cqw 1.5cqw; }
+        #main-menu .pixel-btn { padding:.92cqh .25cqw; font-size:2cqw; line-height:1.08; }
+        #user-info { top:1.3cqh; right:2cqw; border:.1cqw solid #b88c43; background:linear-gradient(90deg,rgba(27,17,23,.92),rgba(70,43,30,.78)); box-shadow:inset 0 0 .7cqw rgba(255,212,119,.08); color:#f7e7c0; font-family:Georgia,'Noto Sans JP',serif; }
+        #home-level-gauge { right:2.4cqw; bottom:3.1cqh; background:linear-gradient(135deg,rgba(32,20,25,.94),rgba(75,45,30,.9)); border:.14cqw solid #bf944b; box-shadow:inset 0 0 .8cqw rgba(255,215,132,.12); }
+        #home-level-gauge-title { color:#f5d476; font-family:Georgia,serif; } #home-level-gauge-track { background:#211720; border-color:#8d6839; } #home-level-gauge-fill { background:linear-gradient(90deg,#a46728,#f1c965,#fff1ba); }
+        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #password-settings-btn, #creator-settings-btn {
+            color:#e8d5a1 !important; font:700 1.43cqw Georgia,'Noto Sans JP',serif !important; letter-spacing:.08em; text-shadow:0 .12cqw 0 #1d1218 !important;
+        }
+        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #patch-notes-btn:hover, #password-settings-btn:hover, #creator-settings-btn:hover { background:none !important; -webkit-text-fill-color:initial; color:#fff0a9 !important; text-shadow:0 0 .65cqw rgba(255,216,112,.75) !important; transform:translateX(-.22cqw); }
+        #creator-settings-overlay { z-index:195; display:none; align-items:center; justify-content:center; background:rgba(2,8,20,.88); }
+        .creator-settings-card { width:min(68cqw,780px); max-height:78cqh; display:flex; flex-direction:column; padding:2cqw; background:linear-gradient(135deg,#15284b,#10152c); border:.16cqw solid #65cfff; box-shadow:0 0 2cqw rgba(53,182,255,.35); }
+        #creator-special-settings-list { display:flex; flex-wrap:nowrap; align-items:center; gap:.75cqw; overflow-x:auto; overflow-y:hidden; padding:1cqw; min-height:7.2cqw; background:rgba(0,0,0,.46); border:.14cqw solid rgba(142,219,255,.58); }
+        .creator-special-setting { position:relative; width:5.5cqw; height:5.5cqw; flex:0 0 5.5cqw; box-sizing:border-box; display:flex; align-items:center; justify-content:center; color:#e9f8ff; background:rgba(76,158,217,.16); border:.16cqw solid rgba(124,218,255,.72); cursor:grab; user-select:none; }
+        .creator-special-setting.dragging { opacity:.38; } .creator-special-setting input { position:absolute; top:.28cqw; right:.28cqw; z-index:2; width:1cqw; height:1cqw; margin:0; accent-color:#62dfff; cursor:pointer; }
+        .creator-special-setting canvas { width:3.5cqw; height:3.5cqw; image-rendering:pixelated; pointer-events:none; }
+        .creator-special-setting span { position:absolute; left:.2cqw; right:.2cqw; bottom:.18cqw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; font-size:.58cqw; color:#d8f6ff; pointer-events:none; }
+        #home-sync-status { color:#f7db8c !important; text-shadow:0 0 .7cqw rgba(255,204,91,.7) !important; }
+        #home-sync-status > div:last-child { border-color:#bf9448 !important; background:rgba(32,20,24,.88) !important; box-shadow:0 0 .7cqw rgba(218,167,72,.35) !important; }
+        #home-sync-gauge { background:linear-gradient(90deg,#925d2d,#f4cd6c) !important; }
+
+        /* ゴール後リザルト: 左のキャラクター演出と右の記録・操作を分離する。 */
+        #reward-overlay { background:rgba(3,9,23,.82); backdrop-filter:blur(5px); }
+        .reward-modern-card { width:min(82cqw,980px); min-height:54cqh; display:grid; grid-template-columns:42% 58%; overflow:hidden; border:.16cqw solid #65cfff; background:linear-gradient(135deg,rgba(8,21,53,.98),rgba(10,13,33,.98)); box-shadow:0 0 0 .11cqw rgba(255,255,255,.14),0 1.2cqw 4cqw rgba(0,0,0,.55),0 0 3cqw rgba(31,147,255,.28); }
+        .reward-hero { position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; background:radial-gradient(circle at 52% 45%,rgba(88,211,255,.48),rgba(20,78,182,.28) 35%,rgba(7,17,47,.08) 70%); }
+        .reward-hero::before, .reward-hero::after { content:''; position:absolute; inset:-35%; border:1px solid rgba(112,223,255,.5); border-radius:50%; animation:rewardBluePulse 2.4s ease-out infinite; }
+        .reward-hero::after { animation-delay:1.2s; }
+        .reward-hero::marker { display:none; }
+        .reward-hero-rays { position:absolute; inset:0; background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(115,224,255,.18) 0deg 5deg,transparent 5deg 18deg); animation:rewardRays 12s linear infinite; }
+        #reward-character-canvas { position:relative; z-index:2; width:min(28cqw,290px); height:min(28cqw,290px); image-rendering:pixelated; filter:drop-shadow(0 0 1.25cqw #54dbff) drop-shadow(0 .45cqw 0 rgba(2,11,28,.85)); animation:rewardCharacterEnter .65s cubic-bezier(.18,.9,.22,1.12) both; }
+        .reward-hero-caption { position:absolute; z-index:3; bottom:2.1cqh; font:700 1.08cqw Georgia,serif; letter-spacing:.25em; color:#c9f4ff; text-shadow:0 0 .8cqw #2daeff; }
+        .reward-details { padding:3.2cqh 3.2cqw; display:flex; flex-direction:column; text-align:left; background:linear-gradient(110deg,rgba(15,27,61,.75),rgba(9,12,30,.92)); }
+        .reward-kicker { color:#72dfff; font-size:1cqw; letter-spacing:.22em; font-weight:bold; }
+        .reward-title { margin:.45cqh 0 1.8cqh; color:#f3fbff; font-size:3.3cqw; letter-spacing:.06em; text-shadow:0 0 1cqw rgba(85,204,255,.7); }
+        .reward-time-panel { display:flex; align-items:baseline; justify-content:space-between; padding:1.1cqh 1.2cqw; border-left:.32cqw solid #4bd4ff; background:rgba(83,183,255,.12); }
+        .reward-time-panel span:first-child { color:#9fdcf0; font-size:1.05cqw; letter-spacing:.13em; }
+        #reward-time-display { color:#fff; font-size:2.25cqw; font-weight:bold; font-variant-numeric:tabular-nums; }
+        .reward-get-row { display:flex; align-items:center; flex-wrap:wrap; gap:.55cqw; margin:1.6cqh 0; color:#c2d6ee; font-size:1.05cqw; }
+        #reward-amount, #reward-guild-amount { font-size:2.1cqw; font-weight:bold; text-shadow:0 0 .8cqw rgba(255,206,79,.45); }
+        .reward-rating { margin-top:auto; padding-top:1.5cqh; border-top:1px solid rgba(143,213,255,.2); }
+        .reward-rating p { margin:0 0 .8cqh; color:#9fdcf0; font-size:.9cqw; letter-spacing:.12em; }
+        .reward-rating .pixel-btn { padding:.5cqh .85cqw; border:.1cqw solid rgba(160,232,255,.5); font-size:1cqw; }
+        .reward-total { margin:1.3cqh 0; color:#b8cbe4; font-size:1.05cqw; } .reward-total span { color:#fff; font-size:1.4cqw; font-weight:bold; }
+        .reward-actions { display:flex; gap:1cqw; } .reward-actions .pixel-btn { flex:1; padding:.85cqh 1cqw; border:.12cqw solid #6fdcff; background:linear-gradient(135deg,#176ba3,#19426f); font-size:1.2cqw; box-shadow:0 .3cqw 0 rgba(0,0,0,.35); } .reward-actions #reward-ok-btn { background:linear-gradient(135deg,#38c6e8,#3272c5); }
+        @keyframes rewardBluePulse { from { transform:scale(.35); opacity:.9; } to { transform:scale(1); opacity:0; } }
+        @keyframes rewardRays { to { transform:rotate(360deg); } }
+        @keyframes rewardCharacterEnter { from { transform:translateX(-8cqw) scale(.72); opacity:0; } to { transform:translateX(0) scale(1); opacity:1; } }
+
+        /* ボタンの立体的な落ち影を廃止し、水色の外周発光へ統一する。 */
+        .pixel-btn {
+            box-shadow: 0 0 .62cqw rgba(91, 220, 255, .38) !important;
+        }
+        .pixel-btn:hover,
+        .pixel-btn:focus-visible {
+            box-shadow: 0 0 1.05cqw rgba(91, 220, 255, .72) !important;
+        }
+        .pixel-btn:active {
+            box-shadow: 0 0 .38cqw rgba(91, 220, 255, .52) !important;
+        }
+        /* 影を持たない文字ベースのホーム操作は従来の見た目を保つ。 */
+        #main-menu .pixel-btn,
+        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn,
+        #login-bonus-btn, #patch-notes-btn, #weekly-cup-btn,
+        #password-settings-btn, #creator-settings-btn {
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body>
@@ -1588,6 +1754,8 @@
         <!-- グローバルランキングボタン -->
         <button id="global-rank-btn" class="pixel-btn small" onclick="showGlobalRanking()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
         <button id="password-settings-btn" class="pixel-btn small" onclick="openPasswordChange()" style="position:absolute; top:7cqh; left:2cqw; z-index:15; display:none;">🔐 パスワード</button>
+        <button id="patch-notes-btn" class="pixel-btn small" onclick="openPatchNotes()" style="position:absolute; top:13cqh; left:2cqw; z-index:15; display:none;">パッチノート</button>
+        <button id="creator-settings-btn" class="pixel-btn small" onclick="openCreatorSettings()" style="position:absolute; top:19cqh; left:2cqw; z-index:15; display:none;">⚙ クリエイト画面設定</button>
 
         <!-- 大会ボタン（プレイの左上） -->
         <button id="weekly-cup-btn" class="pixel-btn small" onclick="openWeeklyCup()" style="position:absolute; top:27cqh; left:2cqw; z-index:15; display:none; background:linear-gradient(135deg,#9a6500,#ffd54a,#fff1a3); color:#322000; border-color:#fff4bd; box-shadow:0 0 1cqw rgba(255,198,45,.65); font-weight:bold;">🏆 大会</button>
@@ -1603,9 +1771,6 @@
 
         <!-- ログインボーナスボタン -->
         <button id="login-bonus-btn" class="pixel-btn small" onclick="openLoginBonus()" style="position: absolute; top: 31cqh; right: 2cqw; z-index: 15; display: none; background: #e0a905; color: #fff; border-color: #fff;">🎁 ボーナス</button>
-
-        <!-- パッチノートボタン -->
-        <button id="patch-notes-btn" class="pixel-btn small" onclick="openPatchNotes()" style="position: absolute; top: 36cqh; right: 2cqw; z-index: 15; display: none;">パッチノート</button>
 
         <!-- 認証画面 -->
         <div id="auth-overlay">
@@ -1644,25 +1809,37 @@
 
         <!-- 報酬画面 -->
         <div id="reward-overlay" class="screen" style="z-index: 110; flex-direction: column; justify-content: center; align-items: center; display: none;">
-            <div class="auth-box" style="text-align: center; width: 40%;">
-                <h2 style="color: var(--primary-color); font-size: 3cqw; margin-bottom: 2cqh;">STAGE CLEAR!</h2>
-                <div style="font-size: 2cqw; margin: 2cqh 0;">
-                    GET: <span id="reward-amount" style="color: #f1c40f;">0 G</span>
+            <div class="reward-modern-card">
+                <section class="reward-hero" aria-label="クリアキャラクター">
+                    <div class="reward-hero-rays"></div>
+                    <canvas id="reward-character-canvas" width="256" height="256"></canvas>
+                    <div class="reward-hero-caption">STAGE CONQUERED</div>
+                </section>
+                <section class="reward-details">
+                    <div class="reward-kicker">PIXEL STAGES // RESULT</div>
+                    <h2 class="reward-title">STAGE CLEAR!</h2>
+                    <div class="reward-time-panel"><span>CLEAR TIME</span><span id="reward-time-display">0.000s</span></div>
+                    <div class="reward-get-row">
+                    <span>REWARD</span><span id="reward-amount" style="color: #f1c40f;">0 G</span>
                     <span id="reward-guild-amount" style="display:none; color:#f1c40f;"><span id="reward-guild-base" style="text-decoration:line-through; color:#aaa; font-size:.75em;">0 G</span><br><span id="reward-guild-final">0 G</span></span>
                     <span id="reward-as-wrap" style="display:none; color: #00ffff;"> + <span id="reward-as">0</span> AS</span>
                     <span id="reward-es-wrap" style="display:none; color: #ff9800;"> + ES:<span id="reward-es">0</span></span>
+                    </div>
+                <div class="reward-total">TOTAL GOLD: <span id="reward-total-gold">0</span> G</div>
+                <div class="reward-actions">
+                    <button id="reward-retry-btn" class="pixel-btn small" onclick="retryGame()">RETRY</button>
+                    <button id="reward-ok-btn" class="pixel-btn small" onclick="closeReward()">OK</button>
                 </div>
-                <hr style="border: 0.1cqw solid #444; width: 100%;">
-                <div style="margin: 2cqh 0;">
-                    <p style="font-size: 1cqw;">RATE THIS STAGE:</p>
-                    <button id="btn-upvote" class="pixel-btn small" onclick="voteStage('up')" style="background:#2e7d32;">👍 GOOD</button>
-                    <button id="btn-downvote" class="pixel-btn small" onclick="voteStage('down')" style="background:#d32f2f;">👎 BAD</button>
-                </div>
-                <div style="font-size: 1.5cqw; margin: 2cqh 0;">TOTAL: <span id="reward-total-gold">0</span> G</div>
-                <div style="display: flex; gap: 2cqw; justify-content: center; width: 100%;">
-                    <button id="reward-retry-btn" class="pixel-btn small" onclick="retryGame()" style="flex: 1; background: #546e7a;">RETRY</button>
-                    <button id="reward-ok-btn" class="pixel-btn small" onclick="closeReward()" style="flex: 1;">OK</button>
-                </div>
+                </section>
+            </div>
+        </div>
+
+        <div id="creator-settings-overlay" class="screen">
+            <div class="creator-settings-card">
+                <h2 style="margin:0 0 1cqh; color:#c7f4ff;">クリエイト画面設定</h2>
+                <p style="margin:0 0 1cqh; color:#a8c5e0; font-size:1cqw;">下部バーと同じ並びで表示します。ドラッグで入れ替え、右上のチェックで表示／非表示を設定できます。</p>
+                <div id="creator-special-settings-list"></div>
+                <div style="display:flex; gap:1cqw; justify-content:flex-end; margin-top:1.5cqh;"><button class="pixel-btn small" onclick="closeCreatorSettings()">戻る</button><button class="pixel-btn small" onclick="saveCreatorSettings()">保存</button></div>
             </div>
         </div>
 
@@ -1672,7 +1849,7 @@
         <h1>
             <span class="cursive-font" style="text-transform: none;">Pixel Stages</span>
         </h1>
-        <div id="subtitle" class="cursive-font" style="position: absolute; top: 18cqh; left: 0; width: 100%; text-align: center; font-size: 3.5cqw; color: var(--secondary-color); z-index: 5; opacity: 0.9; display: none;">Season 2 ~Astral~</div>
+        <div id="subtitle" class="cursive-font" style="position: absolute; top: 18cqh; left: 0; width: 100%; text-align: center; font-size: 3.5cqw; color: var(--secondary-color); z-index: 5; opacity: 0.9; display: none;">Season 3 ~Multiverse~</div>
         <div id="home-sync-status" style="position:absolute; top:25cqh; left:0; width:100%; text-align:center; color:#aeefff; font-size:1.35cqw; z-index:6; display:none; text-shadow:0 0 .7cqw #00bfff;">
             <div>データを読み込み中... <span id="home-sync-percent">0%</span></div>
             <div style="width:26cqw; height:1.1cqh; margin:.7cqh auto 0; border:.12cqw solid #73e8ff; background:rgba(0,8,24,.8); box-shadow:0 0 .7cqw rgba(70,220,255,.35);"><div id="home-sync-gauge" style="height:100%; width:0%; background:linear-gradient(90deg,#56ffd4,#62bfff); transition:width .12s linear;"></div></div>
@@ -1708,17 +1885,10 @@
 
         <!-- ショップ画面 -->
         <div id="shop-overlay" class="screen">
-            <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">PIXEL SHOP</h2>
+            <h2 style="font-size: 3.5cqw; margin-bottom: .5cqh;">デイリーショップ</h2>
+            <div id="daily-shop-date" style="margin-bottom:1.5cqh; color:#bdefff; font-size:1.1cqw;"></div>
             <div class="shop-tabs">
-                <button id="shop-tab-skins" class="pixel-btn small" onclick="openShop('skins')">SKINS</button>
-                <button id="shop-tab-blocks" class="pixel-btn small" onclick="openShop('blocks')">BLOCKS</button>
-                <button id="shop-tab-collab" class="pixel-btn small" onclick="openShop('collab')">双剣物語コラボ</button>
                 <button class="pixel-btn small" onclick="closeShop()" style="background: #f44336; color: #fff;">戻る</button>
-            </div>
-            <div id="shop-collab-banner" style="display:none; margin-bottom:1.5cqh; text-align:center;">
-                <div style="font-size:1.6cqw; font-weight:bold; color:#ff9800; letter-spacing:0.05em;">双剣物語 コラボショップ</div>
-                <div style="font-size:0.9cqw; color:#ffcc80; margin-top:0.5cqh;">他のコラボアイテムも近日追加予定！</div>
-                <div style="font-size:0.85cqw; color:#e0f7fa; margin-top:0.5cqh;">ES（イベントストーン）は超難関以上のステージクリアで獲得できます</div>
             </div>
             <div class="shop-grid" id="shop-container"></div>
         </div>
@@ -1787,7 +1957,8 @@
         <!-- チャット画面 -->
         <div id="chat-overlay" class="screen">
             <h2 style="font-size: 3cqw; margin-bottom: 2cqh;">GLOBAL CHAT</h2>
-            <div style="display:flex; gap:1cqw; margin-bottom: 2cqh;">
+            <div class="chat-safety-notice">パスワード、個人情報の特定につながる内容はお控えください</div>
+            <div class="chat-toolbar" style="display:flex; gap:1cqw; margin-bottom: 2cqh;">
                 <button class="pixel-btn small" onclick="closeChat()">戻る</button>
                 <button id="chat-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleStageSearch()">📎 ステージを添付</button>
                 <button id="chat-image-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('chat-image-input').click()">🖼️ 画像を送る</button>
@@ -2032,6 +2203,7 @@
                     <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('level')" style="min-width:12cqw;">Level</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
+                    <button id="online-playtime-rank-tab" class="pixel-btn small" onclick="showGlobalRanking('onlinePlaytime')" style="display:none; min-width:12cqw;">プレイ時間</button>
                 </div>
                 <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 1.5cqw;">
@@ -2071,16 +2243,16 @@
 
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
-            <h2 class="stage-list-title" style="font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive; font-style:italic; font-size:4cqw; position:relative; z-index:1;">Published Stages</h2>
+            <h2 id="stage-list-title" class="stage-list-title" style="font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive; font-style:italic; font-size:4cqw; position:relative; z-index:1;">Published Stages</h2>
             <div class="stage-filter-bar" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%; position: relative; z-index: 1;">
                 <button class="pixel-btn small" onclick="closeStageSelect()" style="background: #f44336; color: #fff;">戻る</button>
                 <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
                 <select id="sort-criteria" class="filter-control" onchange="openStageSelect()">
                     <option value="newest">新着順</option>
+                    <option value="oldest">古い順</option>
                     <option value="clears">クリア数順</option>
                     <option value="plays">プレイ数順</option>
                     <option value="easy">易しい順</option>
-                    <option value="upvotes">高評価順</option>
                     <option value="reward">難しい順</option>
                 </select>
                 <label class="remember-wrap" style="font-size: 1.2cqw; margin-bottom: 0; padding: 0.5cqh 1cqw; background: rgba(0,0,0,0.5); border: 0.1cqw solid var(--primary-color);">
@@ -2105,7 +2277,6 @@
             <div id="canvas-container">
                 <canvas id="editor-canvas"></canvas>
                 <div class="editor-top-bar">
-                    <button class="pixel-btn small" style="margin-top:0; background:#5d4037; color:#fff;" onclick="setTool('B', document.querySelector('.tool-block') || this)">🧱ブロック</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#ff80ab; color:#000;" onclick="setTool('E', document.querySelector('.tool-eraser') || this)">🧹消しゴム</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f44336; color:#fff;" onclick="clearStage()">🗑️全消去</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
@@ -2117,6 +2288,7 @@
                         <option value="normal">🌿 通常</option>
                         <option value="water">🌊 水中</option>
                         <option value="dark">🌑 暗闇</option>
+                        <option value="timeattack">⌛ タイムアタック</option>
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                         <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
                         <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
@@ -2124,12 +2296,14 @@
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
                     <button id="editor-ui-toggle-btn" class="pixel-btn small" style="margin-top:0; background:#607d8b; color:#fff;" onclick="toggleEditorUI()">🙈UI非表示</button>
+                    <button id="editor-face-btn" class="pixel-btn small" style="margin-top:0; margin-left:auto; background:linear-gradient(135deg,#7f2cff,#00d9ff); color:#fff; border-color:#d8b4fe; box-shadow:0 0 .8cqw rgba(128,64,255,.9); font-weight:bold;" onclick="toggleEditorFace()">🪞 裏面へ</button>
                 </div>
                 <div class="editor-right-bar">
                     <div class="tool-btn tool-block basic" id="btn-tool-B" onclick="setTool('B', this)" title="BLOCK"><canvas id="icon-B" class="tool-canvas"></canvas></div>
                     <div class="tool-btn basic" onclick="setTool('AC', this)" title="ACTION BLOCK"><canvas id="icon-AC" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-start basic" id="btn-tool-S" onclick="setTool('S', this)" title="START"><canvas id="icon-S" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-goal basic" id="btn-tool-G" onclick="setTool('G', this)" title="GOAL"><canvas id="icon-G" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn basic" id="btn-tool-WG" onclick="setTool('WG', this)" title="WARP GATE"><canvas id="icon-WG" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-spike basic" id="btn-tool-K" onclick="setTool('K', this)" title="SPIKE"><canvas id="icon-K" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-enemy basic" id="btn-tool-M" onclick="setTool('M', this)" title="ENEMY"><canvas id="icon-M" class="tool-canvas"></canvas></div>
                     <div class="tool-btn tool-eraser basic" id="btn-tool-E" onclick="setTool('E', this)" title="ERASE"><canvas id="icon-E" class="tool-canvas"></canvas></div>
@@ -2156,6 +2330,9 @@
                     <div class="tool-btn rank-common" id="btn-tool-!" onclick="setTool('!', this)" title="R/B SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-Y" onclick="setTool('Y', this)" title="STICKY BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-CB" onclick="setTool('CB', this)" title="CRACK BLOCK" style="display:none;"><canvas id="icon-CB" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-HBK" onclick="setTool('HBK', this)" title="HALF BLOCK" style="display:none;"><canvas id="icon-HBK" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-TL" onclick="setTool('TL', this)" title="LEFT TRAMPOLINE" style="display:none;"><canvas id="icon-TL" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-TR" onclick="setTool('TR', this)" title="RIGHT TRAMPOLINE" style="display:none;"><canvas id="icon-TR" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-BB" onclick="setTool('BBN', this)" title="IRON BLOCK" style="display:none;"><canvas id="icon-BB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
@@ -2194,7 +2371,9 @@
         <!-- ゲーム画面 -->
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
+            <div id="face-warp-effect"></div>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
+                <span id="stage-face-indicator" style="min-width:2.2cqw; padding:.35cqh .7cqw; text-align:center; color:#fff; background:rgba(0,100,180,.78); border:.12cqw solid #fff; border-radius:.25cqw; font-weight:bold;">1</span>
                 <span id="game-controls-label">ARROWS: MOVE | SPACE: JUMP</span>
                 <span id="game-retry-btn" onclick="retryGame()" style="cursor:pointer; text-decoration:underline; margin-left:.5cqw; opacity:.5; pointer-events:none;">RETRY</span>
                 <span id="game-exit-btn" onclick="exitGame()" style="cursor:pointer; text-decoration:underline; opacity:.5; pointer-events:none;">EXIT</span>
@@ -2226,10 +2405,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyle8LuLXRscxHSFVTZJai3mQ-btaSHxAdXtYlW12Ml4mkI6kZ9uRYc6dEcdvm0DYnu/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwMTTY8ZZ8srwz-84UL1R3uEDEinbv5LapW60YORZWCHALVNc9lNEQfTWkIidJPrc7f/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "2-Final"
+            VERSION: "3.0.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2372,6 +2551,7 @@
             'CB': { title: 'クラックブロック', text: '乗ると0.5秒後に崩壊する、ひび割れた足場ブロックです。' },
             'S': { title: 'スタート', text: 'プレイヤーの開始位置を設定するブロックです。ステージに1つだけ配置します。' },
             'G': { title: 'ゴール', text: 'プレイヤーが到達するとクリアになるゴールブロックです。' },
+            'WG': { title: 'ワープゲート', text: '表面で入ると、同じ座標の裏面へワープします。' },
             'KG': { title: 'キラーゴール', text: '紫の特殊ゴールです。すべてのチェックポイントを取り、ボスを含む敵を全滅させるまで開きません。' },
             'K': { title: 'スパイク', text: '触れるとプレイヤーがやられる危険なトゲです。' },
             'M': { title: '敵', text: '動く敵キャラクターです。ぶつかると死亡します。' },
@@ -2379,6 +2559,9 @@
             'A': { title: '矢印発射装置', text: '左向きに矢を発射します。矢に触れると死亡します。' },
             'T': { title: 'トランポリン', text: '乗ると高く跳ね返る足場です。ジャンプ中継に使えます。' },
             'TD': { title: '下向きトランポリン', text: '天井に設置するトランポリンです。下からジャンプでぶつかると下向きに弾き返されます。' },
+            'TL': { title: '左向きトランポリン', text: '右側から触れると、左方向へ強く跳ね返すトランポリンです。' },
+            'TR': { title: '右向きトランポリン', text: '左側から触れると、右方向へ強く跳ね返すトランポリンです。' },
+            'HBK': { title: 'ハーフブロック', text: '下半分だけに当たり判定がある、背の低いブロックです。' },
             'X': { title: 'トロールブロック', text: '横から触れると弾くブロックです。敵にも効果があります。' },
             'W': { title: '風ゾーン', text: '常に右方向に風を吹かせ続ける領域です。プレイヤーを押し出します。' },
             'L': { title: '左風', text: '左方向に風を吹かせる区画です。戻りやすくできます。' },
@@ -2448,6 +2631,10 @@
         let raiDashCooldown = 0;
         let raiDashHitBoss = false;
         let activeStage = [];
+        let activeFrontStage = [];
+        let activeBackStage = [];
+        let isUsingBackFace = false;
+        let warpGateLocked = false;
         let currentStageData = null; // 現在プレイ中のステージ情報
         let isWeeklyCupMatch = false; // 大会から開始したプレイ中だけ、専用の金色演出を使う
         let weeklyCupStageCache = null;
@@ -2491,14 +2678,14 @@
 
         // ブロックの色マッピング（破片色用）
         const BLOCK_DEBRIS_COLOR = {
-            'B': '#78909c', 'CB': '#8d6e63', 'X': '#546e7a', '!': '#ff8f00',
+            'B': '#78909c', 'CB': '#8d6e63', 'HBK': '#5d4037', 'X': '#546e7a', '!': '#ff8f00',
             'Y': '#7b1fa2', 'I': '#81d4fa', 'T': '#8d6e63', 'TD': '#6d4c41',
             'H': '#a1887f', 'hr': '#ef9a9a', 'hb': '#90caf9',
             '#': '#b0bec5', 'r': '#f44336', 'b': '#2196f3',
             'Z': '#e040fb', 'LM': '#ffca28', 'CA': '#ffb300', 'GB': '#ffd54f', 'WC': '#795548', 'default': '#bdbdbd'
         };
         // 破壊できないタイル一覧（ミサイルの爆発・狼の大ジャンプ破壊など、ブロックを壊す処理全体で共有する）
-        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'BL', 'CA', 'GB', 'FL'];
+        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'WG', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'BL', 'CA', 'GB', 'FL'];
         // ブロック破壊時の破片パーティクルを生成する共通ヘルパー（以前はミサイル爆発処理内のローカル関数だった）
         function spawnBlockDebris(bx, by, tileType) {
             if (!cachedGameCanvas) return;
@@ -2590,6 +2777,13 @@
         let lastControlEnabled = null;
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
+        // 表と裏で同じ座標にチェックポイントを置けるため、面も含めて記録する。
+        function getCheckpointKey(x, y) {
+            return `${isUsingBackFace ? 'back' : 'front'}:${x},${y}`;
+        }
+        let stageStartRespawn = null;
+        // タイムアタックステージ専用: 最後に通過したチェックポイントへの復帰地点。
+        let timeAttackRespawn = null;
         let killerGoalActive = false;
         let killerGoalTiles = [];
         let lastKillerGoalEnemyCount = -1;
@@ -2979,6 +3173,8 @@
             'lamp_block': { name: 'LAMP BLOCK', price: 15000, isBlockSet: true, sprite: null },
             'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null },
             'crack_block': { name: 'CRACK BLOCK', price: 50000, isBlockSet: true, sprite: null },
+            'half_block': { name: 'HALF BLOCK', price: 3000, isBlockSet: true, sprite: null },
+            'side_trampoline_set': { name: 'SIDE TRAMPOLINE SET', price: 10000, isBlockSet: true, sprite: null },
             'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'moon_stage': { name: 'MOON STAGE', price: 40000, isBlockSet: true, isStageType: true, sprite: null },
             'beach_stage': { name: 'BEACH STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
@@ -3044,14 +3240,27 @@
             if (gameCode === 'Space' || gameCode === 'ArrowLeft' || gameCode === 'ArrowRight') e.preventDefault();
         });
 
+        function createEmptyGrid() { return Array(GRID_H).fill().map(() => Array(GRID_W).fill(null)); }
+        let editorFrontGrid = [];
+        let editorBackGrid = [];
+        let editorFace = 'front';
+        let editorFrontStageType = 'normal';
+        let editorBackStageType = 'normal';
         function initGrid() {
-            editorGrid = Array(GRID_H).fill().map(() => Array(GRID_W).fill(null));
+            editorFrontGrid = createEmptyGrid();
+            editorBackGrid = createEmptyGrid();
+            editorFace = 'front';
+            editorFrontStageType = 'normal';
+            editorBackStageType = 'normal';
+            editorGrid = editorFrontGrid;
         }
         initGrid();
 
         // ステージデータを規定のサイズ(GRID_H x GRID_W)に整形し、欠損を補完する
         function normalizeGrid(data) {
             const grid = Array(GRID_H).fill().map(() => Array(GRID_W).fill(null));
+            // 表／裏面を持つ投稿データは、プレイ時には表面を使用する。
+            if (data && !Array.isArray(data) && Array.isArray(data.front)) data = data.front;
             if (!data || !Array.isArray(data)) return grid;
             for (let y = 0; y < Math.min(GRID_H, data.length); y++) {
                 if (data[y] && Array.isArray(data[y])) {
@@ -3166,6 +3375,19 @@
             return { success: false, message: "通信エラーが発生しました。インターネット接続を確認してください。" };
         }
 
+        // GASの返却値がまれに { message: ... } のようなオブジェクトになる場合でも、
+        // UIに [object Object] を出さず、利用者向けの文字列として表示する。
+        function apiMessageText(value, fallback = '処理を完了しました。') {
+            if (value === null || value === undefined || value === '') return fallback;
+            if (typeof value !== 'object') return String(value);
+            for (const key of ['message', 'error', 'detail', 'reason']) {
+                if (value[key] !== undefined && value[key] !== value) return apiMessageText(value[key], fallback);
+            }
+            return fallback;
+        }
+        const nativeAlert = window.alert.bind(window);
+        window.alert = value => nativeAlert(apiMessageText(value));
+
         function togglePassword() {
             const passInput = document.getElementById('password');
             const toggleBtn = document.querySelector('.toggle-pass');
@@ -3234,6 +3456,7 @@
             }
         }
 
+        let lastGameplayOnlineHeartbeat = 0;
         async function refreshOnlineCount() {
             if (!CONFIG.IS_LOGGED_IN) return;
             // ステージ選択中・プレイ中・編集中は通信によるラグを避けるためスキップする
@@ -3243,11 +3466,13 @@
             const editorScreen = document.getElementById('editor-screen');
             const stageListOverlay = document.getElementById('stage-list-overlay');
             const isVisible = (el) => !!el && getComputedStyle(el).display !== 'none';
-            if (isVisible(gameScreen) || isVisible(editorScreen) || isVisible(stageListOverlay)) {
-                return;
-            }
+            const isBusyScreen = isVisible(gameScreen) || isVisible(editorScreen) || isVisible(stageListOverlay);
+            // プレイ中などは通信負荷を避け、オンライン維持の通知だけを最大1分に1回行う。
+            if (isBusyScreen && Date.now() - lastGameplayOnlineHeartbeat < 60000) return;
+            if (isBusyScreen) lastGameplayOnlineHeartbeat = Date.now();
             const res = await callApi('refreshOnlineUsers', { username: CONFIG.USERNAME });
             if (res.success && typeof res.onlineCount === 'number') {
+                if (isBusyScreen) return;
                 const el = document.getElementById('online-count');
                 if (el) el.innerText = res.onlineCount;
                 onlineUsernames = Array.isArray(res.onlineUsers) ? res.onlineUsers : [];
@@ -3339,7 +3564,7 @@
             // google.script.run ではなく、定義済みの callApi を使用します
             callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember: type === 'login' && remember })
                 .then((res) => {
-                    msg.innerText = res.message;
+                    msg.innerText = apiMessageText(res.message, res.success ? '完了しました。' : '処理に失敗しました。');
                     if (res.success) {
                         msg.style.color = "var(--primary-color)";
                         if (type === 'register') {
@@ -3378,54 +3603,207 @@
             document.getElementById('patch-notes-overlay').style.display = 'none';
         }
 
-        function openShop(tab = currentShopTab) {
-            currentShopTab = tab;
+        // --- ストーリー：Pixel Stages Academy 入学試験 ---
+        const STORY_PROLOGUE = [
+            { speaker: 'ナレーション', text: '大きな時計塔を見上げると、その先にPixel Stages Academyの校舎が見えた。\n\n校門の上には、金色の文字が浮かんでいる。\n「最速を目指す者よ、ここへ来たれ。」' },
+            { speaker: '？？？', text: '「止まりなさい。」\n\n制服姿の生徒が、腕を組んで立っていた。' },
+            { speaker: '試験官', text: '「受験生？ なら、まずはタイムを見せてもらうよ。」\n\n「ここでは強さじゃなく、速さがすべてだ。」' },
+            { speaker: '試験官', text: '「入学試験は一つだけ。同じコースを走って、規定タイムを切ること。」\n\n「敵を倒す必要もない。誰かを邪魔する必要もない。ただ、自分の最高速度でゴールまで行け。」' },
+            { speaker: '試験官', text: '「規定タイムは30秒。今月の合格者は、まだいない。」\n\n試験開始のベルが鳴る。\n\n「さあ受験生。君の“最初の記録”を見せて。」' }
+        ];
+        const STORY_STORAGE_PREFIX = 'pixel_stages_story_data_';
+        let storyDialogueIndex = 0;
+        let storyConfig = null;
+
+        function cloneStoryValue(value) { return JSON.parse(JSON.stringify(value)); }
+        function getDefaultStoryConfig() {
+            return {
+                title: 'PIXEL STAGES ACADEMY ／ PROLOGUE',
+                stageName: '入学試験：はじめての記録',
+                background: 'academy',
+                rivalName: '試験官',
+                rivalSkin: 'default',
+                rivalColor: 'blue',
+                rivalGhostEnabled: true,
+                rivalTime: 18,
+                dialogues: cloneStoryValue(STORY_PROLOGUE),
+                stage: null
+            };
+        }
+        function storyStorageKey() { return STORY_STORAGE_PREFIX + (CONFIG.USERNAME || 'guest'); }
+        function loadStoryConfig() {
+            const fallback = getDefaultStoryConfig();
+            try {
+                const saved = JSON.parse(localStorage.getItem(storyStorageKey()) || 'null');
+                storyConfig = saved && typeof saved === 'object' ? { ...fallback, ...saved, dialogues: Array.isArray(saved.dialogues) && saved.dialogues.length ? saved.dialogues : fallback.dialogues } : fallback;
+            } catch (_) { storyConfig = fallback; }
+            return storyConfig;
+        }
+        function persistStoryConfig() { localStorage.setItem(storyStorageKey(), JSON.stringify(storyConfig)); }
+
+        function openStory() {
+            loadStoryConfig();
+            storyDialogueIndex = 0;
+            document.getElementById('story-overlay').style.display = 'flex';
+            renderStoryDialogue();
+        }
+
+        function closeStory() {
+            document.getElementById('story-overlay').style.display = 'none';
+            syncHomeLevelGaugeVisibility();
+        }
+
+        function drawStoryPortraits() {
+            const selfCanvas = document.getElementById('story-player-canvas');
+            const rivalCanvas = document.getElementById('story-rival-canvas');
+            if (selfCanvas) {
+                const ctx = selfCanvas.getContext('2d'); ctx.clearRect(0, 0, 256, 256);
+                drawPlayer(ctx, 0, 0, 256, 256, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin]);
+            }
+            if (rivalCanvas) {
+                const ctx = rivalCanvas.getContext('2d'); ctx.clearRect(0, 0, 256, 256);
+                drawPlayer(ctx, 0, 0, 256, 256, storyConfig.rivalSkin || 'default', false, storyConfig.rivalColor || 'default', customSpriteStore[storyConfig.rivalSkin]);
+            }
+        }
+
+        function renderStoryDialogue() {
+            const lines = storyConfig?.dialogues || STORY_PROLOGUE;
+            const line = lines[storyDialogueIndex];
+            if (!line) return;
+            document.getElementById('story-chapter').innerText = storyConfig.title || 'STORY';
+            document.getElementById('story-speaker').innerText = line.speaker || 'ナレーション';
+            document.getElementById('story-dialogue').innerText = line.text || '';
+            const background = document.getElementById('story-background');
+            if (background) background.className = `story-bg-${storyConfig.background || 'academy'}`;
+            drawStoryPortraits();
+            const nextButton = document.getElementById('story-next-btn');
+            const isLast = storyDialogueIndex === lines.length - 1;
+            nextButton.innerText = isLast ? '入学試験を始める' : '次へ';
+        }
+
+        function nextStoryDialogue() {
+            const lines = storyConfig?.dialogues || STORY_PROLOGUE;
+            if (storyDialogueIndex < lines.length - 1) {
+                storyDialogueIndex++;
+                renderStoryDialogue();
+                return;
+            }
+            beginStoryExam();
+        }
+
+        function createDefaultStoryExamGrid() {
+            const grid = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(null));
+            for (let x = 0; x < GRID_W; x++) grid[9][x] = 'B';
+            grid[8][1] = 'S';
+            grid[8][6] = 'K';
+            grid[8][11] = 'T';
+            grid[8][18] = 'G';
+            return grid;
+        }
+        function createStoryRivalGhost(grid) {
+            if (!storyConfig.rivalGhostEnabled || !Array.isArray(grid)) return [];
+            let start = null, goal = null;
+            grid.forEach((row, y) => row.forEach((cell, x) => { if (cell === 'S') start = { x: x + .1, y: y + .1 }; if (cell === 'G' || cell === 'KG') goal = { x: x + .1, y: y + .1 }; }));
+            if (!start || !goal) return [];
+            const steps = Math.max(12, Math.round(Math.max(1, Number(storyConfig.rivalTime) || 18) * 12));
+            return Array.from({ length: steps }, (_, index) => {
+                const t = index / Math.max(1, steps - 1);
+                return [start.x + (goal.x - start.x) * t, start.y + (goal.y - start.y) * t, goal.x >= start.x ? 1 : 0];
+            });
+        }
+        function createStoryExamStage() {
+            const savedStage = storyConfig?.stage;
+            const data = savedStage?.data ? cloneStoryValue(savedStage.data) : createDefaultStoryExamGrid();
+            const frontGrid = Array.isArray(data) ? data : data.front;
+            const rivalGhost = createStoryRivalGhost(frontGrid);
+            return {
+                name: storyConfig?.stageName || '入学試験：はじめての記録',
+                creator: 'Pixel Stages Academy',
+                stageType: savedStage?.stageType || 'normal',
+                data,
+                attempts: 0,
+                clears: 0,
+                leaderboard: rivalGhost.length ? [{ name: storyConfig.rivalName || 'RIVAL', time: Number(storyConfig.rivalTime) || 18, ghost: rivalGhost, skin: storyConfig.rivalSkin || 'default', color: storyConfig.rivalColor || 'default' }] : []
+            };
+        }
+
+        function beginStoryExam() {
+            closeStory();
+            startGame(createStoryExamStage(), 'story');
+        }
+
+        function populateStorySkinOptions() {
+            const select = document.getElementById('story-setting-rival-skin');
+            if (!select) return;
+            select.innerHTML = '';
+            Object.entries(SKINS).filter(([, skin]) => !skin.isCustom).forEach(([id, skin]) => {
+                const option = document.createElement('option'); option.value = id; option.textContent = skin.name || id; select.appendChild(option);
+            });
+        }
+        function openStorySettings() {
+            loadStoryConfig();
+            populateStorySkinOptions();
+            document.getElementById('story-setting-title').value = storyConfig.title;
+            document.getElementById('story-setting-stage').value = storyConfig.stageName;
+            document.getElementById('story-setting-background').value = storyConfig.background;
+            document.getElementById('story-setting-rival-name').value = storyConfig.rivalName;
+            document.getElementById('story-setting-rival-skin').value = storyConfig.rivalSkin;
+            document.getElementById('story-setting-rival-color').value = storyConfig.rivalColor;
+            document.getElementById('story-setting-rival-time').value = storyConfig.rivalTime;
+            document.getElementById('story-setting-rival-ghost').checked = storyConfig.rivalGhostEnabled !== false;
+            renderStoryDialogueSettings();
+            document.getElementById('story-settings-overlay').style.display = 'flex';
+        }
+        function closeStorySettings() { document.getElementById('story-settings-overlay').style.display = 'none'; }
+        function renderStoryDialogueSettings() {
+            const container = document.getElementById('story-settings-dialogues');
+            container.innerHTML = '';
+            storyConfig.dialogues.forEach((line, index) => {
+                const row = document.createElement('div'); row.className = 'story-settings-line';
+                const speaker = document.createElement('input'); speaker.value = line.speaker || ''; speaker.placeholder = '話す人'; speaker.oninput = () => { storyConfig.dialogues[index].speaker = speaker.value; updateStoryDataPreview(); };
+                const text = document.createElement('textarea'); text.value = line.text || ''; text.placeholder = 'セリフ'; text.oninput = () => { storyConfig.dialogues[index].text = text.value; updateStoryDataPreview(); };
+                const remove = document.createElement('button'); remove.className = 'pixel-btn small'; remove.textContent = '削除'; remove.onclick = () => { storyConfig.dialogues.splice(index, 1); renderStoryDialogueSettings(); };
+                row.append(speaker, text, remove); container.appendChild(row);
+            });
+            updateStoryDataPreview();
+        }
+        function addStoryDialogue() { storyConfig.dialogues.push({ speaker: storyConfig.rivalName || '相手', text: '' }); renderStoryDialogueSettings(); }
+        function updateStoryDataPreview() { const preview = document.getElementById('story-data-preview'); if (preview) preview.textContent = JSON.stringify(storyConfig, null, 2); }
+        function saveStorySettings() {
+            storyConfig.title = document.getElementById('story-setting-title').value.trim() || 'STORY';
+            storyConfig.stageName = document.getElementById('story-setting-stage').value.trim() || '入学試験：はじめての記録';
+            storyConfig.background = document.getElementById('story-setting-background').value;
+            storyConfig.rivalName = document.getElementById('story-setting-rival-name').value.trim() || 'RIVAL';
+            storyConfig.rivalSkin = document.getElementById('story-setting-rival-skin').value || 'default';
+            storyConfig.rivalColor = document.getElementById('story-setting-rival-color').value || 'default';
+            storyConfig.rivalTime = Math.max(1, Number(document.getElementById('story-setting-rival-time').value) || 18);
+            storyConfig.rivalGhostEnabled = document.getElementById('story-setting-rival-ghost').checked;
+            persistStoryConfig(); updateStoryDataPreview(); closeStorySettings(); showQuickMsg('ストーリー設定をこの端末に保存しました。', 'var(--primary-color)');
+        }
+        function useDefaultStoryStage() { if (!storyConfig) loadStoryConfig(); storyConfig.stage = null; storyConfig.stageName = '入学試験：はじめての記録'; persistStoryConfig(); const input = document.getElementById('story-setting-stage'); if (input) input.value = storyConfig.stageName; updateStoryDataPreview(); }
+        async function openShop() {
             document.getElementById('shop-overlay').style.display = 'flex';
             const container = document.getElementById('shop-container');
-            container.innerHTML = '';
-
-            // タブのボタン状態更新
-            const btnSkins = document.getElementById('shop-tab-skins');
-            const btnBlocks = document.getElementById('shop-tab-blocks');
-            const btnCollab = document.getElementById('shop-tab-collab');
-            if (btnSkins) {
-                btnSkins.style.backgroundColor = tab === 'skins' ? 'var(--primary-color)' : '#000';
-                btnSkins.style.color = tab === 'skins' ? '#000' : '#fff';
+            const dateLabel = document.getElementById('daily-shop-date');
+            container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#bdefff;">商品を読み込み中...</div>';
+            try {
+                const res = await callApi('getDailyShop', {});
+                if (!res?.success) throw new Error(res?.message || '読み込み失敗');
+                const itemIds = [...(res.skinIds || []), ...(res.customIds || []), ...(res.blockIds || [])];
+                dateLabel.innerText = `${res.dateKey.replaceAll('-', '/')} の共通ラインナップ　次の更新まで毎日同じ商品です`;
+                container.innerHTML = '';
+                itemIds.forEach(id => {
+                    const skin = SKINS[id];
+                    if (!skin) return;
+                    const isPurchased = purchasedSkins.includes(id);
+                    const isEquipped = equippedSkin === id;
+                    const currency = skin.isES ? 'ES' : (skin.isAS ? 'AS' : 'gold');
+                    createShopItem(container, id, skin, isPurchased, isEquipped, event => buyItem(id, skin.price, event.target, currency));
+                });
+            } catch (error) {
+                dateLabel.innerText = '';
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ff8a80;">デイリーショップを読み込めませんでした。</div>';
             }
-            if (btnBlocks) {
-                btnBlocks.style.backgroundColor = tab === 'blocks' ? 'var(--primary-color)' : '#000';
-                btnBlocks.style.color = tab === 'blocks' ? '#000' : '#fff';
-            }
-            if (btnCollab) {
-                btnCollab.style.backgroundColor = tab === 'collab' ? '#ff9800' : '#000';
-                btnCollab.style.color = tab === 'collab' ? '#000' : '#fff';
-            }
-
-            // コラボショップの説明バナーは「双剣物語コラボ」タブの時だけ表示
-            const collabBanner = document.getElementById('shop-collab-banner');
-            if (collabBanner) collabBanner.style.display = (tab === 'collab') ? 'block' : 'none';
-
-            Object.keys(SKINS).forEach(id => {
-                const skin = SKINS[id];
-                if (skin.deprecated || skin.isHiddenShop) return;
-                const isBlock = !!skin.isBlockSet;
-                const isCollab = !!skin.isCollab;
-
-                // コラボアイテム（双剣物語コラボの狼など）は通常のSKINS/BLOCKSタブには表示せず、
-                // 専用の「双剣物語コラボ」タブにのみ表示する
-                if (isCollab) {
-                    if (tab !== 'collab') return;
-                } else if (tab === 'collab') {
-                    return;
-                } else if (!((tab === 'blocks' && isBlock) || (tab === 'skins' && !isBlock))) {
-                    return;
-                }
-
-                const isPurchased = purchasedSkins.includes(id);
-                const isEquipped = equippedSkin === id;
-                const currency = skin.isES ? 'ES' : (skin.isAS ? 'AS' : 'gold');
-                createShopItem(container, id, skin, isPurchased, isEquipped, (e) => buyItem(id, skin.price, e.target, currency));
-            });
         }
 
         function completeLogin(res) {
@@ -3447,6 +3825,11 @@
                 userGuild = res.guild;
                 userBadgeVisible = res.badgeVisible !== false;
                 passwordIsHashed = res.passwordHashed !== false;
+                // ログインユーザーが変わった場合も、その人の制作画面設定を初期同期で取得する。
+                creatorSpecialSettingsLoaded = false;
+                creatorSpecialSettings = { order: [], visible: {} };
+                // 全ステージの本体データは、必要になった画面でページ単位に取得する。
+                cachedStages = null;
                 showLoggedInHome(res.username);
                 startHomeSyncUI();
                 preloadAllData(res.username, res.loginBonusHistory)
@@ -3474,13 +3857,13 @@
                     resumed = true;
                     activeSessionToken = token;
                     msg.style.color = 'var(--primary-color)';
-                    msg.innerText = res.message;
+                    msg.innerText = apiMessageText(res.message, '自動ログインしました。');
                     completeLogin(res);
                     return;
                 }
                 clearAuthSessionCookie();
                 msg.style.color = 'var(--secondary-color)';
-                msg.innerText = res?.message || '自動ログインに失敗しました。';
+                msg.innerText = apiMessageText(res?.message, '自動ログインに失敗しました。');
             } catch (error) {
                 clearAuthSessionCookie();
                 msg.style.color = 'var(--secondary-color)';
@@ -3539,6 +3922,8 @@
                 if (id === 'lamp_block') previewType = 'LM';
                 if (id === 'wood_crate') previewType = 'WC';
                 if (id === 'crack_block') previewType = 'CB';
+                if (id === 'half_block') previewType = 'HBK';
+                if (id === 'side_trampoline_set') previewType = 'TR';
                 if (id === 'eruption_control') previewType = 'EC';
                 if (id === 'purple_boss') previewType = 'PB';
                 if (id === 'wolf_boss') previewType = 'WB';
@@ -3597,11 +3982,11 @@
                 equippedSkin: equippedSkin,
                 equippedColor: equippedColor,
             });
-            openShop(currentShopTab);
+            openShop();
         }
 
         const TOOL_CATEGORIES = {
-            basic: ['B', 'S', 'G', 'K', 'M', 'E']
+            basic: ['B', 'S', 'G', 'WG', 'K', 'M', 'E']
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
@@ -3720,7 +4105,7 @@
 
         // --- 初期データ読み込み ---
         let homeSyncProgressTimer = null;
-        const HOME_SYNC_BUTTONS = '#main-menu button, #global-rank-btn, #weekly-cup-btn, #creators-road-btn, #explanation-btn, #chat-btn, #guild-btn, #login-bonus-btn, #patch-notes-btn, #password-settings-btn';
+        const HOME_SYNC_BUTTONS = '#main-menu button, #global-rank-btn, #weekly-cup-btn, #creators-road-btn, #explanation-btn, #chat-btn, #guild-btn, #login-bonus-btn, #patch-notes-btn, #password-settings-btn, #creator-settings-btn';
 
         function setHomeSyncLocked(locked) {
             document.querySelectorAll(HOME_SYNC_BUTTONS).forEach(button => { button.disabled = locked; });
@@ -3780,6 +4165,7 @@
             syncHomeLevelGaugeVisibility();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
+            document.getElementById('creator-settings-btn').style.display = 'block';
             document.getElementById('weekly-cup-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
@@ -3801,13 +4187,14 @@
             loginBonusHistory = loginHistory || [];
 
             // 並列で全データを取得
-            const [publishedRes, customSkinsRes, guildRes, cupWinnersRes, verifiedUsersRes, playerLevelsRes] = await Promise.all([
-                callApi('getPublished', {}),
+            const [customSkinsRes, guildRes, cupWinnersRes, verifiedUsersRes, playerLevelsRes] = await Promise.all([
                 callApi('load', { username: username, key: 'custom_skins' }),
                 callApi('getGuilds', {}),
                 callApi('getWeeklyCupWinners', {}),
                 callApi('getVerifiedUsers', {}),
-                callApi('getPlayerLevels', {})
+                callApi('getPlayerLevels', {}),
+                // 制作画面設定はログイン後の初期同期時にだけ取得する。
+                loadCreatorSpecialSettings()
             ]);
 
             if (verifiedUsersRes?.success) {
@@ -3816,19 +4203,9 @@
             }
             if (playerLevelsRes?.success) playerLevelsByUsername = new Map(Object.entries(playerLevelsRes.levels || {}));
 
-            // ステージキャッシュの構築
-            if (publishedRes.success) {
-                cachedStages = (publishedRes.stages || []).filter(s => s && s.data);
-                cachedStages.forEach(s => {
-                    const lb = Array.isArray(s.leaderboard) ? s.leaderboard : [];
-                    s._cr = s.attempts > 0 ? (s.clears || 0) / s.attempts : -1;
-                    s._reward = calculateStageRewardValue(s, CONFIG.USERNAME);
-                    s._topTime = lb.length > 0 ? lb[0].time : null;
-                    s._topPlayers = lb.filter(r => r.time === s._topTime);
-                    s._myRec = lb.find(r => r.name === CONFIG.USERNAME);
-                    s._idStr = String(s.id || s.name);
-                });
-            }
+            // 全ステージを初回同期で取得すると、件数に比例してログインが遅くなる。
+            // ステージ一覧は getPublishedPage で必要な100件だけ取得し、全件が必要な
+            // 機能では従来どおりその画面を開いた時点で cachedStages を読み込む。
 
             // カスタムスキン反映
             if (customSkinsRes && customSkinsRes.data) customSpriteStore = { ...customSpriteStore, ...customSkinsRes.data };
@@ -3843,7 +4220,6 @@
             // 同期完了後に取得済みのスキン・ギルド情報をホームへ反映
             updateHomeCharacter();
             refreshChat();
-            refreshDirectMessageNotifications();
             // 3分(180000ms)ごとにチャットの新着をバックグラウンドで確認し、新着があれば通知バッジを出す
             if (chatRefreshId) clearInterval(chatRefreshId);
             chatRefreshId = setInterval(refreshChat, 180000);
@@ -4594,11 +4970,7 @@
                 `;
                 appendMessageVideoEmbeds(content, m.message);
                 if (m.hasImage || m.image) {
-                    const loadImageBtn = document.createElement('button');
-                    loadImageBtn.className = 'chat-reply-btn';
-                    loadImageBtn.innerText = '🖼️ 画像を表示';
-                    loadImageBtn.onclick = () => loadChatImage(m.id, loadImageBtn, m.image || null);
-                    content.appendChild(loadImageBtn);
+                    appendChatImage(content, m.id, m.image || null);
                 }
                 if (m.replyToUsername) {
                     const sourceBtn = document.createElement('button');
@@ -4634,22 +5006,21 @@
             refreshDirectMessageNotifications();
         }
 
-        async function loadChatImage(messageId, button, cachedImage = null) {
-            if (!button) return;
-            button.disabled = true;
-            button.innerText = '画像を読み込み中...';
-            const res = cachedImage ? { success: true, image: cachedImage }
-                : await callApi('getChatImage', { messageId }, 30000);
-            if (!res?.success || !res.image) {
-                button.disabled = false;
-                button.innerText = '画像を読み込めませんでした。再試行';
-                return;
-            }
+        function createChatImage(src) {
             const image = document.createElement('img');
             image.className = 'chat-image';
-            image.src = res.image;
-            image.addEventListener('click', () => showImageLightbox(res.image));
-            button.replaceWith(image);
+            image.src = src;
+            image.alt = 'チャット画像';
+            image.addEventListener('click', () => showImageLightbox(src));
+            return image;
+        }
+
+        async function appendChatImage(container, messageId, cachedImage = null) {
+            if (!container) return;
+            const res = cachedImage ? { success: true, image: cachedImage }
+                : await callApi('getChatImage', { messageId }, 30000);
+            // 再読み込みなどで古いチャット要素が消えていた場合は表示しない。
+            if (res?.success && res.image && container.isConnected) container.appendChild(createChatImage(res.image));
         }
 
         let attachedStageId = null;
@@ -5251,7 +5622,7 @@
 
             const res = await callApi('getGuildMessages', { guildName: userGuild });
             if (!res.success) {
-                if (isFirst) container.innerHTML = `<div style="color:var(--secondary-color); font-size:1.2cqw; text-align:center; padding:5cqh;">メッセージの取得に失敗しました: ${res.message}</div>`;
+                if (isFirst) container.innerHTML = `<div style="color:var(--secondary-color); font-size:1.2cqw; text-align:center; padding:5cqh;">メッセージの取得に失敗しました: ${apiMessageText(res.message, '通信エラー')}</div>`;
                 return;
             }
 
@@ -6252,7 +6623,32 @@
             title.innerText = "LOADING...";
             body.innerHTML = "";
             tabs.style.display = 'flex';
+            const onlinePlaytimeTab = document.getElementById('online-playtime-rank-tab');
+            if (onlinePlaytimeTab) onlinePlaytimeTab.style.display = CONFIG.USERNAME === 'Runon' ? 'inline-block' : 'none';
             overlay.style.display = 'flex';
+
+            if (tab === 'onlinePlaytime') {
+                if (CONFIG.USERNAME !== 'Runon') {
+                    overlay.style.display = 'none';
+                    return;
+                }
+                title.innerText = 'RANK: ONLINE PLAYTIME';
+                const headerRow = body.parentElement.querySelector('thead tr');
+                if (headerRow) headerRow.innerHTML = '<th style="padding:1cqh; text-align:left;">RANK</th><th style="padding:1cqh; text-align:left;">PLAYER</th><th style="padding:1cqh; text-align:right;">PLAYTIME</th>';
+                const res = await callApi('getOnlinePlaytimeRanking', { username: CONFIG.USERNAME });
+                if (!res?.success) {
+                    body.innerHTML = '<tr><td colspan="3" style="padding:1.5cqh; color:#ff8a80;">データを読み込めませんでした。</td></tr>';
+                    return;
+                }
+                const formatPlaytime = seconds => {
+                    const total = Math.max(0, Number(seconds) || 0);
+                    const hours = Math.floor(total / 3600);
+                    const minutes = Math.floor((total % 3600) / 60);
+                    return `${hours}時間${minutes}分`;
+                };
+                body.innerHTML = (res.ranking || []).map((entry, index) => `<tr style="border-bottom:.1cqw solid #444;"><td style="padding:1.5cqh;">${index + 1}</td><td style="padding:1.5cqh;">${getPlayerLevelPrefix(entry.username)}<span class="${getUserNameClasses(entry.username)}">${entry.username}</span></td><td style="padding:1.5cqh; text-align:right; color:#ffe082;">${formatPlaytime(entry.seconds)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">データがありません。</td></tr>';
+                return;
+            }
 
             if (!cachedStages) {
                 const res = await callApi('getPublished', {});
@@ -6756,6 +7152,164 @@
             closeCustomEditor();
         }
 
+        // --- クリエイト画面のSpecial欄設定 ---
+        let creatorSpecialSettings = { order: [], visible: {} };
+        let creatorSpecialSettingsLoaded = false;
+
+        // クリエイト画面設定には、実際に使用できるブロックだけを並べる。
+        function hasCreatorToolOwnership(key) {
+            // Runon は検証・制作用として、購入・解放状況に関係なく全ブロックを使用できる。
+            if (CONFIG.USERNAME === 'Runon') return true;
+            const hasRoadReward = reward => CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(reward);
+            if (['!', 'r', 'b', 'k', 'q'].includes(key)) return true;
+            if (key === 'Y') return claimedRoadRewards.includes(3);
+            if (key === 'CB') return purchasedSkins.includes('crack_block');
+            if (key === 'HBK') return purchasedSkins.includes('half_block');
+            if (['TL', 'TR'].includes(key)) return purchasedSkins.includes('side_trampoline_set');
+            if (key === 'BBN') return purchasedSkins.includes('big_block');
+            if (key === 'd') return claimedRoadRewards.includes(7);
+            if (key === 'J') return hasRoadReward(6);
+            if (key === 'j') return hasRoadReward(8);
+            if (['ug', 'dg', 'rg'].includes(key)) return hasRoadReward(9);
+            if (key === 'I') return hasRoadReward(10);
+            if (key === 'KG') return hasRoadReward(16);
+            if (key === 'Z') return hasRoadReward(12);
+            if (['hr', 'hb'].includes(key)) return hasRoadReward(14);
+            if (key === 'e') return hasRoadReward(13);
+            if (key === 'y') return hasRoadReward(11);
+            if (['o', 'D'].includes(key)) return purchasedSkins.includes('key_set');
+            if (key === 'V') return purchasedSkins.includes('aurora_block');
+            if (key === '#') return purchasedSkins.includes('wire_mesh');
+            if (key === 'sp') return purchasedSkins.includes('spawner');
+            if (key === 'mg') return hasRoadReward(15);
+            if (key === 'LM') return purchasedSkins.includes('lamp_block');
+            if (['WC', 'WCN'].includes(key)) return purchasedSkins.includes('wood_crate');
+            if (key === 'EC') return purchasedSkins.includes('eruption_control');
+            if (['PB', 'SM'].includes(key)) return purchasedSkins.includes('purple_boss');
+            if (['WB', 'FL'].includes(key)) return purchasedSkins.includes('wolf_boss');
+            if (['BL', 'CA', 'GB'].includes(key)) return purchasedSkins.includes('black_boss');
+            return true; // 基本ブロック
+        }
+
+        function getSpecialToolEntries() {
+            return [...document.querySelectorAll('.editor-bottom-bar > .tool-btn')].map(button => {
+                const match = (button.getAttribute('onclick') || '').match(/setTool\('([^']+)'/);
+                return match ? { key: match[1], title: button.title || match[1], button } : null;
+            }).filter(entry => entry && hasCreatorToolOwnership(entry.key));
+        }
+
+        function normalizeCreatorSpecialSettings() {
+            const entries = getSpecialToolEntries();
+            const available = entries.map(entry => entry.key);
+            const ordered = (creatorSpecialSettings.order || []).filter(key => available.includes(key));
+            available.forEach(key => { if (!ordered.includes(key)) ordered.push(key); });
+            creatorSpecialSettings.order = ordered;
+            creatorSpecialSettings.visible = creatorSpecialSettings.visible || {};
+            return entries;
+        }
+
+        function applyCreatorSpecialSettings() {
+            const entries = normalizeCreatorSpecialSettings();
+            const byKey = new Map(entries.map(entry => [entry.key, entry.button]));
+            const bar = document.querySelector('.editor-bottom-bar');
+            const palette = document.getElementById('color-block-palette');
+            creatorSpecialSettings.order.forEach(key => {
+                const button = byKey.get(key);
+                if (!button) return;
+                button.classList.toggle('special-hidden-by-user', creatorSpecialSettings.visible[key] === false);
+                bar.insertBefore(button, palette);
+            });
+        }
+
+        async function loadCreatorSpecialSettings(force = false) {
+            if ((!force && creatorSpecialSettingsLoaded) || !CONFIG.USERNAME) return;
+            creatorSpecialSettingsLoaded = true;
+            const res = await callApi('load', { username: CONFIG.USERNAME, key: 'creator_special_settings' });
+            if (res?.success && res.data && typeof res.data === 'object') creatorSpecialSettings = res.data;
+            applyCreatorSpecialSettings();
+        }
+
+        function renderCreatorSettings() {
+            const list = document.getElementById('creator-special-settings-list');
+            if (!list) return;
+            const entries = normalizeCreatorSpecialSettings();
+            const byKey = new Map(entries.map(entry => [entry.key, entry]));
+            list.innerHTML = '';
+            creatorSpecialSettings.order.forEach(key => {
+                const entry = byKey.get(key);
+                if (!entry) return;
+                const row = document.createElement('label');
+                row.className = 'creator-special-setting';
+                row.draggable = true;
+                row.dataset.key = key;
+                row.title = `${entry.title}（ドラッグで移動）`;
+                row.innerHTML = `<input type="checkbox" aria-label="${entry.title}を表示" ${creatorSpecialSettings.visible[key] === false ? '' : 'checked'}><canvas width="60" height="60"></canvas><span>${entry.title}</span>`;
+                drawTile(row.querySelector('canvas').getContext('2d'), 0, 0, 60, 60, key);
+                row.querySelector('input').onchange = event => { creatorSpecialSettings.visible[key] = event.target.checked; applyCreatorSpecialSettings(); };
+                row.addEventListener('dragstart', event => { row.classList.add('dragging'); event.dataTransfer.setData('text/plain', key); });
+                row.addEventListener('dragend', () => row.classList.remove('dragging'));
+                row.addEventListener('dragover', event => event.preventDefault());
+                row.addEventListener('drop', event => {
+                    event.preventDefault();
+                    const movingKey = event.dataTransfer.getData('text/plain');
+                    if (!movingKey || movingKey === key) return;
+                    const order = creatorSpecialSettings.order.filter(item => item !== movingKey);
+                    order.splice(order.indexOf(key), 0, movingKey);
+                    creatorSpecialSettings.order = order;
+                    applyCreatorSpecialSettings();
+                    renderCreatorSettings();
+                });
+                list.appendChild(row);
+            });
+        }
+
+        async function openCreatorSettings() {
+            const button = document.getElementById('creator-settings-btn');
+            if (button?.disabled) return;
+            if (button) { button.disabled = true; button.innerText = '開いています...'; }
+            try {
+                await loadCreatorSpecialSettings();
+                renderCreatorSettings();
+                document.getElementById('creator-settings-overlay').style.display = 'flex';
+            } finally {
+                if (button) { button.disabled = false; button.innerText = '⚙ クリエイト画面設定'; }
+            }
+        }
+        function closeCreatorSettings() { document.getElementById('creator-settings-overlay').style.display = 'none'; }
+        async function saveCreatorSettings() {
+            const saveButton = document.querySelector('#creator-settings-overlay button:last-child');
+            if (saveButton?.disabled) return;
+            if (saveButton) { saveButton.disabled = true; saveButton.innerText = '保存中...'; }
+            applyCreatorSpecialSettings();
+            try {
+                const res = await callApi('save', { username: CONFIG.USERNAME, key: 'creator_special_settings', data: creatorSpecialSettings });
+                if (!res?.success) { alert(res?.message || '設定を保存できませんでした。'); return; }
+                // 保存直後だけ、サーバーに保存された順番・表示状態を再取得する。
+                await loadCreatorSpecialSettings(true);
+                closeCreatorSettings();
+            } finally {
+                if (saveButton) { saveButton.disabled = false; saveButton.innerText = '保存'; }
+            }
+        }
+
+        function toggleEditorFace() {
+            const stageTypeSelect = document.getElementById('stage-type-select');
+            if (stageTypeSelect) {
+                if (editorFace === 'front') editorFrontStageType = stageTypeSelect.value;
+                else editorBackStageType = stageTypeSelect.value;
+            }
+            editorFace = editorFace === 'front' ? 'back' : 'front';
+            editorGrid = editorFace === 'front' ? editorFrontGrid : editorBackGrid;
+            const faceButton = document.getElementById('editor-face-btn');
+            if (faceButton) faceButton.innerText = editorFace === 'front' ? '🪞 裏面へ' : '🪞 表面へ';
+            if (stageTypeSelect) {
+                stageTypeSelect.value = editorFace === 'front' ? editorFrontStageType : editorBackStageType;
+                stageTypeSelect.dataset.prevValue = stageTypeSelect.value;
+            }
+            drawEditor();
+            updateEruptionControlToolVisibility();
+        }
+
         // --- エディタ関連 ---
         function startEditor() {
             activeStage = [];
@@ -6779,6 +7333,7 @@
             }
             document.getElementById('global-rank-btn').style.display = 'none';
             document.getElementById('password-settings-btn').style.display = 'none';
+            document.getElementById('creator-settings-btn').style.display = 'none';
             document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
@@ -6800,6 +7355,12 @@
             document.getElementById('btn-tool-Y').style.display = claimedRoadRewards.includes(3) ? 'flex' : 'none';
             // クラックブロック
             if(document.getElementById('btn-tool-CB')) document.getElementById('btn-tool-CB').style.display = purchasedSkins.includes('crack_block') ? 'flex' : 'none';
+            // ハーフブロック
+            if(document.getElementById('btn-tool-HBK')) document.getElementById('btn-tool-HBK').style.display = purchasedSkins.includes('half_block') ? 'flex' : 'none';
+            // 左右トランポリンセット
+            const hasSideTrampolines = purchasedSkins.includes('side_trampoline_set');
+            if(document.getElementById('btn-tool-TL')) document.getElementById('btn-tool-TL').style.display = hasSideTrampolines ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-TR')) document.getElementById('btn-tool-TR').style.display = hasSideTrampolines ? 'flex' : 'none';
             if(document.getElementById('btn-tool-BB')) document.getElementById('btn-tool-BB').style.display = purchasedSkins.includes('big_block') ? 'flex' : 'none';
             // 昇降リフト
             document.getElementById('btn-tool-d').style.display = claimedRoadRewards.includes(7) ? 'flex' : 'none';
@@ -6868,6 +7429,13 @@
 
             // 噴火制御機（購入済み、かつ火山・海辺ステージ選択中のみ表示）
             updateEruptionControlToolVisibility();
+            // Runon は制作画面ですべてのブロックを選択できる。
+            if (CONFIG.USERNAME === 'Runon') {
+                document.querySelectorAll('.editor-bottom-bar > .tool-btn').forEach(button => {
+                    button.style.display = 'flex';
+                });
+            }
+            applyCreatorSpecialSettings();
 
             // 火山ステージタイプ（ショップで購入するまで選択不可）
             const hasVolcanoStage = purchasedSkins.includes('volcano_stage');
@@ -6921,6 +7489,7 @@
             startHomeBackgroundEffect();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
+            document.getElementById('creator-settings-btn').style.display = 'block';
             document.getElementById('weekly-cup-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
@@ -6952,7 +7521,7 @@
 
         function renderToolIcons() {
             const toolList = [
-                {type:'B', id:'icon-B'}, {type:'CB', id:'icon-CB'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
+                {type:'B', id:'icon-B'}, {type:'CB', id:'icon-CB'}, {type:'HBK', id:'icon-HBK'}, {type:'TL', id:'icon-TL'}, {type:'TR', id:'icon-TR'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'WG', id:'icon-WG'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
@@ -7139,6 +7708,10 @@
                             }
                         }
                     }
+                    if (currentTool === 'S' && editorFace !== 'front') {
+                        showQuickMsg('スタートは表面にのみ配置できます。', '#ff5252');
+                        return;
+                    }
                     if (currentTool === 'S' && editorGrid[y][x] !== 'S') {
                         for(let r=0; r<GRID_H; r++) {
                             for(let c=0; c<GRID_W; c++) {
@@ -7245,6 +7818,20 @@
                 ctx.stroke();
             }
 
+            // 反対面に置かれたワープゲートは、接続先の目印として半透明で表示する。
+            // これは描画だけで、現在編集中の面の配置・判定には一切影響しない。
+            const oppositeGrid = editorFace === 'front' ? editorBackGrid : editorFrontGrid;
+            ctx.save();
+            ctx.globalAlpha = 0.38;
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    if (oppositeGrid[y] && oppositeGrid[y][x] === 'WG') {
+                        drawTile(ctx, x, y, cw, ch, 'WG', time);
+                    }
+                }
+            }
+            ctx.restore();
+
             // タイプ変更警告中はロック表示
             if (stageTypeWarnPending) {
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -7253,6 +7840,17 @@
                 ctx.font = `bold ${ch * 0.7}px sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.fillText('⚠ 確認中... 操作ロック', editorCanvas.width / 2, editorCanvas.height / 2);
+            }
+        }
+
+        function drawTimeAttackChecker(ctx, left, top, width, height) {
+            const columns = 4, rows = 5;
+            const cellW = width / columns, cellH = height / rows;
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < columns; col++) {
+                    ctx.fillStyle = (row + col) % 2 === 0 ? '#f7edcb' : '#262231';
+                    ctx.fillRect(left + col * cellW, top + row * cellH, cellW, cellH);
+                }
             }
         }
 
@@ -7306,6 +7904,9 @@
                 // ゴールゲート
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
+                if (isTimeAttackStageType(currentStageType)) {
+                    drawTimeAttackChecker(ctx, x*cw + cw*0.23, y*ch + ch*0.13, cw*0.54, ch*0.84);
+                }
                 ctx.strokeStyle = isLocked ? "#777" : (isKillerGoal ? "#c85cff" : "#d32f2f");
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
@@ -7335,6 +7936,15 @@
                     ctx.textAlign = "right";
                     ctx.fillText(`👾 残り ${remainingEnemies}`, x*cw + cw*0.98, y*ch + ch*0.2);
                 }
+            } else if(type === 'WG') {
+                const cx = x*cw + cw/2, cy = y*ch + ch/2;
+                const radius = Math.min(cw, ch) * .34;
+                const portal = ctx.createRadialGradient(cx, cy, radius*.18, cx, cy, radius);
+                portal.addColorStop(0, '#e8fbff'); portal.addColorStop(.3, '#55ddff'); portal.addColorStop(.72, '#2762d9'); portal.addColorStop(1, '#151750');
+                ctx.fillStyle = portal;
+                ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#baf7ff'; ctx.lineWidth = Math.max(1, radius*.16); ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(cx - radius*.23, cy - radius*.22, radius*.12, 0, Math.PI*2); ctx.fill();
             } else if(type === 'K') {
                 // 通常スパイク（大会中だけ黄金化）
                 ctx.fillStyle = isWeeklyCupMatch ? "#ffd02e" : "#78909c";
@@ -7387,6 +7997,20 @@
                 ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
                 ctx.fillStyle = "#e1f5fe";
                 ctx.fillRect(x*cw + pad + 2, y*ch + pad + 2, cw*0.4, 2);
+            } else if(type === 'HBK') {
+                // ハーフブロック（下半分のみ実体）
+                ctx.fillStyle = '#5d4037';
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.5, cw - pad*2, ch*0.5 - pad);
+                ctx.fillStyle = '#a1887f';
+                ctx.fillRect(x*cw + pad, y*ch + ch*0.5, cw - pad*2, Math.max(2, ch*0.08));
+            } else if(type === 'TL' || type === 'TR') {
+                // 横向きトランポリン
+                const isRight = type === 'TR';
+                const left = x*cw + (isRight ? cw*0.7 : 0);
+                ctx.fillStyle = '#fb8c00';
+                ctx.fillRect(left, y*ch, cw*0.3, ch);
+                ctx.fillStyle = '#ffca28';
+                ctx.fillRect(isRight ? left : left + cw*0.12, y*ch + ch*0.1, cw*0.18, ch*0.8);
             } else if(type === 'T') {
                 // トランポリン
                 ctx.fillStyle = "#fb8c00";
@@ -7559,9 +8183,12 @@
                 }
             } else if(type === 'C') {
                 // チェックポイント（ゴールゲートの色違い版）
-                const isDone = activeStage.length > 0 && activeCheckpoints.has(`${x},${y}`);
+                const isDone = activeStage.length > 0 && activeCheckpoints.has(getCheckpointKey(x, y));
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
+                if (isTimeAttackStageType(currentStageType)) {
+                    drawTimeAttackChecker(ctx, x*cw + cw*0.23, y*ch + ch*0.13, cw*0.54, ch*0.84);
+                }
                 ctx.strokeStyle = "#ffeb3b"; // 黄色の縁
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
@@ -8013,7 +8640,7 @@
         }
 
         async function saveStage() {
-            await callApi('save', { username: CONFIG.USERNAME, key: 'my_stage', data: editorGrid });
+            await callApi('save', { username: CONFIG.USERNAME, key: 'my_stage', data: { front: editorFrontGrid, back: editorBackGrid, stageTypes: { front: editorFrontStageType, back: editorBackStageType } } });
             alert("あなた専用の枠に保存しました！");
         }
 
@@ -8021,7 +8648,19 @@
             if (!confirmClearLoss("保存データの読み込み")) return;
             const res = await callApi('load', { username: CONFIG.USERNAME, key: 'my_stage' });
             if (res && res.data) {
-                editorGrid = normalizeGrid(res.data);
+                editorFrontGrid = normalizeGrid(res.data?.front || res.data);
+                editorBackGrid = normalizeGrid(res.data?.back || []);
+                editorFrontStageType = res.data?.stageTypes?.front || 'normal';
+                editorBackStageType = res.data?.stageTypes?.back || 'normal';
+                editorFace = 'front';
+                editorGrid = editorFrontGrid;
+                const faceButton = document.getElementById('editor-face-btn');
+                if (faceButton) faceButton.innerText = '🪞 裏面へ';
+                const stageTypeSelect = document.getElementById('stage-type-select');
+                if (stageTypeSelect) {
+                    stageTypeSelect.value = editorFrontStageType;
+                    stageTypeSelect.dataset.prevValue = editorFrontStageType;
+                }
                 resetClearCheck(); // 読み込み後はクリアチェックをリセット
                 drawEditor();
                 alert("保存データを読み込みました。\n※ 投稿するには再度クリアチェックが必要です。");
@@ -8055,8 +8694,8 @@
             btn.disabled = true;
 
             try {
-                const stageType = document.getElementById('stage-type-select')?.value || 'normal';
-                const result = await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: editorGrid, stageType });
+                const stageType = { front: editorFrontStageType, back: editorBackStageType };
+                const result = await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: { front: editorFrontGrid, back: editorBackGrid }, stageType });
                 if (!result || !result.success) {
                     showQuickMsg(result?.message || '投稿に失敗しました。', 'var(--secondary-color)');
                     return;
@@ -8086,6 +8725,8 @@
             }
             const overlay = document.getElementById('stage-list-overlay');
             const container = document.getElementById('stage-list-container');
+            const title = document.getElementById('stage-list-title');
+            if (title) title.textContent = 'Published Stages';
             overlay.style.display = 'flex';
             const renderVersion = ++stageListRenderVersion;
 
@@ -8161,7 +8802,6 @@
                     if (a._cr === -1) return (a.name || '').localeCompare(b.name || '');
                     return (b.attempts || 0) - (a.attempts || 0);
                 }
-                if (currentSort === 'upvotes') return (b.upvotes || 0) - (a.upvotes || 0);
                 if (currentSort === 'reward') {
                     if (a._cr === -1 && b._cr === -1) return 0;
                     if (a._cr === -1) return 1;
@@ -8197,7 +8837,7 @@
                 if (s.attempts < 5) {
                     // 新風: プレイ数5以下
                     diffBadge = '<span style="background:linear-gradient(45deg, #4caf50, #ffffff); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">新風</span>';
-                    customFrameStyle = "border-color: #4caf50; box-shadow: inset 0 0 10px rgba(76, 175, 80, 0.3);";
+                    customFrameStyle = "background:linear-gradient(135deg, rgba(46,125,50,.42), rgba(129,199,132,.16)); border-color:#4caf50; box-shadow:inset 0 0 10px rgba(76,175,80,.3);";
                 } else {
                     if (crNum <= 0.1) {
                         if (isNewDimension) {
@@ -8212,19 +8852,23 @@
                     } else if (crNum <= 1) {
                         // 神
                         diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">神</span>';
-                        customFrameStyle = "border-color: #ffff00; box-shadow: inset 0 0 15px rgba(255, 255, 0, 0.4);";
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(255,255,220,.45), rgba(255,215,0,.2)); border-color:#ffff00; box-shadow:inset 0 0 15px rgba(255,255,0,.4);";
                     } else if (crNum <= 3) {
                         // 鬼
                         diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #000000); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; border:1px solid #ff0000; margin-right:0.5cqw;">鬼</span>';
-                        customFrameStyle = "border-color: #ff0000; box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.4);";
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(65,0,0,.64), rgba(190,0,0,.24)); border-color:#ff0000; box-shadow:inset 0 0 15px rgba(255,0,0,.4);";
                     } else if (crNum <= 10) {
                         // 超難関
                         diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #800080); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">超難関</span>';
-                        customFrameStyle = "border-color: #e91e63; box-shadow: inset 0 0 10px rgba(233, 30, 99, 0.3);";
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(112,0,82,.48), rgba(233,30,99,.22)); border-color:#e91e63; box-shadow:inset 0 0 10px rgba(233,30,99,.3);";
                     } else if (crNum <= 25) {
                         // 難関
                         diffBadge = '<span style="background:#800080; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">難関</span>';
-                        customFrameStyle = "border-color: #9c27b0; box-shadow: inset 0 0 10px rgba(156, 39, 176, 0.3);";
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(55,0,85,.56), rgba(156,39,176,.22)); border-color:#9c27b0; box-shadow:inset 0 0 10px rgba(156,39,176,.3);";
+                    } else {
+                        // 普通
+                        diffBadge = '<span style="background:linear-gradient(45deg,#1e88e5,#81d4fa); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; margin-right:0.5cqw;">普通</span>';
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(0,76,150,.46), rgba(41,182,246,.16)); border-color:#42a5f5; box-shadow:inset 0 0 10px rgba(66,165,245,.28);";
                     }
                 }
 
@@ -8237,8 +8881,32 @@
                 canvas.className = 'stage-preview';
                 canvas.width = 200; // プレビュー解像度
                 canvas.height = 100;
+                const previewWrap = document.createElement('div');
+                previewWrap.style.cssText = 'position:relative; flex:0 0 auto;';
+                previewWrap.appendChild(canvas);
+                const frontGrid = (s.data && !Array.isArray(s.data)) ? s.data.front : s.data;
+                const backGrid = (s.data && !Array.isArray(s.data)) ? s.data.back : null;
+                const hasWarpGate = grid => Array.isArray(grid) && grid.some(row => Array.isArray(row) && row.includes('WG'));
+                if (Array.isArray(backGrid) && (hasWarpGate(frontGrid) || hasWarpGate(backGrid))) {
+                    let showingBack = false;
+                    const faceButton = document.createElement('button');
+                    faceButton.className = 'pixel-btn small';
+                    faceButton.type = 'button';
+                    faceButton.title = '裏面プレビューへ切り替え';
+                    faceButton.innerText = '🔃';
+                    faceButton.style.cssText = 'position:absolute; top:.35cqw; left:.35cqw; min-width:unset; margin:0; padding:.2cqh .4cqw; font-size:1.1cqw; background:rgba(28,18,74,.88); color:#fff; border-color:#d5b8ff; z-index:2;';
+                    faceButton.onclick = event => {
+                        event.stopPropagation();
+                        showingBack = !showingBack;
+                        renderPreview(canvas, showingBack ? backGrid : frontGrid);
+                        faceButton.style.background = showingBack ? 'rgba(118,56,190,.95)' : 'rgba(28,18,74,.88)';
+                        faceButton.title = showingBack ? '表面プレビューへ切り替え' : '裏面プレビューへ切り替え';
+                    };
+                    previewWrap.appendChild(faceButton);
+                }
                 
-                const clearRate = s.attempts > 0 ? crNum.toFixed(isNewDimension ? 3 : 1) : "0.0";
+                const preciseClearRate = s.attempts >= 5 && crNum > 0.1 && crNum <= 3;
+                const clearRate = s.attempts > 0 ? crNum.toFixed(isNewDimension ? 3 : (preciseClearRate ? 2 : 1)) : "0.0";
                 
                 const topTime = s._topTime;
                 const topPlayers = s._topPlayers;
@@ -8267,18 +8935,21 @@
                 
                 const info = document.createElement('div');
                 info.style.cssText = "flex: 1; display: flex; flex-direction: column; gap: 0.5cqh; min-width: 0;";
+                const launchMode = 'play';
+                const launchLabel = '▶️プレイ';
                 info.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <div style="color:var(--primary-color); flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.4cqw;">
                                 ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">Pick up!</span>' : ''}
                                 ${isPswcStage ? '<span style="background:linear-gradient(135deg,#805200,#ffd54a,#fff0a0); color:#2c1c00; font-size:0.65cqw; padding:2px 4px; border-radius:2px; font-weight:bold; border:1px solid #fff2af;">🏆 PSWC</span>' : ''}
-                                ${s.stageType === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
-                                ${s.stageType === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
-                                ${s.stageType === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
-                                ${s.stageType === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
-                                ${s.stageType === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
-                                ${(s.stageType === 'rai_alvaro' || s.stageType === 'rai_alvaro_v2') ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'timeattack' ? '<span style="background:repeating-conic-gradient(#f7edcb 0 25%,#262231 0 50%) 50%/8px 8px; color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #f7edcb; text-shadow:0 1px 1px #000;">⌛タイムアタック</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
+                                ${(getFrontStageType(s.stageType) === 'rai_alvaro' || getFrontStageType(s.stageType) === 'rai_alvaro_v2') ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -8286,11 +8957,11 @@
                         </div>
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 👍<span class="stat-val">${s.upvotes || 0}</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''}${(s.attempts >= 5 && crNum <= 10) ? ' ES:<span class="stat-val">1</span>' : ''}
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''}${(s.attempts >= 5 && crNum <= 10) ? ' ES:<span class="stat-val">1</span>' : ''}
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
-                            onclick="event.stopPropagation(); startGame(stageListPageStages.find(st => (st.id || st.name) == '${escapedId}'), 'play')">▶️プレイ</button>
+                            onclick="event.stopPropagation(); startGame(stageListPageStages.find(st => (st.id || st.name) == '${escapedId}'), '${launchMode}')">${launchLabel}</button>
                         <button class="pixel-btn small" style="background:#546e7a; color:#fff;" 
                             onclick="event.stopPropagation(); showLeaderboard(stageListPageStages.find(st => String(st.id || st.name) == '${escapedId}'))">ランキング</button>
                         ${s.creator === CONFIG.USERNAME ? `
@@ -8299,9 +8970,9 @@
                     <div style="display:flex; flex-direction:column;">${bestRecordHtml}${myRecordHtml}</div>
                 `;
                 
-                div.appendChild(canvas);
+                div.appendChild(previewWrap);
                 div.appendChild(info);
-                div.onclick = () => startGame(s);
+                div.onclick = () => startGame(s, launchMode);
                 container.appendChild(div);
 
                 // タイマーをステージ数ぶん作らず、後で少数ずつ描画する。
@@ -8334,6 +9005,7 @@
             const cw = canvas.width / GRID_W;
             const ch = canvas.height / GRID_H;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (data && !Array.isArray(data) && Array.isArray(data.front)) data = data.front;
             if (!data || !Array.isArray(data)) return; // データの型チェックを強化
             for(let y=0; y<GRID_H; y++){
                 if (!data[y] || !Array.isArray(data[y])) continue; // 行が配列でない場合は飛ばす
@@ -8392,12 +9064,61 @@
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'volcano', 'moon', 'beach', 'rai_alvaro'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'timeattack', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
+        function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
+            let value = stageType;
+            // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
+            for (let depth = 0; depth < 4; depth++) {
+                if (typeof value === 'string') {
+                    const text = value.trim();
+                    // 旧版でオブジェクトを文字列連結して保存してしまった値は、種類不明ではなく
+                    // 従来互換の通常ステージとして扱う。
+                    if (/^\[?object object\]?$/i.test(text)) return fallback;
+                    // スプレッドシートにJSON文字列として保存された表／裏面タイプにも対応する。
+                    if (text.startsWith('{')) {
+                        try { value = JSON.parse(text); continue; } catch (_) { return fallback; }
+                    }
+                    return text || fallback;
+                }
+                if (!value || typeof value !== 'object' || Array.isArray(value)) return fallback;
+                const direct = value[face];
+                if (direct !== undefined) { value = direct; continue; }
+                if (value.stageTypes && value.stageTypes[face] !== undefined) { value = value.stageTypes[face]; continue; }
+                if (value.stageType && value.stageType[face] !== undefined) { value = value.stageType[face]; continue; }
+                if (face === 'front' && typeof value.type === 'string') return value.type;
+                if (face === 'front' && typeof value.value === 'string') return value.value;
+                return fallback;
+            }
+            return fallback;
+        }
+        function getFrontStageType(stageType) {
+            return getStageTypeForFace(stageType, 'front');
+        }
+        function getStageDataFaces(stageData) {
+            let value = stageData;
+            // 旧形式の配列、表面だけの形式、dataで包まれた形式をすべて表／裏面へ正規化する。
+            for (let depth = 0; depth < 3; depth++) {
+                if (Array.isArray(value)) return { front: value, back: [] };
+                if (!value || typeof value !== 'object') break;
+                if (Array.isArray(value.front)) return { front: value.front, back: Array.isArray(value.back) ? value.back : [] };
+                if (value.data !== undefined) { value = value.data; continue; }
+                break;
+            }
+            return { front: [], back: [] };
+        }
+        function getStageTypeSource(stageObj) {
+            const directType = stageObj?.stageType;
+            // 壊れた "[object Object]" より、ステージデータ側の正しい種類を優先する。
+            if (directType !== undefined && !(/^\[?object object\]?$/i.test(String(directType).trim()))) return directType;
+            const data = stageObj?.data;
+            return data?.stageTypes || data?.stageType || 'normal';
+        }
         function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
+        function isTimeAttackStageType(type) { return type === 'timeattack'; }
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','CB','S','G','KG','K','M','E','A','T','TD','X','W','L','U','P','H','AC',
+            'B','CB','HBK','S','G','WG','KG','K','M','E','A','T','TD','TL','TR','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','BBN','LM','WC','WCN',
             'EC','PB','WB','BL','SM','FL','CA','GB'
@@ -8405,18 +9126,20 @@
 
         function checkStageCompatibility(stageObj) {
             // ステージタイプチェック
-            const stType = stageObj.stageType || 'normal';
+            const stType = getFrontStageType(getStageTypeSource(stageObj));
             if (!SUPPORTED_STAGE_TYPES.includes(stType)) {
                 return `ステージタイプ「${stType}」`;
             }
 
             // ブロックタイプチェック
-            const data = stageObj.data;
-            if (data && Array.isArray(data)) {
-                for (let y = 0; y < data.length; y++) {
-                    if (!Array.isArray(data[y])) continue;
-                    for (let x = 0; x < data[y].length; x++) {
-                        const cell = data[y][x];
+            const faces = getStageDataFaces(stageObj.data);
+            const blockGrids = [faces.front, faces.back];
+            for (const grid of blockGrids) {
+                if (!Array.isArray(grid)) continue;
+                for (let y = 0; y < grid.length; y++) {
+                    if (!Array.isArray(grid[y])) continue;
+                    for (let x = 0; x < grid[y].length; x++) {
+                        const cell = grid[y][x];
                         if (!cell) continue;
                         // カラーブロック（Z#xxxxxx形式）は Zプレフィックスで判定
                         const baseType = (typeof cell === 'string' && cell.startsWith('Z') && cell.length > 1) ? 'Z' : cell;
@@ -8518,6 +9241,7 @@
             }
             if (document.getElementById('global-rank-btn')) document.getElementById('global-rank-btn').style.display = 'none';
             if (document.getElementById('password-settings-btn')) document.getElementById('password-settings-btn').style.display = 'none';
+            if (document.getElementById('creator-settings-btn')) document.getElementById('creator-settings-btn').style.display = 'none';
             if (document.getElementById('weekly-cup-btn')) document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
@@ -8526,7 +9250,17 @@
             document.getElementById('login-bonus-btn').style.display = 'none';
             document.getElementById('patch-notes-btn').style.display = 'none';
 
-            activeStage = normalizeGrid(stageObj.data);
+            const stageFaces = getStageDataFaces(stageObj.data);
+            activeFrontStage = normalizeGrid(stageFaces.front);
+            activeStage = activeFrontStage;
+            activeBackStage = normalizeGrid(stageFaces.back);
+            isUsingBackFace = false;
+            warpGateLocked = false;
+            // ゴール条件は表・裏面にあるチェックポイントの合計。ワープのたびに足さない。
+            totalCheckpoints = [activeFrontStage, activeBackStage].reduce((total, grid) =>
+                total + grid.reduce((count, row) => count + row.filter(cell => cell === 'C').length, 0), 0);
+            const faceIndicator = document.getElementById('stage-face-indicator');
+            if (faceIndicator) faceIndicator.innerText = '1';
             killerGoalTiles = [];
             for (let y = 0; y < GRID_H; y++) {
                 for (let x = 0; x < GRID_W; x++) {
@@ -8536,7 +9270,12 @@
             killerGoalActive = killerGoalTiles.length > 0;
             lastKillerGoalEnemyCount = -1;
             // 既に投稿済みのVer2は、廃止後も従来のライ・アルバロとして再生する。
-            currentStageType = stageObj.stageType === 'rai_alvaro_v2' ? 'rai_alvaro' : (stageObj.stageType || 'normal');
+            const stageTypes = getStageTypeSource(stageObj);
+            const frontStageType = getStageTypeForFace(stageTypes, 'front');
+            const backStageType = getStageTypeForFace(stageTypes, 'back', frontStageType);
+            currentStageType = frontStageType === 'rai_alvaro_v2' ? 'rai_alvaro' : frontStageType;
+            activeFrontStageType = currentStageType;
+            activeBackStageType = backStageType === 'rai_alvaro_v2' ? 'rai_alvaro' : backStageType;
             const gameControlsLabel = document.getElementById('game-controls-label');
             if (gameControlsLabel) {
                 gameControlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
@@ -8591,12 +9330,11 @@
             raiDashHitBoss = false;
             isCountingDown = true;
             startTime = 0;
-            totalCheckpoints = 0;
             activeCheckpoints.clear();
+            stageStartRespawn = null;
+            timeAttackRespawn = null;
             countdownStartTime = Date.now();
             currentGhostData = [];
-            document.getElementById('btn-upvote').style.opacity = "1";
-            document.getElementById('btn-downvote').style.opacity = "1";
 
             // 初期位置探し
             enemies = [];
@@ -8606,8 +9344,13 @@
             blackBossRefs = [];
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
-                    if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
-                    if(activeStage[y][x] === 'C') totalCheckpoints++;
+                    if(activeStage[y][x] === 'S') {
+                        player.x = x + 0.1; player.y = y + 0.1;
+                        stageStartRespawn = { x: player.x, y: player.y };
+                        timeAttackRespawn = { ...stageStartRespawn };
+                        // スタート地点は開始時の位置情報だけ残し、プレイ中は描画しない。
+                        activeStage[y][x] = null;
+                    }
                     if(activeStage[y][x] === 'WCN') {
                         woodCrates.push({ x: x, y: y, vx: 0, vy: 0 });
                         activeStage[y][x] = null;
@@ -8722,10 +9465,13 @@
             const overlay = document.getElementById('msg-overlay');
             stopStageBGM();
             playHorizonBGM();
-            document.getElementById('msg-title').innerText = title;
-            document.getElementById('msg-content').innerText = content;
-            document.getElementById('retry-btn').style.display = showRetry ? 'block' : 'none';
-            overlay.style.display = 'flex';
+            const titleEl = document.getElementById('msg-title');
+            const contentEl = document.getElementById('msg-content');
+            const retryEl = document.getElementById('retry-btn');
+            if (titleEl) titleEl.innerText = title;
+            if (contentEl) contentEl.innerText = content;
+            if (retryEl) retryEl.style.display = showRetry ? 'block' : 'none';
+            if (overlay) overlay.style.display = 'flex';
             // ゲームを停止
             if (gameLoopId !== null) cancelAnimationFrame(gameLoopId);
             gameLoopId = null;
@@ -8850,21 +9596,38 @@
 
             // UIを即座に更新して表示
             const guildMultiplier = isCupClear ? 1 : getCurrentGuildGoldMultiplier();
-            document.getElementById('reward-amount').style.display = guildMultiplier > 1 ? 'none' : 'inline';
-            document.getElementById('reward-amount').innerText = isCupClear ? '大会タイムを記録' : `${rewardGold} G`;
-            document.getElementById('reward-guild-amount').style.display = guildMultiplier > 1 ? 'inline' : 'none';
-            if (guildMultiplier > 1) {
-                document.getElementById('reward-guild-base').innerText = `${baseRewardGold} G`;
-                document.getElementById('reward-guild-final').innerText = `${rewardGold} G (×${guildMultiplier})`;
+            const rewardAmount = document.getElementById('reward-amount');
+            const rewardGuildAmount = document.getElementById('reward-guild-amount');
+            const rewardGuildBase = document.getElementById('reward-guild-base');
+            const rewardGuildFinal = document.getElementById('reward-guild-final');
+            const rewardAsWrap = document.getElementById('reward-as-wrap');
+            const rewardEsWrap = document.getElementById('reward-es-wrap');
+            const rewardTotalGold = document.getElementById('reward-total-gold');
+            if (rewardAmount) {
+                rewardAmount.style.display = guildMultiplier > 1 ? 'none' : 'inline';
+                rewardAmount.innerText = isCupClear ? '大会タイムを記録' : `${rewardGold} G`;
             }
-            document.getElementById('reward-as-wrap').style.display = 'none';
-            document.getElementById('reward-es-wrap').style.display = 'none';
-            document.getElementById('reward-total-gold').innerText = `${userGold} (Time: ${clearTime.toFixed(3)}s)`;
+            if (rewardGuildAmount) rewardGuildAmount.style.display = guildMultiplier > 1 ? 'inline' : 'none';
+            if (guildMultiplier > 1) {
+                if (rewardGuildBase) rewardGuildBase.innerText = `${baseRewardGold} G`;
+                if (rewardGuildFinal) rewardGuildFinal.innerText = `${rewardGold} G (×${guildMultiplier})`;
+            }
+            if (rewardAsWrap) rewardAsWrap.style.display = 'none';
+            if (rewardEsWrap) rewardEsWrap.style.display = 'none';
+            if (rewardTotalGold) rewardTotalGold.innerText = `${userGold}`;
+            const rewardTimeDisplay = document.getElementById('reward-time-display');
+            if (rewardTimeDisplay) rewardTimeDisplay.innerText = `${clearTime.toFixed(3)}s`;
+            const rewardCharacterCanvas = document.getElementById('reward-character-canvas');
+            if (rewardCharacterCanvas) {
+                const rewardCharacterCtx = rewardCharacterCanvas.getContext('2d');
+                rewardCharacterCtx.clearRect(0, 0, rewardCharacterCanvas.width, rewardCharacterCanvas.height);
+                drawPlayer(rewardCharacterCtx, 0, 0, 256, 256, equippedSkin, false, equippedColor, customSpriteStore[equippedSkin]);
+            }
             
             const rewardOverlay = document.getElementById('reward-overlay');
             const okBtn = document.getElementById('reward-ok-btn');
             const retryBtn = document.getElementById('reward-retry-btn');
-            rewardOverlay.style.display = 'flex';
+            if (rewardOverlay) rewardOverlay.style.display = 'flex';
 
             // 全プレイヤーのゴーストを表示できるよう、順位に関係なくゴーストを保存する。
             const isTop5Candidate = true;
@@ -8881,9 +9644,11 @@
 
             if (isQuickSend) {
                 // クイック送信: 送信の完了を待たずにOKを押せるようにする（送信は裏で実行）
-                okBtn.innerText = "OK";
-                okBtn.disabled = false;
-                okBtn.onclick = closeReward;
+                if (okBtn) {
+                    okBtn.innerText = "OK";
+                    okBtn.disabled = false;
+                    okBtn.onclick = closeReward;
+                }
                 if (retryBtn) {
                     retryBtn.disabled = false;
                     retryBtn.style.opacity = "1";
@@ -9019,7 +9784,8 @@
 
         function closeReward() {
             rewardAlreadyAdded = false;
-            document.getElementById('reward-overlay').style.display = 'none';
+            const rewardOverlay = document.getElementById('reward-overlay');
+            if (rewardOverlay) rewardOverlay.style.display = 'none';
             exitGame();
         }
 
@@ -9056,16 +9822,21 @@
         }
 
         function testPlay() {
-            const hasGoal = editorGrid.some(row => row.includes('G') || row.includes('KG'));
-            if (!editorGrid.some(row => row.includes('S')) || !hasGoal) {
-                showQuickMsg("Sとゴールを配置してください！", "var(--secondary-color)");
+            const hasGoal = [editorFrontGrid, editorBackGrid].some(grid => grid.some(row => row.includes('G') || row.includes('KG')));
+            if (!editorFrontGrid.some(row => row.includes('S')) || !hasGoal) {
+                showQuickMsg("表面にS、表面または裏面にゴールを配置してください！", "var(--secondary-color)");
                 return;
             }
-            const stageType = document.getElementById('stage-type-select')?.value || 'normal';
-            startGame({data: editorGrid, name: 'TEST', stageType}, 'test');
+            const stageType = { front: editorFrontStageType, back: editorBackStageType };
+            startGame({data: { front: editorFrontGrid, back: editorBackGrid }, name: 'TEST', stageType}, 'test');
         }
 
-        function showQuickMsg(txt, col) { const m = document.getElementById('auth-msg'); m.innerText = txt; m.style.color = col; }
+        function showQuickMsg(txt, col) {
+            const m = document.getElementById('auth-msg');
+            if (!m) return;
+            m.innerText = apiMessageText(txt);
+            m.style.color = col;
+        }
 
         function gameLoop(timestamp) {
             gameLoopId = requestAnimationFrame(gameLoop);
@@ -10292,15 +11063,58 @@
             const tile = activeStage[gy] ? activeStage[gy][gx] : null;
             const footTile = activeStage[footY] ? activeStage[footY][gx] : null;
             const headTile = activeStage[headY] ? activeStage[headY][gx] : null;
+            const leftTile = activeStage[gy] ? activeStage[gy][Math.floor(player.x)] : null;
+            const rightTile = activeStage[gy] ? activeStage[gy][Math.floor(player.x + player.w)] : null;
 
             // 重なりによるスイッチ判定（念のため残すが、基本は衝突時判定が優先）
             if (tile !== '!') player.onSwitch = false;
 
             if (tile === 'C') {
-                if (!activeCheckpoints.has(`${gx},${gy}`)) {
-                    activeCheckpoints.add(`${gx},${gy}`);
+                const checkpointKey = getCheckpointKey(gx, gy);
+                if (!activeCheckpoints.has(checkpointKey)) {
+                    activeCheckpoints.add(checkpointKey);
+                    if (isTimeAttackStageType(currentStageType)) {
+                        timeAttackRespawn = { x: gx + 0.1, y: gy + 0.1 };
+                    }
                     updateStageCache(); // チェックポイント通過で見た目が変わるので更新
                 }
+            }
+
+            if (tile !== 'WG') warpGateLocked = false;
+            if (tile === 'WG' && !warpGateLocked) {
+                // 表面・裏面の同じ座標のゲートを往復する。
+                isUsingBackFace = !isUsingBackFace;
+                activeStage = isUsingBackFace ? activeBackStage : activeFrontStage;
+                currentStageType = isUsingBackFace ? activeBackStageType : activeFrontStageType;
+                playBackFaceWarpEffect(gx, gy);
+                const faceIndicator = document.getElementById('stage-face-indicator');
+                if (faceIndicator) faceIndicator.innerText = isUsingBackFace ? '2' : '1';
+                warpGateLocked = true;
+                eruptionControlLimitTiles = null;
+                beachWaterSurfaceTiles = GRID_H / 2;
+                auroraEruptionControlActive = false;
+                if (currentStageType === 'volcano') {
+                    const ecRow = findEruptionControlRow(activeStage);
+                    if (ecRow !== null) eruptionControlLimitTiles = GRID_H - ecRow;
+                    auroraEruptionControlActive = isEruptionControlSurroundedByAurora(activeStage);
+                } else if (currentStageType === 'beach') {
+                    const ecRow = findEruptionControlRow(activeStage);
+                    if (ecRow !== null) beachWaterSurfaceTiles = ecRow;
+                }
+                applyWarpFaceBackground();
+                const controlsLabel = document.getElementById('game-controls-label');
+                if (controlsLabel) controlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
+                    ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
+                    : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
+                const specialButton = document.getElementById('btn-special');
+                if (specialButton) specialButton.style.display = (isMobileMode && isRaiAlvaroStageType(currentStageType)) ? 'flex' : 'none';
+                enemies = [];
+                arrows = [];
+                missiles = [];
+                sickles = [];
+                fireballs = [];
+                updateStageCache();
+                return;
             }
             
             if (tile === 'o') {
@@ -10329,11 +11143,45 @@
             if (tile === 'FL' || footTile === 'FL') handlePlayerDeath();
             if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
             if (headTile === 'TD' && player.vy < 0) player.vy = 0.45;
+            if ((rightTile === 'TL' || tile === 'TL') && player.vx > 0) {
+                player.vx = -0.45;
+                player.facing = 'left';
+            }
+            if ((leftTile === 'TR' || tile === 'TR') && player.vx < 0) {
+                player.vx = 0.45;
+                player.facing = 'right';
+            }
             if (footTile === 'P') player.vx *= 1.15; // 加速
         }
 
         let stageHasBB = false;
         let currentStageType = 'normal'; // 'normal' | 'water' | 'dark' | 'volcano'
+        let activeFrontStageType = 'normal';
+        let activeBackStageType = 'normal';
+
+        function applyWarpFaceBackground() {
+            const container = document.querySelector('.container');
+            if (!container) return;
+            container.classList.remove('bg-city', 'bg-sky', 'bg-clear-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
+            if (isWeeklyCupMatch) container.classList.add('bg-aurora');
+            else if (currentStageType === 'water') container.classList.add('bg-water');
+            else if (currentStageType === 'dark') container.classList.add('bg-dark');
+            else if (currentStageType === 'volcano') container.classList.add('bg-volcano');
+            else if (currentStageType === 'moon') container.classList.add('bg-moon');
+            else if (currentStageType === 'beach') container.classList.add('bg-beach');
+            else container.classList.add('bg-clear-sky');
+        }
+
+        function playBackFaceWarpEffect(tileX, tileY) {
+            const effect = document.getElementById('face-warp-effect');
+            if (!effect) return;
+            // ワープ先（表・裏で同座標）のゲート位置から演出を広げる。
+            effect.style.left = `${((tileX + 0.5) / GRID_W) * 100}%`;
+            effect.style.top = `${((tileY + 0.5) / GRID_H) * 100}%`;
+            effect.classList.remove('active');
+            void effect.offsetWidth;
+            effect.classList.add('active');
+        }
 
         // 噴火制御機（EC）による溶岩上昇の高さ制限（タイル数、下端からの高さ）。
         // nullの場合は制限なし。ゲーム開始時（openGame相当の処理）でactiveStageから設置位置を
@@ -10376,7 +11224,7 @@
         // 省略時はゲーム中に設定されるeruptionControlLimitTilesを使用する。
         function getLavaHeightTiles(maxOverride) {
             // 60FPS時に従来と同じ速さになるよう、1Fあたりの位相を換算する。
-            const t = lavaFrameCount * 0.036 - Math.PI / 2;
+            const t = lavaFrameCount * 0.01 - Math.PI / 2;
             const limit = (maxOverride !== undefined) ? maxOverride : eruptionControlLimitTiles;
             // 制御機がある場合は、その設置高度を波の頂点として実際に到達させる
             const maxHeight = (limit !== null && limit !== undefined) ? Math.max(0.2, limit) : 3;
@@ -10417,8 +11265,15 @@
         }
 
         function onStageTypeChange(sel) {
+            const previousType = sel.dataset.prevValue || (editorFace === 'front' ? editorFrontStageType : editorBackStageType) || 'normal';
+            const saveSelectedType = () => {
+                if (editorFace === 'front') editorFrontStageType = sel.value;
+                else editorBackStageType = sel.value;
+                sel.dataset.prevValue = sel.value;
+            };
             if (!isClearChecked) {
                 // チェックがなければそのまま変更
+                saveSelectedType();
                 drawEditor();
                 updateEruptionControlToolVisibility();
                 return;
@@ -10429,15 +11284,14 @@
             const ok = confirm('⚠ ステージタイプを変更するとクリアチェックが消えます。\n\n続けますか？');
             stageTypeWarnPending = false;
             if (ok) {
+                saveSelectedType();
                 resetClearCheck();
                 showQuickMsg('クリアチェックが消えました。再度テストプレイを行ってください。', 'var(--secondary-color)');
                 drawEditor();
             } else {
                 // キャンセル: 元の値に戻す
-                const prev = ['normal','water','dark','volcano','moon','beach'].find(t => t !== sel.value) || 'normal';
-                // 元の値を特定するため、リセット前のcurrentStageTypeを保持しておく必要があるので
-                // isClearCheckedがtrueの間はprevStageTypeを追跡する
-                sel.value = sel.dataset.prevValue || 'normal';
+                sel.value = previousType;
+                sel.dataset.prevValue = previousType;
                 drawEditor();
             }
             updateEruptionControlToolVisibility();
@@ -10457,6 +11311,8 @@
                 const tile = activeStage[iy][ix];
                 if(tile) {
                     const tc = tile.charCodeAt(0);
+                    // ハーフブロックはセルの下半分だけを実体にする。
+                    if (tile === 'HBK' && py >= iy + 0.5) return true;
                     if(tile === 'B' || tile === 'CB' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'AC' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
                        tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === 'GB' || tile === 'CA' || tile === 'LM' || tile === 'WC' ||
@@ -10580,6 +11436,17 @@
             // 同一フレーム内で複数の危険物に触れても、死亡処理と画面停止は一度だけにする。
             if (isGoalTriggered) return;
             if (isRaiAlvaroStageType(currentStageType) && raiDashFrames > 0) return;
+            // タイムアタックは計時・ギミック状態を保ったまま、最後のチェックポイントへ即時復帰する。
+            if (isTimeAttackStageType(currentStageType)) {
+                const respawn = timeAttackRespawn || stageStartRespawn || { x: player.x, y: player.y };
+                player.x = respawn.x;
+                player.y = respawn.y;
+                player.vx = 0;
+                player.vy = 0;
+                player.onGround = false;
+                player.wasInBeachWater = false;
+                return;
+            }
             isGoalTriggered = true;
             if (gameMode === 'play' && !isWeeklyCupMatch && currentStageData && currentStageData.id) {
                 // 死亡場所を記録
@@ -10597,6 +11464,10 @@
         }
 
         function resetPlayer() {
+            if (stageStartRespawn) {
+                player.x = stageStartRespawn.x;
+                player.y = stageStartRespawn.y;
+            }
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') { player.x = x + 0.1; player.y = y + 0.1; }
