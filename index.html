@@ -981,6 +981,9 @@
         #shop-overlay .daily-shelf-item .daily-owned-tag::first-letter { color:#fff5cc; }
         #shop-overlay .daily-shelf-item .daily-price-tag { width:100% !important; min-width:0; box-sizing:border-box; padding:.55cqh .35cqw; border:.12cqw solid #f1c56b; border-radius:.35cqw; background:linear-gradient(135deg,#5d3517,#a56525); color:#fff1bf; font:700 .85cqw Georgia,serif; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:inset 0 0 0 .08cqw rgba(255,241,190,.28),0 .16cqh 0 rgba(34,15,8,.65); transition:filter .16s ease,transform .16s ease; }
         #shop-overlay .daily-shelf-item .daily-price-tag:hover { background:linear-gradient(135deg,#8a4c17,#d68b2e); color:#fffbe8; border-color:#fff0a8; filter:brightness(1.1); transform:translateY(-.1cqh); }
+        #explanation-btn { overflow:visible !important; }
+        #explanation-btn::after { content:'New!'; position:absolute; top:-.9cqh; right:-1.2cqw; padding:.12cqh .42cqw; border:.1cqw solid #fff6a3; border-radius:.45cqw; background:#f04b7d; color:#fff; font:700 .8cqw/1 sans-serif; letter-spacing:.04em; text-shadow:none; box-shadow:0 0 .5cqw rgba(255,71,132,.8); animation:triviaNewPulse 1.2s ease-in-out infinite; pointer-events:none; }
+        @keyframes triviaNewPulse { 50% { transform:translateY(-.18cqh) scale(1.08); filter:brightness(1.2); } }
         @media (max-aspect-ratio:1/1) { #shop-overlay.daily-shop-room { padding:2cqh 2cqw; } .daily-shop-interior { width:94cqw; height:77cqh; grid-template-columns:28cqw minmax(0,1fr); gap:1cqh; } .daily-shop-counter { min-height:62cqh; } #shopkeeper-canvas, #shopkeeper-placeholder { width:22cqw; font-size:1.7cqw; } .daily-shop-keeper-name { font-size:1.9cqw; } .daily-shop-speech { font-size:1.55cqw; } #shop-overlay .shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2cqw; } #shop-overlay .shop-item.daily-shelf-item canvas { width:10cqw; height:10cqw; } #shop-overlay .shop-item.daily-shelf-item::before { font-size:1.1cqw; } .daily-shop-stock-head b { font-size:2.4cqw; } #daily-shop-date { font-size:1.3cqw !important; } }
         /* カスタムエディタ用 */
         #custom-editor-overlay {
@@ -1802,7 +1805,7 @@
         <button id="creators-road-btn" class="pixel-btn small" onclick="openCreatorsRoad()" style="position: absolute; top: 13cqh; right: 2cqw; z-index: 15; display: none; background: linear-gradient(45deg, #ff00ff, #00ffff); color: #fff; border-color: #fff;">💎 Creator Road</button>
 
         <!-- 全ブロック解説ボタン -->
-        <button id="explanation-btn" class="pixel-btn small" onclick="openExplanation()" style="position: absolute; top: 19cqh; right: 2cqw; z-index: 15; display: none; background: #607d8b; color: #fff; border-color: #fff;">📖 全ブロック解説</button>
+        <button id="explanation-btn" class="pixel-btn small" onclick="openExplanation()" style="position: absolute; top: 19cqh; right: 2cqw; z-index: 15; display: none; background: #607d8b; color: #fff; border-color: #fff;">📖 ピクステ豆知識</button>
 
         <!-- チャットボタン -->
         <button id="chat-btn" class="pixel-btn small" onclick="openChat()" style="position: absolute; top: 25cqh; right: 2cqw; z-index: 15; display: none; background: #3f51b5; color: #fff; border-color: #fff;">💬 チャット</button>
@@ -1935,7 +1938,7 @@
 
         <!-- 全ブロック解説画面 -->
         <div id="explanation-overlay" class="screen">
-            <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">BLOCK GUIDE</h2>
+            <h2 style="font-size: 3.5cqw; margin-bottom: 2cqh;">ピクステ豆知識</h2>
             <button class="pixel-btn small" onclick="closeExplanation()" style="margin-bottom: 2cqh;">戻る</button>
             <div id="explanation-list" style="width: 85%; display: flex; flex-direction: column; gap: 2cqh; background: rgba(0,0,0,0.5); padding: 2cqw; border: 0.3cqw solid #fff; overflow-y: auto; max-height: 60cqh;">
                 <!-- 内容はJSで動的に生成 -->
@@ -2819,7 +2822,7 @@
                     ...ghost,
                     frames: Array.isArray(ghost.ghost)
                         ? ghost.ghost.map(pos => Array.isArray(pos)
-                            ? pos
+                            ? [pos[0], pos[1], pos[2] === 1 || pos[2] === 'right' ? 1 : 0, pos[3] === 1 || pos[3] === true ? 1 : 0]
                             : [pos.x, pos.y, pos.f === 'right' ? 1 : 0, pos.face ? 1 : 0])
                         : []
                 }));
@@ -2947,24 +2950,8 @@
         }
 
         // キャラクターの16x16ドットデータ
-        const PLAYER_SPRITE = [
-            "   5555555      ",
-            "    5555555     ",
-            "   555555555    ",
-            "  5555511155    ",
-            "   555171175    ",
-            "  5555141141    ",
-            "   5151111111   ",
-            "  5561111111    ",
-            "   22222222222  ",
-            "  22222222222222",
-            "  22222222222222",
-            " 222222222222222",
-            " 222244   44222 ",
-            " 222444   44422 ",
-            " 666666666666666",
-            "  6666666666666 "
-        ];
+        // NORMALの新しい16×16スキン。#00ff00 の部分だけカラーバリエーションで変更できる。
+        const PLAYER_SPRITE = [[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,"#8d5524","#8d5524","#8d5524","#8d5524","#8d5524",null,null,null,null,null,null],[null,null,null,null,"#8d5524","#8d5524","#8d5524","#8d5524","#8d5524","#8d5524","#8d5524",null,null,null,null,null],[null,null,null,"#8d5524","#8d5524","#8d5524","#8d5524","#8d5524","#8d5524","#8d5524","#8d5524","#8d5524",null,null,null,null],[null,null,"#8d5524","#8d5524","#8d5524","#ffdbac","#8d5524","#8d5524","#ffdbac","#8d5524","#8d5524","#8d5524","#8d5524",null,null,null],[null,null,"#8d5524","#8d5524","#ffdbac","#ffffff","#ffdbac","#8d5524","#ffdbac","#ffffff","#ffdbac","#8d5524","#8d5524",null,null,null],[null,null,null,"#ffdbac","#ffdbac","#3e2723","#ffdbac","#ffdbac","#ffdbac","#3e2723","#ffdbac","#8d5524",null,null,null,null],[null,null,null,null,"#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac",null,null,null,null,null],[null,null,null,"#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00",null,null,null,null],[null,null,"#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00",null,null,null],[null,"#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00",null,null],[null,"#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00",null,null],[null,null,"#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00","#00ff00",null,null,null],[null,null,null,"#000080","#000080","#000080",null,null,null,"#000080","#000080","#000080",null,null,null,null],[null,null,null,"#000080","#000080","#000080",null,null,null,"#000080","#000080","#000080",null,null,null,null]];
 
         const SNOWMAN_SPRITE = [
             "      7777      ",
@@ -3036,24 +3023,7 @@
             "  666666666666  "
         ];
 
-        const GIRL_SPRITE = [
-            "      eeee      ",
-            "    eeeeeee     ",
-            "   eeeeeeeee    ",
-            "   eeeeeee1e    ",
-            "  eeee17117e    ",
-            "  eeee141141    ",
-            "  ee1e111111    ",
-            "  eee111111     ",
-            "  eee77777777   ",
-            "   ee777777777  ",
-            "  7eee71111177  ",
-            "  77eeffffff177 ",
-            "    ff1   fff   ",
-            "    444   444   ",
-            " 777777777777777",
-            "  77777777777777"
-        ];
+        const GIRL_SPRITE = [[null,null,null,null,null,null,null,null,"#ffff00",null,null,null,null,null,null,null],[null,null,null,null,null,null,null,"#ffff00",null,null,null,null,null,null,null,null],[null,null,null,null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null,null],[null,null,null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffff00","#ffff00",null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#ffffff","#ffdbac","#ffdbac","#ffdbac","#ffffff","#ffdbac","#ffdbac","#ffff00",null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#3e2723","#ffdbac","#ffdbac","#ffdbac","#3e2723","#ffdbac","#ffdbac",null,null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#00ffff",null,null,null,null],[null,null,null,"#ffff00","#ffff00","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0","#00ffff",null,null,null,null],[null,null,"#c0c0c0","#ffff00","#ffff00","#ffff00","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0",null,null,null],[null,"#c0c0c0","#c0c0c0","#c0c0c0","#ffff00","#ffff00","#ffdbac","#ffdbac","#ffdbac","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0",null,null],[null,"#c0c0c0","#c0c0c0","#c0c0c0","#ffdbac","#ffff00","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#c0c0c0","#c0c0c0","#c0c0c0","#c0c0c0",null,null],[null,null,"#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000",null,null,null],[null,"#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000",null,null],[null,null,null,"#000080","#000080","#000080",null,null,null,"#000080","#000080","#000080",null,null,null,null]];
 
         const KNIGHT_SPRITE = [
             "      kkkk      ",
@@ -3238,7 +3208,7 @@
         const RAI_ALVARO_SPRITE = [[null,null,null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffdbac","#ffdbac","#ffff00","#ffff00","#ffff00","#ffff00",null,null,null,null,null],[null,null,"#ffff00","#ffff00","#ffff00","#ffdbac","#ffffff","#ffdbac","#ffff00","#ffffff","#ffff00",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffdbac","#008000","#ffdbac","#ffdbac","#008000","#ffdbac","#ffff00",null,null,null,null],[null,null,"#ffff00","#ffdbac","#ffff00","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffff00","#ffdbac",null,null,null,null],[null,null,null,"#ffff00","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac",null,null,null,null,null],[null,null,null,"#808000","#808000","#808000","#808000","#808000","#ffffff","#808000","#808000","#808000",null,null,null,null],[null,null,"#808000","#808000","#808000","#808000","#808000","#00ff00","#ffffff","#800000","#808000","#808000",null,null,null,null],[null,null,"#808000","#808000","#808000","#808000","#ffffff","#800000","#800000","#ffffff","#808000","#808000","#808000",null,null,null],[null,null,"#808000","#808000","#808000","#808000","#800000","#800000","#ffffff","#ffffff","#808000","#808000","#808000",null,null,null],[null,"#808000","#808000","#808000","#808000","#800000","#800000","#ffffff","#ffffff","#ffffff","#808000","#808000","#808000","#808000",null,null],[null,"#808000","#808000","#808000","#808000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#808000","#808000","#808000","#808000",null],["#808000","#808000","#808000","#808000","#808000","#000080","#000080","#ffffff","#000080","#000080","#808000","#808000","#808000","#808000","#808000",null],[null,null,null,null,null,"#000080","#808080",null,"#000080","#808080",null,null,null,null,null,null]];
 
         const SKINS = {
-            'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE, recolorIndex: '2' },
+            'default': { name: 'NORMAL', price: 0, sprite: PLAYER_SPRITE, recolorIndex: '#00ff00' },
             'girl': { name: 'GIRL', price: 0, sprite: GIRL_SPRITE, recolorIndex: '2' },
             'snowman': { name: 'SNOWMAN', price: 5000, sprite: SNOWMAN_SPRITE, recolorIndex: '7' },
             'halloween': { name: 'PUMPKIN', price: 5000, sprite: HALLOWEEN_SPRITE, recolorIndex: '9' },
@@ -4256,6 +4226,24 @@
                 sections.push(`<div class="explanation-item"><canvas class="explanation-icon" data-stage-type="${stage.type}"></canvas><div class="explanation-text"><div style="font-size: 1.2cqw; font-weight: bold; margin-bottom: 0.5cqw;">${stage.title}</div><div>${stage.text}</div></div></div>`);
             });
             sections.push('</div>');
+            const characterDescriptions = {
+                anri: 'デイリーショップの店員。気が強く、はっきりした言葉で背中を押してくれます。',
+                rino: 'デイリーショップの店員。陽気で明るく、買い物やステージ作りを元気に応援します。',
+                megumi: 'デイリーショップの店員。少し内気ですが、静かにあなたの挑戦を応援しています。'
+            };
+            sections.push('<div style="font-size: 2.2cqw; font-weight: bold; margin: 2cqh 0 1.2cqw;">CHARACTER</div>');
+            sections.push('<div style="display: grid; gap: 1cqw;">');
+            const playerCharacters = [
+                { skin: 'default', name: '榊原 ハジメ', text: '冒険気質のプレイヤー。未知のコースにもまず飛び込み、自分の足で道を切り開きます。' },
+                { skin: 'girl', name: '夢野 アリア', text: '自由放漫なプレイヤー。思いつくままに走り、予想外のルートを見つけることもあります。' }
+            ];
+            playerCharacters.forEach(character => {
+                sections.push(`<div class="explanation-item"><canvas class="explanation-icon" data-skin-id="${character.skin}"></canvas><div class="explanation-text"><div style="font-size: 1.2cqw; font-weight: bold; margin-bottom: 0.5cqw;">${character.name}</div><div>${character.text}</div></div></div>`);
+            });
+            SHOPKEEPERS.forEach(keeper => {
+                sections.push(`<div class="explanation-item"><canvas class="explanation-icon" data-character-id="${keeper.id}"></canvas><div class="explanation-text"><div style="font-size: 1.2cqw; font-weight: bold; margin-bottom: 0.5cqw;">${keeper.name}</div><div>${characterDescriptions[keeper.id] || 'デイリーショップの店員です。'}</div></div></div>`);
+            });
+            sections.push('</div>');
             return sections.join('');
         }
 
@@ -4264,10 +4252,17 @@
             canvases.forEach(canvas => {
                 const type = canvas.dataset.toolType;
                 const stageType = canvas.dataset.stageType;
+                const characterId = canvas.dataset.characterId;
+                const skinId = canvas.dataset.skinId;
                 canvas.width = 60;
                 canvas.height = 60;
                 const ctx = canvas.getContext('2d');
-                if (stageType) drawStageTypeGuideIcon(ctx, stageType);
+                if (skinId) {
+                    drawPlayer(ctx, 0, 0, 60, 60, skinId);
+                } else if (characterId) {
+                    const keeper = SHOPKEEPERS.find(entry => entry.id === characterId);
+                    if (keeper) drawPlayer(ctx, 0, 0, 60, 60, 'custom', false, 'default', keeper.sprite);
+                } else if (stageType) drawStageTypeGuideIcon(ctx, stageType);
                 else if (type === 'E') drawEraserIcon(ctx, 60, 60);
                 else drawTile(ctx, 0, 0, 60, 60, type);
             });
@@ -7125,8 +7120,8 @@
                 return;
             }
             const frames = record.ghost.map(pos => Array.isArray(pos)
-                ? pos
-                : [pos.x, pos.y, pos.f === 'right' ? 1 : 0]);
+                ? [pos[0], pos[1], pos[2] === 1 || pos[2] === 'right' ? 1 : 0, pos[3] === 1 || pos[3] === true ? 1 : 0]
+                : [pos.x, pos.y, pos.f === 'right' ? 1 : 0, (pos.face === 1 || pos.face === true) ? 1 : 0]);
             selectedSpectatorGhost = { ...record, frames };
             document.getElementById('leaderboard-overlay').style.display = 'none';
             startGame(stage, 'watch');
@@ -7280,10 +7275,10 @@
                 currentEditingSprite = Array(16).fill().map(() => Array(16).fill(null));
                 PLAYER_SPRITE.forEach((row, y) => {
                     [...row].forEach((c, x) => {
-                        if (c !== ' ') {
+                        if (c !== null && c !== ' ') {
                             // デフォルト色を適当にマッピング（5:茶, 1:肌, 2:服, 3:赤など）
                             const map = {'5':14, '1':1, '4':0, '2':4, '3':2, '6':7};
-                            currentEditingSprite[y][x] = CUSTOM_PALETTE[map[c] || 1];
+                            currentEditingSprite[y][x] = (typeof c === 'string' && c.startsWith('#')) ? c : CUSTOM_PALETTE[map[c] || 1];
                         }
                     });
                 });
@@ -10227,7 +10222,9 @@
         }
 
         function syncSpectatorFaceToGhost() {
-            if (!isGhostSpectatorMode || isCountingDown || !playbackGhosts.length) return;
+            // カウントダウン中も先頭フレームの面へ合わせることで、裏面から始まる観戦で
+            // 表面が一瞬表示されるのを防ぐ。
+            if (!isGhostSpectatorMode || !playbackGhosts.length) return;
             const frames = playbackGhosts[0].frames || [];
             const pos = frames[Math.floor(frameCount / 5)] || frames[frames.length - 1];
             if (!pos) return;
@@ -12675,6 +12672,8 @@
                 'k': '#d32f2f',  // 赤（デーモン）
                 'm': '#333333'   // ヒゲ用
             };
+            // 色コードを直接持つスプライトの着せ替え対象色にも、通常色を登録する。
+            if (typeof rIdx === 'string' && rIdx.startsWith('#')) colors[rIdx] = rIdx;
 
             // カラーバリエーションとゴースト設定の適用
             // colorIdが不正な場合や'default'の場合は、通常（varColor）の色が使われるように維持
@@ -12692,7 +12691,7 @@
                             else ctx.fillStyle = '#333333';
                         } else {
                             // ライ・アルバロのような「色コードそのもの」で作られたドット絵にも対応する。
-                            ctx.fillStyle = (typeof c === 'string' && c.startsWith('#')) ? c : colors[c];
+                            ctx.fillStyle = c === rIdx ? colors[rIdx] : ((typeof c === 'string' && c.startsWith('#')) ? c : colors[c]);
                         }
                         ctx.fillRect(x, y, 1, 1);
                     }
