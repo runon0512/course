@@ -249,7 +249,6 @@
             align-items: center;
             gap: 1cqw;
         }
-        #dm-notification-dot { display:none; position:absolute; top:-0.45cqh; right:-0.7cqw; width:0.8cqw; height:0.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:0.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
         #dm-overlay { display:none; flex-direction:column; align-items:center; justify-content:flex-start; gap:1.2cqh; padding:3cqh 5cqw; box-sizing:border-box; }
         #dm-header { width:90%; max-width:78cqw; display:flex; align-items:center; justify-content:space-between; padding:1cqh 1.2cqw; box-sizing:border-box; background:linear-gradient(100deg,rgba(22,82,125,.75),rgba(16,29,71,.92)); border:.15cqw solid #64dfff; box-shadow:0 0 1cqw rgba(65,207,255,.25); }
         #dm-list { width:90%; min-height:0; flex:1 1 auto; }
@@ -1502,8 +1501,8 @@
         #main-menu .pixel-btn:hover { border:0; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:#8dfff2; box-shadow:none; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(.5cqw); letter-spacing:.13em; }
         #main-menu .pixel-btn:hover::before { color:#fff3a5; transform:translateX(.25cqw); }
         /* ホーム右側・下側のショートカットも文字ベースに統一 */
-        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #weekly-cup-btn, #password-settings-btn { padding:.35cqh .35cqw !important; border:0 !important; background:transparent !important; box-shadow:none !important; color:#eafcff !important; font-size:1.55cqw !important; font-weight:700; letter-spacing:.06em; text-shadow:0 0 .45cqw rgba(157,235,255,.25); transition:color .2s ease, text-shadow .2s ease, transform .2s ease, letter-spacing .2s ease; }
-        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #patch-notes-btn:hover, #password-settings-btn:hover { border:0 !important; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#8dfff2 !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(-.25cqw); letter-spacing:.1em; }
+        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #dm-inbox-btn, #weekly-cup-btn, #password-settings-btn { padding:.35cqh .35cqw !important; border:0 !important; background:transparent !important; box-shadow:none !important; color:#eafcff !important; font-size:1.55cqw !important; font-weight:700; letter-spacing:.06em; text-shadow:0 0 .45cqw rgba(157,235,255,.25); transition:color .2s ease, text-shadow .2s ease, transform .2s ease, letter-spacing .2s ease; }
+        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #patch-notes-btn:hover, #dm-inbox-btn:hover, #password-settings-btn:hover { border:0 !important; background:linear-gradient(90deg,#51ffd2,#78d9ff 35%,#d48cff 65%,#75ffbd) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#8dfff2 !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(74,255,205,.9), 0 0 1cqw rgba(104,172,255,.7), 0 0 1.6cqw rgba(203,111,255,.42); transform:translateX(-.25cqw); letter-spacing:.1em; }
         #password-settings-btn.has-password-warning::after { content:''; position:absolute; top:-.15cqw; right:-.35cqw; width:.8cqw; height:.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
         #weekly-cup-btn { color:#ffe59b !important; text-shadow:0 0 .55cqw rgba(255,204,68,.5); }
         #weekly-cup-btn:hover { border:0 !important; background:linear-gradient(90deg,#fff7ba,#ffd54a,#c98700,#fff0a0) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#ffd54a !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(255,235,129,.95), 0 0 1.1cqw rgba(255,190,35,.8), 0 0 1.7cqw rgba(191,120,0,.58); transform:translateX(.35cqw); letter-spacing:.1em; }
@@ -1649,10 +1648,11 @@
         #user-info { top:1.3cqh; right:2cqw; border:.1cqw solid #b88c43; background:linear-gradient(90deg,rgba(27,17,23,.92),rgba(70,43,30,.78)); box-shadow:inset 0 0 .7cqw rgba(255,212,119,.08); color:#f7e7c0; font-family:Georgia,'Noto Sans JP',serif; }
         #home-level-gauge { right:2.4cqw; bottom:3.1cqh; background:linear-gradient(135deg,rgba(32,20,25,.94),rgba(75,45,30,.9)); border:.14cqw solid #bf944b; box-shadow:inset 0 0 .8cqw rgba(255,215,132,.12); }
         #home-level-gauge-title { color:#f5d476; font-family:Georgia,serif; } #home-level-gauge-track { background:#211720; border-color:#8d6839; } #home-level-gauge-fill { background:linear-gradient(90deg,#a46728,#f1c965,#fff1ba); }
-        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #password-settings-btn, #creator-settings-btn {
+        #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #dm-inbox-btn, #password-settings-btn {
             color:#e8d5a1 !important; font:700 1.43cqw Georgia,'Noto Sans JP',serif !important; letter-spacing:.08em; text-shadow:0 .12cqw 0 #1d1218 !important;
         }
-        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #patch-notes-btn:hover, #password-settings-btn:hover, #creator-settings-btn:hover { background:none !important; -webkit-text-fill-color:initial; color:#fff0a9 !important; text-shadow:0 0 .65cqw rgba(255,216,112,.75) !important; transform:translateX(-.22cqw); }
+        #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #patch-notes-btn:hover, #dm-inbox-btn:hover, #password-settings-btn:hover { background:none !important; -webkit-text-fill-color:initial; color:#fff0a9 !important; text-shadow:0 0 .65cqw rgba(255,216,112,.75) !important; transform:translateX(-.22cqw); }
+        #dm-inbox-btn.has-notification::after { content:''; position:absolute; top:-.15cqw; right:-.45cqw; width:.8cqw; height:.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
         #creator-settings-overlay { z-index:195; display:none; align-items:center; justify-content:center; background:rgba(2,8,20,.88); }
         .creator-settings-card { width:min(68cqw,780px); max-height:78cqh; display:flex; flex-direction:column; padding:2cqw; background:linear-gradient(135deg,#15284b,#10152c); border:.16cqw solid #65cfff; box-shadow:0 0 2cqw rgba(53,182,255,.35); }
         #creator-special-settings-list { display:flex; flex-wrap:nowrap; align-items:center; gap:.75cqw; overflow-x:auto; overflow-y:hidden; padding:1cqw; min-height:7.2cqw; background:rgba(0,0,0,.46); border:.14cqw solid rgba(142,219,255,.58); }
@@ -1705,8 +1705,8 @@
         /* 影を持たない文字ベースのホーム操作は従来の見た目を保つ。 */
         #main-menu .pixel-btn,
         #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn,
-        #login-bonus-btn, #patch-notes-btn, #weekly-cup-btn,
-        #password-settings-btn, #creator-settings-btn {
+        #login-bonus-btn, #patch-notes-btn, #dm-inbox-btn, #weekly-cup-btn,
+        #password-settings-btn {
             box-shadow: none !important;
         }
     </style>
@@ -1738,7 +1738,7 @@
 
         <!-- ユーザー情報 -->
         <div id="user-info">
-            USER: <span id="user-level" style="color:#fff36b; font-weight:bold;">Lv.1</span> <span style="position:relative; display:inline-block;"><span id="current-user">-</span><span id="dm-notification-dot"></span></span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
+            USER: <span id="user-level" style="color:#fff36b; font-weight:bold;">Lv.1</span> <span id="current-user">-</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
             <span style="color:#2ecc71; cursor:pointer; text-decoration:underline;" onclick="toggleOnlineUsers()">ON: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
@@ -1755,10 +1755,10 @@
         <button id="global-rank-btn" class="pixel-btn small" onclick="showGlobalRanking()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
         <button id="password-settings-btn" class="pixel-btn small" onclick="openPasswordChange()" style="position:absolute; top:7cqh; left:2cqw; z-index:15; display:none;">🔐 パスワード</button>
         <button id="patch-notes-btn" class="pixel-btn small" onclick="openPatchNotes()" style="position:absolute; top:13cqh; left:2cqw; z-index:15; display:none;">パッチノート</button>
-        <button id="creator-settings-btn" class="pixel-btn small" onclick="openCreatorSettings()" style="position:absolute; top:19cqh; left:2cqw; z-index:15; display:none;">⚙ クリエイト画面設定</button>
+        <button id="dm-inbox-btn" class="pixel-btn small" onclick="openDirectMessageInbox()" style="position:absolute; top:19cqh; left:2cqw; z-index:15; display:none;">✉ DMを確認</button>
 
         <!-- 大会ボタン（プレイの左上） -->
-        <button id="weekly-cup-btn" class="pixel-btn small" onclick="openWeeklyCup()" style="position:absolute; top:27cqh; left:2cqw; z-index:15; display:none; background:linear-gradient(135deg,#9a6500,#ffd54a,#fff1a3); color:#322000; border-color:#fff4bd; box-shadow:0 0 1cqw rgba(255,198,45,.65); font-weight:bold;">🏆 大会</button>
+        <button id="weekly-cup-btn" class="pixel-btn small" onclick="openWeeklyCup()" style="position:absolute; top:25cqh; left:2cqw; z-index:15; display:none; background:linear-gradient(135deg,#9a6500,#ffd54a,#fff1a3); color:#322000; border-color:#fff4bd; box-shadow:0 0 1cqw rgba(255,198,45,.65); font-weight:bold;">🏆 大会</button>
 
         <!-- クリエイターズロードボタン -->
         <button id="creators-road-btn" class="pixel-btn small" onclick="openCreatorsRoad()" style="position: absolute; top: 13cqh; right: 2cqw; z-index: 15; display: none; background: linear-gradient(45deg, #ff00ff, #00ffff); color: #fff; border-color: #fff;">💎 Creator Road</button>
@@ -1792,7 +1792,7 @@
                     <span>Smartphone操作</span>
                 </label>
                 <label class="remember-wrap">
-                    <input type="checkbox" id="school-mode" onchange="isSchoolMode = this.checked; localStorage.setItem('pixel_stages_school_mode', this.checked)">
+                    <input type="checkbox" id="school-mode" onchange="setSchoolMode(this.checked)">
                     <span>School Mode（音無し）</span>
                 </label>
                 <label class="remember-wrap">
@@ -1831,15 +1831,6 @@
                     <button id="reward-ok-btn" class="pixel-btn small" onclick="closeReward()">OK</button>
                 </div>
                 </section>
-            </div>
-        </div>
-
-        <div id="creator-settings-overlay" class="screen">
-            <div class="creator-settings-card">
-                <h2 style="margin:0 0 1cqh; color:#c7f4ff;">クリエイト画面設定</h2>
-                <p style="margin:0 0 1cqh; color:#a8c5e0; font-size:1cqw;">下部バーと同じ並びで表示します。ドラッグで入れ替え、右上のチェックで表示／非表示を設定できます。</p>
-                <div id="creator-special-settings-list"></div>
-                <div style="display:flex; gap:1cqw; justify-content:flex-end; margin-top:1.5cqh;"><button class="pixel-btn small" onclick="closeCreatorSettings()">戻る</button><button class="pixel-btn small" onclick="saveCreatorSettings()">保存</button></div>
             </div>
         </div>
 
@@ -2169,6 +2160,7 @@
                     <div id="current-pen-color" style="width: 6cqw; height: 6cqw; border: 0.3cqw solid #fff; margin-bottom: 2cqh;"></div>
                     <div class="palette-grid" id="editor-palette"></div>
                     <div style="margin-top: 4cqh; display: flex; flex-direction: column; gap: 2cqh; width: 100%;">
+                        <button class="pixel-btn small" onclick="copyCustomSkinCode()">📋 コードをコピー</button>
                         <button class="pixel-btn small" onclick="saveCustomSkin()">💾 保存</button>
                         <button class="pixel-btn small" style="background:#f44336;" onclick="closeCustomEditor()">戻る</button>
                     </div>
@@ -2406,10 +2398,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbz1K9f_Xz4QeRrQ_F84wh27-Vvwe0DiMoeqaW0mua89-EKvEOvOFg5S3UgL4H1IQWNZ/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycby2OerLa2r4_2tgFNLWB_M1A_2Ct65Xe3ty4QFMTEMeRT5NU0RRGmIElplboQe5cl3p/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.0.1"
+            VERSION: "3.1.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2642,10 +2634,28 @@
         let weeklyCupStageCacheWeek = null;
         let returnToWeeklyCupAfterGame = false;
         let cachedStages = null;    // ステージリストのキャッシュ
+        // OVRは全ステージのクリア・投稿情報を基に算出するため、ページ表示用の100件とは
+        // 別に全件を一度だけ取得する。
+        let allStagesForOvrLoaded = false;
+        let allStagesForOvrPromise = null;
         function getCachedStagesArray() {
             // 通信失敗時の応答などが混入しても、配列前提の画面処理を止めない。
             if (!Array.isArray(cachedStages)) cachedStages = [];
             return cachedStages;
+        }
+        async function ensureAllStagesForOvr() {
+            if (allStagesForOvrLoaded && Array.isArray(cachedStages)) return cachedStages;
+            if (allStagesForOvrPromise) return allStagesForOvrPromise;
+            allStagesForOvrPromise = callApi('getPublished', {})
+                .then(res => {
+                    cachedStages = Array.isArray(res?.stages) ? res.stages : [];
+                    allStagesForOvrLoaded = true;
+                    _badgeOvrCache = {};
+                    _badgeOvrCacheRef = cachedStages;
+                    return cachedStages;
+                })
+                .finally(() => { allStagesForOvrPromise = null; });
+            return allStagesForOvrPromise;
         }
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
@@ -2714,6 +2724,9 @@
         // 木箱はグリッドから独立した物理オブジェクトとして扱う。
         // 座標はタイル単位だが、移動時は描画キャンバス上の1px以下には進めない。
         let woodCrates = [];
+        // 表・裏面は別の動的オブジェクト状態を持つ。ワープ往復で敵の当たり判定や木箱が消えないようにする。
+        let frontFaceRuntime = null;
+        let backFaceRuntime = null;
         // クラックブロックは、最初に踏まれたフレームから30フレーム（0.5秒）で崩壊する。
         const crackBlockTimers = new Map();
         let wolfBossRefs = []; // 狼（ボスNo.2）の参照だけを保持するキャッシュ。
@@ -2745,7 +2758,7 @@
                     frames: Array.isArray(ghost.ghost)
                         ? ghost.ghost.map(pos => Array.isArray(pos)
                             ? pos
-                            : [pos.x, pos.y, pos.f === 'right' ? 1 : 0])
+                            : [pos.x, pos.y, pos.f === 'right' ? 1 : 0, pos.face ? 1 : 0])
                         : []
                 }));
             preloadedGhostCache.set(stageObj, { leaderboard, ghosts });
@@ -2785,6 +2798,8 @@
         let stageStartRespawn = null;
         // タイムアタックステージ専用: 最後に通過したチェックポイントへの復帰地点。
         let timeAttackRespawn = null;
+        // 復帰直後に前フレームの速度が物理更新へ混ざらないようにする。
+        let timeAttackRespawnInertiaResetFrames = 0;
         let killerGoalActive = false;
         let killerGoalTiles = [];
         let lastKillerGoalEnemyCount = -1;
@@ -2826,6 +2841,15 @@
         const horizonBGM = new Audio();
         horizonBGM.loop = true;
 
+        function setSchoolMode(enabled) {
+            isSchoolMode = !!enabled;
+            localStorage.setItem('pixel_stages_school_mode', String(isSchoolMode));
+            if (isSchoolMode) {
+                stopStageBGM();
+                stopHorizonBGM();
+            }
+        }
+
         function playHorizonBGM() {
             if (isSchoolMode || document.getElementById('game-screen')?.style.display === 'block') return;
             if (!horizonBGM.src) {
@@ -2833,7 +2857,7 @@
                     // ローカルに無い場合はStage.wavと同じ配布先から取得する。
                     horizonBGM.onerror = null;
                     horizonBGM.src = STAGE_BGM_FALLBACK_URL.replace(/Stage\.wav$/, 'Horizon.wav');
-                    horizonBGM.play().catch(() => {});
+                    if (!isSchoolMode) horizonBGM.play().catch(() => {});
                 };
                 horizonBGM.src = 'Horizon.wav';
             }
@@ -2849,7 +2873,7 @@
             stageBGM.onerror = () => {
                 stageBGM.onerror = null;
                 stageBGM.src = STAGE_BGM_FALLBACK_URL;
-                stageBGM.play().catch(() => {});
+                if (!isSchoolMode) stageBGM.play().catch(() => {});
             };
             stageBGM.src = 'Stage.wav';
             stageBGM.play().catch(() => {});
@@ -3217,6 +3241,16 @@
         window.addEventListener('keydown', e => {
             // 入力欄ではゲーム操作へ変換せず、WASDや矢印を通常の文字入力・カーソル操作に使う。
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+            // 開発用: 通常クリア結果、またはテストプレイのクリア確認画面で座標列をコピーする。
+            const isRewardClear = document.getElementById('reward-overlay')?.style.display === 'flex';
+            const isTestClear = gameMode === 'test'
+                && document.getElementById('msg-overlay')?.style.display === 'flex'
+                && document.getElementById('msg-title')?.textContent === 'CHECK OK!';
+            if (e.ctrlKey && !e.shiftKey && !e.altKey && e.code === 'KeyQ' && (isRewardClear || isTestClear)) {
+                e.preventDefault();
+                copyClearGhostCode();
+                return;
+            }
             const gameCode = getGameplayKeyCode(e.code);
             if (gameCode === 'Space' && !keys[gameCode]) pendingJumpPress = true;
             if (gameCode === 'Special' && !keys[gameCode]) pendingSpecialPress = true;
@@ -3235,6 +3269,26 @@
                 }
             }
         });
+
+        async function copyClearGhostCode() {
+            const ghostCode = JSON.stringify(currentGhostData.slice(0, 1500).map(p => [
+                Math.round(p.x * 100) / 100,
+                Math.round(p.y * 100) / 100
+            ]));
+            try {
+                await navigator.clipboard.writeText(ghostCode);
+                showQuickMsg('コピーしました。', 'var(--primary-color)');
+            } catch (_) {
+                const input = document.createElement('textarea');
+                input.value = ghostCode;
+                input.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+                document.body.appendChild(input);
+                input.select();
+                const copied = document.execCommand('copy');
+                input.remove();
+                showQuickMsg(copied ? 'コピーしました。' : 'コピーに失敗しました。', copied ? 'var(--primary-color)' : 'var(--secondary-color)');
+            }
+        }
         window.addEventListener('keyup', e => {
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
             const gameCode = getGameplayKeyCode(e.code);
@@ -3299,13 +3353,15 @@
                     const type = activeStage[y][x];
                     if (!type) continue;
 
-                    if (type === 'LM') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
+                    if (type === 'LM') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch, radiusTiles: 1.8 });
+                    // 炎ブロックも暗闇では光源になる。ランプより少し広く、暖色の光を想定する。
+                    if (type === 'FL') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.55) * ch, radiusTiles: 2.25 });
                     if (type === 'CA') candlePositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
                     if (type === 'sp' || type === 'sp_blue') spawnerPositions.push({ x, y, blue: type === 'sp_blue' });
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
 
-                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG'].includes(type)) {
+                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL'].includes(type)) {
                         dynamicTiles.push({x, y, type});
                     } else {
                         drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
@@ -4107,7 +4163,7 @@
 
         // --- 初期データ読み込み ---
         let homeSyncProgressTimer = null;
-        const HOME_SYNC_BUTTONS = '#main-menu button, #global-rank-btn, #weekly-cup-btn, #creators-road-btn, #explanation-btn, #chat-btn, #guild-btn, #login-bonus-btn, #patch-notes-btn, #password-settings-btn, #creator-settings-btn';
+        const HOME_SYNC_BUTTONS = '#main-menu button, #global-rank-btn, #weekly-cup-btn, #creators-road-btn, #explanation-btn, #chat-btn, #guild-btn, #login-bonus-btn, #patch-notes-btn, #dm-inbox-btn, #password-settings-btn';
 
         function setHomeSyncLocked(locked) {
             document.querySelectorAll(HOME_SYNC_BUTTONS).forEach(button => { button.disabled = locked; });
@@ -4140,6 +4196,9 @@
             if (gauge) gauge.style.width = '100%';
             setHomeSyncLocked(false);
             if (status) setTimeout(() => { status.style.display = 'none'; }, 180);
+            // ホームの初期同期完了後にだけ、OVR用の全ステージを裏で取得する。
+            // ここでは待機しないため、ホーム操作はすぐに可能なまま。
+            ensureAllStagesForOvr().catch(error => console.warn('OVR用ステージの先読み失敗:', error));
         }
 
         // EXPゲージはホームメニューだけで表示する。
@@ -4167,7 +4226,6 @@
             syncHomeLevelGaugeVisibility();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
-            document.getElementById('creator-settings-btn').style.display = 'block';
             document.getElementById('weekly-cup-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
@@ -4175,6 +4233,7 @@
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
             document.getElementById('patch-notes-btn').style.display = 'block';
+            document.getElementById('dm-inbox-btn').style.display = 'block';
             document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(username)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
@@ -4194,9 +4253,7 @@
                 callApi('getGuilds', {}),
                 callApi('getWeeklyCupWinners', {}),
                 callApi('getVerifiedUsers', {}),
-                callApi('getPlayerLevels', {}),
-                // 制作画面設定はログイン後の初期同期時にだけ取得する。
-                loadCreatorSpecialSettings()
+                callApi('getPlayerLevels', {})
             ]);
 
             if (verifiedUsersRes?.success) {
@@ -4205,9 +4262,7 @@
             }
             if (playerLevelsRes?.success) playerLevelsByUsername = new Map(Object.entries(playerLevelsRes.levels || {}));
 
-            // 全ステージを初回同期で取得すると、件数に比例してログインが遅くなる。
-            // ステージ一覧は getPublishedPage で必要な100件だけ取得し、全件が必要な
-            // 機能では従来どおりその画面を開いた時点で cachedStages を読み込む。
+            // 全ステージは初期同期の完了後、OVR用としてバックグラウンドで先読みする。
 
             // カスタムスキン反映
             if (customSkinsRes && customSkinsRes.data) customSpriteStore = { ...customSpriteStore, ...customSkinsRes.data };
@@ -4513,10 +4568,7 @@
             await ensureBadgeSettingsLoaded();
 
             if (tab === 'level') await ensurePlayerLevelsLoaded(true);
-            if (!Array.isArray(cachedStages)) {
-                const res = await callApi('getPublished', {});
-                cachedStages = Array.isArray(res?.stages) ? res.stages : [];
-            }
+            await ensureAllStagesForOvr();
 
             const q = query.toLowerCase();
             let matches = cachedAllUsernames.filter(u => u.toLowerCase().includes(q));
@@ -4644,8 +4696,8 @@
                     hasUnread = true;
                 }
             });
-            const dot = document.getElementById('dm-notification-dot');
-            if (dot) dot.style.display = hasUnread ? 'block' : 'none';
+            const inboxButton = document.getElementById('dm-inbox-btn');
+            if (inboxButton) inboxButton.classList.toggle('has-notification', hasUnread);
         }
 
         function openDirectMessageFromProfile() {
@@ -5711,6 +5763,22 @@
             openGuildIconChange(); // Initialize icon selector when settings tab is opened
             document.getElementById('guild-min-ovr-input').value = currentGuildDetails?.minOvr || 0;
             document.getElementById('guild-join-policy-select').value = currentGuildDetails?.joinPolicy || 'free';
+            const transferSelect = document.getElementById('transfer-master-select');
+            if (transferSelect) {
+                const members = (currentGuildDetails?.members || []).filter(member => String(member) !== String(CONFIG.USERNAME));
+                transferSelect.replaceChildren();
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = members.length ? '譲渡するメンバーを選択' : '譲渡できるメンバーがいません';
+                transferSelect.appendChild(placeholder);
+                members.forEach(member => {
+                    const option = document.createElement('option');
+                    option.value = member;
+                    option.textContent = member;
+                    transferSelect.appendChild(option);
+                });
+                transferSelect.disabled = members.length === 0;
+            }
             renderGuildJoinRequests();
         }
 
@@ -5905,7 +5973,8 @@
             
             const res = await callApi('transferGuildMaster', {
                 guildName: currentGuildDetails.name,
-                newOwner: newOwner
+                newOwner: newOwner,
+                username: CONFIG.USERNAME
             });
             
             if (res.success) {
@@ -5961,10 +6030,6 @@
             // I列の状態もプロフィール表示に使うため、自分自身を含めて現在のプロフィール情報を取得する。
             const currentSkinRequest = callApi('getUserProfile', { username: targetUser });
             
-            if (!Array.isArray(cachedStages)) {
-                const res = await callApi('getPublished', {});
-                cachedStages = Array.isArray(res?.stages) ? res.stages : [];
-            }
             await ensureBadgeSettingsLoaded();
 
             const stats = calculateProfileStats(targetUser);
@@ -6512,10 +6577,7 @@
             rankingWrap.style.display = 'none';
             rankingBody.innerHTML = '';
 
-            if (!cachedStages) {
-                const stagesRes = await callApi('getPublished', {});
-                cachedStages = (stagesRes && stagesRes.stages) || [];
-            }
+            await ensureAllStagesForOvr();
             const myOvr = getCachedOVR(CONFIG.USERNAME);
             const canJoinCup = myOvr >= 16; // Silver 1 以上
 
@@ -6651,10 +6713,7 @@
                 return;
             }
 
-            if (!cachedStages) {
-                const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
-            }
+            await ensureAllStagesForOvr();
             await ensureBadgeSettingsLoaded();
 
         if (tab === 'guild') {
@@ -6834,7 +6893,7 @@
             btnGroup.style.display = "flex"; btnGroup.style.gap = "2cqw"; btnGroup.style.width = "100%";
             
             const playBtn = document.createElement('button');
-            playBtn.className = "pixel-btn"; playBtn.style.flex = "1"; playBtn.innerText = "CHALLENGE";
+            playBtn.className = "pixel-btn"; playBtn.style.flex = "1"; playBtn.innerText = "PLAY";
             playBtn.onclick = () => { closeRaceMode(); startGame(s, 'play'); };
 
             const lbBtn = document.createElement('button');
@@ -7145,6 +7204,23 @@
         }
 
         function closeCustomEditor() { document.getElementById('custom-editor-overlay').style.display = 'none'; updateLockerPreview(); }
+        async function copyCustomSkinCode() {
+            if (!currentEditingSprite) return;
+            const code = JSON.stringify(currentEditingSprite);
+            try {
+                await navigator.clipboard.writeText(code);
+            } catch (_) {
+                const input = document.createElement('textarea');
+                input.value = code;
+                input.style.position = 'fixed';
+                input.style.opacity = '0';
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                input.remove();
+            }
+            showQuickMsg('スキンコードをコピーしました。', 'var(--primary-color)');
+        }
         async function saveCustomSkin() {
             customSpriteStore[tempSelectedSkin] = currentEditingSprite;
             spriteCache.clear(); // スキンが更新されたのでキャッシュをクリア
@@ -7334,7 +7410,6 @@
             }
             document.getElementById('global-rank-btn').style.display = 'none';
             document.getElementById('password-settings-btn').style.display = 'none';
-            document.getElementById('creator-settings-btn').style.display = 'none';
             document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
@@ -7342,6 +7417,7 @@
             document.getElementById('guild-btn').style.display = 'none';
             document.getElementById('login-bonus-btn').style.display = 'none';
             document.getElementById('patch-notes-btn').style.display = 'none';
+            document.getElementById('dm-inbox-btn').style.display = 'none';
 
             document.getElementById('editor-screen').style.display = 'block';
             
@@ -7436,8 +7512,6 @@
                     button.style.display = 'flex';
                 });
             }
-            applyCreatorSpecialSettings();
-
             // 火山ステージタイプ（ショップで購入するまで選択不可）
             const hasVolcanoStage = purchasedSkins.includes('volcano_stage');
             const volcanoOpt = document.getElementById('stage-type-option-volcano');
@@ -7464,7 +7538,8 @@
             if (editorAnimId) cancelAnimationFrame(editorAnimId);
             (function editorLoop() {
                 const t = document.getElementById('stage-type-select')?.value || 'normal';
-                if (document.getElementById('editor-screen').style.display !== 'none' && t !== 'normal') {
+                const hasMovingWind = editorGrid.some(row => row.some(tile => ['W', 'L', 'U', 'd', 'J'].includes(tile)));
+                if (document.getElementById('editor-screen').style.display !== 'none' && (t !== 'normal' || hasMovingWind)) {
                     drawEditor();
                 }
                 editorAnimId = requestAnimationFrame(editorLoop);
@@ -7493,7 +7568,6 @@
             startHomeBackgroundEffect();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
-            document.getElementById('creator-settings-btn').style.display = 'block';
             document.getElementById('weekly-cup-btn').style.display = 'block';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
@@ -7501,6 +7575,7 @@
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
             document.getElementById('patch-notes-btn').style.display = 'block';
+            document.getElementById('dm-inbox-btn').style.display = 'block';
             
             const container = document.querySelector('.container');
             container.classList.remove('bg-sky', 'bg-clear-sky');
@@ -9077,6 +9152,7 @@
             document.getElementById('guild-btn').style.display = 'block';
             document.getElementById('login-bonus-btn').style.display = 'block';
             document.getElementById('patch-notes-btn').style.display = 'block';
+            document.getElementById('dm-inbox-btn').style.display = 'block';
         }
 
         function changeStagePage(delta) {
@@ -9131,12 +9207,16 @@
         }
         function getStageTypeSource(stageObj) {
             const directType = stageObj?.stageType;
+            const data = stageObj?.data;
+            // 表裏別の設定がデータ側にある場合は、単一の旧stageTypeより優先する。
+            // これにより「表面は通常、裏面だけ水中」のようなステージでも裏面設定を失わない。
+            const dataFaceTypes = data?.stageTypes || data?.stageType;
+            if (dataFaceTypes && typeof dataFaceTypes === 'object' && !Array.isArray(dataFaceTypes)) return dataFaceTypes;
             // 壊れた "[object Object]" より、ステージデータ側の正しい種類を優先する。
             // 表／裏面用の正しいオブジェクト形式まで壊れた値として扱わない。
             if (directType && typeof directType === 'object' && !Array.isArray(directType)) return directType;
             if (directType !== undefined && !(/^\[?object object\]?$/i.test(String(directType).trim()))) return directType;
-            const data = stageObj?.data;
-            return data?.stageTypes || data?.stageType || 'normal';
+            return dataFaceTypes || 'normal';
         }
         function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
@@ -9267,7 +9347,6 @@
             }
             if (document.getElementById('global-rank-btn')) document.getElementById('global-rank-btn').style.display = 'none';
             if (document.getElementById('password-settings-btn')) document.getElementById('password-settings-btn').style.display = 'none';
-            if (document.getElementById('creator-settings-btn')) document.getElementById('creator-settings-btn').style.display = 'none';
             if (document.getElementById('weekly-cup-btn')) document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'none';
             document.getElementById('explanation-btn').style.display = 'none';
@@ -9275,6 +9354,7 @@
             document.getElementById('guild-btn').style.display = 'none';
             document.getElementById('login-bonus-btn').style.display = 'none';
             document.getElementById('patch-notes-btn').style.display = 'none';
+            document.getElementById('dm-inbox-btn').style.display = 'none';
 
             const stageFaces = getStageDataFaces(stageObj.data);
             activeFrontStage = normalizeGrid(stageFaces.front);
@@ -9302,6 +9382,7 @@
             currentStageType = frontStageType === 'rai_alvaro_v2' ? 'rai_alvaro' : frontStageType;
             activeFrontStageType = currentStageType;
             activeBackStageType = backStageType === 'rai_alvaro_v2' ? 'rai_alvaro' : backStageType;
+            applyActiveFaceStageType();
             const gameControlsLabel = document.getElementById('game-controls-label');
             if (gameControlsLabel) {
                 gameControlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
@@ -9359,12 +9440,15 @@
             activeCheckpoints.clear();
             stageStartRespawn = null;
             timeAttackRespawn = null;
+            timeAttackRespawnInertiaResetFrames = 0;
             countdownStartTime = Date.now();
             currentGhostData = [];
 
             // 初期位置探し
             enemies = [];
             woodCrates = [];
+            frontFaceRuntime = null;
+            backFaceRuntime = null;
             crackBlockTimers.clear();
             wolfBossRefs = [];
             blackBossRefs = [];
@@ -9373,7 +9457,7 @@
                     if(activeStage[y][x] === 'S') {
                         player.x = x + 0.1; player.y = y + 0.1;
                         stageStartRespawn = { x: player.x, y: player.y };
-                        timeAttackRespawn = { ...stageStartRespawn };
+                        timeAttackRespawn = { ...stageStartRespawn, face: false };
                         // スタート地点は開始時の位置情報だけ残し、プレイ中は描画しない。
                         activeStage[y][x] = null;
                     }
@@ -9429,6 +9513,9 @@
             enemies.forEach(en => {
                 if (en.isBoss) destroyBlocksInsideBoss(en);
             });
+            // 表面で生成済みの動的オブジェクトを保存する。裏面に移動して戻った時も
+            // 敵・木箱・ボスの位置や残り体力をそのまま復元する。
+            frontFaceRuntime = { enemies, woodCrates };
 
             // 噴火制御機（EC）: 設置位置を開始時に記憶し、毎フレームのグリッド走査を避ける。
             eruptionControlLimitTiles = null;
@@ -9621,6 +9708,11 @@
                 rewardGold = Math.round(baseRewardGold * getCurrentGuildGoldMultiplier());
             }
             if (isCupClear) rewardGold = 0;
+
+            const normalRewardTitle = document.querySelector('.reward-title');
+            const normalRewardCaption = document.querySelector('.reward-hero-caption');
+            if (normalRewardTitle) normalRewardTitle.innerText = 'STAGE CLEAR!';
+            if (normalRewardCaption) normalRewardCaption.innerText = 'STAGE CONQUERED';
             
             if (!isCupClear && !rewardAlreadyAdded) {
                 userGold += rewardGold;
@@ -9666,11 +9758,13 @@
             // 全プレイヤーのゴーストを表示できるよう、順位に関係なくゴーストを保存する。
             const isTop5Candidate = true;
             
-            // 通信量を削減するため、座標データを配列形式 [x, y, facing] に圧縮 (1=right, 0=left)
+            // 座標・向き・表裏面を配列形式 [x, y, facing, face] に圧縮する。
+            // face は表面=0、裏面=1。
             const compressedGhost = currentGhostData.slice(0, 1500).map(p => [
                 Math.round(p.x * 100) / 100, 
                 Math.round(p.y * 100) / 100, 
-                p.f === 'right' ? 1 : 0
+                p.f === 'right' ? 1 : 0,
+                p.face ? 1 : 0
             ]);
 
             // 報酬額は今回のクリア前の難易度で決めた後、次回以降の難易度・報酬へ今回の結果を反映する。
@@ -9904,6 +9998,19 @@
             // 物理更新がない高リフレッシュレート側のフレームでは同じ画面を再描画しない。
             // Canvas の描画負荷を最大60回/秒に抑え、120/144Hz環境での無駄な負荷を防ぐ。
             if (updates > 0) drawGame();
+        }
+
+        function syncSpectatorFaceToGhost() {
+            if (!isGhostSpectatorMode || isCountingDown || !playbackGhosts.length) return;
+            const frames = playbackGhosts[0].frames || [];
+            const pos = frames[Math.floor(frameCount / 5)] || frames[frames.length - 1];
+            if (!pos) return;
+            const shouldUseBackFace = pos[3] === 1;
+            if (shouldUseBackFace === isUsingBackFace) return;
+
+            isUsingBackFace = shouldUseBackFace;
+            applyActiveFaceStageType();
+            updateStageCache();
         }
 
         // 指定した矩形範囲(ワールド座標)に重なる、壊せるブロックをすべて破壊する（狼の大ジャンプ中の突破用）。
@@ -10168,6 +10275,13 @@
         function updateGame() {
             if (isGoalTriggered) return;
 
+            // タイムアタックでのチェックポイント復帰直後は、前フレームの慣性を完全に破棄する。
+            if (timeAttackRespawnInertiaResetFrames > 0) {
+                player.vx = 0;
+                player.vy = 0;
+                timeAttackRespawnInertiaResetFrames--;
+            }
+
             const justPressedJump = pendingJumpPress;
             pendingJumpPress = false;
             const justPressedSpecial = pendingSpecialPress;
@@ -10186,7 +10300,8 @@
                     currentGhostData.push({
                         x: Math.round(player.x * 100) / 100, 
                         y: Math.round(player.y * 100) / 100, 
-                        f: player.facing
+                        f: player.facing,
+                        face: isUsingBackFace ? 1 : 0
                     });
                 return; // 最初のフレームは初期化のみで終了し、次フレームから物理演算を開始
                 }
@@ -10287,7 +10402,8 @@
             if (frameCount % 5 === 0) currentGhostData.push({
                 x: Math.round(player.x * 100) / 100, 
                 y: Math.round(player.y * 100) / 100, 
-                f: player.facing
+                f: player.facing,
+                face: isUsingBackFace ? 1 : 0
             });
 
             // 風の処理
@@ -11064,7 +11180,8 @@
                 currentGhostData.push({
                     x: Math.round(player.x * 100) / 100, 
                     y: Math.round(player.y * 100) / 100, 
-                    f: player.facing
+                    f: player.facing,
+                    face: isUsingBackFace ? 1 : 0
                 });
                 player.vx = 0; player.vy = 0;
                 
@@ -11086,11 +11203,26 @@
         }
 
         function getRemainingKillerGoalEnemies() {
-            let remaining = 0;
-            for (let i = 0; i < enemies.length; i++) {
-                if (!enemies[i].dead) remaining++;
-            }
-            return remaining;
+            const countFaceEnemies = (runtime, stage) => {
+                if (runtime) {
+                    let count = 0;
+                    for (let i = 0; i < runtime.enemies.length; i++) {
+                        if (!runtime.enemies[i].dead) count++;
+                    }
+                    return count;
+                }
+                let count = 0;
+                for (let y = 0; y < GRID_H; y++) {
+                    for (let x = 0; x < GRID_W; x++) {
+                        if (stage[y] && ['M', 'j', 'e', 'PB', 'WB', 'BL'].includes(stage[y][x])) count++;
+                    }
+                }
+                return count;
+            };
+            // キラーゴールでは、まだ訪れていない裏面の敵も残敵として扱う。
+            // これにより片面だけ倒してゴールが開くことを防ぐ。
+            return countFaceEnemies(frontFaceRuntime, activeFrontStage)
+                + countFaceEnemies(backFaceRuntime, activeBackStage);
         }
 
         function updateKillerGoalStatus() {
@@ -11101,6 +11233,54 @@
             for (let i = 0; i < killerGoalTiles.length; i++) {
                 updateStageCacheTile(killerGoalTiles[i].x, killerGoalTiles[i].y);
             }
+        }
+
+        // 裏面は独立したステージ配列を使うため、敵・木箱などの動的オブジェクトも
+        // 面ごとに保存する。従来はワープ時に enemies を空にしていたため、裏面の敵が
+        // 描画も当たり判定も持たない状態になっていた。
+        function saveActiveFaceRuntime() {
+            const runtime = { enemies, woodCrates };
+            if (isUsingBackFace) backFaceRuntime = runtime;
+            else frontFaceRuntime = runtime;
+        }
+
+        function restoreActiveFaceRuntime() {
+            const runtime = isUsingBackFace ? backFaceRuntime : frontFaceRuntime;
+            if (runtime) {
+                enemies = runtime.enemies || [];
+                woodCrates = runtime.woodCrates || [];
+                wolfBossRefs = enemies.filter(en => en.isWolf);
+                blackBossRefs = enemies.filter(en => en.isBlack);
+                return;
+            }
+
+            enemies = [];
+            woodCrates = [];
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    const tile = activeStage[y][x];
+                    if (tile === 'WCN') {
+                        woodCrates.push({ x, y, vx: 0, vy: 0 });
+                        activeStage[y][x] = null;
+                    } else if (tile === 'M' || tile === 'j' || tile === 'e') {
+                        enemies.push({ x, y, vx: tile === 'e' ? 0 : -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: tile === 'j', sync: tile === 'e', maxHp: getNormalEnemyMaxHp(), hp: getNormalEnemyMaxHp(), hitCooldown: 0 });
+                        activeStage[y][x] = null;
+                    } else if (tile === 'PB') {
+                        enemies.push({ x, y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, hitCooldown: 0 });
+                        activeStage[y][x] = null;
+                    } else if (tile === 'WB') {
+                        enemies.push({ x, y, vx: -0.0525, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.4, isWolf: true, isBoss: true, name: 'WOLF', hp: 80, maxHp: 80, hitCooldown: 0, sickleTimer: 240, fireballTimer: 480, bigJumpTimer: 180, isBigJumping: false, bigJumpFrames: 0, directionTimer: 60 });
+                        activeStage[y][x] = null;
+                    } else if (tile === 'BL') {
+                        enemies.push({ x, y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isBlack: true, isBoss: true, name: 'BLACK', hp: 100, maxHp: 100, hitCooldown: 0, raiDamageFlash: 0 });
+                        activeStage[y][x] = null;
+                    }
+                }
+            }
+            wolfBossRefs = enemies.filter(en => en.isWolf);
+            blackBossRefs = enemies.filter(en => en.isBlack);
+            enemies.forEach(en => { if (en.isBoss) destroyBlocksInsideBoss(en); });
+            saveActiveFaceRuntime();
         }
 
         function checkGimmicks() {
@@ -11123,7 +11303,7 @@
                 if (!activeCheckpoints.has(checkpointKey)) {
                     activeCheckpoints.add(checkpointKey);
                     if (isTimeAttackStageType(currentStageType)) {
-                        timeAttackRespawn = { x: gx + 0.1, y: gy + 0.1 };
+                        timeAttackRespawn = { x: gx + 0.1, y: gy + 0.1, face: isUsingBackFace };
                     }
                     updateStageCache(); // チェックポイント通過で見た目が変わるので更新
                 }
@@ -11132,32 +11312,20 @@
             if (tile !== 'WG') warpGateLocked = false;
             if (tile === 'WG' && !warpGateLocked) {
                 // 表面・裏面の同じ座標のゲートを往復する。
+                saveActiveFaceRuntime();
                 isUsingBackFace = !isUsingBackFace;
-                activeStage = isUsingBackFace ? activeBackStage : activeFrontStage;
-                currentStageType = isUsingBackFace ? activeBackStageType : activeFrontStageType;
-                playBackFaceWarpEffect(gx, gy);
-                const faceIndicator = document.getElementById('stage-face-indicator');
-                if (faceIndicator) faceIndicator.innerText = isUsingBackFace ? '2' : '1';
-                warpGateLocked = true;
-                eruptionControlLimitTiles = null;
-                beachWaterSurfaceTiles = GRID_H / 2;
-                auroraEruptionControlActive = false;
-                if (currentStageType === 'volcano') {
-                    const ecRow = findEruptionControlRow(activeStage);
-                    if (ecRow !== null) eruptionControlLimitTiles = GRID_H - ecRow;
-                    auroraEruptionControlActive = isEruptionControlSurroundedByAurora(activeStage);
-                } else if (currentStageType === 'beach') {
-                    const ecRow = findEruptionControlRow(activeStage);
-                    if (ecRow !== null) beachWaterSurfaceTiles = ecRow;
+                applyActiveFaceStageType();
+                killerGoalTiles = [];
+                for (let y = 0; y < GRID_H; y++) {
+                    for (let x = 0; x < GRID_W; x++) {
+                        if (activeStage[y] && activeStage[y][x] === 'KG') killerGoalTiles.push({ x, y });
+                    }
                 }
-                applyWarpFaceBackground();
-                const controlsLabel = document.getElementById('game-controls-label');
-                if (controlsLabel) controlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
-                    ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
-                    : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
-                const specialButton = document.getElementById('btn-special');
-                if (specialButton) specialButton.style.display = (isMobileMode && isRaiAlvaroStageType(currentStageType)) ? 'flex' : 'none';
-                enemies = [];
+                killerGoalActive = killerGoalTiles.length > 0;
+                lastKillerGoalEnemyCount = -1;
+                playBackFaceWarpEffect(gx, gy);
+                warpGateLocked = true;
+                restoreActiveFaceRuntime();
                 arrows = [];
                 missiles = [];
                 sickles = [];
@@ -11219,6 +11387,34 @@
             else if (currentStageType === 'moon') container.classList.add('bg-moon');
             else if (currentStageType === 'beach') container.classList.add('bg-beach');
             else container.classList.add('bg-clear-sky');
+        }
+
+        // 表／裏面を切り替えた時に、タイプ依存の状態を一か所で確実に同期する。
+        function applyActiveFaceStageType() {
+            activeStage = isUsingBackFace ? activeBackStage : activeFrontStage;
+            currentStageType = isUsingBackFace ? activeBackStageType : activeFrontStageType;
+
+            eruptionControlLimitTiles = null;
+            beachWaterSurfaceTiles = GRID_H / 2;
+            auroraEruptionControlActive = false;
+            if (currentStageType === 'volcano') {
+                const ecRow = findEruptionControlRow(activeStage);
+                if (ecRow !== null) eruptionControlLimitTiles = GRID_H - ecRow;
+                auroraEruptionControlActive = isEruptionControlSurroundedByAurora(activeStage);
+            } else if (currentStageType === 'beach') {
+                const ecRow = findEruptionControlRow(activeStage);
+                if (ecRow !== null) beachWaterSurfaceTiles = ecRow;
+            }
+
+            const faceIndicator = document.getElementById('stage-face-indicator');
+            if (faceIndicator) faceIndicator.innerText = isUsingBackFace ? '2' : '1';
+            const controlsLabel = document.getElementById('game-controls-label');
+            if (controlsLabel) controlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
+                ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
+                : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
+            const specialButton = document.getElementById('btn-special');
+            if (specialButton) specialButton.style.display = (isMobileMode && isRaiAlvaroStageType(currentStageType)) ? 'flex' : 'none';
+            applyWarpFaceBackground();
         }
 
         function playBackFaceWarpEffect(tileX, tileY) {
@@ -11486,14 +11682,29 @@
             if (isGoalTriggered) return;
             if (isRaiAlvaroStageType(currentStageType) && raiDashFrames > 0) return;
             // タイムアタックは計時・ギミック状態を保ったまま、最後のチェックポイントへ即時復帰する。
-            if (isTimeAttackStageType(currentStageType)) {
+            // チェックポイントを裏面で取った場合も、その面とステージタイプへ戻す。
+            const respawnFace = timeAttackRespawn?.face === true;
+            const respawnType = respawnFace ? activeBackStageType : activeFrontStageType;
+            if (isTimeAttackStageType(currentStageType) || isTimeAttackStageType(respawnType)) {
                 const respawn = timeAttackRespawn || stageStartRespawn || { x: player.x, y: player.y };
+                if (isUsingBackFace !== respawnFace) {
+                    saveActiveFaceRuntime();
+                    isUsingBackFace = respawnFace;
+                    applyActiveFaceStageType();
+                    restoreActiveFaceRuntime();
+                    arrows = [];
+                    missiles = [];
+                    sickles = [];
+                    fireballs = [];
+                    updateStageCache();
+                }
                 player.x = respawn.x;
                 player.y = respawn.y;
                 player.vx = 0;
                 player.vy = 0;
                 player.onGround = false;
                 player.wasInBeachWater = false;
+                timeAttackRespawnInertiaResetFrames = 1;
                 return;
             }
             isGoalTriggered = true;
@@ -11531,6 +11742,7 @@
 
         function drawGame() {
             if (!cachedGameCanvas || !cachedGameCtx) return;
+            syncSpectatorFaceToGhost();
             const cw = cachedGameCanvas.width / GRID_W;
             const ch = cachedGameCanvas.height / GRID_H;
             
@@ -11780,6 +11992,9 @@
                     if (!frames || frames.length === 0) continue;
                     const pos = frames[frameIdx] || frames[frames.length - 1];
                     if (!pos) continue;
+                    // 4要素目がある新形式では、同じ面にいるゴーストだけを表示する。
+                    // 旧形式（3要素以下）は従来どおり表面のゴーストとして扱う。
+                    if ((pos[3] === 1) !== isUsingBackFace) continue;
 
                     const gx = pos[0];
                     const gy = pos[1];
@@ -11983,7 +12198,7 @@
 
                 // ランプブロック周囲も切り抜く（事前計算済みの座標を使い、毎フレームのグリッド走査を回避）
                 for (let i = 0; i < lampPositions.length; i++) {
-                    cutLightHole(lampPositions[i].x, lampPositions[i].y, cw * 1.8);
+                    cutLightHole(lampPositions[i].x, lampPositions[i].y, cw * (lampPositions[i].radiusTiles || 1.8));
                 }
 
                 // 完成したマスクをゲームキャンバス上に重ねる
@@ -12043,7 +12258,7 @@
                 const ghost = playbackGhosts[0];
                 const frames = ghost.frames || [];
                 const pos = frames[Math.floor(frameCount / 5)] || frames[frames.length - 1];
-                if (pos) {
+                if (pos && ((pos[3] === 1) === isUsingBackFace)) {
                     const gx = pos[0], gy = pos[1];
                     const gf = pos[2] === 1 ? 'right' : 'left';
                     const ghostSkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : (ghost.skin || 'default');
