@@ -944,6 +944,42 @@
             padding: 1cqw;
             text-align: center;
         }
+
+        /* デイリーショップ: 店内・商品棚レイアウト */
+        #shop-overlay.daily-shop-room {
+            box-sizing:border-box;
+            overflow:hidden;
+            padding:2.4cqh 5cqw 2cqh;
+            background:
+                radial-gradient(ellipse at 50% 4%, rgba(255,217,128,.26), transparent 36%),
+                linear-gradient(180deg, rgba(20,12,14,.94), rgba(47,25,17,.98) 70%, rgba(26,13,13,.99)) !important;
+        }
+        #shop-overlay.daily-shop-room .daily-shop-sign { color:#ffe6a9 !important; font:700 3.4cqw Georgia,serif; letter-spacing:.1em; text-shadow:0 .18cqw 0 #35180e,0 0 1.2cqw rgba(255,185,85,.65) !important; }
+        .daily-shop-subtitle { margin-top:.35cqh; color:#e5bf79; font-size:1cqw; letter-spacing:.15em; }
+        .daily-shop-interior { width:min(88cqw,1180px); height:70cqh; display:grid; grid-template-columns:minmax(16cqw,.36fr) minmax(0,1fr); grid-template-rows:auto 1fr; gap:1.2cqh 2cqw; padding:1.2cqw; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:linear-gradient(90deg,rgba(42,21,17,.96),rgba(82,42,24,.86) 48%,rgba(42,21,17,.96)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
+        .daily-shop-counter { grid-row:1 / 3; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:56cqh; padding:1.2cqw; border:.18cqw solid #70411f; background:linear-gradient(180deg,rgba(34,21,23,.85),rgba(98,50,26,.8)); overflow:hidden; }
+        .daily-shop-counter::before { content:''; position:absolute; inset:0; opacity:.35; background:repeating-linear-gradient(90deg,transparent 0 2.6cqw,rgba(255,205,116,.18) 2.7cqw 2.9cqw); pointer-events:none; }
+        #shopkeeper-canvas { position:relative; z-index:1; width:14cqw; max-width:180px; aspect-ratio:1; image-rendering:pixelated; cursor:pointer; filter:drop-shadow(0 0 .55cqw rgba(255,213,128,.45)); transition:transform .16s ease,filter .16s ease; }
+        #shopkeeper-canvas:hover { transform:translateY(-.55cqh) scale(1.045); filter:drop-shadow(0 0 1.05cqw rgba(255,232,139,.92)); }
+        #shopkeeper-canvas:active { transform:translateY(-.1cqh) scale(.98); }
+        #shopkeeper-placeholder { position:relative; z-index:1; width:13cqw; max-width:164px; aspect-ratio:1; display:grid; place-items:center; border:.16cqw dashed rgba(255,225,160,.55); color:#f6d89d; font-size:.95cqw; text-align:center; line-height:1.5; background:radial-gradient(circle,rgba(255,217,125,.22),transparent 67%); }
+        .daily-shop-keeper-name { position:relative; z-index:1; margin-top:.55cqh; color:#ffd987; font:700 1.2cqw Georgia,serif; letter-spacing:.08em; }
+        .daily-shop-speech { position:relative; z-index:1; width:100%; box-sizing:border-box; margin-top:1.35cqh; padding:.8cqh .7cqw; color:#fff0c9; font-size:.9cqw; line-height:1.5; text-align:left; border:.14cqw solid #e5bf79; border-radius:.45cqw; background:linear-gradient(135deg,#fff8df,#f3d38a); color:#3c2418; box-shadow:0 .25cqh 0 rgba(52,25,13,.62), inset 0 0 0 .1cqw rgba(255,255,255,.65); cursor:pointer; transition:transform .16s ease,filter .16s ease; }
+        .daily-shop-speech::before { content:''; position:absolute; top:-.82cqh; left:50%; width:1.25cqw; height:1.25cqh; background:#fff8df; border-top:.14cqw solid #e5bf79; border-left:.14cqw solid #e5bf79; transform:translateX(-50%) rotate(45deg); }
+        .daily-shop-speech:hover { transform:translateY(-.18cqh); filter:brightness(1.06); }
+        .daily-shop-stock { grid-column:2; grid-row:1 / 3; min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+        .daily-shop-stock-head { display:flex; justify-content:space-between; align-items:end; gap:1cqw; padding:.55cqh .5cqw .9cqh; border-bottom:.16cqw solid #b77b40; color:#ffe4a7; }
+        .daily-shop-stock-head b { font:700 1.65cqw Georgia,serif; letter-spacing:.08em; }
+        #daily-shop-date { margin:0 !important; color:#e8be75 !important; font-size:.88cqw !important; text-align:right; }
+        #shop-overlay .shop-tabs { position:absolute; top:2.6cqh; right:5cqw; z-index:2; margin:0; }
+        #shop-overlay .shop-grid { width:auto; min-height:0; max-height:none; flex:1; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1cqw; padding:1.2cqh .5cqh .6cqh; overflow-y:auto; overflow-x:hidden; align-content:start; }
+        #shop-overlay .shop-item.daily-shelf-item { position:relative; min-width:0; min-height:14cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #9e6b39; background:linear-gradient(180deg,rgba(88,46,27,.96),rgba(40,22,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); }
+        #shop-overlay .shop-item.daily-shelf-item::before { content:'DAILY'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,225,157,.56); font-size:.55cqw; letter-spacing:.12em; }
+        #shop-overlay .shop-item.daily-shelf-item canvas { margin-top:.8cqh; width:5cqw; height:5cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .45cqw rgba(255,212,124,.38)); }
+        #shop-overlay .daily-shelf-item > div { overflow-wrap:anywhere; }
+        #shop-overlay .daily-shelf-item .daily-owned-tag { width:100% !important; min-width:0; box-sizing:border-box; padding:.55cqh .35cqw; border:.12cqw solid #d9a85f; border-radius:.35cqw; background:linear-gradient(135deg,#4b2d20,#7a4a2d); color:#ffe7ae; font:700 .85cqw Georgia,serif; letter-spacing:.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:1; }
+        #shop-overlay .daily-shelf-item .daily-owned-tag::first-letter { color:#fff5cc; }
+        @media (max-aspect-ratio:1/1) { #shop-overlay.daily-shop-room { padding:2cqh 2cqw; } .daily-shop-interior { width:94cqw; height:77cqh; grid-template-columns:28cqw minmax(0,1fr); gap:1cqh; } .daily-shop-counter { min-height:62cqh; } #shopkeeper-canvas, #shopkeeper-placeholder { width:22cqw; font-size:1.7cqw; } .daily-shop-keeper-name { font-size:1.9cqw; } .daily-shop-speech { font-size:1.55cqw; } #shop-overlay .shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2cqw; } #shop-overlay .shop-item.daily-shelf-item canvas { width:10cqw; height:10cqw; } #shop-overlay .shop-item.daily-shelf-item::before { font-size:1.1cqw; } .daily-shop-stock-head b { font-size:2.4cqw; } #daily-shop-date { font-size:1.3cqw !important; } }
         /* カスタムエディタ用 */
         #custom-editor-overlay {
             display: none;
@@ -1875,13 +1911,24 @@
         </div>
 
         <!-- ショップ画面 -->
-        <div id="shop-overlay" class="screen">
-            <h2 style="font-size: 3.5cqw; margin-bottom: .5cqh;">デイリーショップ</h2>
-            <div id="daily-shop-date" style="margin-bottom:1.5cqh; color:#bdefff; font-size:1.1cqw;"></div>
+        <div id="shop-overlay" class="screen daily-shop-room">
+            <h2 class="daily-shop-sign" style="margin:0;">DAILY SHOP</h2>
+            <div class="daily-shop-subtitle">本日の入荷品　—　毎日0:00（JST）更新</div>
             <div class="shop-tabs">
                 <button class="pixel-btn small" onclick="closeShop()" style="background: #f44336; color: #fff;">戻る</button>
             </div>
-            <div class="shop-grid" id="shop-container"></div>
+            <div class="daily-shop-interior">
+                <aside class="daily-shop-counter">
+                    <canvas id="shopkeeper-canvas" width="256" height="256" onclick="showNextShopkeeperLine()" aria-label="店員に話しかける"></canvas>
+                    <div id="shopkeeper-placeholder">店員画像<br>準備中</div>
+                    <div id="shopkeeper-name" class="daily-shop-keeper-name"></div>
+                    <div id="shopkeeper-speech" class="daily-shop-speech" onclick="showNextShopkeeperLine()">「いらっしゃい。今日の掘り出し物を、ゆっくり見ていって。」</div>
+                </aside>
+                <section class="daily-shop-stock">
+                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div id="daily-shop-date"></div></div>
+                    <div class="shop-grid" id="shop-container"></div>
+                </section>
+            </div>
         </div>
 
         <!-- 全ブロック解説画面 -->
@@ -1996,6 +2043,12 @@
                 <button id="dm-image-attach-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('dm-image-input').click()">🖼️ 画像を添付</button>
                 <button id="dm-gift-btn" class="pixel-btn small" style="background:#f5b700; color:#161000;" onclick="sendDirectGift()">🎁 ギフト</button>
                 <input type="file" id="dm-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleDmImageSelect(event)">
+            </div>
+            <div id="dm-gift-panel" style="display:none; width:90%; box-sizing:border-box; align-items:center; gap:.7cqw; margin-bottom:1cqh; padding:.7cqw; background:#241d08; border:.15cqw solid #f5b700;">
+                <select id="dm-gift-currency" aria-label="送る通貨" style="background:#17120a; color:#ffe58a; border:.12cqw solid #f5b700; padding:.55cqw; font-size:1.15cqw;"><option value="G">G</option><option value="AS">AS</option></select>
+                <input id="dm-gift-amount" type="number" min="1" step="1" value="100" inputmode="numeric" aria-label="送る数量" style="min-width:0; flex:1; background:#17120a; color:#fff; border:.12cqw solid #f5b700; padding:.55cqw; font-size:1.15cqw;" placeholder="数量">
+                <button id="dm-gift-confirm-btn" class="pixel-btn small" style="background:#f5b700; color:#161000;" onclick="confirmDirectGift()">送る</button>
+                <button class="pixel-btn small" onclick="closeDirectGiftPanel()">取消</button>
             </div>
             <div id="dm-stage-search" style="display:none; width:90%; flex-direction:column; gap:.5cqh; margin-bottom:1cqh;">
                 <input id="dm-stage-input" type="text" placeholder="ステージ名で検索" oninput="searchStagesForDm()" style="background:#1a1a2e; border:.2cqw solid #fff; color:#fff; padding:.8cqw; font-size:1.3cqw;">
@@ -2160,7 +2213,11 @@
                     <div id="current-pen-color" style="width: 6cqw; height: 6cqw; border: 0.3cqw solid #fff; margin-bottom: 2cqh;"></div>
                     <div class="palette-grid" id="editor-palette"></div>
                     <div style="margin-top: 4cqh; display: flex; flex-direction: column; gap: 2cqh; width: 100%;">
-                        <button class="pixel-btn small" onclick="copyCustomSkinCode()">📋 コードをコピー</button>
+                        <textarea id="custom-skin-code-input" rows="3" spellcheck="false" placeholder="ここにスキンコードを貼り付け" style="box-sizing:border-box; width:100%; resize:vertical; background:#111; color:#fff; border:.15cqw solid #fff; padding:.6cqw; font-family:monospace; font-size:.85cqw;"></textarea>
+                        <div style="display:flex; gap:1cqw; width:100%;">
+                            <button class="pixel-btn small" style="flex:1; min-width:0;" onclick="copyCustomSkinCode()">📋 コードをコピー</button>
+                            <button class="pixel-btn small" style="flex:1; min-width:0; background:#5c6bc0;" onclick="loadCustomSkinCode()">📥 コードを読み込み</button>
+                        </div>
                         <button class="pixel-btn small" onclick="saveCustomSkin()">💾 保存</button>
                         <button class="pixel-btn small" style="background:#f44336;" onclick="closeCustomEditor()">戻る</button>
                     </div>
@@ -2344,6 +2401,7 @@
                     <div class="tool-btn rank-epic" id="btn-tool-e" onclick="setTool('e', this)" title="SYNC ENEMY" style="display:none;"><canvas id="icon-e" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-epic" id="btn-tool-#" onclick="setTool('#', this)" title="WIRE MESH" style="display:none;"><canvas id="icon-#" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-V" onclick="setTool('V', this)" title="AURORA BLOCK" style="display:none;"><canvas id="icon-V" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-BH" onclick="setTool('BH', this)" title="BLACK HOLE" style="display:none;"><canvas id="icon-BH" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-mg" onclick="setTool('mg', this)" title="MISSILE GUN" style="display:none;"><canvas id="icon-mg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-LM" onclick="setTool('LM', this)" title="LAMP BLOCK" style="display:none;"><canvas id="icon-LM" class="tool-canvas"></canvas></div>
@@ -2401,7 +2459,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycby2OerLa2r4_2tgFNLWB_M1A_2Ct65Xe3ty4QFMTEMeRT5NU0RRGmIElplboQe5cl3p/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.1.1"
+            VERSION: "3.2.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2588,6 +2646,7 @@
             'e': { title: 'シンクロ敵', text: 'プレイヤーの左右移動をマネする可愛い敵です。' },
             '#': { title: '金網', text: 'プレイヤーの進行を阻む金網です。縦向きでしか通過できません。' },
             'V': { title: 'オーロラブロック', text: '光る特別なブロックです。何か力を秘めているとか...' },
+            'BH': { title: 'ブラックホール', text: '周囲のプレイヤー・敵・木箱を引き寄せる重力の穴です。吸い込んで消えることはありません。' },
             'sp': { title: 'スポナーブロック', text: '一定間隔で敵を生成する仕掛けブロックです。' },
             'mg': { title: 'ミサイル銃', text: '右方向にミサイルを発射します。ミサイルはブロックに当たると周囲9マスを破壊します。' },
             'BB': { title: '鉄ブロック', text: '周囲のブロックより少し大きい頑丈な鉄のブロックです。' },
@@ -2686,6 +2745,7 @@
         let sickles = []; // 狼（ボスNo.2）が投げる、プレイヤーを追尾する回転する鎌
         let fireballs = []; // 狼（ボスNo.2）が放つ炎の飛び道具
         let debrisParticles = []; // 破片エフェクト
+        let blackHolePositions = []; // 現在の面にあるブラックホール（開始・面切替時だけ更新）
 
         // ブロックの色マッピング（破片色用）
         const BLOCK_DEBRIS_COLOR = {
@@ -3190,6 +3250,7 @@
             'key_set': { name: 'KEY SET', price: 25000, isBlockSet: true, sprite: null },
             'wire_mesh': { name: 'WIRE MESH', price: 50000, isBlockSet: true, sprite: null },
             'aurora_block': { name: 'AURORA BLOCK', price: 1, isAS: true, isBlockSet: true, sprite: null },
+            'black_hole': { name: 'BLACK HOLE', price: 3, isAS: true, isBlockSet: true, sprite: null },
             'custom': { name: 'CUSTOM 1', price: 30000, sprite: null, isCustom: true },
             'custom2': { name: 'CUSTOM 2', price: 50000, sprite: null, isCustom: true },
             'custom3': { name: 'CUSTOM 3', price: 75000, sprite: null, isCustom: true },
@@ -3361,7 +3422,7 @@
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
 
-                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL'].includes(type)) {
+                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL', 'BH'].includes(type)) {
                         dynamicTiles.push({x, y, type});
                     } else {
                         drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
@@ -3839,7 +3900,95 @@
             persistStoryConfig(); updateStoryDataPreview(); closeStorySettings(); showQuickMsg('ストーリー設定をこの端末に保存しました。', 'var(--primary-color)');
         }
         function useDefaultStoryStage() { if (!storyConfig) loadStoryConfig(); storyConfig.stage = null; storyConfig.stageName = '入学試験：はじめての記録'; persistStoryConfig(); const input = document.getElementById('story-setting-stage'); if (input) input.value = storyConfig.stageName; updateStoryDataPreview(); }
-        async function openShop() {
+        // 店員は日付で固定し、開くたびの挨拶だけをランダムにする。
+        // 残り2人は同じ形式でこの配列へ追加できる。
+        const SHOPKEEPERS = [{
+            id: 'anri', name: '設楽 アンリ',
+            sprite: [["#3e2723","#3e2723","#3e2723",null,"#5d4037","#5d4037","#5d4037","#5d4037",null,null,null,null,null,"#00ffff","#00ffff",null],[null,"#3e2723","#3e2723","#3e2723","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037",null,null,null,"#00ffff","#000080","#000080","#00ffff"],[null,null,"#3e2723","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037","#5d4037","#5d4037",null,"#00ffff","#000080","#000080",null,null],[null,"#5d4037","#5d4037","#3e2723","#3e2723","#5d4037","#5d4037","#800000","#800000","#800000","#800000","#00ffff","#000080",null,null,null],[null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#800000","#800000","#800000","#ff0000","#ff0000","#00ffff",null,null,null,null],[null,null,"#5d4037","#5d4037","#800000","#ffdbac","#ffdbac","#ffdbac","#ff0000","#800000","#00ffff","#ff0000",null,null,null,null],[null,null,"#ff0000","#ff0000","#ffdbac","#ffffff","#ffdbac","#ffdbac","#ffdbac","#ffffff","#ff0000","#ff0000","#800000",null,null,null],[null,null,"#ff0000","#800000","#ffdbac","#800080","#ffdbac","#ffdbac","#ffdbac","#800080","#ffdbac","#ff0000","#800000",null,null,null],[null,"#ff0000","#ff0000","#800000","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ff0000",null,null,null,null],[null,"#ff0000","#ff0000","#800000","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#ff0000","#800000",null,null,null,null],[null,"#ff0000","#5d4037","#ff0000","#5d4037","#5d4037","#ffffff","#5d4037","#5d4037","#800000","#ff0000","#5d4037","#5d4037",null,null,null],[null,"#5d4037","#5d4037","#ff0000","#800000","#5d4037","#ffffff","#ffffff","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null,null],[null,"#5d4037","#5d4037","#ff0000","#ff0000","#800000","#ffffff","#ffffff","#5d4037","#5d4037","#008000","#c0c0c0","#5d4037","#5d4037",null,null],["#5d4037","#5d4037","#3e2723","#3e2723","#ff0000","#800000","#008080","#008080","#5d4037","#5d4037","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037",null],["#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#008080","#008080","#008080","#008080","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null],["#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#008080","#008080","#008080","#008080","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null]],
+            defaultLines: [
+                '「いらっしゃい。見てるだけじゃなくて、ちゃんと選びなさいよね。」',
+                '「毎日品揃えは変わるわ。迷って逃した、なんて言わせないから。」',
+                '「気になるなら確保しなさい。決断が遅いと、タイムでも負けるわよ。」',
+                '「ブロックは使い手次第。あなたなら、使いこなせるでしょ？」',
+                '「今日の棚は自信作よ。半端な目利きで通り過ぎないで。」',
+                '「G、AS、ES……買う前に残高は確認しておきなさい。」',
+                '「見ていくだけでも構わないわ。でも、いい品を見逃しても知らないもんね。」',
+                '「ステージを作るなら素材選びも勝負よ。妥協はしないことね。」',
+                '「掘り出し物を見つけたなら、次の走りで結果を出してみせて。」',
+                '「明日には別の顔ぶれよ。欲しいなら、また来なさい。」'
+            ],
+            purchaseLines: ['「お買い上げ、ありがとう。選んだなら使い切ることね。」', '「いい選択じゃない。期待してるわよ。」', '「これで準備は整ったわ。次のステージで見せてみなさい。」']
+        }, {
+            id: 'rino', name: '桜木 リノ',
+            sprite: [["#3e2723","#3e2723","#3e2723",null,"#5d4037","#5d4037","#5d4037","#5d4037",null,null,null,null,null,"#00ffff","#00ffff",null],[null,"#3e2723","#3e2723","#3e2723","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037",null,null,null,"#00ffff","#000080","#000080","#00ffff"],[null,null,"#3e2723","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037","#5d4037","#5d4037",null,"#00ffff","#000080","#000080",null,null],[null,"#5d4037","#5d4037","#3e2723","#3e2723","#5d4037","#5d4037","#8d5524","#8d5524","#8d5524","#8d5524","#00ffff","#000080",null,null,null],[null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#8d5524","#8d5524","#8d5524","#8d5524","#8d5524","#00ffff",null,null,null,null],[null,null,"#5d4037","#5d4037","#8d5524","#f1c27d","#f1c27d","#f1c27d","#8d5524","#8d5524","#00ffff","#8d5524","#8d5524","#8d5524",null,null],[null,null,null,"#8d5524","#f1c27d","#ffffff","#f1c27d","#f1c27d","#f1c27d","#ffffff","#8d5524","#000000","#8d5524","#8d5524",null,null],[null,null,null,"#8d5524","#f1c27d","#3e2723","#f1c27d","#f1c27d","#f1c27d","#3e2723","#f1c27d","#8d5524","#000000","#8d5524",null,null],[null,null,null,"#8d5524","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#8d5524",null,null,null,null],[null,null,null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null,null,null,null],[null,null,"#5d4037","#5d4037","#5d4037","#5d4037","#ffffff","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null,null,null],[null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#ffffff","#ffffff","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null,null],[null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#ffffff","#ffffff","#5d4037","#5d4037","#008000","#c0c0c0","#5d4037","#5d4037",null,null],["#5d4037","#5d4037","#3e2723","#3e2723","#3e2723","#5d4037","#808000","#808000","#5d4037","#5d4037","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037",null],["#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#808000","#808000","#808000","#808000","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null],["#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#808000","#808000","#808000","#808000","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null]],
+            defaultLines: [
+                '「こんにちはー！ 今日も元気にお買い物、いってみよー！」',
+                '「わあ、この棚見て見て！ きっと気になるものがあるよ！」',
+                '「迷ったら直感で選んじゃえ！ そのひらめき、大事だよ！」',
+                '「新しいブロックで、すっごいステージを作っちゃおう！」',
+                '「走る前の準備って、わくわくするよね！」',
+                '「GもASも、使う時は思いきり！ また集めればいいんだもん！」',
+                '「見るだけでも大歓迎！ 気軽にのぞいていってね！」',
+                '「今日のあなたなら、自己ベスト更新できる気がする！」',
+                '「いいものを見つけたら、リノにもあとで教えてね！」',
+                '「また来てねー！ 明日もいいもの、並べておくから！」'
+            ],
+            purchaseLines: ['「お買い上げありがとう！ 絶対ぴったりだよ！」', '「やったー！ その選び方、大正解！」', '「準備ばっちり！ 次のステージ、楽しんできてね！」']
+        }, {
+            id: 'megumi', name: '紫野 メグミ',
+            sprite: [["#3e2723","#3e2723","#3e2723",null,"#5d4037","#5d4037","#5d4037","#5d4037",null,null,null,null,null,"#00ffff","#00ffff",null],[null,"#3e2723","#3e2723","#3e2723","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037",null,null,null,"#00ffff","#000080","#000080","#00ffff"],[null,null,"#3e2723","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037","#5d4037","#5d4037",null,"#00ffff","#000080","#000080",null,null],[null,"#5d4037","#5d4037","#3e2723","#3e2723","#5d4037","#5d4037","#800080","#800080","#800080","#800080","#00ffff","#000080",null,null,null],[null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#800080","#800080","#ffdbac","#800080","#800080","#00ffff",null,null,null,null],[null,null,"#5d4037","#5d4037","#800080","#800080","#800080","#800080","#ffdbac","#800080","#00ffff","#800080",null,null,null,null],[null,null,null,"#800080","#800080","#ffffff","#800080","#800080","#ffdbac","#ffffff","#800080","#800080",null,null,null,null],[null,null,null,"#800080","#ffdbac","#000000","#ffdbac","#800080","#ffdbac","#000000","#ffdbac","#800080",null,null,null,null],[null,null,null,"#800080","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#ffdbac","#800080",null,null,null,null],[null,null,null,"#800080","#800080","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#800080","#800080",null,null,null,null],[null,null,"#800080","#800080","#5d4037","#5d4037","#c0c0c0","#5d4037","#5d4037","#5d4037","#5d4037","#800080","#800080",null,null,null],[null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#c0c0c0","#c0c0c0","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null,null],[null,"#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#c0c0c0","#c0c0c0","#5d4037","#5d4037","#008000","#c0c0c0","#5d4037","#5d4037",null,null],["#5d4037","#5d4037","#3e2723","#3e2723","#3e2723","#5d4037","#ffffff","#ffffff","#5d4037","#5d4037","#3e2723","#3e2723","#3e2723","#5d4037","#5d4037",null],["#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#ffffff","#ffffff","#ffffff","#ffffff","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null],["#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#ffffff","#ffffff","#ffffff","#ffffff","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037","#5d4037",null]],
+            defaultLines: [
+                '「あ、いらっしゃいませ……。ゆっくり、見ていってくださいね。」',
+                '「き、気になるものがあれば……遠慮なく、手に取ってください。」',
+                '「今日の商品も……きっと、ステージ作りのお役に立てます。」',
+                '「迷ってしまう時は……一番わくわくしたものを選ぶと、いいかもしれません。」',
+                '「このブロック、使い方を考えるのが……少し、楽しいんです。」',
+                '「残高の確認は……わ、忘れないでくださいね。」',
+                '「見るだけでも……もちろん大丈夫です。わたしも、うれしいので。」',
+                '「いい走りができるように……こっそり、応援しています。」',
+                '「新しいものを使った感想……もしよければ、聞かせてください。」',
+                '「また来てくださったら……うれしいです。」'
+            ],
+            purchaseLines: ['「あ、ありがとうございます……！ 大切に、使ってくださいね。」', '「えへへ……とても、いい選択だと思います。」', '「これで準備も……ばっちりですね。応援しています。」']
+        }];
+        let activeShopkeeper = null;
+        let lastShopkeeperLine = -1;
+
+        function chooseDailyShopkeeper(dateKey) {
+            let hash = 0;
+            for (const char of String(dateKey || '')) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+            return SHOPKEEPERS[hash % SHOPKEEPERS.length];
+        }
+
+        function renderShopkeeper(keeper) {
+            activeShopkeeper = keeper;
+            const canvas = document.getElementById('shopkeeper-canvas');
+            const placeholder = document.getElementById('shopkeeper-placeholder');
+            const name = document.getElementById('shopkeeper-name');
+            if (canvas && keeper?.sprite) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawPlayer(ctx, 0, 0, canvas.width, canvas.height, 'custom', false, 'default', keeper.sprite);
+                canvas.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            }
+            if (name) name.textContent = keeper?.name || '';
+            lastShopkeeperLine = -1;
+            showNextShopkeeperLine();
+        }
+
+        function showNextShopkeeperLine(type = 'default') {
+            if (!activeShopkeeper) return;
+            const lines = type === 'purchase' ? activeShopkeeper.purchaseLines : activeShopkeeper.defaultLines;
+            if (!lines?.length) return;
+            let index = Math.floor(Math.random() * lines.length);
+            if (lines.length > 1 && type === 'default') while (index === lastShopkeeperLine) index = Math.floor(Math.random() * lines.length);
+            if (type === 'default') lastShopkeeperLine = index;
+            const speech = document.getElementById('shopkeeper-speech');
+            if (speech) speech.textContent = `「${lines[index].replace(/^「|」$/g, '')}」`;
+        }
+
+        async function openShop(preserveShopkeeperLine = false) {
             document.getElementById('shop-overlay').style.display = 'flex';
             const container = document.getElementById('shop-container');
             const dateLabel = document.getElementById('daily-shop-date');
@@ -3849,6 +3998,7 @@
                 if (!res?.success) throw new Error(res?.message || '読み込み失敗');
                 const itemIds = [...(res.skinIds || []), ...(res.customIds || []), ...(res.blockIds || [])];
                 dateLabel.innerText = `${res.dateKey.replaceAll('-', '/')} の共通ラインナップ　次の更新まで毎日同じ商品です`;
+                if (!preserveShopkeeperLine) renderShopkeeper(chooseDailyShopkeeper(res.dateKey));
                 container.innerHTML = '';
                 itemIds.forEach(id => {
                     const skin = SKINS[id];
@@ -3935,7 +4085,9 @@
         function createShopItem(container, id, data, isPurchased, isEquipped, onBuy) {
             const item = document.createElement('div');
             item.className = 'shop-item';
-            item.style.borderColor = isEquipped ? 'var(--primary-color)' : '#fff';
+            const isDailyShop = container?.id === 'shop-container';
+            if (isDailyShop) item.classList.add('daily-shelf-item');
+            item.style.borderColor = isEquipped ? 'var(--primary-color)' : (isDailyShop ? '' : '#fff');
 
             const canvas = document.createElement('canvas');
             canvas.width = 64; canvas.height = 64;
@@ -3975,6 +4127,7 @@
                 let previewType = 'o';
                 if (id === 'wire_mesh') previewType = '#';
                 if (id === 'aurora_block') previewType = 'V';
+                if (id === 'black_hole') previewType = 'BH';
                 if (id === 'spawner') previewType = 'sp';
                 if (id === 'big_block') previewType = 'BB';
                 if (id === 'lamp_block') previewType = 'LM';
@@ -3998,7 +4151,9 @@
             btn.className = 'pixel-btn small';
             btn.style.width = '100%';
             if (isPurchased) {
-                btn.innerText = 'BOUGHT';
+                // デイリーショップでは、無機質な BOUGHT 表記ではなく商品札風に表示する。
+                btn.innerText = isDailyShop ? '✓ OWNED' : 'BOUGHT';
+                if (isDailyShop) btn.classList.add('daily-owned-tag');
                 btn.disabled = true;
                 item.style.opacity = '0.7'; /* 購入済みアイテムの視認性を少し上げる */
             } else {
@@ -4031,7 +4186,7 @@
             purchasedSkins.push(id);
 
             updateGoldDisplay();
-            await callApi('updateSkins', { 
+            const saveResult = await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
                 auroraStones: userAS,
@@ -4040,7 +4195,8 @@
                 equippedSkin: equippedSkin,
                 equippedColor: equippedColor,
             });
-            openShop();
+            if (saveResult?.success) showNextShopkeeperLine('purchase');
+            openShop(true);
         }
 
         const TOOL_CATEGORIES = {
@@ -4725,6 +4881,7 @@
             document.getElementById('dm-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
             document.getElementById('dm-composer').style.display = 'none';
             document.getElementById('dm-attachment-actions').style.display = 'none';
+            closeDirectGiftPanel();
             document.getElementById('dm-stage-search').style.display = 'none';
             document.getElementById('dm-selected-stage-info').style.display = 'none';
             document.getElementById('dm-selected-image-info').style.display = 'none';
@@ -4759,6 +4916,7 @@
             document.getElementById('dm-title').innerText = `${partner} とのDM`;
             document.getElementById('dm-composer').style.display = 'flex';
             document.getElementById('dm-attachment-actions').style.display = 'flex';
+            closeDirectGiftPanel();
             document.getElementById('dm-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
             await refreshDirectMessages();
             document.getElementById('dm-input').focus();
@@ -4766,6 +4924,7 @@
 
         function closeDirectMessage() {
             document.getElementById('dm-overlay').style.display = 'none';
+            closeDirectGiftPanel();
             currentDmPartner = null;
             refreshDirectMessageNotifications();
         }
@@ -7131,6 +7290,8 @@
             
             renderEditorPalette();
             drawCustomEditor();
+            const codeInput = document.getElementById('custom-skin-code-input');
+            if (codeInput) codeInput.value = '';
         }
 
         function renderEditorPalette() {
@@ -7219,8 +7380,30 @@
                 document.execCommand('copy');
                 input.remove();
             }
+            const codeInput = document.getElementById('custom-skin-code-input');
+            if (codeInput) codeInput.value = code;
             showQuickMsg('スキンコードをコピーしました。', 'var(--primary-color)');
         }
+
+        function loadCustomSkinCode() {
+            const input = document.getElementById('custom-skin-code-input');
+            const raw = input?.value.trim();
+            if (!raw) { showQuickMsg('読み込むスキンコードを貼り付けてください。', 'var(--secondary-color)'); return; }
+            try {
+                const sprite = JSON.parse(raw);
+                const isValid = Array.isArray(sprite) && sprite.length === 16 && sprite.every(row =>
+                    Array.isArray(row) && row.length === 16 && row.every(color => color === null || typeof color === 'string')
+                );
+                if (!isValid) throw new Error('invalid-sprite');
+                // 外部配列を直接参照せず、編集用に独立したコピーを持つ。
+                currentEditingSprite = sprite.map(row => row.slice());
+                drawCustomEditor();
+                showQuickMsg('スキンコードを読み込みました。保存すると反映されます。', 'var(--primary-color)');
+            } catch (_) {
+                showQuickMsg('16×16形式のスキンコードを入力してください。', 'var(--secondary-color)');
+            }
+        }
+
         async function saveCustomSkin() {
             customSpriteStore[tempSelectedSkin] = currentEditingSprite;
             spriteCache.clear(); // スキンが更新されたのでキャッシュをクリア
@@ -7256,6 +7439,7 @@
             if (key === 'y') return hasRoadReward(11);
             if (['o', 'D'].includes(key)) return purchasedSkins.includes('key_set');
             if (key === 'V') return purchasedSkins.includes('aurora_block');
+            if (key === 'BH') return purchasedSkins.includes('black_hole');
             if (key === '#') return purchasedSkins.includes('wire_mesh');
             if (key === 'sp') return purchasedSkins.includes('spawner');
             if (key === 'mg') return hasRoadReward(15);
@@ -7472,6 +7656,7 @@
 
             // オーロラブロック
             if(document.getElementById('btn-tool-V')) document.getElementById('btn-tool-V').style.display = purchasedSkins.includes('aurora_block') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-BH')) document.getElementById('btn-tool-BH').style.display = purchasedSkins.includes('black_hole') ? 'flex' : 'none';
 
             // 金網セット
             if(document.getElementById('btn-tool-#')) document.getElementById('btn-tool-#').style.display = purchasedSkins.includes('wire_mesh') ? 'flex' : 'none';
@@ -7603,7 +7788,7 @@
                 {type:'B', id:'icon-B'}, {type:'CB', id:'icon-CB'}, {type:'HBK', id:'icon-HBK'}, {type:'TL', id:'icon-TL'}, {type:'TR', id:'icon-TR'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'WG', id:'icon-WG'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
-                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'},
+                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'},
                 {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
@@ -8076,12 +8261,26 @@
                 ctx.fillRect(x*cw + cw*0.4, y*ch + ch*0.7, cw*0.2, ch*0.3);
             } else if(type === 'y') {
                 // 黄色いトゲ (Yellow Spike) - プレイヤーも敵も死ぬ
+                // 3つの刃を連ねたギザギザ形状にする（判定は従来のまま）。
+                const spikeBaseY = y * ch + ch - pad;
+                const spikeLeft = x * cw + pad;
+                const spikeRight = x * cw + cw - pad;
+                const toothW = (spikeRight - spikeLeft) / 3;
+                ctx.fillStyle = "#d6a900";
+                ctx.fillRect(spikeLeft, spikeBaseY - Math.max(1, ch * .1), spikeRight - spikeLeft, Math.max(1, ch * .1));
                 ctx.fillStyle = "#ffeb3b";
                 ctx.beginPath();
-                ctx.moveTo(x*cw + pad, y*ch + ch - pad);
-                ctx.lineTo(x*cw + cw/2, y*ch + pad);
-                ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
+                ctx.moveTo(spikeLeft, spikeBaseY);
+                for (let tooth = 0; tooth < 3; tooth++) {
+                    const start = spikeLeft + toothW * tooth;
+                    ctx.lineTo(start + toothW * .5, y * ch + pad + (tooth === 1 ? 0 : ch * .1));
+                    ctx.lineTo(start + toothW, spikeBaseY);
+                }
                 ctx.fill();
+                ctx.strokeStyle = "#fff59d";
+                ctx.lineWidth = Math.max(1, Math.min(cw, ch) * .035);
+                ctx.stroke();
+                ctx.lineWidth = 1;
             } else if(type === 'rg') {
                 // 右向き銃
                 ctx.fillStyle = "#455a64";
@@ -8205,6 +8404,29 @@
                 ctx.strokeStyle = "#fff";
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
+            } else if(type === 'BH') {
+                // ブラックホール: 通過できるが、周囲を吸い寄せる重力源。
+                const cx = x*cw + cw/2, cy = y*ch + ch/2;
+                const radius = Math.min(cw, ch) * .38;
+                const spin = time * 3.2;
+                const outer = ctx.createRadialGradient(cx, cy, radius*.08, cx, cy, radius);
+                outer.addColorStop(0, '#030008');
+                outer.addColorStop(.48, '#14002a');
+                outer.addColorStop(.78, '#6b1fc4');
+                outer.addColorStop(1, 'rgba(165,75,255,.1)');
+                ctx.fillStyle = outer;
+                ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(spin);
+                ctx.strokeStyle = '#d8a8ff';
+                ctx.lineWidth = Math.max(1, radius*.12);
+                for (let ring = 0; ring < 3; ring++) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius * (.88 - ring*.22), ring * 1.4, ring * 1.4 + Math.PI * 1.15);
+                    ctx.stroke();
+                }
+                ctx.restore();
             } else if(type === 'hr') {
                 // 赤い橋
                 ctx.fillStyle = isSwitchOn ? "#ff5252" : "rgba(255, 82, 82, 0.3)";
@@ -9226,7 +9448,7 @@
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','CB','HBK','S','G','WG','KG','K','M','E','A','T','TD','TL','TR','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
-            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','sp','mg','BB','BBN','LM','WC','WCN',
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','sp','mg','BB','BBN','LM','WC','WCN',
             'EC','PB','WB','BL','SM','FL','CA','GB'
         ]);
 
@@ -9479,7 +9701,7 @@
                     }
                     if(activeStage[y][x] === 'PB') {
                         // パープル（ボス）: 通常の敵の2倍の大きさ（size: 1.8）で出現させる
-                        enemies.push({x: x, y: y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, hitCooldown: 0});
+                        enemies.push({x: x, y: y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, dashVerticalDirection: 0, purpleBrokenBlocks: [], isAuroraPurple: false, hitCooldown: 0});
                         activeStage[y][x] = null;
                     }
                     if(activeStage[y][x] === 'WB') {
@@ -9513,6 +9735,7 @@
             enemies.forEach(en => {
                 if (en.isBoss) destroyBlocksInsideBoss(en);
             });
+            refreshBlackHolePositions();
             // 表面で生成済みの動的オブジェクトを保存する。裏面に移動して戻った時も
             // 敵・木箱・ボスの位置や残り体力をそのまま復元する。
             frontFaceRuntime = { enemies, woodCrates };
@@ -10150,6 +10373,13 @@
                     woodCrates.splice(i, 1);
                     continue;
                 }
+                // 通常時は静止したまま、ブラックホールやボスなどが与えた横速度だけを反映する。
+                // これがないと vx に加えた吸引力が座標更新に使われず、木箱だけ吸引されない。
+                if (Math.abs(crate.vx) > 0.0001) {
+                    moveWoodCrate(crate, crate.vx, 0);
+                    crate.vx *= 0.90;
+                    if (Math.abs(crate.vx) < 0.0001) crate.vx = 0;
+                }
                 crate.vy = Math.min(crate.vy + crateGravity, 0.25);
                 moveWoodCrate(crate, 0, crate.vy);
             }
@@ -10184,17 +10414,28 @@
             return 0;
         }
 
-        async function sendDirectGift() {
+        function sendDirectGift() {
             if (!currentDmPartner) return;
-            const currencyInput = prompt('送る通貨を入力してください（G または AS）', 'G');
-            if (currencyInput === null) return;
-            const currency = String(currencyInput).trim().toUpperCase();
-            if (currency !== 'G' && currency !== 'AS') { alert('G または AS を入力してください。'); return; }
-            const amountInput = prompt(`${currency} をいくつ送りますか？`, '100');
-            if (amountInput === null) return;
-            const amount = Math.floor(Number(amountInput));
+            const panel = document.getElementById('dm-gift-panel');
+            const amountInput = document.getElementById('dm-gift-amount');
+            if (!panel || !amountInput) return;
+            panel.style.display = 'flex';
+            amountInput.focus();
+            amountInput.select();
+        }
+
+        function closeDirectGiftPanel() {
+            const panel = document.getElementById('dm-gift-panel');
+            if (panel) panel.style.display = 'none';
+        }
+
+        async function confirmDirectGift() {
+            if (!currentDmPartner) return;
+            const currency = document.getElementById('dm-gift-currency')?.value;
+            const amount = Math.floor(Number(document.getElementById('dm-gift-amount')?.value));
+            if (currency !== 'G' && currency !== 'AS') { alert('送る通貨を選択してください。'); return; }
             if (!Number.isFinite(amount) || amount < 1) { alert('1以上の数値を入力してください。'); return; }
-            const giftBtn = document.getElementById('dm-gift-btn');
+            const giftBtn = document.getElementById('dm-gift-confirm-btn');
             if (giftBtn) { giftBtn.disabled = true; giftBtn.textContent = '送信中...'; }
             try {
                 const res = await callApi('sendDirectGift', { username: CONFIG.USERNAME, to: currentDmPartner, currency, amount, skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null });
@@ -10203,8 +10444,9 @@
                 else userAS = Number(res.auroraStones) || 0;
                 updateGoldDisplay();
                 await refreshDirectMessages();
+                closeDirectGiftPanel();
             } finally {
-                if (giftBtn) { giftBtn.disabled = false; giftBtn.textContent = '🎁 ギフト'; }
+                if (giftBtn) { giftBtn.disabled = false; giftBtn.textContent = '送る'; }
             }
         }
 
@@ -10272,6 +10514,40 @@
             }
         }
 
+        function refreshBlackHolePositions() {
+            blackHolePositions = [];
+            for (let y = 0; y < GRID_H; y++) {
+                const row = activeStage[y];
+                if (!row) continue;
+                for (let x = 0; x < GRID_W; x++) {
+                    if (row[x] === 'BH') blackHolePositions.push({ x: x + .5, y: y + .5 });
+                }
+            }
+        }
+
+        // 吸引は速度へ加えるだけで、中心に達しても消滅させない。
+        function applyBlackHolePull() {
+            if (!blackHolePositions.length) return;
+            const pullBody = (body, size) => {
+                const centerX = body.x + size / 2;
+                const centerY = body.y + size / 2;
+                for (let i = 0; i < blackHolePositions.length; i++) {
+                    const hole = blackHolePositions[i];
+                    const dx = hole.x - centerX, dy = hole.y - centerY;
+                    const distance = Math.hypot(dx, dy);
+                    if (distance <= .001 || distance > 4) continue;
+                    const strength = .012 * (1 - distance / 4) + .003;
+                    body.vx += dx / distance * strength;
+                    // 縦方向は通常重力（最大0.015）を十分に上回る強さにして、
+                    // 木箱も上へ引き上げられるようにする。
+                    body.vy += dy / distance * strength * 2;
+                }
+            };
+            pullBody(player, player.w);
+            for (let i = 0; i < enemies.length; i++) if (!enemies[i].dead) pullBody(enemies[i], enemies[i].size || .9);
+            for (let i = 0; i < woodCrates.length; i++) pullBody(woodCrates[i], 1);
+        }
+
         function updateGame() {
             if (isGoalTriggered) return;
 
@@ -10330,6 +10606,7 @@
             const actionWallKickDirection = !isWater ? getActionWallKickDirection() : 0;
             if (actionWallKickDirection && player.vy > 0) player.vy = Math.min(player.vy, 0.065);
 
+            applyBlackHolePull();
             updateWoodCrates();
 
             // 粘着ブロックの足元判定
@@ -10622,18 +10899,25 @@
                 if (en.isPurple) {
                     if (!en.isDashing && en.chargeFrames <= 0 && frameCount >= en.nextDashFrame) {
                         const playerCenter = player.x + player.w / 2;
+                        const playerCenterY = player.y + player.h / 2;
                         const bossCenter = en.x + (en.size || 1.8) / 2;
+                        const bossCenterY = en.y + (en.size || 1.8) / 2;
                         en.dashDirection = playerCenter < bossCenter ? -1 : 1;
+                        en.dashVerticalDirection = playerCenterY < bossCenterY ? -1 : 1;
                         en.chargeFrames = 61; // 開始フレームを含め、停止時間を正確に60フレーム（1秒）にする
                         en.vx = 0;
+                        en.vy = 0;
                         en.nextDashFrame = frameCount + 300;
                     }
                     if (en.chargeFrames > 0) {
                         en.vx = 0;
+                        en.vy = 0;
                         en.chargeFrames--;
                         if (en.chargeFrames === 0) {
                             en.isDashing = true;
                             en.vx = en.dashDirection * 0.24;
+                            // オーロラ形態はプレイヤーのいる高さにも同時に突進する。
+                            en.vy = en.isAuroraPurple ? en.dashVerticalDirection * 0.24 : 0;
                         }
                     }
                 }
@@ -10754,6 +11038,7 @@
                         if (en.isPurple && en.isDashing) {
                             en.isDashing = false;
                             en.vx = -en.dashDirection * 0.04;
+                            en.vy = 0;
                         } else {
                             const egx = Math.floor(en.x + (en.vx > 0 ? enSize : 0));
                             const egy = Math.floor(en.y + enHalf);
@@ -10813,6 +11098,12 @@
                 }
 
                 if (collidedY) {
+                    if (en.isPurple && en.isAuroraPurple && en.isDashing) {
+                        en.isDashing = false;
+                        en.vx = -en.dashDirection * 0.04;
+                        en.vy = 0;
+                        continue;
+                    }
                     if (isWater) {
                         // 水中敵もスイッチブロックに触れたら切り替え可能に
                         if (en.vy < 0) {
@@ -11266,7 +11557,7 @@
                         enemies.push({ x, y, vx: tile === 'e' ? 0 : -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: tile === 'j', sync: tile === 'e', maxHp: getNormalEnemyMaxHp(), hp: getNormalEnemyMaxHp(), hitCooldown: 0 });
                         activeStage[y][x] = null;
                     } else if (tile === 'PB') {
-                        enemies.push({ x, y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, hitCooldown: 0 });
+                        enemies.push({ x, y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, dashVerticalDirection: 0, purpleBrokenBlocks: [], isAuroraPurple: false, hitCooldown: 0 });
                         activeStage[y][x] = null;
                     } else if (tile === 'WB') {
                         enemies.push({ x, y, vx: -0.0525, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.4, isWolf: true, isBoss: true, name: 'WOLF', hp: 80, maxHp: 80, hitCooldown: 0, sickleTimer: 240, fireballTimer: 480, bigJumpTimer: 180, isBigJumping: false, bigJumpFrames: 0, directionTimer: 60 });
@@ -11280,6 +11571,7 @@
             wolfBossRefs = enemies.filter(en => en.isWolf);
             blackBossRefs = enemies.filter(en => en.isBlack);
             enemies.forEach(en => { if (en.isBoss) destroyBlocksInsideBoss(en); });
+            refreshBlackHolePositions();
             saveActiveFaceRuntime();
         }
 
@@ -11393,6 +11685,7 @@
         function applyActiveFaceStageType() {
             activeStage = isUsingBackFace ? activeBackStage : activeFrontStage;
             currentStageType = isUsingBackFace ? activeBackStageType : activeFrontStageType;
+            refreshBlackHolePositions();
 
             eruptionControlLimitTiles = null;
             beachWaterSurfaceTiles = GRID_H / 2;
@@ -11672,8 +11965,17 @@
             for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
                     const tile = activeStage[y] && activeStage[y][x];
-                    if (tile && !protectedTiles.has(tile)) activeStage[y][x] = null;
+                    // パープルだけはオーロラブロックを初期領域でも壊せる。
+                    // その3個の並びでオーロラ形態になるかを判定する。
+                    if (tile && (!protectedTiles.has(tile) || (boss.isPurple && tile === 'V'))) {
+                        if (boss.isPurple && boss.purpleBrokenBlocks?.length < 3) boss.purpleBrokenBlocks.push(tile);
+                        activeStage[y][x] = null;
+                    }
                 }
+            }
+            if (boss.isPurple && boss.purpleBrokenBlocks?.length === 3 && boss.purpleBrokenBlocks.every(tile => tile === 'V')) {
+                boss.isAuroraPurple = true;
+                boss.name = 'AURORA PURPLE';
             }
         }
 
@@ -11855,11 +12157,17 @@
                             }
                             cachedGameCtx.restore();
                         }
-                        // パープル（ボス）: 通常の敵の2倍サイズ、紫色
-                        cachedGameCtx.fillStyle = "#6a1b9a";
+                        // パープル（ボス）: 通常は紫、オーロラ形態では色が流れる。
+                        const auroraHue = (time * 95) % 360;
+                        cachedGameCtx.fillStyle = en.isAuroraPurple ? `hsl(${auroraHue}, 85%, 48%)` : "#6a1b9a";
                         cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*enSize, ch*enSize);
-                        cachedGameCtx.fillStyle = "#4a148c";
+                        cachedGameCtx.fillStyle = en.isAuroraPurple ? `hsl(${(auroraHue + 115) % 360}, 90%, 33%)` : "#4a148c";
                         cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*enSize, ch*enSize*0.22);
+                        if (en.isAuroraPurple) {
+                            cachedGameCtx.strokeStyle = `hsl(${(auroraHue + 220) % 360}, 100%, 76%)`;
+                            cachedGameCtx.lineWidth = Math.max(1, cw * .06);
+                            cachedGameCtx.strokeRect(en.x * cw + 1, en.y * ch + 1, cw * enSize - 2, ch * enSize - 2);
+                        }
                         cachedGameCtx.fillStyle = "#fff";
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.2, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.6, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
