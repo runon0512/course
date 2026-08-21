@@ -1338,9 +1338,14 @@
             50%       { background-position: 100% 50%; }
         }
         .stage-item-pickup {
-            animation: pickupGlow 2s ease-in-out infinite;
+            animation: pickupGlow 2s ease-in-out infinite, pickupSparkle 5s ease-in-out infinite;
             border-color: #ffd700 !important;
-            background: linear-gradient(135deg, #2a2010 0%, #35354e 40%, #251c08 100%) !important;
+            background:
+                radial-gradient(circle at 12% 22%, rgba(255,255,238,.95) 0 .12cqw, transparent .18cqw),
+                radial-gradient(circle at 83% 30%, rgba(255,239,152,.9) 0 .1cqw, transparent .17cqw),
+                radial-gradient(circle at 64% 79%, rgba(255,222,100,.8) 0 .09cqw, transparent .16cqw),
+                linear-gradient(115deg, rgba(121,73,10,.96), rgba(255,191,51,.32) 28%, rgba(53,38,102,.92) 57%, rgba(126,69,4,.96)) !important;
+            background-size: 100% 100%, 100% 100%, 100% 100%, 220% 220% !important;
         }
 
         .stage-item {
@@ -1360,6 +1365,25 @@
             transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
         }
         .stage-item:hover { background: linear-gradient(105deg, rgba(8, 54, 77, .98), rgba(19, 52, 96, .9)); border-color: #7dffcb; transform: translateY(-.25cqh); box-shadow: inset .32cqw 0 0 #7dffcb, 0 0 1.5cqw rgba(0, 214, 255, .32); }
+        /* ステージ難易度: どのランクも同じ設計言語で見せるモダンなカプセル型バッジ。 */
+        .difficulty-badge {
+            display:inline-flex; align-items:center; gap:.28cqw; box-sizing:border-box;
+            min-height:1.85cqw; padding:.3cqh .72cqw; border:.1cqw solid rgba(255,255,255,.4);
+            border-radius:99px; color:#fff; font-size:.9cqw; font-weight:800; line-height:1;
+            letter-spacing:.06em; white-space:nowrap; vertical-align:middle;
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 .18cqw .5cqw rgba(0,0,0,.3);
+            text-shadow:0 .08cqw .12cqw rgba(0,0,0,.55);
+        }
+        .difficulty-badge::before { content:''; width:.43cqw; height:.43cqw; flex:0 0 .43cqw; border-radius:50%; background:currentColor; box-shadow:0 0 .4cqw currentColor; }
+        .stage-type-badge { display:inline-flex; align-items:center; min-height:1.85cqw; box-sizing:border-box; padding:.3cqh .7cqw !important; border-radius:99px !important; font-size:.86cqw !important; font-weight:800; line-height:1; letter-spacing:.035em; box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); }
+        .difficulty-new { background:linear-gradient(135deg,#1d9273,#3578b8); border-color:#8ff3ce; }
+        .difficulty-normal { background:linear-gradient(135deg,#166bb0,#269fbe); border-color:#85e6ff; }
+        .difficulty-hard { background:linear-gradient(135deg,#572379,#9a3da0); border-color:#e5a3ff; }
+        .difficulty-superhard { background:linear-gradient(135deg,#8d174a,#e24287); border-color:#ffb1d1; }
+        .difficulty-oni { background:linear-gradient(135deg,#65151b,#b31e31); border-color:#ff9ca7; }
+        .difficulty-god { background:linear-gradient(135deg,#98721a,#d5a92d); border-color:#fff0a1; color:#fff9dd; }
+        .difficulty-unknown { background:linear-gradient(135deg,#1b1017,#4b1620); border-color:#ff4a5d; color:#ffd5da; }
+        .difficulty-newdimension { background:linear-gradient(105deg,#096f91,#8142b3,#bd327f); border-color:#affcff; color:#fff; box-shadow:inset 0 1px 0 rgba(255,255,255,.48),0 0 .7cqw rgba(91,225,255,.65); }
         .stage-stats {
             font-size: 0.8cqw;
             color: #b8d7ed;
@@ -1750,6 +1774,7 @@
         #password-settings-btn {
             box-shadow: none !important;
         }
+
     </style>
 </head>
 <body>
@@ -2464,10 +2489,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycby2OerLa2r4_2tgFNLWB_M1A_2Ct65Xe3ty4QFMTEMeRT5NU0RRGmIElplboQe5cl3p/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzaypVNNHvfzVRN8VS3Wzz0iQgRWhntEGz73E-XorEB7j_ut7SR8II8_X4qVEvha-9a/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.2.2"
+            VERSION: "3.3.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -9044,6 +9069,12 @@
             }
             const name = prompt("ステージ名を入力してください:");
             if(!name) return;
+            const stageName = name.trim();
+            // $ 始まりは運営用の Pick up! 表示に予約しているため、通常投稿では使えない。
+            if (stageName.startsWith('$')) {
+                showQuickMsg('ステージ名を $ で始めることはできません。', 'var(--secondary-color)');
+                return;
+            }
             
             if (!isManualReloadOnly) cachedStages = null; // リストを更新するためにキャッシュをクリア
             const btn = document.getElementById('publish-btn');
@@ -9053,7 +9084,7 @@
 
             try {
                 const stageType = { front: editorFrontStageType, back: editorBackStageType };
-                const result = await callApi('publish', { username: CONFIG.USERNAME, stageName: name, data: { front: editorFrontGrid, back: editorBackGrid }, stageType });
+                const result = await callApi('publish', { username: CONFIG.USERNAME, stageName, data: { front: editorFrontGrid, back: editorBackGrid }, stageType });
                 if (!result || !result.success) {
                     showQuickMsg(result?.message || '投稿に失敗しました。', 'var(--secondary-color)');
                     return;
@@ -9170,19 +9201,20 @@
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
 
-            // PSWC作成の大会ステージを最上部、その次にSYSTEMのPick up!を配置する。
+            // PSWC作成の大会ステージを最上部、その次に $ 始まりの Pick up! ステージを配置する。
             const isPswcCreator = s => String(s.creator || '').trim().toUpperCase() === 'PSWC';
+            const isPickUpStage = s => String(s.name || '').startsWith('$');
             const pswcStages = filtered.filter(isPswcCreator);
-            const systemStages = filtered.filter(s => s.creator === 'SYSTEM');
-            const otherStages = filtered.filter(s => !isPswcCreator(s) && s.creator !== 'SYSTEM');
-            const sortedStages = [...pswcStages, ...systemStages, ...otherStages];
+            const pickupStages = filtered.filter(s => !isPswcCreator(s) && isPickUpStage(s));
+            const otherStages = filtered.filter(s => !isPswcCreator(s) && !isPickUpStage(s));
+            const sortedStages = [...pswcStages, ...pickupStages, ...otherStages];
 
             container.innerHTML = "";
             const previewJobs = [];
             sortedStages.forEach((s, idx) => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
-                const isPickUp = s.creator === 'SYSTEM';
+                const isPickUp = isPickUpStage(s);
                 const isPswcStage = isPswcCreator(s);
                 const escapedId = s._idStr.replace(/'/g, "\\'");
             
@@ -9194,38 +9226,38 @@
 
                 if (s.attempts < 5) {
                     // 新風: プレイ数5以下
-                    diffBadge = '<span style="background:linear-gradient(45deg, #4caf50, #ffffff); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">新風</span>';
+                    diffBadge = '<span class="difficulty-badge difficulty-new">新風</span>';
                     customFrameStyle = "background:linear-gradient(135deg, rgba(46,125,50,.42), rgba(129,199,132,.16)); border-color:#4caf50; box-shadow:inset 0 0 10px rgba(76,175,80,.3);";
                 } else {
                     if (crNum <= 0.1) {
                         if (isNewDimension) {
                             // 新次元
-                            diffBadge = '<span style="background:linear-gradient(45deg, #00ffff, #ff00ff); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #fff; text-shadow: 0 0 10px #00ffff; margin-right:0.5cqw;">新次元</span>';
+                            diffBadge = '<span class="difficulty-badge difficulty-newdimension">新次元</span>';
                             customFrameStyle = "background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3)); border-color: #00ffff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), inset 0 0 30px rgba(255, 0, 255, 0.5);";
                         } else {
                             // 未知
-                            diffBadge = '<span style="background:#000; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #ff0000; text-shadow: 0 0 5px #ff0000; margin-right:0.5cqw;">未知</span>';
+                            diffBadge = '<span class="difficulty-badge difficulty-unknown">未知</span>';
                             customFrameStyle = "background: #000; border-color: #ff0000; box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.4);";
                         }
                     } else if (crNum <= 1) {
                         // 神
-                        diffBadge = '<span style="background:linear-gradient(45deg, #ffffff, #ffff00); color:#000; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; border:1px solid #000; margin-right:0.5cqw;">神</span>';
+                        diffBadge = '<span class="difficulty-badge difficulty-god">神</span>';
                         customFrameStyle = "background:linear-gradient(135deg, rgba(255,255,220,.45), rgba(255,215,0,.2)); border-color:#ffff00; box-shadow:inset 0 0 15px rgba(255,255,0,.4);";
                     } else if (crNum <= 3) {
                         // 鬼
-                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #000000); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; border:1px solid #ff0000; margin-right:0.5cqw;">鬼</span>';
+                        diffBadge = '<span class="difficulty-badge difficulty-oni">鬼</span>';
                         customFrameStyle = "background:linear-gradient(135deg, rgba(65,0,0,.64), rgba(190,0,0,.24)); border-color:#ff0000; box-shadow:inset 0 0 15px rgba(255,0,0,.4);";
                     } else if (crNum <= 10) {
                         // 超難関
-                        diffBadge = '<span style="background:linear-gradient(45deg, #ff0000, #800080); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">超難関</span>';
+                        diffBadge = '<span class="difficulty-badge difficulty-superhard">超難関</span>';
                         customFrameStyle = "background:linear-gradient(135deg, rgba(112,0,82,.48), rgba(233,30,99,.22)); border-color:#e91e63; box-shadow:inset 0 0 10px rgba(233,30,99,.3);";
                     } else if (crNum <= 25) {
                         // 難関
-                        diffBadge = '<span style="background:#800080; color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; margin-right:0.5cqw;">難関</span>';
+                        diffBadge = '<span class="difficulty-badge difficulty-hard">難関</span>';
                         customFrameStyle = "background:linear-gradient(135deg, rgba(55,0,85,.56), rgba(156,39,176,.22)); border-color:#9c27b0; box-shadow:inset 0 0 10px rgba(156,39,176,.3);";
                     } else {
                         // 普通
-                        diffBadge = '<span style="background:linear-gradient(45deg,#1e88e5,#81d4fa); color:#fff; font-size:0.7cqw; padding:2px 4px; vertical-align:middle; border-radius:2px; font-weight:bold; margin-right:0.5cqw;">普通</span>';
+                        diffBadge = '<span class="difficulty-badge difficulty-normal">普通</span>';
                         customFrameStyle = "background:linear-gradient(135deg, rgba(0,76,150,.46), rgba(41,182,246,.16)); border-color:#42a5f5; box-shadow:inset 0 0 10px rgba(66,165,245,.28);";
                     }
                 }
@@ -9299,16 +9331,16 @@
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <div style="color:var(--primary-color); flex:1; min-width:0;">
                             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.4cqw;">
-                                ${isPickUp ? '<span style="background:#ffc107; color:#000; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">Pick up!</span>' : ''}
-                                ${isPswcStage ? '<span style="background:linear-gradient(135deg,#805200,#ffd54a,#fff0a0); color:#2c1c00; font-size:0.65cqw; padding:2px 4px; border-radius:2px; font-weight:bold; border:1px solid #fff2af;">🏆 PSWC</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'timeattack' ? '<span style="background:repeating-conic-gradient(#f7edcb 0 25%,#262231 0 50%) 50%/8px 8px; color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #f7edcb; text-shadow:0 1px 1px #000;">⌛タイムアタック</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'hard' ? '<span style="background:linear-gradient(135deg,#4a1018,#a82434); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #ff8a96; font-weight:bold;">💀HARD</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
-                                ${(getFrontStageType(s.stageType) === 'rai_alvaro' || getFrontStageType(s.stageType) === 'rai_alvaro_v2') ? '<span style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
+                                ${isPickUp ? '<span class="stage-type-badge" style="background:#ffc107; color:#000;">Pick up!</span>' : ''}
+                                ${isPswcStage ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#805200,#ffd54a,#fff0a0); color:#2c1c00; border:1px solid #fff2af;">🏆 PSWC</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'water' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff;">🌊水中</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'dark'  ? '<span class="stage-type-badge" style="background:#111; color:#aaa; border:1px solid #444;">🌑暗闇</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'timeattack' ? '<span class="stage-type-badge" style="background:repeating-conic-gradient(#f7edcb 0 25%,#262231 0 50%) 50%/8px 8px; color:#fff; border:1px solid #f7edcb; text-shadow:0 1px 1px #000;">⌛タイムアタック</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'hard' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#4a1018,#a82434); color:#fff; border:1px solid #ff8a96;">💀HARD</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'volcano' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff;">🌋火山</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'moon' ? '<span class="stage-type-badge" style="background:#18213f; color:#f4f6ff; border:1px solid #c9d2e5;">🌙月</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'beach' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff;">🏖️海辺</span>' : ''}
+                                ${(getFrontStageType(s.stageType) === 'rai_alvaro' || getFrontStageType(s.stageType) === 'rai_alvaro_v2') ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
                                 ${diffBadge}
                                 <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
@@ -9349,6 +9381,10 @@
             const trimmedName = stageName.trim();
             if (!trimmedName || trimmedName.length > 50) {
                 alert('ステージ名は1〜50文字で入力してください。');
+                return;
+            }
+            if (trimmedName.startsWith('$')) {
+                alert('ステージ名を $ で始めることはできません。');
                 return;
             }
             const res = await callApi('renameStage', { stageId: stage.id, username: CONFIG.USERNAME, stageName: trimmedName });
