@@ -2249,7 +2249,10 @@
         <div id="leaderboard-overlay" class="screen" style="z-index: 150; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; display: none;">
             <div class="auth-box" style="width: 70%; max-height: 80cqh;">
                 <h2 id="lb-title" style="font-size: 2.5cqw; color: #ffc107; margin-bottom: 2cqh;">LEADERBOARD</h2>
-                <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin-bottom: 2cqh; width: 100%;">閉じる</button>
+                <div style="display:flex; gap:1cqw; margin-bottom:2cqh; width:100%;">
+                    <button id="lb-reload-btn" class="pixel-btn small" onclick="refreshLeaderboard()" style="margin:0; flex:1;">再読み込み</button>
+                    <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin:0; flex:1;">閉じる</button>
+                </div>
                 <div id="lb-tabs" style="display:none; gap:1cqw; margin-bottom:2cqh; justify-content:center; flex-wrap:wrap;">
                     <button class="pixel-btn small" onclick="showGlobalRanking('player')" style="min-width:12cqw;">Player</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
@@ -2671,6 +2674,7 @@
             { type: 'normal', title: '通常', text: '標準的な物理と背景のステージです。' },
             { type: 'water', title: '水中', text: '水中では移動に抵抗がかかり、ジャンプキーで上昇します。' },
             { type: 'dark', title: '暗闇', text: 'プレイヤーとランプの周囲だけが明るく見えるステージです。' },
+            { type: 'hard', title: 'HARD', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
             { type: 'volcano', title: '火山', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
             { type: 'moon', title: '月', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: '海辺', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
@@ -2803,6 +2807,8 @@
         let selectedSpectatorGhost = null;
         let leaderboardWatchStage = null;
         let leaderboardWatchRecords = [];
+        // 再読み込み時に、グローバルランキングかステージ別ランキングかを復元する。
+        let leaderboardView = null;
         // ステージごとに準備済みのゴーストを保持する。
         // Retry はこのデータを再利用し、再変換を発生させない。
         const preloadedGhostCache = new WeakMap();
@@ -4173,13 +4179,13 @@
         }
 
         const TOOL_CATEGORIES = {
-            basic: ['B', 'S', 'G', 'WG', 'K', 'M', 'E']
+            basic: ['B', 'AC', 'S', 'G', 'WG', 'K', 'M', 'E']
         };
         const TOOL_RANK_GROUPS = {
-            common: ['A', 'T', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'CB', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
+            common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
+            rare: ['Y', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['hr', 'hb', 'e', '#'],
-            legendary: ['V', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL']
+            legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -4269,7 +4275,7 @@
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', hard: '#2a1018', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach') {
@@ -6835,6 +6841,7 @@
 
         // --- グローバルランキング（1位獲得数） ---
         async function showGlobalRanking(tab = 'player') {
+            leaderboardView = { type: 'global', tab };
             const overlay = document.getElementById('leaderboard-overlay');
             const title = document.getElementById('lb-title');
             const body = document.getElementById('lb-body');
@@ -7067,6 +7074,7 @@
         function closeRaceMode() { document.getElementById('race-screen').style.display = 'none'; }
 
         async function showLeaderboard(stage) {
+            leaderboardView = { type: 'stage', stageKey: String(stage.id || stage.name) };
             const overlay = document.getElementById('leaderboard-overlay');
             const title = document.getElementById('lb-title');
             const body = document.getElementById('lb-body');
@@ -7110,6 +7118,39 @@
                         <td style="padding: 1.5cqh; text-align: right;"><button class="pixel-btn small" style="margin:0; padding:.45cqh .7cqw; ${Array.isArray(rec.ghost) && rec.ghost.length ? '' : 'opacity:.45;'}" ${Array.isArray(rec.ghost) && rec.ghost.length ? `onclick="watchLeaderboardGhost(${idx})"` : 'disabled'}>観る</button></td>
                     </tr>`;
             });
+        }
+
+        // ランキングだけを明示的に最新化する。手動再読み込みの設定中でも利用できる。
+        async function refreshLeaderboard() {
+            const button = document.getElementById('lb-reload-btn');
+            const view = leaderboardView;
+            if (!view || !button || button.disabled) return;
+            const originalText = button.innerText;
+            button.disabled = true;
+            button.innerText = '再読み込み中...';
+            try {
+                const res = await callApi('getPublished', {});
+                if (!Array.isArray(res?.stages)) throw new Error('stage list unavailable');
+                cachedStages = res.stages;
+                allStagesForOvrLoaded = true;
+                allStagesForOvrPromise = null;
+                _badgeOvrCache = {};
+                _badgeOvrCacheRef = cachedStages;
+
+                if (view.type === 'global') {
+                    await showGlobalRanking(view.tab);
+                } else {
+                    const stage = cachedStages.find(entry => String(entry.id || entry.name) === view.stageKey);
+                    if (!stage) throw new Error('stage not found');
+                    await showLeaderboard(stage);
+                }
+            } catch (error) {
+                console.warn('ランキングの再読み込みに失敗しました:', error);
+                alert('ランキングを再読み込みできませんでした。');
+            } finally {
+                button.disabled = false;
+                button.innerText = originalText;
+            }
         }
 
         function watchLeaderboardGhost(recordIndex) {
@@ -9263,6 +9304,7 @@
                                 ${getFrontStageType(s.stageType) === 'water' ? '<span style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌊水中</span>' : ''}
                                 ${getFrontStageType(s.stageType) === 'dark'  ? '<span style="background:#111; color:#aaa; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #444;">🌑暗闇</span>' : ''}
                                 ${getFrontStageType(s.stageType) === 'timeattack' ? '<span style="background:repeating-conic-gradient(#f7edcb 0 25%,#262231 0 50%) 50%/8px 8px; color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #f7edcb; text-shadow:0 1px 1px #000;">⌛タイムアタック</span>' : ''}
+                                ${getFrontStageType(s.stageType) === 'hard' ? '<span style="background:linear-gradient(135deg,#4a1018,#a82434); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #ff8a96; font-weight:bold;">💀HARD</span>' : ''}
                                 ${getFrontStageType(s.stageType) === 'volcano' ? '<span style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🌋火山</span>' : ''}
                                 ${getFrontStageType(s.stageType) === 'moon' ? '<span style="background:#18213f; color:#f4f6ff; font-size:0.65cqw; padding:2px 4px; border-radius:2px; border:1px solid #c9d2e5;">🌙月</span>' : ''}
                                 ${getFrontStageType(s.stageType) === 'beach' ? '<span style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff; font-size:0.65cqw; padding:2px 4px; border-radius:2px;">🏖️海辺</span>' : ''}
@@ -12199,6 +12241,19 @@
                         cachedGameCtx.fillStyle = "#fff";
                         cachedGameCtx.fillRect(en.x * cw + cw*0.15, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
                         cachedGameCtx.fillRect(en.x * cw + cw*0.55, en.y * ch + ch*0.2, cw*0.2, ch*0.2);
+                    }
+
+                    // HARDの通常敵は3回踏めるため、残り体力を敵の上に常時表示する。
+                    if (currentStageType === 'hard' && !en.isBoss && Number.isFinite(en.hp) && Number.isFinite(en.maxHp)) {
+                        const barWidth = cw * 0.9;
+                        const barHeight = Math.max(2, ch * 0.09);
+                        const barX = en.x * cw;
+                        const barY = en.y * ch - barHeight - 2;
+                        const ratio = Math.max(0, Math.min(1, en.hp / Math.max(1, en.maxHp)));
+                        cachedGameCtx.fillStyle = 'rgba(0,0,0,.8)';
+                        cachedGameCtx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+                        cachedGameCtx.fillStyle = ratio > .34 ? '#55e66c' : '#ff5b5b';
+                        cachedGameCtx.fillRect(barX, barY, barWidth * ratio, barHeight);
                     }
                 }
             }
