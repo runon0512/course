@@ -976,10 +976,10 @@
         #shop-overlay .shop-item.daily-shelf-item { position:relative; min-width:0; min-height:19cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #9e6b39; background:linear-gradient(180deg,rgba(88,46,27,.96),rgba(40,22,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
         #shop-overlay .shop-item.daily-shelf-item::before { content:'DAILY'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,225,157,.56); font-size:.55cqw; letter-spacing:.12em; pointer-events:none; }
         #shop-overlay .shop-item.daily-shelf-item canvas { flex:0 0 auto; margin-top:.8cqh; width:5cqw; height:5cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .45cqw rgba(255,212,124,.38)); }
-        #shop-overlay .daily-shelf-item .daily-item-name { display:-webkit-box; flex:0 0 2.55em; width:100%; margin:.45cqh 0 .55cqh; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:#fff0ca; font-size:1cqw; line-height:1.25; text-align:center; }
-        #shop-overlay .daily-shelf-item .daily-owned-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:auto; padding:.55cqh .35cqw; border:.12cqw solid #d9a85f; border-radius:.35cqw; background:linear-gradient(135deg,#4b2d20,#7a4a2d); color:#ffe7ae; font:700 .85cqw Georgia,serif; letter-spacing:.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:1; }
+        #shop-overlay .daily-shelf-item .daily-item-name { position:absolute; z-index:2; top:3.35cqh; left:.42cqw; right:.42cqw; display:-webkit-box; width:auto; margin:0; padding:.18cqh .28cqw; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:#fff7d5; font-size:1cqw; line-height:1.2; text-align:center; text-shadow:0 .1cqw .14cqw #21100b; background:rgba(37,18,15,.67); border-radius:.22cqw; pointer-events:none; }
+        #shop-overlay .daily-shelf-item .daily-owned-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #d9a85f; border-radius:.35cqw; background:linear-gradient(135deg,#4b2d20,#7a4a2d); color:#ffe7ae; font:700 .85cqw Georgia,serif; letter-spacing:.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:1; }
         #shop-overlay .daily-shelf-item .daily-owned-tag::first-letter { color:#fff5cc; }
-        #shop-overlay .daily-shelf-item .daily-price-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:auto; padding:.55cqh .35cqw; border:.12cqw solid #f1c56b; border-radius:.35cqw; background:linear-gradient(135deg,#5d3517,#a56525); color:#fff1bf; font:700 .85cqw Georgia,serif; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:inset 0 0 0 .08cqw rgba(255,241,190,.28),0 .16cqh 0 rgba(34,15,8,.65); transition:filter .16s ease,transform .16s ease; }
+        #shop-overlay .daily-shelf-item .daily-price-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #f1c56b; border-radius:.35cqw; background:linear-gradient(135deg,#5d3517,#a56525); color:#fff1bf; font:700 .85cqw Georgia,serif; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:inset 0 0 0 .08cqw rgba(255,241,190,.28),0 .16cqh 0 rgba(34,15,8,.65); transition:filter .16s ease,transform .16s ease; }
         #shop-overlay .daily-shelf-item .daily-price-tag:hover { background:linear-gradient(135deg,#8a4c17,#d68b2e); color:#fffbe8; border-color:#fff0a8; filter:brightness(1.1); transform:translateY(-.1cqh); }
         #explanation-btn { overflow:visible !important; }
         #explanation-btn::after { content:'New!'; position:absolute; top:-.9cqh; right:-1.2cqw; padding:.12cqh .42cqw; border:.1cqw solid #fff6a3; border-radius:.45cqw; background:#f04b7d; color:#fff; font:700 .8cqw/1 sans-serif; letter-spacing:.04em; text-shadow:none; box-shadow:0 0 .5cqw rgba(255,71,132,.8); animation:triviaNewPulse 1.2s ease-in-out infinite; pointer-events:none; }
@@ -4147,8 +4147,12 @@
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
             }
 
-            item.innerHTML = `<div class="daily-item-name" style="font-size:1cqw; margin-bottom:1cqh;">${data.name}</div>`;
-            item.prepend(canvas);
+            // 商品名は棚の上段、画像は中央、購入ボタンは画像の直下に固定する。
+            const nameLabel = document.createElement('div');
+            nameLabel.className = 'daily-item-name';
+            nameLabel.style.fontSize = '1cqw';
+            nameLabel.textContent = data.name;
+            item.append(nameLabel, canvas);
 
             const btn = document.createElement('button');
             btn.className = 'pixel-btn small';
