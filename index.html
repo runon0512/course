@@ -1929,11 +1929,12 @@
                 <div style="padding:1.3cqw; border:1px solid rgba(116,236,255,.55); background:rgba(8,28,50,.78);">
                     <div style="font-size:1.35em; font-weight:bold; color:#fff36b; margin-bottom:1cqh;">LATEST UPDATE</div>
                     <ul style="margin:0; padding-left:1.6em; line-height:1.85; color:#e8f8ff;">
-                        <li>炎ブロックの炎を、揺らめく多層の火炎デザインへ強化。</li>
-                        <li>プレイヤーレベルとEXPを追加。</li>
-                        <li>チャットに👍リアクション、DMにステージ・画像添付を追加。</li>
-                        <li>認証マーク・BAN表示、リンク表示などのチャット機能を改善。</li>
-                        <li>未知ステージの背景を赤いノイズの演出に更新。</li>
+                        <li>ワープゲートを追加。表面・裏面を同じ座標で行き来できるようになりました。</li>
+                        <li>表面／裏面ごとにステージタイプを設定可能に。裏面のゴースト・観戦表示にも対応。</li>
+                        <li>ハーフブロック、左右トランポリン、ブラックホールなどの新ブロックを追加。</li>
+                        <li>HARDステージタイプを追加。通常敵の体力が3倍になり、体力バーも表示されます。</li>
+                        <li>デイリーショップを店内風UIへ刷新。店員キャラクターと商品棚を追加。</li>
+                        <li>新規登録時のチュートリアル、ピクステ豆知識、ステージ一覧のバッジUIを改善。</li>
                     </ul>
                 </div>
                 <div style="text-align:center; margin-top:2cqh;"><button class="pixel-btn small" onclick="closePatchNotes()">戻る</button></div>
@@ -2018,7 +2019,21 @@
                     <button class="pixel-btn small" onclick="submitPasswordChange()">保存</button>
                     <button class="pixel-btn small" style="background:#546e7a;" onclick="closePasswordChange()">キャンセル</button>
                 </div>
+                <button class="pixel-btn small" style="margin-top:1.2cqh; background:#296a9d;" onclick="openTutorial()">チュートリアルを見る</button>
                 <button class="pixel-btn small" style="margin-top:1.5cqh; background:#b71c1c;" onclick="logoutUser()">ログアウト</button>
+            </div>
+        </div>
+
+        <div id="tutorial-overlay" class="screen" style="display:none; z-index:205; align-items:center; justify-content:center; background:rgba(2,8,20,.86);">
+            <div class="auth-box" style="width:min(86%,48cqw); min-height:42cqh; display:flex; flex-direction:column; text-align:left; border-color:#73e8ff; background:linear-gradient(135deg,#10264a,#171334); box-shadow:0 0 2cqw rgba(76,204,255,.35);">
+                <div id="tutorial-step-label" style="color:#8cefff; font-size:1cqw; letter-spacing:.16em;"></div>
+                <h2 id="tutorial-title" style="margin:.9cqh 0 1.3cqh; color:#fff4bd; font-size:2.6cqw; text-align:center;"></h2>
+                <div id="tutorial-text" style="flex:1; min-height:16cqh; padding:1.3cqw; border:.12cqw solid rgba(122,224,255,.42); background:rgba(0,0,0,.24); color:#e9f8ff; font-size:1.35cqw; line-height:1.85; white-space:pre-line;"></div>
+                <div style="display:flex; gap:1cqw; justify-content:space-between; margin-top:1.5cqh;">
+                    <button id="tutorial-prev-btn" class="pixel-btn small" onclick="changeTutorialStep(-1)">戻る</button>
+                    <button id="tutorial-next-btn" class="pixel-btn small" style="background:#1685bc;" onclick="changeTutorialStep(1)">次へ</button>
+                    <button class="pixel-btn small" style="background:#546e7a;" onclick="closeTutorial()">閉じる</button>
+                </div>
             </div>
         </div>
 
@@ -2492,7 +2507,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzaypVNNHvfzVRN8VS3Wzz0iQgRWhntEGz73E-XorEB7j_ut7SR8II8_X4qVEvha-9a/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.3.1"
+            VERSION: "3.4.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3639,6 +3654,7 @@
         const AUTH_SESSION_COOKIE = 'pixel_stages_session';
         const AUTH_SESSION_STORAGE_KEY = 'pixel_stages_session_token';
         let activeSessionToken = '';
+        let openTutorialAfterRegistration = false;
 
         function setAuthSessionCookie(token) {
             const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
@@ -3692,6 +3708,7 @@
                         if (type === 'register') {
                             // 登録直後は同じ認証情報でそのままログインへ進む。
                             msg.innerText = '登録完了。ログインしています...';
+                            openTutorialAfterRegistration = true;
                             handleAuth('login');
                             return;
                         }
@@ -4042,6 +4059,10 @@
                 // 全ステージの本体データは、必要になった画面でページ単位に取得する。
                 cachedStages = null;
                 showLoggedInHome(res.username);
+                if (openTutorialAfterRegistration) {
+                    openTutorialAfterRegistration = false;
+                    setTimeout(openTutorial, 180);
+                }
                 startHomeSyncUI();
                 preloadAllData(res.username, res.loginBonusHistory)
                     .catch(error => console.error('初期データ同期エラー:', error))
@@ -4110,6 +4131,39 @@
                 ctx.beginPath(); ctx.arc(20, 40, 3, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(40, 50, 2, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(48, 36, 2.5, 0, Math.PI * 2); ctx.fill();
+            } else if (data.isStageType && id === 'hard_stage') {
+                // HARDステージ: 深紅の危険地帯と、3回踏む敵の体力バーを表したアイコン。
+                const hardBg = ctx.createLinearGradient(0, 0, 64, 64);
+                hardBg.addColorStop(0, '#10080d');
+                hardBg.addColorStop(.48, '#531727');
+                hardBg.addColorStop(1, '#16070c');
+                ctx.fillStyle = hardBg;
+                ctx.fillRect(0, 0, 64, 64);
+                ctx.strokeStyle = 'rgba(255,112,124,.28)';
+                ctx.lineWidth = 1;
+                for (let i = -64; i < 80; i += 12) {
+                    ctx.beginPath(); ctx.moveTo(i, 64); ctx.lineTo(i + 38, 0); ctx.stroke();
+                }
+                // 敵シルエット
+                ctx.fillStyle = '#1b1116';
+                ctx.fillRect(19, 24, 26, 24);
+                ctx.fillStyle = '#ff5364';
+                ctx.fillRect(25, 31, 5, 5);
+                ctx.fillRect(35, 31, 5, 5);
+                // 体力バー（3ヒット）
+                ctx.fillStyle = '#090609';
+                ctx.fillRect(13, 14, 38, 7);
+                ['#ff5060', '#ff7c5a', '#ffbd5c'].forEach((color, index) => {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(15 + index * 11, 16, 9, 3);
+                });
+                ctx.strokeStyle = '#ffd0a0';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(13.5, 14.5, 37, 6);
+                ctx.fillStyle = '#ffe7c1';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('HARD', 32, 59);
             } else if (data.isStageType && id === 'moon_stage') {
                 ctx.fillStyle = '#080b20'; ctx.fillRect(0, 0, 64, 64);
                 ctx.fillStyle = '#e8edf7'; ctx.beginPath(); ctx.arc(42, 20, 14, 0, Math.PI * 2); ctx.fill();
@@ -6271,6 +6325,50 @@
         function openPasswordChange() {
             const overlay = document.getElementById('password-change-overlay');
             if (overlay) overlay.style.display = 'flex';
+        }
+
+        const TUTORIAL_STEPS = [
+            { title: 'ようこそ、Pixel Stagesへ', text: 'ここでは、誰でもステージを遊び、作り、記録を競えます。\n\nまずはホーム画面の「プレイ」から、好きなステージを選んでみましょう。' },
+            { title: 'ステージをプレイ', text: 'ステージ一覧では、難易度・ステージタイプ・作者名で探せます。\n\nゴールまで到達すると記録がランキングに残り、Gなどの報酬も獲得できます。' },
+            { title: 'ステージを制作', text: '「ステージ制作」では、ブロックや敵を配置して自分だけのコースを作れます。\n\nテストでクリアチェックを完了すると、ステージを投稿できます。' },
+            { title: '準備を整えよう', text: 'ショップでは毎日商品が入れ替わります。ロッカーでスキンを装備し、プロフィールやチャットも楽しんでください。\n\n困ったときは、ホームの「パスワード」からいつでもこのチュートリアルを見直せます。' }
+        ];
+        let tutorialStep = 0;
+
+        function openTutorial() {
+            tutorialStep = 0;
+            const overlay = document.getElementById('tutorial-overlay');
+            if (overlay) overlay.style.display = 'flex';
+            renderTutorialStep();
+        }
+
+        function closeTutorial() {
+            const overlay = document.getElementById('tutorial-overlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        function changeTutorialStep(delta) {
+            if (delta > 0 && tutorialStep >= TUTORIAL_STEPS.length - 1) {
+                closeTutorial();
+                return;
+            }
+            tutorialStep = Math.max(0, Math.min(TUTORIAL_STEPS.length - 1, tutorialStep + delta));
+            renderTutorialStep();
+        }
+
+        function renderTutorialStep() {
+            const step = TUTORIAL_STEPS[tutorialStep];
+            if (!step) return;
+            document.getElementById('tutorial-step-label').textContent = `TUTORIAL ${tutorialStep + 1} / ${TUTORIAL_STEPS.length}`;
+            document.getElementById('tutorial-title').textContent = step.title;
+            document.getElementById('tutorial-text').textContent = step.text;
+            const prev = document.getElementById('tutorial-prev-btn');
+            const next = document.getElementById('tutorial-next-btn');
+            if (prev) prev.disabled = tutorialStep === 0;
+            if (next) {
+                next.disabled = false;
+                next.textContent = tutorialStep === TUTORIAL_STEPS.length - 1 ? '完了' : '次へ';
+            }
         }
 
         function closePasswordChange() {
