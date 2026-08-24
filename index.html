@@ -635,6 +635,17 @@
         #weekly-cup-stage { display:flex; flex-direction:column; align-items:center; justify-content:center; box-sizing:border-box; min-width:0; }
         #weekly-cup-ranking-wrap { overflow:auto; min-width:0; max-height:52cqh; }
         #weekly-cup-ranking tr:nth-child(odd) { background:rgba(255,213,74,.055); }
+        /* ランキング内の自分の行は、種類を問わずすぐ見つけられるように強調する。 */
+        #leaderboard-overlay tr.ranking-self > td,
+        #weekly-cup-overlay tr.ranking-self > td {
+            background:linear-gradient(90deg,rgba(61,210,255,.28),rgba(103,117,255,.15)) !important;
+            color:#effdff;
+            box-shadow:inset 0 .1cqw 0 rgba(165,246,255,.55),inset 0 -.1cqw 0 rgba(76,209,255,.38);
+        }
+        #weekly-cup-overlay tr.ranking-self > td { background:linear-gradient(90deg,rgba(255,209,72,.31),rgba(255,161,54,.14)) !important; box-shadow:inset 0 .1cqw 0 rgba(255,240,169,.7),inset 0 -.1cqw 0 rgba(255,205,65,.42); }
+        #leaderboard-overlay tr.ranking-self > td:first-child,
+        #weekly-cup-overlay tr.ranking-self > td:first-child { border-left:.22cqw solid #78ebff; font-weight:900; }
+        #weekly-cup-overlay tr.ranking-self > td:first-child { border-left-color:#ffe16b; }
         .weekly-cup-winner-badge { display:inline-flex; align-items:center; margin-left:.38em; padding:.05em .3em; border:1px solid #ffe08a; color:#fff0a3; background:linear-gradient(135deg,#7d5100,#d99c12); font-size:.75em; font-weight:900; line-height:1.25; vertical-align:middle; text-shadow:0 1px #4a2e00; box-shadow:0 0 .35em rgba(255,204,65,.65); }
         @media (max-aspect-ratio: 1/1) { #weekly-cup-content { grid-template-columns:1fr; } #weekly-cup-ranking-wrap { max-height:30cqh; } }
         .profile-container .ovr-box { border-width:.2cqw; }
@@ -954,7 +965,7 @@
                 radial-gradient(ellipse at 50% 4%, rgba(255,217,128,.26), transparent 36%),
                 linear-gradient(180deg, rgba(20,12,14,.94), rgba(47,25,17,.98) 70%, rgba(26,13,13,.99)) !important;
         }
-        #shop-overlay.daily-shop-room .daily-shop-sign { color:#ffe6a9 !important; font:700 3.4cqw Georgia,serif; letter-spacing:.1em; text-shadow:0 .18cqw 0 #35180e,0 0 1.2cqw rgba(255,185,85,.65) !important; }
+        #shop-overlay.daily-shop-room .daily-shop-sign { color:#ffe6a9 !important; font:700 3.4cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.1em; text-shadow:0 .18cqw 0 #35180e,0 0 1.2cqw rgba(255,185,85,.65) !important; }
         .daily-shop-subtitle { margin-top:.35cqh; color:#e5bf79; font-size:1cqw; letter-spacing:.15em; }
         .daily-shop-interior { width:min(88cqw,1180px); height:70cqh; display:grid; grid-template-columns:minmax(16cqw,.36fr) minmax(0,1fr); grid-template-rows:auto 1fr; gap:1.2cqh 2cqw; padding:1.2cqw; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:linear-gradient(90deg,rgba(42,21,17,.96),rgba(82,42,24,.86) 48%,rgba(42,21,17,.96)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
         .daily-shop-counter { grid-row:1 / 3; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:56cqh; padding:1.2cqw; border:.18cqw solid #70411f; background:linear-gradient(180deg,rgba(34,21,23,.85),rgba(98,50,26,.8)); overflow:hidden; }
@@ -963,13 +974,13 @@
         #shopkeeper-canvas:hover { transform:translateY(-.55cqh) scale(1.045); filter:drop-shadow(0 0 1.05cqw rgba(255,232,139,.92)); }
         #shopkeeper-canvas:active { transform:translateY(-.1cqh) scale(.98); }
         #shopkeeper-placeholder { position:relative; z-index:1; width:13cqw; max-width:164px; aspect-ratio:1; display:grid; place-items:center; border:.16cqw dashed rgba(255,225,160,.55); color:#f6d89d; font-size:.95cqw; text-align:center; line-height:1.5; background:radial-gradient(circle,rgba(255,217,125,.22),transparent 67%); }
-        .daily-shop-keeper-name { position:relative; z-index:1; margin-top:.55cqh; color:#ffd987; font:700 1.2cqw Georgia,serif; letter-spacing:.08em; }
+        .daily-shop-keeper-name { position:relative; z-index:1; margin-top:.55cqh; color:#ffd987; font:700 1.2cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
         .daily-shop-speech { position:relative; z-index:1; width:100%; box-sizing:border-box; margin-top:1.35cqh; padding:.8cqh .7cqw; color:#fff0c9; font-size:.9cqw; line-height:1.5; text-align:left; border:.14cqw solid #e5bf79; border-radius:.45cqw; background:linear-gradient(135deg,#fff8df,#f3d38a); color:#3c2418; box-shadow:0 .25cqh 0 rgba(52,25,13,.62), inset 0 0 0 .1cqw rgba(255,255,255,.65); cursor:pointer; transition:transform .16s ease,filter .16s ease; }
         .daily-shop-speech::before { content:''; position:absolute; top:-.82cqh; left:50%; width:1.25cqw; height:1.25cqh; background:#fff8df; border-top:.14cqw solid #e5bf79; border-left:.14cqw solid #e5bf79; transform:translateX(-50%) rotate(45deg); }
         .daily-shop-speech:hover { transform:translateY(-.18cqh); filter:brightness(1.06); }
         .daily-shop-stock { grid-column:2; grid-row:1 / 3; min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
         .daily-shop-stock-head { display:flex; justify-content:space-between; align-items:end; gap:1cqw; padding:.55cqh .5cqw .9cqh; border-bottom:.16cqw solid #b77b40; color:#ffe4a7; }
-        .daily-shop-stock-head b { font:700 1.65cqw Georgia,serif; letter-spacing:.08em; }
+        .daily-shop-stock-head b { font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
         #daily-shop-date { margin:0 !important; color:#e8be75 !important; font-size:.88cqw !important; text-align:right; }
         #shop-overlay .shop-tabs { position:absolute; top:2.6cqh; right:5cqw; z-index:2; margin:0; }
         #shop-overlay .shop-grid { width:auto; min-height:0; max-height:none; flex:1; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1cqw; padding:1.2cqh .5cqh .6cqh; overflow-y:auto; overflow-x:hidden; align-content:start; }
@@ -977,9 +988,9 @@
         #shop-overlay .shop-item.daily-shelf-item::before { content:'DAILY'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,225,157,.56); font-size:.55cqw; letter-spacing:.12em; pointer-events:none; }
         #shop-overlay .shop-item.daily-shelf-item canvas { flex:0 0 auto; margin-top:.8cqh; width:5cqw; height:5cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .45cqw rgba(255,212,124,.38)); }
         #shop-overlay .daily-shelf-item .daily-item-name { position:absolute; z-index:2; top:3.35cqh; left:.42cqw; right:.42cqw; display:-webkit-box; width:auto; margin:0; padding:.18cqh .28cqw; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:#fff7d5; font-size:1cqw; line-height:1.2; text-align:center; text-shadow:0 .1cqw .14cqw #21100b; background:rgba(37,18,15,.67); border-radius:.22cqw; pointer-events:none; }
-        #shop-overlay .daily-shelf-item .daily-owned-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #d9a85f; border-radius:.35cqw; background:linear-gradient(135deg,#4b2d20,#7a4a2d); color:#ffe7ae; font:700 .85cqw Georgia,serif; letter-spacing:.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:1; }
+        #shop-overlay .daily-shelf-item .daily-owned-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #d9a85f; border-radius:.35cqw; background:linear-gradient(135deg,#4b2d20,#7a4a2d); color:#ffe7ae; font:700 .85cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.1em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:1; }
         #shop-overlay .daily-shelf-item .daily-owned-tag::first-letter { color:#fff5cc; }
-        #shop-overlay .daily-shelf-item .daily-price-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #f1c56b; border-radius:.35cqw; background:linear-gradient(135deg,#5d3517,#a56525); color:#fff1bf; font:700 .85cqw Georgia,serif; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:inset 0 0 0 .08cqw rgba(255,241,190,.28),0 .16cqh 0 rgba(34,15,8,.65); transition:filter .16s ease,transform .16s ease; }
+        #shop-overlay .daily-shelf-item .daily-price-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #f1c56b; border-radius:.35cqw; background:linear-gradient(135deg,#5d3517,#a56525); color:#fff1bf; font:700 .85cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:inset 0 0 0 .08cqw rgba(255,241,190,.28),0 .16cqh 0 rgba(34,15,8,.65); transition:filter .16s ease,transform .16s ease; }
         #shop-overlay .daily-shelf-item .daily-price-tag:hover { background:linear-gradient(135deg,#8a4c17,#d68b2e); color:#fffbe8; border-color:#fff0a8; filter:brightness(1.1); transform:translateY(-.1cqh); }
         #explanation-btn { overflow:visible !important; }
         #explanation-btn::after { content:'New!'; position:absolute; top:-.9cqh; right:-1.2cqw; padding:.12cqh .42cqw; border:.1cqw solid #fff6a3; border-radius:.45cqw; background:#f04b7d; color:#fff; font:700 .8cqw/1 sans-serif; letter-spacing:.04em; text-shadow:none; box-shadow:0 0 .5cqw rgba(255,71,132,.8); animation:triviaNewPulse 1.2s ease-in-out infinite; pointer-events:none; }
@@ -1674,7 +1685,7 @@
         #home-medieval-crest {
             position:absolute; top:2.1cqh; left:5.4cqw; z-index:6;
             width:5.2cqw; height:5.2cqw; display:flex; align-items:center; justify-content:center;
-            color:#ffdf8b; font-family:Georgia,serif; font-size:2.15cqw; font-weight:bold;
+            color:#ffdf8b; font-family:'Roboto','Noto Sans JP',sans-serif; font-size:2.15cqw; font-weight:bold;
             background:linear-gradient(145deg,#8e6530,#342113 48%,#bd9145);
             border:.18cqw solid #f7d57b;
             clip-path:polygon(50% 0,94% 15%,88% 75%,50% 100%,12% 75%,6% 15%);
@@ -1683,12 +1694,12 @@
         }
         #home-fantasy-motto {
             position:absolute; top:29cqh; left:0; width:100%; z-index:5;
-            color:#d7c38d; font:italic 1.1cqw Georgia,serif; letter-spacing:.28em;
+            color:#d7c38d; font:italic 1.1cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.28em;
             text-shadow:0 .12cqw .2cqw #120c16;
         }
-        h1 { top:5.1cqh; font-family:Georgia,'Times New Roman',serif; font-size:8.1cqw; letter-spacing:.055em; text-shadow:0 .24cqw 0 #271623, 0 0 1.1cqw rgba(255,212,117,.35); }
+        h1 { top:6.7cqh; font-family:'Roboto','Noto Sans JP',sans-serif; font-size:8.1cqw; letter-spacing:.055em; text-shadow:0 .24cqw 0 #271623, 0 0 1.1cqw rgba(255,212,117,.35); }
         h1 .cursive-font { display:inline; color:#f8df9b; background:none; -webkit-text-fill-color:initial; filter:none; }
-        #subtitle { top:18.8cqh !important; color:#f3d687 !important; font-family:Georgia,'Times New Roman',serif; font-size:2.5cqw !important; font-style:italic; letter-spacing:.18em; text-shadow:0 .14cqw 0 #24152a, 0 0 .7cqw rgba(255,205,99,.42); }
+        #subtitle { top:22cqh !important; color:#f3d687 !important; font-family:'Roboto','Noto Sans JP',sans-serif; font-size:2.5cqw !important; font-style:italic; letter-spacing:.18em; text-shadow:0 .14cqw 0 #24152a, 0 0 .7cqw rgba(255,205,99,.42); }
         #subtitle::before, #subtitle::after { content:'❧'; display:inline; margin:0 1.2cqw; color:#dba54d; }
         #home-character-canvas { right:8cqw !important; top:61% !important; filter:drop-shadow(0 .45cqw 0 #110d13) drop-shadow(0 0 1.1cqw rgba(255,197,77,.24)); animation:homeCharacterFloat 4s ease-in-out infinite; }
         #main-menu {
@@ -1700,7 +1711,7 @@
         #main-menu::before { content:none; display:none; }
         #main-menu .pixel-btn {
             width:100%; min-width:0; padding:.72cqh .3cqw; border:0; border-bottom:.07cqw solid rgba(242,205,130,.29);
-            background:transparent; color:#f7edce; box-shadow:none; text-align:left; font:700 2.15cqw Georgia,'Noto Sans JP',serif;
+            background:transparent; color:#f7edce; box-shadow:none; text-align:left; font:700 2.15cqw 'Roboto','Noto Sans JP',sans-serif;
             letter-spacing:.08em; text-transform:none; text-shadow:0 .12cqw 0 #1b1015; transition:color .18s ease,transform .18s ease,background .18s ease;
         }
         #main-menu .pixel-btn::before { width:2.4cqw; color:#e8b950; text-align:center; }
@@ -1710,11 +1721,11 @@
         /* タイムアタック追加後もホーム内に全項目を収める。 */
         #main-menu { top:auto; bottom:3.1cqh; gap:.55cqh; padding:1.2cqw 1.5cqw; }
         #main-menu .pixel-btn { padding:.92cqh .25cqw; font-size:2cqw; line-height:1.08; }
-        #user-info { top:1.3cqh; right:2cqw; border:.1cqw solid #b88c43; background:linear-gradient(90deg,rgba(27,17,23,.92),rgba(70,43,30,.78)); box-shadow:inset 0 0 .7cqw rgba(255,212,119,.08); color:#f7e7c0; font-family:Georgia,'Noto Sans JP',serif; }
+        #user-info { top:1.3cqh; right:2cqw; border:.1cqw solid #b88c43; background:linear-gradient(90deg,rgba(27,17,23,.92),rgba(70,43,30,.78)); box-shadow:inset 0 0 .7cqw rgba(255,212,119,.08); color:#f7e7c0; font-family:'Roboto','Noto Sans JP',sans-serif; }
         #home-level-gauge { right:2.4cqw; bottom:3.1cqh; background:linear-gradient(135deg,rgba(32,20,25,.94),rgba(75,45,30,.9)); border:.14cqw solid #bf944b; box-shadow:inset 0 0 .8cqw rgba(255,215,132,.12); }
-        #home-level-gauge-title { color:#f5d476; font-family:Georgia,serif; } #home-level-gauge-track { background:#211720; border-color:#8d6839; } #home-level-gauge-fill { background:linear-gradient(90deg,#a46728,#f1c965,#fff1ba); }
+        #home-level-gauge-title { color:#f5d476; font-family:'Roboto','Noto Sans JP',sans-serif; } #home-level-gauge-track { background:#211720; border-color:#8d6839; } #home-level-gauge-fill { background:linear-gradient(90deg,#a46728,#f1c965,#fff1ba); }
         #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #dm-inbox-btn, #password-settings-btn {
-            color:#e8d5a1 !important; font:700 1.43cqw Georgia,'Noto Sans JP',serif !important; letter-spacing:.08em; text-shadow:0 .12cqw 0 #1d1218 !important;
+            color:#e8d5a1 !important; font:700 1.43cqw 'Roboto','Noto Sans JP',sans-serif !important; letter-spacing:.08em; text-shadow:0 .12cqw 0 #1d1218 !important;
         }
         #global-rank-btn:hover, #creators-road-btn:hover, #explanation-btn:hover, #chat-btn:hover, #login-bonus-btn:hover, #patch-notes-btn:hover, #dm-inbox-btn:hover, #password-settings-btn:hover { background:none !important; -webkit-text-fill-color:initial; color:#fff0a9 !important; text-shadow:0 0 .65cqw rgba(255,216,112,.75) !important; transform:translateX(-.22cqw); }
         #dm-inbox-btn.has-notification::after { content:''; position:absolute; top:-.15cqw; right:-.45cqw; width:.8cqw; height:.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
@@ -1738,7 +1749,7 @@
         .reward-hero::marker { display:none; }
         .reward-hero-rays { position:absolute; inset:0; background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(115,224,255,.18) 0deg 5deg,transparent 5deg 18deg); animation:rewardRays 12s linear infinite; }
         #reward-character-canvas { position:relative; z-index:2; width:min(28cqw,290px); height:min(28cqw,290px); image-rendering:pixelated; filter:drop-shadow(0 0 1.25cqw #54dbff) drop-shadow(0 .45cqw 0 rgba(2,11,28,.85)); animation:rewardCharacterEnter .65s cubic-bezier(.18,.9,.22,1.12) both; }
-        .reward-hero-caption { position:absolute; z-index:3; bottom:2.1cqh; font:700 1.08cqw Georgia,serif; letter-spacing:.25em; color:#c9f4ff; text-shadow:0 0 .8cqw #2daeff; }
+        .reward-hero-caption { position:absolute; z-index:3; bottom:2.1cqh; font:700 1.08cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.25em; color:#c9f4ff; text-shadow:0 0 .8cqw #2daeff; }
         .reward-details { padding:3.2cqh 3.2cqw; display:flex; flex-direction:column; text-align:left; background:linear-gradient(110deg,rgba(15,27,61,.75),rgba(9,12,30,.92)); }
         .reward-kicker { color:#72dfff; font-size:1cqw; letter-spacing:.22em; font-weight:bold; }
         .reward-title { margin:.45cqh 0 1.8cqh; color:#f3fbff; font-size:3.3cqw; letter-spacing:.06em; text-shadow:0 0 1cqw rgba(85,204,255,.7); }
@@ -1805,10 +1816,9 @@
         <!-- ユーザー情報 -->
         <div id="user-info">
             USER: <span id="user-level" style="color:#fff36b; font-weight:bold;">Lv.1</span> <span id="current-user">-</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
-            <span style="color:#2ecc71; cursor:pointer; text-decoration:underline;" onclick="toggleOnlineUsers()">ON: <span id="online-count">0</span></span> | 
+            <span style="color:#2ecc71; cursor:pointer; text-decoration:underline;" onclick="toggleOnlineUsers()">ONLINE: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
-            <span style="color:#e8f7ff;">EXP: <span id="user-level-exp"></span></span> | 
             <span style="color:#e0f7fa;">AS: <span id="user-as">0</span></span> | 
             <span style="color:#ff6f00;">ES:<span id="user-es">0</span></span>
         </div>
@@ -1906,8 +1916,8 @@
         <h1>
             <span class="cursive-font" style="text-transform: none;">Pixel Stages</span>
         </h1>
-        <div id="subtitle" class="cursive-font" style="position: absolute; top: 18cqh; left: 0; width: 100%; text-align: center; font-size: 3.5cqw; color: var(--secondary-color); z-index: 5; opacity: 0.9; display: none;">Season 3 ~Multiverse~</div>
-        <div id="home-sync-status" style="position:absolute; top:25cqh; left:0; width:100%; text-align:center; color:#aeefff; font-size:1.35cqw; z-index:6; display:none; text-shadow:0 0 .7cqw #00bfff;">
+        <div id="subtitle" class="cursive-font" style="position: absolute; top: 22cqh; left: 0; width: 100%; text-align: center; font-size: 3.5cqw; color: var(--secondary-color); z-index: 5; opacity: 0.9; display: none;">Season 3 ~Multiverse~</div>
+        <div id="home-sync-status" style="position:absolute; top:50%; left:0; width:100%; transform:translateY(-50%); text-align:center; color:#aeefff; font-size:1.35cqw; z-index:6; display:none; text-shadow:0 0 .7cqw #00bfff;">
             <div>データを読み込み中... <span id="home-sync-percent">0%</span></div>
             <div style="width:26cqw; height:1.1cqh; margin:.7cqh auto 0; border:.12cqw solid #73e8ff; background:rgba(0,8,24,.8); box-shadow:0 0 .7cqw rgba(70,220,255,.35);"><div id="home-sync-gauge" style="height:100%; width:0%; background:linear-gradient(90deg,#56ffd4,#62bfff); transition:width .12s linear;"></div></div>
         </div>
@@ -2507,7 +2517,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzaypVNNHvfzVRN8VS3Wzz0iQgRWhntEGz73E-XorEB7j_ut7SR8II8_X4qVEvha-9a/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.4.1"
+            VERSION: "3.4.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2535,7 +2545,12 @@
         let guildBulletinRefreshId = null;
         let currentGuildDetails = null; 
         let guildBadgeByMember = Object.create(null);
-        let weeklyCupWinnerCounts = Object.create(null);
+// 大会記録はクライアントへ取得しない。固定の優勝表示だけをここで管理する。
+const PSWC_MANUAL_WINNER_COUNTS = Object.freeze({ Test001: 1 });
+function getPswcWinnerCount(username) {
+  const key = String(username || '');
+  return Number(PSWC_MANUAL_WINNER_COUNTS[key]) || 0;
+}
         const guildIconDataUrlCache = Object.create(null);
         const GUILD_RANK_EXP = [0, 10000, 50000, 100000, 300000, 500000, 1000000, 2500000];
 
@@ -4491,10 +4506,9 @@
             loginBonusHistory = loginHistory || [];
 
             // 並列で全データを取得
-            const [customSkinsRes, guildRes, cupWinnersRes, verifiedUsersRes, playerLevelsRes] = await Promise.all([
+            const [customSkinsRes, guildRes, verifiedUsersRes, playerLevelsRes] = await Promise.all([
                 callApi('load', { username: username, key: 'custom_skins' }),
                 callApi('getGuilds', {}),
-                callApi('getWeeklyCupWinners', {}),
                 callApi('getVerifiedUsers', {}),
                 callApi('getPlayerLevels', {})
             ]);
@@ -4515,14 +4529,10 @@
                 cacheGuildBadgeData(guildRes.guilds);
                 if (userGuild) currentGuildDetails = guildRes.guilds.find(g => g.name === userGuild);
             }
-            if (cupWinnersRes && cupWinnersRes.success) weeklyCupWinnerCounts = cupWinnersRes.counts || Object.create(null);
-
             // 同期完了後に取得済みのスキン・ギルド情報をホームへ反映
             updateHomeCharacter();
-            refreshChat();
-            // 3分(180000ms)ごとにチャットの新着をバックグラウンドで確認し、新着があれば通知バッジを出す
-            if (chatRefreshId) clearInterval(chatRefreshId);
-            chatRefreshId = setInterval(refreshChat, 180000);
+            // ログイン直後にはチャットを取得しない。チャット画面を開いた時だけ読み込む。
+            if (chatRefreshId) { clearInterval(chatRefreshId); chatRefreshId = null; }
             if (dmRefreshId) clearInterval(dmRefreshId);
             dmRefreshId = setInterval(refreshDirectMessageNotifications, 180000);
             updateGoldDisplay();
@@ -5455,6 +5465,12 @@
             const imageBtn = document.getElementById('chat-image-btn');
             const msg = input.value.trim() || (attachedStageId ? "このステージを遊んでみて！" : "");
             if (!msg && !attachedStageId && !attachedImageData) return;
+            // サーバー側でも同じ検査を行い、直接APIを呼ばれた場合も投稿させない。
+            const normalizedChatMessage = msg.normalize('NFKC');
+            if (normalizedChatMessage.includes('死') || normalizedChatMessage.includes('タヒ')) {
+                alert('このメッセージには使用できない言葉が含まれています。');
+                return;
+            }
             
             input.disabled = true;
             sendBtn.disabled = true;
@@ -6630,8 +6646,8 @@
             const guildIcon = guild
                 ? `<span class="guild-badge guild-rank-${Math.max(0, Math.min(7, Number(guild.rank) || 0))}" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
                 : '<span class="guild-badge guild-badge-empty" title="ギルド未所属"></span>';
-            const wins = Number(weeklyCupWinnerCounts[username]) || 0;
-            const winnerBadge = wins > 0 ? `<span class="weekly-cup-winner-badge" title="Weekly Cup 優勝 ${wins} 回">🏆×${wins}</span>` : '';
+            const wins = getPswcWinnerCount(username);
+            const winnerBadge = wins > 0 ? `<span class="weekly-cup-winner-badge" title="PSWC 優勝 ${wins} 回">🏆×${wins}</span>` : '';
             return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${guildIcon}${winnerBadge}`;
         }
 
@@ -6880,7 +6896,6 @@
                 stageBox.innerText = '';
                 return;
             }
-            if (res.winnerCounts) weeklyCupWinnerCounts = res.winnerCounts;
             const dateText = `${res.weekStart.replaceAll('-', '/')} 〜 ${res.weekEnd.replaceAll('-', '/')}`;
             period.innerText = res.active ? `開催中　${dateText}` : `調整期間　次回 ${dateText}`;
             period.style.color = res.active ? '#7dffcb' : '#ffd36b';
@@ -6939,6 +6954,7 @@
             ranks.forEach((record, index) => {
                 if (record.time !== lastTime) { currentRank = index + 1; lastTime = record.time; }
                 const tr = document.createElement('tr');
+                if (String(record.name) === String(CONFIG.USERNAME)) tr.classList.add('ranking-self');
                 tr.style.borderBottom = '.1cqw solid #444';
                 const rank = document.createElement('td'); rank.style.padding = '1cqh'; rank.innerText = currentRank;
                 const player = document.createElement('td'); player.style.padding = '1cqh';
@@ -7000,7 +7016,7 @@
                     const minutes = Math.floor((total % 3600) / 60);
                     return `${hours}時間${minutes}分`;
                 };
-                body.innerHTML = (res.ranking || []).map((entry, index) => `<tr style="border-bottom:.1cqw solid #444;"><td style="padding:1.5cqh;">${index + 1}</td><td style="padding:1.5cqh;">${getPlayerLevelPrefix(entry.username)}<span class="${getUserNameClasses(entry.username)}">${entry.username}</span></td><td style="padding:1.5cqh; text-align:right; color:#ffe082;">${formatPlaytime(entry.seconds)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">データがありません。</td></tr>';
+                body.innerHTML = (res.ranking || []).map((entry, index) => `<tr class="${String(entry.username) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom:.1cqw solid #444;"><td style="padding:1.5cqh;">${index + 1}</td><td style="padding:1.5cqh;">${getPlayerLevelPrefix(entry.username)}<span class="${getUserNameClasses(entry.username)}">${entry.username}</span></td><td style="padding:1.5cqh; text-align:right; color:#ffe082;">${formatPlaytime(entry.seconds)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">データがありません。</td></tr>';
                 return;
             }
 
@@ -7017,7 +7033,7 @@
             if (headerRow) headerRow.innerHTML = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">GUILD</th><th style="padding: 1cqh; text-align: right;">EXP</th>`;
 
             body.innerHTML = sortedGuilds.map((g, i) => `
-                <tr style="border-bottom: 0.1cqw solid #444;">
+                <tr class="${g.name === userGuild ? 'ranking-self' : ''}" style="border-bottom: 0.1cqw solid #444;">
                     <td style="padding: 1.5cqh;">${i+1}</td>
                     <td style="padding: 1.5cqh; display: flex; align-items: center; gap: 1cqw;">
                         <canvas id="lb-guild-icon-${i}" width="32" height="32" style="image-rendering: pixelated; width: 3cqw; height: 3cqw;"></canvas>
@@ -7105,7 +7121,7 @@
             if (headerRow) headerRow.innerHTML = headerHtml;
 
             body.innerHTML = sorted.map((u, i) => `
-                <tr style="border-bottom: 0.1cqw solid #444;">
+                <tr class="${String(u) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom: 0.1cqw solid #444;">
                     ${rowFunc(u, i)}
                 </tr>`).join('');
         }
@@ -7238,7 +7254,7 @@
             
             sortedRecords.forEach((rec, idx) => {
                 body.innerHTML += `
-                    <tr style="border-bottom: 0.1cqw solid #444;">
+                    <tr class="${String(rec.name) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom: 0.1cqw solid #444;">
                         <td style="padding: 1.5cqh;">${rec._displayRank}</td>
                         <td style="padding: 1.5cqh;">${getPlayerLevelPrefix(rec.name)}<span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
@@ -9248,7 +9264,25 @@
                 if (renderVersion !== stageListRenderVersion) return;
                 stageListPageCache.set(pageCacheKey, res);
             }
-            const pageStages = (res?.stages || []).filter(s => s && s.data);
+            let pageStages = (res?.stages || []).filter(s => s && s.data);
+            // Pick up! は、ログイン後に裏で取得済みの全ステージキャッシュから流用する。
+            // 一覧ページ用の通信でPick up!のグリッドを重ねて取得しない。
+            if (stageListPage === 0) {
+                const allStages = await ensureAllStagesForOvr();
+                if (renderVersion !== stageListRenderVersion) return;
+                const pickupStages = (Array.isArray(allStages) ? allStages : []).filter(stage => {
+                    if (!stage || !stage.data || !String(stage.name || '').startsWith('$')) return false;
+                    const creator = String(stage.creator || '');
+                    const name = String(stage.name || '');
+                    if (filterMyStages && creator !== CONFIG.USERNAME) return false;
+                    if (filterCreatorName && !creator.toLowerCase().includes(filterCreatorName)) return false;
+                    if (filterStageName && !name.toLowerCase().includes(filterStageName)) return false;
+                    if (filterUnplayed && (Array.isArray(stage.leaderboard) ? stage.leaderboard : []).some(r => String(r.name) === CONFIG.USERNAME)) return false;
+                    return true;
+                });
+                const receivedIds = new Set(pageStages.map(stage => String(stage.id || stage.name)));
+                pageStages = pickupStages.filter(stage => !receivedIds.has(String(stage.id || stage.name))).concat(pageStages);
+            }
             stageListPageStages = pageStages;
             stageListPage = Number(res?.page) || 0;
             stageListTotal = Number(res?.total) || 0;
