@@ -27,6 +27,8 @@
             color: var(--text-color);
             overflow: hidden;
         }
+        .inline-loading-spinner { display:inline-block; width:1.05em; height:1.05em; box-sizing:border-box; margin-left:.45em; vertical-align:-.13em; border:.16em solid currentColor; border-right-color:transparent; border-radius:50%; opacity:.9; animation:apiLoadingSpin .72s linear infinite; }
+        @keyframes apiLoadingSpin { to { transform:rotate(360deg); } }
         /* スマートフォンでプレイ中は、スワイプ・引っ張り更新・ピンチ操作で画面を動かさない。 */
         html.mobile-game-lock,
         html.mobile-game-lock body,
@@ -1624,6 +1626,28 @@
         #chat-overlay .chat-toolbar { width:80%; margin-bottom:.65cqh !important; }
         #chat-list { width:80%; min-height:0; margin-bottom:.65cqh; flex:1 1 auto; }
         #chat-reply-context, #chat-overlay > div:last-child { width:80% !important; }
+        /* 各メニューはタイトルを上部へまとめ、本文の表示領域を広く統一する。 */
+        #profile-overlay, #guild-overlay, #shop-overlay, #explanation-overlay,
+        #creators-road-overlay, #login-bonus-overlay, #dm-overlay {
+            justify-content:flex-start !important;
+            padding-top:1.2cqh !important;
+            padding-bottom:1.2cqh !important;
+        }
+        #profile-overlay > h2, #guild-overlay > h2, #shop-overlay > h2,
+        #explanation-overlay > h2, #creators-road-overlay > h2, #login-bonus-overlay > h2 {
+            margin:.15cqh 0 .55cqh !important;
+            line-height:1.05;
+            flex-shrink:0;
+        }
+        #profile-overlay > button, #explanation-overlay > button,
+        #creators-road-overlay > button { margin-bottom:.7cqh !important; flex-shrink:0; }
+        #explanation-list { max-height:76cqh !important; }
+        #creators-road-overlay > div:not(#road-milestones), #road-milestones { margin-bottom:.7cqh !important; }
+        #login-bonus-overlay > p { margin:0 0 .8cqh !important; }
+        #chat-overlay > h2 { font-family:'Dancing Script','Brush Script MT',cursive !important; font-weight:700; font-size:3.8cqw !important; letter-spacing:.04em !important; }
+        #leaderboard-overlay, #weekly-cup-overlay { justify-content:flex-start !important; padding-top:1.2cqh; box-sizing:border-box; }
+        #leaderboard-overlay .auth-box { max-height:92cqh !important; }
+        #weekly-cup-overlay .auth-box { max-height:94cqh !important; }
         #leaderboard-overlay .auth-box, .profile-container .ovr-box { background:rgba(255,255,255,.1) !important; border-color:var(--primary-color) !important; box-shadow:none; }
         #leaderboard-overlay table { background:transparent; border-color:initial !important; }
         #leaderboard-overlay th { color:inherit; background:transparent; }
@@ -1756,6 +1780,24 @@
         .reward-time-panel { display:flex; align-items:baseline; justify-content:space-between; padding:1.1cqh 1.2cqw; border-left:.32cqw solid #4bd4ff; background:rgba(83,183,255,.12); }
         .reward-time-panel span:first-child { color:#9fdcf0; font-size:1.05cqw; letter-spacing:.13em; }
         #reward-time-display { color:#fff; font-size:2.25cqw; font-weight:bold; font-variant-numeric:tabular-nums; }
+        .reward-rank-panel { display:flex; align-items:baseline; justify-content:space-between; margin-top:.65cqh; padding:.75cqh 1.2cqw; border-left:.32cqw solid #ffd36b; background:rgba(255,197,80,.09); color:#ffe7a8; font-size:1.05cqw; letter-spacing:.13em; }
+        #reward-rank-display { color:#fff5d2; font-size:1.65cqw; font-weight:bold; font-variant-numeric:tabular-nums; }
+        #tutorial-overlay { overflow:hidden; }
+        #tutorial-overlay::before { content:''; position:absolute; inset:-15%; pointer-events:none; background:radial-gradient(circle at 18% 24%,rgba(83,221,255,.2),transparent 25%),radial-gradient(circle at 86% 78%,rgba(151,104,255,.18),transparent 29%); }
+        #tutorial-overlay .auth-box { position:relative; width:min(88%,54cqw) !important; min-height:46cqh !important; padding:2.1cqw !important; border:.15cqw solid #75e8ff; border-radius:.7cqw; background:linear-gradient(135deg,rgba(13,43,77,.98),rgba(23,18,59,.98)) !important; box-shadow:0 0 2.2cqw rgba(76,204,255,.35), inset 0 0 1.5cqw rgba(100,220,255,.07) !important; }
+        .tutorial-brand { margin-bottom:.85cqh; color:#8deaff; font-size:.86cqw; font-weight:bold; letter-spacing:.22em; text-align:center; }
+        .tutorial-heading { display:flex; align-items:center; gap:1cqw; padding:1cqw; border:.1cqw solid rgba(132,225,255,.3); border-radius:.45cqw; background:rgba(2,15,39,.35); }
+        #tutorial-icon { width:4.2cqw; height:4.2cqw; display:grid; place-items:center; flex:0 0 auto; border:.12cqw solid #7ce9ff; border-radius:50%; background:radial-gradient(circle,#245e99,rgba(23,50,95,.5)); color:#fff3ae; font-size:2.45cqw; box-shadow:0 0 1cqw rgba(105,222,255,.35); }
+        #tutorial-step-label { color:#8cefff; font-size:.95cqw !important; font-weight:bold; letter-spacing:.16em; }
+        #tutorial-title { margin:.25cqh 0 0 !important; color:#fff4bd; font-size:2.45cqw !important; text-align:left !important; }
+        #tutorial-progress { display:flex; gap:.45cqw; margin:1.1cqh 0 .9cqh; }
+        .tutorial-progress-dot { height:.45cqh; flex:1; background:rgba(170,224,255,.2); transition:background .2s ease, box-shadow .2s ease; }
+        .tutorial-progress-dot.done { background:#66dfff; } .tutorial-progress-dot.active { background:#fff0a2; box-shadow:0 0 .6cqw rgba(255,231,124,.75); }
+        #tutorial-text { min-height:17cqh !important; padding:1.4cqw !important; border:.12cqw solid rgba(122,224,255,.42); border-radius:.35cqw; background:linear-gradient(135deg,rgba(0,0,0,.31),rgba(4,35,69,.36)); color:#e9f8ff; font-size:1.35cqw; line-height:1.85; }
+        #tutorial-tip { min-height:2.4cqh; margin-top:.8cqh; padding:.65cqh .8cqw; border-left:.2cqw solid #8feaff; background:rgba(79,186,255,.08); color:#c5f2ff; font-size:1.05cqw; line-height:1.45; }
+        #tutorial-tip::before { content:'TIP'; display:inline-block; margin-right:.55cqw; padding:.1cqh .4cqw; color:#072137; background:#8feaff; font-size:.82em; font-weight:bold; }
+        #tutorial-controls { display:flex; gap:.8cqw; justify-content:space-between; margin-top:1.25cqh; padding-top:1cqh; border-top:.1cqw solid rgba(132,225,255,.2); }
+        #tutorial-controls .pixel-btn { min-width:8cqw; margin:0; } #tutorial-next-btn { flex:1; font-weight:bold; } #tutorial-prev-btn:disabled { opacity:.34; cursor:default; }
         .reward-get-row { display:flex; align-items:center; flex-wrap:wrap; gap:.55cqw; margin:1.6cqh 0; color:#c2d6ee; font-size:1.05cqw; }
         #reward-amount, #reward-guild-amount { font-size:2.1cqw; font-weight:bold; text-shadow:0 0 .8cqw rgba(255,206,79,.45); }
         .reward-rating { margin-top:auto; padding-top:1.5cqh; border-top:1px solid rgba(143,213,255,.2); }
@@ -1788,7 +1830,7 @@
 
     </style>
 </head>
-<body>
+    <body>
     <div class="container">
         <!-- 背景レイヤー -->
         <div class="bg-layer clouds"></div>
@@ -1895,6 +1937,7 @@
                     <div class="reward-kicker">PIXEL STAGES // RESULT</div>
                     <h2 class="reward-title">STAGE CLEAR!</h2>
                     <div class="reward-time-panel"><span>CLEAR TIME</span><span id="reward-time-display">0.000s</span></div>
+                    <div class="reward-rank-panel"><span>STAGE RANK</span><span id="reward-rank-display">--</span></div>
                     <div class="reward-get-row">
                     <span>REWARD</span><span id="reward-amount" style="color: #f1c40f;">0 G</span>
                     <span id="reward-guild-amount" style="display:none; color:#f1c40f;"><span id="reward-guild-base" style="text-decoration:line-through; color:#aaa; font-size:.75em;">0 G</span><br><span id="reward-guild-final">0 G</span></span>
@@ -2035,14 +2078,16 @@
         </div>
 
         <div id="tutorial-overlay" class="screen" style="display:none; z-index:205; align-items:center; justify-content:center; background:rgba(2,8,20,.86);">
-            <div class="auth-box" style="width:min(86%,48cqw); min-height:42cqh; display:flex; flex-direction:column; text-align:left; border-color:#73e8ff; background:linear-gradient(135deg,#10264a,#171334); box-shadow:0 0 2cqw rgba(76,204,255,.35);">
-                <div id="tutorial-step-label" style="color:#8cefff; font-size:1cqw; letter-spacing:.16em;"></div>
-                <h2 id="tutorial-title" style="margin:.9cqh 0 1.3cqh; color:#fff4bd; font-size:2.6cqw; text-align:center;"></h2>
-                <div id="tutorial-text" style="flex:1; min-height:16cqh; padding:1.3cqw; border:.12cqw solid rgba(122,224,255,.42); background:rgba(0,0,0,.24); color:#e9f8ff; font-size:1.35cqw; line-height:1.85; white-space:pre-line;"></div>
-                <div style="display:flex; gap:1cqw; justify-content:space-between; margin-top:1.5cqh;">
+            <div class="auth-box" style="display:flex; flex-direction:column; text-align:left;">
+                <div class="tutorial-brand">PIXEL STAGES / QUICK GUIDE</div>
+                <div class="tutorial-heading"><div id="tutorial-icon" aria-hidden="true">✦</div><div><div id="tutorial-step-label"></div><h2 id="tutorial-title"></h2></div></div>
+                <div id="tutorial-progress" aria-label="チュートリアルの進捗"></div>
+                <div id="tutorial-text" style="flex:1; white-space:pre-line;"></div>
+                <div id="tutorial-tip"></div>
+                <div id="tutorial-controls">
                     <button id="tutorial-prev-btn" class="pixel-btn small" onclick="changeTutorialStep(-1)">戻る</button>
                     <button id="tutorial-next-btn" class="pixel-btn small" style="background:#1685bc;" onclick="changeTutorialStep(1)">次へ</button>
-                    <button class="pixel-btn small" style="background:#546e7a;" onclick="closeTutorial()">閉じる</button>
+                    <button class="pixel-btn small" style="background:#546e7a;" onclick="closeTutorial()">✕</button>
                 </div>
             </div>
         </div>
@@ -2514,7 +2559,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzaypVNNHvfzVRN8VS3Wzz0iQgRWhntEGz73E-XorEB7j_ut7SR8II8_X4qVEvha-9a/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzsUy8tYqs6F_cXPjm2LO5G5_Nqu6S-XJNFaeYdrMlrX3wxJcwvPF8UpuhPSj8Y_E7-/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "3.4.2"
@@ -3491,7 +3536,6 @@ function getPswcWinnerCount(username) {
         async function callApi(action, payload, timeoutMs = 20000) {
             const maxAttempts = action === 'getChat' ? 3 : (isRetryableReadAction(action) ? 2 : 1);
             let lastError = null;
-
             for (let i = 0; i < maxAttempts; i++) {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -3526,6 +3570,40 @@ function getPswcWinnerCount(username) {
             console.error(`API call failed (${action}):`, lastError);
             return { success: false, message: "通信エラーが発生しました。インターネット接続を確認してください。" };
         }
+
+        // 既に「読み込み中」と表示するUIだけに、小さな回転表示を添える。
+        // API通信そのものには連動させないため、定期通信・裏読み込みでは表示されない。
+        const loadingTextPattern = /(読み込み中|再読み込み中|LOADING|確認しています)/i;
+        function addInlineLoadingSpinner(element) {
+            if (!(element instanceof Element) || element.querySelector(':scope > .inline-loading-spinner')) return;
+            const textNodes = Array.from(element.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+            const directText = textNodes.map(node => node.textContent).join('');
+            if (!loadingTextPattern.test(directText)) return;
+            // 画面ごとに異なっていた読み込み文言を統一する。
+            textNodes.forEach(node => {
+                if (loadingTextPattern.test(node.textContent)) node.textContent = 'Loading...';
+            });
+            const spinner = document.createElement('span');
+            spinner.className = 'inline-loading-spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            element.appendChild(spinner);
+        }
+        function decorateLoadingMessages(root = document.body) {
+            if (!root) return;
+            if (root instanceof Element) addInlineLoadingSpinner(root);
+            root.querySelectorAll?.('*').forEach(addInlineLoadingSpinner);
+        }
+        function startLoadingMessageDecoration() {
+            decorateLoadingMessages();
+            new MutationObserver(records => {
+                records.forEach(record => record.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.TEXT_NODE) addInlineLoadingSpinner(node.parentElement);
+                    else if (node.nodeType === Node.ELEMENT_NODE) decorateLoadingMessages(node);
+                }));
+            }).observe(document.body, { childList: true, subtree: true });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startLoadingMessageDecoration, { once: true });
+        else startLoadingMessageDecoration();
 
         // GASの返却値がまれに { message: ... } のようなオブジェクトになる場合でも、
         // UIに [object Object] を出さず、利用者向けの文字列として表示する。
@@ -6344,10 +6422,11 @@ function getPswcWinnerCount(username) {
         }
 
         const TUTORIAL_STEPS = [
-            { title: 'ようこそ、Pixel Stagesへ', text: 'ここでは、誰でもステージを遊び、作り、記録を競えます。\n\nまずはホーム画面の「プレイ」から、好きなステージを選んでみましょう。' },
-            { title: 'ステージをプレイ', text: 'ステージ一覧では、難易度・ステージタイプ・作者名で探せます。\n\nゴールまで到達すると記録がランキングに残り、Gなどの報酬も獲得できます。' },
-            { title: 'ステージを制作', text: '「ステージ制作」では、ブロックや敵を配置して自分だけのコースを作れます。\n\nテストでクリアチェックを完了すると、ステージを投稿できます。' },
-            { title: '準備を整えよう', text: 'ショップでは毎日商品が入れ替わります。ロッカーでスキンを装備し、プロフィールやチャットも楽しんでください。\n\n困ったときは、ホームの「パスワード」からいつでもこのチュートリアルを見直せます。' }
+            { icon:'✦', title:'ようこそ、Pixel Stagesへ', text:'ここは、走って、作って、記録を競うステージアクションゲームです。\n\nまずはホーム画面の「プレイ」から、好きなコースへ出発しましょう。', tip:'最初は短いステージから遊ぶと、操作の感覚をつかみやすいです。' },
+            { icon:'⌨', title:'走り方を覚えよう', text:'移動は ← → または A / D。ジャンプは ↑ / W / Space でできます。\n\nゴールまでたどり着けばクリアです。難しい場所では、少し助走をつけてみましょう。', tip:'スマートフォンでは画面下の操作ボタンを使えます。' },
+            { icon:'⌛', title:'タイムを縮めよう', text:'クリアするとタイムが記録され、ステージごとのランキングに残ります。\n\n同じステージを何度でも挑戦して、自分のベストタイムを更新しましょう。', tip:'クリア画面には、今回のステージ順位も表示されます。' },
+            { icon:'✎', title:'自分のコースを作ろう', text:'「ステージ制作」では、ブロックや敵を自由に配置できます。\n\nテストプレイでゴールまで到達してクリアチェックを完了すると、投稿できます。', tip:'最初はBasicブロックだけで短いコースを作るのがおすすめです。' },
+            { icon:'♜', title:'装備と交流を楽しもう', text:'ショップでは毎日商品が入れ替わります。ロッカーでスキンを装備し、プロフィール・チャット・ギルドも活用しましょう。\n\n準備ができたら、あなただけの記録を作りに行きましょう！', tip:'チュートリアルは、ホームの「パスワード」からいつでも見直せます。' }
         ];
         let tutorialStep = 0;
 
@@ -6363,6 +6442,15 @@ function getPswcWinnerCount(username) {
             if (overlay) overlay.style.display = 'none';
         }
 
+        function handleTutorialKeydown(event) {
+            const overlay = document.getElementById('tutorial-overlay');
+            if (!overlay || overlay.style.display === 'none') return;
+            if (event.key === 'ArrowRight' || event.key === 'Enter') { event.preventDefault(); changeTutorialStep(1); }
+            else if (event.key === 'ArrowLeft') { event.preventDefault(); changeTutorialStep(-1); }
+            else if (event.key === 'Escape') { event.preventDefault(); closeTutorial(); }
+        }
+        document.addEventListener('keydown', handleTutorialKeydown);
+
         function changeTutorialStep(delta) {
             if (delta > 0 && tutorialStep >= TUTORIAL_STEPS.length - 1) {
                 closeTutorial();
@@ -6377,13 +6465,24 @@ function getPswcWinnerCount(username) {
             if (!step) return;
             document.getElementById('tutorial-step-label').textContent = `TUTORIAL ${tutorialStep + 1} / ${TUTORIAL_STEPS.length}`;
             document.getElementById('tutorial-title').textContent = step.title;
+            document.getElementById('tutorial-icon').textContent = step.icon || '✦';
             document.getElementById('tutorial-text').textContent = step.text;
+            document.getElementById('tutorial-tip').textContent = step.tip || '';
+            const progress = document.getElementById('tutorial-progress');
+            if (progress) {
+                progress.innerHTML = '';
+                TUTORIAL_STEPS.forEach((_, index) => {
+                    const dot = document.createElement('span');
+                    dot.className = `tutorial-progress-dot${index < tutorialStep ? ' done' : ''}${index === tutorialStep ? ' active' : ''}`;
+                    progress.appendChild(dot);
+                });
+            }
             const prev = document.getElementById('tutorial-prev-btn');
             const next = document.getElementById('tutorial-next-btn');
             if (prev) prev.disabled = tutorialStep === 0;
             if (next) {
                 next.disabled = false;
-                next.textContent = tutorialStep === TUTORIAL_STEPS.length - 1 ? '完了' : '次へ';
+                next.textContent = tutorialStep === TUTORIAL_STEPS.length - 1 ? 'はじめる' : '次へ';
             }
         }
 
@@ -10118,6 +10217,13 @@ function getPswcWinnerCount(username) {
             });
         }
 
+        function getLocalStageRank(stage, username) {
+            const leaderboard = Array.isArray(stage?.leaderboard) ? stage.leaderboard : [];
+            const record = leaderboard.find(entry => String(entry.name) === String(username));
+            if (!record || !Number.isFinite(Number(record.time))) return null;
+            return leaderboard.filter(entry => Number(entry.time) < Number(record.time)).length + 1;
+        }
+
         async function showReward() {
             stopStageBGM();
             playHorizonBGM();
@@ -10178,6 +10284,8 @@ function getPswcWinnerCount(username) {
             if (rewardTotalGold) rewardTotalGold.innerText = `${userGold}`;
             const rewardTimeDisplay = document.getElementById('reward-time-display');
             if (rewardTimeDisplay) rewardTimeDisplay.innerText = `${clearTime.toFixed(3)}s`;
+            const rewardRankDisplay = document.getElementById('reward-rank-display');
+            if (rewardRankDisplay) rewardRankDisplay.innerText = isCupClear ? '大会記録' : '計算中...';
             const rewardCharacterCanvas = document.getElementById('reward-character-canvas');
             if (rewardCharacterCanvas) {
                 const rewardCharacterCtx = rewardCharacterCanvas.getContext('2d');
@@ -10203,7 +10311,11 @@ function getPswcWinnerCount(username) {
             ]);
 
             // 報酬額は今回のクリア前の難易度で決めた後、次回以降の難易度・報酬へ今回の結果を反映する。
-            if (!isCupClear) reflectStageClearLocally(stageId, submitUsername, clearTime, compressedGhost);
+            if (!isCupClear) {
+                reflectStageClearLocally(stageId, submitUsername, clearTime, compressedGhost);
+                const localRank = getLocalStageRank(currentStageData, submitUsername);
+                if (rewardRankDisplay) rewardRankDisplay.innerText = localRank ? `#${localRank}` : '--';
+            }
 
             if (isQuickSend) {
                 // クイック送信: 送信の完了を待たずにOKを押せるようにする（送信は裏で実行）
@@ -10309,6 +10421,10 @@ function getPswcWinnerCount(username) {
                     userPlayerLevelExp = Number(res.playerLevelExp) || 0;
                     userPlayerLevelNextExp = Number(res.playerLevelNextExp) || 400;
                     updateGoldDisplay();
+                }
+                if (res && res.success && res.stageRank !== null && res.stageRank !== undefined && rewardOverlay?.style.display !== 'none') {
+                    const rewardRankDisplay = document.getElementById('reward-rank-display');
+                    if (rewardRankDisplay) rewardRankDisplay.innerText = `#${res.stageRank}`;
                 }
                 if (res && res.success && currentGuildDetails && res.guildRank !== null && res.guildRank !== undefined) {
                     currentGuildDetails.exp = Number(res.guildExp) || currentGuildDetails.exp || 0;
