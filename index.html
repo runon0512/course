@@ -9456,7 +9456,7 @@ function getPswcWinnerCount(username) {
                 // 難易度バッジと枠線スタイルの計算
                 let diffBadge = "";
                 let customFrameStyle = "";
-                const crNum = s.attempts > 0 ? (s.clears || 0) / s.attempts * 100 : 100;
+                const crNum = s.attempts > 0 ? Math.min(100, (s.clears || 0) / s.attempts * 100) : 100;
                 const isNewDimension = (s.attempts >= 500 && crNum <= 0.1);
 
                 if (s.attempts < 5) {
@@ -10370,7 +10370,7 @@ function getPswcWinnerCount(username) {
                     customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
                     gold: userGold,
                     isWeeklyCup: isWeeklyCupMatch
-                }, 40000);
+                }, 60000);
 
                 // 通信エラーやデータサイズ制限で失敗した場合、重いデータ（ゴースト・カスタムスキン）を除外して「タイムのみ」で再送
                 if (!res || !res.success) {
@@ -10387,7 +10387,7 @@ function getPswcWinnerCount(username) {
                     customSprite: null, // カスタムスキンデータを除外
                     gold: userGold,
                     isWeeklyCup: isWeeklyCupMatch
-                    }, 20000);
+                    }, 30000);
                 }
 
                 if (res && res.success && res.auroraStoneAwarded) {
