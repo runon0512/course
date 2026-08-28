@@ -818,6 +818,13 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        .chat-audio {
+            display:block;
+            width:min(28em, 100%);
+            height:2.6em;
+            margin-top:.6cqh;
+            accent-color:var(--primary-color);
+        }
         .chat-video-embed {
             display:block;
             width:min(42cqw, 100%);
@@ -1029,6 +1036,23 @@
             border-color: var(--primary-color);
             transform: scale(1.1);
         }
+        /* スキン制作専用: 絵の具箱をイメージしたカラーパレット */
+        .skin-color-forge {
+            width:100%;
+            box-sizing:border-box;
+            padding:.8cqw;
+            border:.14cqw solid rgba(115,232,255,.75);
+            border-radius:.5cqw;
+            background:linear-gradient(135deg,rgba(12,27,50,.95),rgba(39,20,59,.92));
+            box-shadow:inset 0 0 1cqw rgba(80,216,255,.13),0 0 .8cqw rgba(80,216,255,.16);
+        }
+        .skin-color-forge-title { color:#b8f5ff; font:700 .85cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.16em; }
+        .skin-color-forge-controls { display:flex; align-items:center; gap:.65cqw; margin-top:.55cqh; }
+        .skin-color-picker-button { position:relative; width:2.5cqw; height:2.5cqw; flex:0 0 auto; border:.16cqw solid #fff; border-radius:50%; overflow:hidden; background:conic-gradient(#f44,#fd4,#4d4,#4df,#44f,#d4f,#f44); cursor:pointer; box-shadow:0 0 .55cqw rgba(115,232,255,.7); }
+        .skin-color-picker-button input { position:absolute; inset:-.5cqw; width:4cqw; height:4cqw; opacity:0; cursor:pointer; }
+        .skin-color-forge-hex { min-width:0; flex:1; color:#fff; font:700 .95cqw monospace; letter-spacing:.06em; }
+        .skin-custom-swatch { position:relative; overflow:hidden; }
+        .skin-custom-swatch::after { content:'+'; position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-weight:bold; font-size:1.3cqw; text-shadow:0 .1cqw .2cqw #000; background:linear-gradient(135deg,transparent 55%,rgba(0,0,0,.45)); }
 
         .pixel-btn:active {
             transform: translate(0.4cqw, 0.4cqw);
@@ -1644,7 +1668,7 @@
         #explanation-list { max-height:76cqh !important; }
         #creators-road-overlay > div:not(#road-milestones), #road-milestones { margin-bottom:.7cqh !important; }
         #login-bonus-overlay > p { margin:0 0 .8cqh !important; }
-        #chat-overlay > h2 { font-family:'Dancing Script','Brush Script MT',cursive !important; font-weight:700; font-size:3.8cqw !important; letter-spacing:.04em !important; }
+        #chat-overlay > h2 { font-family:'Roboto','Noto Sans JP',sans-serif !important; font-weight:700; font-size:3.8cqw !important; letter-spacing:.04em !important; }
         #leaderboard-overlay, #weekly-cup-overlay { justify-content:flex-start !important; padding-top:1.2cqh; box-sizing:border-box; }
         #leaderboard-overlay .auth-box { max-height:92cqh !important; }
         #weekly-cup-overlay .auth-box { max-height:94cqh !important; }
@@ -2101,6 +2125,8 @@
                 <button id="chat-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleStageSearch()">📎 ステージを添付</button>
                 <button id="chat-image-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('chat-image-input').click()">🖼️ 画像を送る</button>
                 <input type="file" id="chat-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleChatImageSelect(event)">
+                <button id="chat-audio-btn" class="pixel-btn small" style="background:#7e57c2;" onclick="document.getElementById('chat-audio-input').click()">🎵 音楽を送る</button>
+                <input type="file" id="chat-audio-input" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,.mp3,.wav" style="display:none;" onchange="handleChatAudioSelect(event)">
             </div>
 
             <!-- ステージ検索エリア -->
@@ -2120,6 +2146,10 @@
             <div id="selected-image-info" style="display:none; width:90%; background:var(--primary-color); color:#000; padding:0.5cqw; font-size:1.2cqw; margin-bottom:1cqh; justify-content:space-between; align-items:center;">
                 <span style="display:flex; align-items:center; gap:0.8cqw;">画像添付中 <img id="attached-image-preview" style="height:3cqw; width:auto; border:0.1cqw solid #000;"></span>
                 <button onclick="clearAttachedImage()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.5cqw;">✕</button>
+            </div>
+            <div id="selected-audio-info" style="display:none; width:90%; background:#b39ddb; color:#160d29; padding:0.5cqw; font-size:1.2cqw; margin-bottom:1cqh; justify-content:space-between; align-items:center;">
+                <span>🎵 <span id="attached-audio-name" style="font-weight:bold;"></span></span>
+                <button onclick="clearAttachedAudio()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.5cqw;">✕</button>
             </div>
 
             <div id="chat-list" class="chat-msg-list">
@@ -2310,7 +2340,15 @@
             <div style="display: flex; gap: 4cqw; align-items: flex-start;">
                 <canvas id="custom-edit-canvas" width="256" height="256" style="border: 0.5cqw solid #fff; image-rendering: pixelated; width: 30cqw; height: 30cqw; cursor: crosshair;"></canvas>
                 <div style="display: flex; flex-direction: column; align-items: center;">
-                    <div id="current-pen-color" style="width: 6cqw; height: 6cqw; border: 0.3cqw solid #fff; margin-bottom: 2cqh;"></div>
+                    <div id="current-pen-color" style="width: 6cqw; height: 6cqw; border: 0.3cqw solid #fff; margin-bottom: 1cqh;"></div>
+                    <div class="skin-color-forge">
+                        <div class="skin-color-forge-title">COLOR FORGE</div>
+                        <div class="skin-color-forge-controls">
+                            <label class="skin-color-picker-button" title="好きな色を選ぶ"><input id="editor-custom-color-input" type="color" value="#48d8ff" oninput="selectEditorCustomColor(this.value)"></label>
+                            <span id="editor-custom-color-hex" class="skin-color-forge-hex">#48D8FF</span>
+                            <span style="color:#9fb8d5;font-size:.72cqw;">CUSTOM</span>
+                        </div>
+                    </div>
                     <div class="palette-grid" id="editor-palette"></div>
                     <div style="margin-top: 4cqh; display: flex; flex-direction: column; gap: 2cqh; width: 100%;">
                         <textarea id="custom-skin-code-input" rows="3" spellcheck="false" placeholder="ここにスキンコードを貼り付け" style="box-sizing:border-box; width:100%; resize:vertical; background:#111; color:#fff; border:.15cqw solid #fff; padding:.6cqw; font-family:monospace; font-size:.85cqw;"></textarea>
@@ -2395,7 +2433,7 @@
 
         <!-- ステージ選択画面 -->
         <div id="stage-list-overlay">
-            <h2 id="stage-list-title" class="stage-list-title" style="font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive; font-style:italic; font-size:4cqw; position:relative; z-index:1;">Published Stages</h2>
+            <h2 id="stage-list-title" class="stage-list-title" style="font-family:'Roboto','Noto Sans JP',sans-serif; font-style:normal; font-size:4cqw; position:relative; z-index:1;">Published Stages</h2>
             <div class="stage-filter-bar" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1cqw; margin-bottom: 1cqh; width: 80%; position: relative; z-index: 1;">
                 <button class="pixel-btn small" onclick="closeStageSelect()" style="background: #f44336; color: #fff;">戻る</button>
                 <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
@@ -2559,10 +2597,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzsUy8tYqs6F_cXPjm2LO5G5_Nqu6S-XJNFaeYdrMlrX3wxJcwvPF8UpuhPSj8Y_E7-/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.4.2"
+            VERSION: "3.5.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -5360,6 +5398,9 @@ function getPswcWinnerCount(username) {
                 if (m.hasImage || m.image) {
                     appendChatImage(content, m.id, m.image || null);
                 }
+                if (m.hasAudio || m.audio) {
+                    appendChatAudio(content, m.id, m.audio || null);
+                }
                 if (m.replyToUsername) {
                     const sourceBtn = document.createElement('button');
                     sourceBtn.className = 'chat-reply-source';
@@ -5409,6 +5450,23 @@ function getPswcWinnerCount(username) {
                 : await callApi('getChatImage', { messageId }, 30000);
             // 再読み込みなどで古いチャット要素が消えていた場合は表示しない。
             if (res?.success && res.image && container.isConnected) container.appendChild(createChatImage(res.image));
+        }
+
+        function createChatAudio(src) {
+            const audio = document.createElement('audio');
+            audio.className = 'chat-audio';
+            audio.controls = true;
+            audio.preload = 'none';
+            audio.src = src;
+            audio.setAttribute('aria-label', '添付された音楽');
+            return audio;
+        }
+
+        async function appendChatAudio(container, messageId, cachedAudio = null) {
+            if (!container) return;
+            const res = cachedAudio ? { success: true, audio: cachedAudio }
+                : await callApi('getChatAudio', { messageId }, 30000);
+            if (res?.success && res.audio && container.isConnected) container.appendChild(createChatAudio(res.audio));
         }
 
         let attachedStageId = null;
@@ -5462,10 +5520,53 @@ function getPswcWinnerCount(username) {
             button.insertAdjacentElement('afterend', preview);
         }
         let attachedImageData = null; // 送信待ちの画像 (base64 dataURL)
+        let attachedAudioData = null; // 送信待ちのWAV/MP3 (base64 dataURL)
 
         const CHAT_IMAGE_MAX_FILE_SIZE = 5 * 1024 * 1024; // 元ファイルの上限 5MB
         const CHAT_IMAGE_MAX_DIMENSION = 400; // リサイズ後の最大辺(px)
         const CHAT_IMAGE_MAX_DATA_LENGTH = 45000; // バックエンド保存用の上限文字数
+        const CHAT_AUDIO_MAX_FILE_SIZE = 34 * 1024; // スプレッドシートの1セル上限に収めるため34KBまで
+        const CHAT_AUDIO_MAX_DATA_LENGTH = 47000;
+
+        function handleChatAudioSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = '';
+            if (!file) return;
+            const validAudio = /^(audio\/(mpeg|mp3|wav|x-wav))$/i.test(file.type) || /\.(mp3|wav)$/i.test(file.name);
+            if (!validAudio) {
+                alert('MP3 または WAV ファイルを選択してください。');
+                return;
+            }
+            if (file.size > CHAT_AUDIO_MAX_FILE_SIZE) {
+                alert('音楽ファイルは34KB以下にしてください。短い効果音・短い音楽を添付できます。');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const rawDataUrl = String(reader.result || '');
+                const base64 = rawDataUrl.split(',')[1] || '';
+                // ブラウザによってaudio/mp3や空のMIMEタイプになるため、拡張子から統一する。
+                const mime = /\.wav$/i.test(file.name) ? 'audio/wav' : 'audio/mpeg';
+                const dataUrl = `data:${mime};base64,${base64}`;
+                if (dataUrl.length > CHAT_AUDIO_MAX_DATA_LENGTH) {
+                    alert('音楽ファイルが大きすぎるため送信できません。');
+                    return;
+                }
+                attachedAudioData = dataUrl;
+                document.getElementById('attached-audio-name').innerText = file.name;
+                document.getElementById('selected-audio-info').style.display = 'flex';
+            };
+            reader.onerror = () => alert('音楽ファイルの読み込みに失敗しました。');
+            reader.readAsDataURL(file);
+        }
+
+        function clearAttachedAudio() {
+            attachedAudioData = null;
+            const info = document.getElementById('selected-audio-info');
+            if (info) info.style.display = 'none';
+            const name = document.getElementById('attached-audio-name');
+            if (name) name.innerText = '';
+        }
 
         function handleChatImageSelect(event) {
             const file = event.target.files && event.target.files[0];
@@ -5541,8 +5642,9 @@ function getPswcWinnerCount(username) {
             const sendBtn = input.nextElementSibling;
             const attachBtn = document.getElementById('chat-attach-btn');
             const imageBtn = document.getElementById('chat-image-btn');
+            const audioBtn = document.getElementById('chat-audio-btn');
             const msg = input.value.trim() || (attachedStageId ? "このステージを遊んでみて！" : "");
-            if (!msg && !attachedStageId && !attachedImageData) return;
+            if (!msg && !attachedStageId && !attachedImageData && !attachedAudioData) return;
             // サーバー側でも同じ検査を行い、直接APIを呼ばれた場合も投稿させない。
             const normalizedChatMessage = msg.normalize('NFKC');
             if (normalizedChatMessage.includes('死') || normalizedChatMessage.includes('タヒ')) {
@@ -5554,6 +5656,7 @@ function getPswcWinnerCount(username) {
             sendBtn.disabled = true;
             if (attachBtn) attachBtn.disabled = true;
             if (imageBtn) imageBtn.disabled = true;
+            if (audioBtn) audioBtn.disabled = true;
             const originalText = sendBtn.innerText;
             sendBtn.innerText = "送信中...";
 
@@ -5567,6 +5670,7 @@ function getPswcWinnerCount(username) {
                     attachedStageId: attachedStageId,
                     attachedStageName: attachedStageName,
                     image: attachedImageData,
+                    audio: attachedAudioData,
                     replyToUsername: replyToUsername,
                     replyToMessage: replyToMessage
                 });
@@ -5577,6 +5681,7 @@ function getPswcWinnerCount(username) {
                 input.value = '';
                 clearAttachedStage();
                 clearAttachedImage();
+                clearAttachedAudio();
                 clearChatReply();
                 await refreshChat();
             } finally {
@@ -5584,6 +5689,7 @@ function getPswcWinnerCount(username) {
                 sendBtn.disabled = false;
                 if (attachBtn) attachBtn.disabled = false;
                 if (imageBtn) imageBtn.disabled = false;
+                if (audioBtn) audioBtn.disabled = false;
                 sendBtn.innerText = originalText;
             }
         }
@@ -7517,18 +7623,29 @@ function getPswcWinnerCount(username) {
             btn.disabled = true;
             btn.innerText = "SAVING...";
 
+            const previousSkin = equippedSkin;
+            const previousColor = equippedColor;
             equippedSkin = tempSelectedSkin;
             equippedColor = tempSelectedColor;
 
             // 装備変更を即座にサーバーへ保存（いつでも反映されるように）
-            await callApi('updateSkins', { 
+            const result = await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
                 purchasedSkins: purchasedSkins,
                 equippedSkin: equippedSkin,
                 equippedColor: equippedColor,
                 diamond: userDiamond
-            });
+            }, 30000);
+            if (!result?.success) {
+                equippedSkin = previousSkin;
+                equippedColor = previousColor;
+                updateLockerPreview();
+                btn.disabled = false;
+                btn.innerText = "装備する";
+                alert(result?.message || "スキンを保存できませんでした。もう一度お試しください。");
+                return;
+            }
             updateHomeCharacter();
 
             btn.disabled = false;
@@ -7547,8 +7664,20 @@ function getPswcWinnerCount(username) {
 
         // --- カスタムスキンエディタ ---
         let editorSelectedColorIdx = 1;
+        let editorCustomColor = '#48d8ff';
         let isEditorDrawing = false;
         let currentEditingSprite = null;
+
+        function getEditorSelectedColor() {
+            return editorSelectedColorIdx === -1 ? editorCustomColor : CUSTOM_PALETTE[editorSelectedColorIdx];
+        }
+
+        function selectEditorCustomColor(color) {
+            if (!/^#[0-9a-f]{6}$/i.test(String(color || ''))) return;
+            editorCustomColor = String(color).toLowerCase();
+            editorSelectedColorIdx = -1;
+            renderEditorPalette();
+        }
 
         function openCustomEditor() {
             document.getElementById('custom-editor-overlay').style.display = 'flex';
@@ -7594,14 +7723,27 @@ function getPswcWinnerCount(username) {
                 };
                 container.appendChild(div);
             });
+            const custom = document.createElement('div');
+            custom.className = 'color-swatch skin-custom-swatch' + (editorSelectedColorIdx === -1 ? ' active' : '');
+            custom.style.background = editorCustomColor;
+            custom.title = 'カスタムカラー';
+            custom.onclick = () => {
+                editorSelectedColorIdx = -1;
+                renderEditorPalette();
+            };
+            container.appendChild(custom);
             const pen = document.getElementById('current-pen-color');
-            const cur = CUSTOM_PALETTE[editorSelectedColorIdx];
+            const cur = getEditorSelectedColor();
             if (cur === null) {
                 pen.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 15px 15px';
             } else {
                 pen.style.background = 'none';
                 pen.style.backgroundColor = cur;
             }
+            const colorInput = document.getElementById('editor-custom-color-input');
+            if (colorInput) colorInput.value = editorCustomColor;
+            const hex = document.getElementById('editor-custom-color-hex');
+            if (hex) hex.innerText = editorCustomColor.toUpperCase();
         }
 
         function drawCustomEditor() {
@@ -7640,7 +7782,7 @@ function getPswcWinnerCount(username) {
             const x = Math.floor((e.clientX - rect.left) / (rect.width / 16));
             const y = Math.floor((e.clientY - rect.top) / (rect.height / 16));
             if (x >= 0 && x < 16 && y >= 0 && y < 16) {
-                currentEditingSprite[y][x] = CUSTOM_PALETTE[editorSelectedColorIdx];
+                currentEditingSprite[y][x] = getEditorSelectedColor();
                 drawCustomEditor();
             }
         }
@@ -7686,11 +7828,18 @@ function getPswcWinnerCount(username) {
         }
 
         async function saveCustomSkin() {
+            const previousSprite = customSpriteStore[tempSelectedSkin];
             customSpriteStore[tempSelectedSkin] = currentEditingSprite;
             spriteCache.clear(); // スキンが更新されたのでキャッシュをクリア
-            await callApi('save', { username: CONFIG.USERNAME, key: 'custom_skins', data: customSpriteStore });
-            alert("ドット絵を保存しました！");
-            closeCustomEditor();
+            const result = await callApi('save', { username: CONFIG.USERNAME, key: 'custom_skins', data: customSpriteStore }, 30000);
+            if (result?.success) {
+                alert("ドット絵を保存しました！");
+                closeCustomEditor();
+            } else {
+                customSpriteStore[tempSelectedSkin] = previousSprite;
+                spriteCache.clear();
+                alert(result?.message || "ドット絵を保存できませんでした。もう一度お試しください。");
+            }
         }
 
         // --- クリエイト画面のSpecial欄設定 ---
@@ -10369,7 +10518,9 @@ function getPswcWinnerCount(username) {
                     // カスタムスキンは記録更新時のみ送信してさらに軽量化 (GASのサイズ制限対策)
                     customSprite: (isTop5Candidate && SKINS[equippedSkin].isCustom) ? customSpriteStore[equippedSkin] : null,
                     gold: userGold,
-                    isWeeklyCup: isWeeklyCupMatch
+                    isWeeklyCup: isWeeklyCupMatch,
+                    // recordAttempt の通信が遅れても、今回の挑戦回数をサーバー側で整合できるようにする。
+                    expectedAttempts: Number(currentStageData?.attempts) || 0
                 }, 60000);
 
                 // 通信エラーやデータサイズ制限で失敗した場合、重いデータ（ゴースト・カスタムスキン）を除外して「タイムのみ」で再送
@@ -10386,7 +10537,8 @@ function getPswcWinnerCount(username) {
                     eventStones: userES,
                     customSprite: null, // カスタムスキンデータを除外
                     gold: userGold,
-                    isWeeklyCup: isWeeklyCupMatch
+                    isWeeklyCup: isWeeklyCupMatch,
+                    expectedAttempts: Number(currentStageData?.attempts) || 0
                     }, 30000);
                 }
 
@@ -11074,6 +11226,15 @@ function getPswcWinnerCount(username) {
             // X衝突
             let nextX = player.x + player.vx;
             let collidedX = isCollide(nextX, player.y, true, 'x');
+            // ハーフブロックは下半分だけが壁になる。横から当たった時も、
+            // ブロックの端で止めてめり込み・不自然な隙間を防ぐ。
+            const halfBlockSideX = player.vx !== 0
+                ? getHalfBlockSideBoundary(player.x, nextX, player.y, player.w, player.h)
+                : null;
+            if (halfBlockSideX !== null) {
+                collidedX = true;
+                nextX = halfBlockSideX;
+            }
             
             // 一方通行壁（横方向）の判定
             if (!collidedX) {
@@ -11119,6 +11280,7 @@ function getPswcWinnerCount(username) {
             if(!collidedX) {
                 player.x = nextX;
             } else {
+                if (halfBlockSideX !== null) player.x = nextX;
                 if(isTouchingType(nextX, player.y, 'X')) player.vx = (player.vx > 0 ? -0.5 : 0.5);
                 else player.vx = 0;
             }
@@ -11134,6 +11296,15 @@ function getPswcWinnerCount(username) {
                 nextY = hitWoodCrateFromBelow.y + 1;
             }
             let collidedY = !!hitWoodCrateFromBelow || isCollide(player.x, nextY, true, 'y');
+            // ハーフブロックの実体は下半分だけ。通常ブロックの上端ではなく、
+            // 実際の上面（セル中央）へ正確に着地させる。
+            const halfBlockLandingY = player.vy > 0
+                ? getHalfBlockLandingSurface(player.x, player.w, player.y + player.h, nextY + player.h)
+                : null;
+            if (halfBlockLandingY !== null) {
+                collidedY = true;
+                nextY = halfBlockLandingY - player.h;
+            }
             let hitDownOneWayCeiling = false;
             
             // 橋（下から抜けられる足場）の特殊判定
@@ -11200,6 +11371,7 @@ function getPswcWinnerCount(username) {
                         }
                     }
                 } else if (player.vy > 0) {
+                    if (halfBlockLandingY !== null) player.y = nextY;
                     player.onGround = true;
                 }
                 player.vy = 0;
@@ -11361,9 +11533,13 @@ function getPswcWinnerCount(username) {
                 if (en.isWolf && en.isBigJumping && en.vy < 0) destroyBlocksInBox(nextX, en.y, enSize);
                 // ボスは新しい物理木箱を押して進める。
                 pushWoodCratesByBoss(en, nextX, enSize);
-                if (!isEnemyCollide(nextX, en.y, 'x', enSize)) {
+                const enemyHalfBlockSideX = en.vx !== 0
+                    ? getHalfBlockSideBoundary(en.x, nextX, en.y, enSize, enSize)
+                    : null;
+                if (!isEnemyCollide(nextX, en.y, 'x', enSize) && enemyHalfBlockSideX === null) {
                     en.x = nextX;
                 } else {
+                    if (enemyHalfBlockSideX !== null) en.x = enemyHalfBlockSideX;
                     if (!en.sync) {
                         if (en.isPurple && en.isDashing) {
                             en.isDashing = false;
@@ -11412,6 +11588,13 @@ function getPswcWinnerCount(username) {
                 if (en.isWolf && en.isBigJumping && en.vy < 0) destroyBlocksInBox(en.x, nextY, enSize);
                 // 地面との接触判定を少し深く（+0.05）して、歩行中の浮遊感を解消する
                 let collidedY = isEnemyCollide(en.x, nextY + (en.vy > 0 ? 0.05 : 0), 'y', enSize);
+                const enemyHalfBlockLandingY = en.vy > 0
+                    ? getHalfBlockLandingSurface(en.x, enSize, en.y + enSize, nextY + enSize + 0.05)
+                    : null;
+                if (enemyHalfBlockLandingY !== null) {
+                    collidedY = true;
+                    nextY = enemyHalfBlockLandingY - enSize;
+                }
                 let isBridge = false;
 
                 if (!collidedY && en.vy >= 0) {
@@ -11462,7 +11645,7 @@ function getPswcWinnerCount(username) {
                             }
                         }
                         if (en.vy > 0) {
-                            en.y = isBridge ? nextY : Math.floor(nextY + enSize + 0.05) - enSize;
+                            en.y = (isBridge || enemyHalfBlockLandingY !== null) ? nextY : Math.floor(nextY + enSize + 0.05) - enSize;
                             en.onGround = true;
                         }
                         en.vy = 0;
@@ -12211,6 +12394,60 @@ function getPswcWinnerCount(username) {
                     y + h - inset > crate.y + inset && y + inset < crate.y + 1 - inset) return true;
             }
             return false;
+        }
+
+        // ハーフブロックの上面だけを取得する。落下前後の足元を比較することで、
+        // 横から触れただけ・下から突いた場合を着地として扱わない。
+        function getHalfBlockLandingSurface(x, w, previousBottom, nextBottom) {
+            if (nextBottom < previousBottom) return null;
+            const inset = 0.05;
+            const left = Math.floor(x + inset);
+            const right = Math.floor(x + w - inset);
+            const startY = Math.max(0, Math.floor(previousBottom - 0.001) - 1);
+            const endY = Math.min(GRID_H - 1, Math.floor(nextBottom + 0.001) + 1);
+            let landingSurface = null;
+            for (let iy = startY; iy <= endY; iy++) {
+                const surface = iy + 0.5;
+                if (previousBottom > surface + 0.02 || nextBottom < surface - 0.02) continue;
+                for (let ix = left; ix <= right; ix++) {
+                    if (ix >= 0 && ix < GRID_W && activeStage[iy] && activeStage[iy][ix] === 'HBK') {
+                        if (landingSurface === null || surface < landingSurface) landingSurface = surface;
+                        break;
+                    }
+                }
+            }
+            return landingSurface;
+        }
+
+        // 横移動でハーフブロックの実体部分に入ろうとした時の停止位置。
+        // 上半分では通過でき、下半分と重なっている時だけ壁として扱う。
+        function getHalfBlockSideBoundary(previousX, nextX, y, w, h) {
+            if (nextX === previousX) return null;
+            const epsilon = 0.02;
+            const top = y + epsilon;
+            const bottom = y + h - epsilon;
+            const movingRight = nextX > previousX;
+            const oldEdge = movingRight ? previousX + w : previousX;
+            const newEdge = movingRight ? nextX + w : nextX;
+            const from = Math.max(0, Math.floor(Math.min(oldEdge, newEdge)) - 1);
+            const to = Math.min(GRID_W - 1, Math.floor(Math.max(oldEdge, newEdge)) + 1);
+            let boundary = null;
+            for (let ix = from; ix <= to; ix++) {
+                const blockEdge = movingRight ? ix : ix + 1;
+                const crosses = movingRight
+                    ? oldEdge <= blockEdge + epsilon && newEdge > blockEdge + epsilon
+                    : oldEdge >= blockEdge - epsilon && newEdge < blockEdge - epsilon;
+                if (!crosses) continue;
+                for (let iy = Math.max(0, Math.floor(top) - 1); iy <= Math.min(GRID_H - 1, Math.floor(bottom) + 1); iy++) {
+                    if (!activeStage[iy] || activeStage[iy][ix] !== 'HBK') continue;
+                    const overlapsSolidHalf = bottom > iy + 0.5 + epsilon && top < iy + 1 - epsilon;
+                    if (!overlapsSolidHalf) continue;
+                    const stopX = movingRight ? ix - w : ix + 1;
+                    if (boundary === null || (movingRight ? stopX < boundary : stopX > boundary)) boundary = stopX;
+                    break;
+                }
+            }
+            return boundary;
         }
 
         function isCollide(x, y, isPlayer = false, axis = null) {
