@@ -2146,8 +2146,6 @@
                 <button id="chat-attach-btn" class="pixel-btn small" style="background:#4caf50;" onclick="toggleStageSearch()">📎 ステージを添付</button>
                 <button id="chat-image-btn" class="pixel-btn small" style="background:#2196f3;" onclick="document.getElementById('chat-image-input').click()">🖼️ 画像を送る</button>
                 <input type="file" id="chat-image-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" onchange="handleChatImageSelect(event)">
-                <button id="chat-audio-btn" class="pixel-btn small" style="background:#7e57c2;" onclick="document.getElementById('chat-audio-input').click()">🎵 音楽を送る</button>
-                <input type="file" id="chat-audio-input" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,.mp3,.wav" style="display:none;" onchange="handleChatAudioSelect(event)">
             </div>
 
             <!-- ステージ検索エリア -->
@@ -2168,11 +2166,6 @@
                 <span style="display:flex; align-items:center; gap:0.8cqw;">画像添付中 <img id="attached-image-preview" style="height:3cqw; width:auto; border:0.1cqw solid #000;"></span>
                 <button onclick="clearAttachedImage()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.5cqw;">✕</button>
             </div>
-            <div id="selected-audio-info" style="display:none; width:90%; background:#b39ddb; color:#160d29; padding:0.5cqw; font-size:1.2cqw; margin-bottom:1cqh; justify-content:space-between; align-items:center;">
-                <span>🎵 <span id="attached-audio-name" style="font-weight:bold;"></span></span>
-                <button onclick="clearAttachedAudio()" style="background:none; border:none; cursor:pointer; font-weight:bold; font-size:1.5cqw;">✕</button>
-            </div>
-
             <div id="chat-list" class="chat-msg-list">
                 <!-- 内容はJSで生成 -->
             </div>
@@ -2873,9 +2866,14 @@ function getPswcWinnerCount(username) {
         async function ensureAllStagesForOvr() {
             if (allStagesForOvrLoaded && Array.isArray(cachedStages)) return cachedStages;
             if (allStagesForOvrPromise) return allStagesForOvrPromise;
-            allStagesForOvrPromise = callApi('getPublished', {})
+            // 全件データはステージ数により応答が大きくなるため、通常の短い通信時間では
+            // 中断しないよう、この読み込みだけ余裕を持たせる。
+            allStagesForOvrPromise = callApi('getPublished', {}, 60000)
                 .then(res => {
-                    cachedStages = Array.isArray(res?.stages) ? res.stages : [];
+                    if (!res?.success || !Array.isArray(res.stages)) {
+                        throw new Error(apiMessageText(res?.message, '全ステージを取得できませんでした。'));
+                    }
+                    cachedStages = res.stages;
                     allStagesForOvrLoaded = true;
                     _badgeOvrCache = {};
                     _badgeOvrCacheRef = cachedStages;
@@ -2883,6 +2881,16 @@ function getPswcWinnerCount(username) {
                 })
                 .finally(() => { allStagesForOvrPromise = null; });
             return allStagesForOvrPromise;
+        }
+        function preloadAllStagesInBackground(username) {
+            // ホームの初期ロード完了後、操作を妨げないタイミングで全ステージを先読みする。
+            // 一覧を先に開いた場合も ensureAllStagesForOvr の Promise を共有するため二重通信しない。
+            const start = () => {
+                if (!CONFIG.IS_LOGGED_IN || CONFIG.USERNAME !== username) return;
+                ensureAllStagesForOvr().catch(error => console.warn('全ステージのバックグラウンド読み込みに失敗:', error));
+            };
+            if ('requestIdleCallback' in window) window.requestIdleCallback(start, { timeout: 1500 });
+            else setTimeout(start, 0);
         }
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
@@ -3836,7 +3844,7 @@ function getPswcWinnerCount(username) {
                 if (!input) return;
                 input.disabled = isLoading;
                 input.value = '';
-                input.placeholder = isLoading ? '自動ログイン中...' : (input.id === 'username' ? 'USERNAME' : 'PASSWORD');
+                input.placeholder = input.id === 'username' ? 'USERNAME' : 'PASSWORD';
             });
         }
 
@@ -4187,7 +4195,7 @@ function getPswcWinnerCount(username) {
             }
         }
 
-        function completeLogin(res) {
+        function completeLogin(res, delay = 1000) {
             setTimeout(() => {
                 CONFIG.IS_LOGGED_IN = true;
                 CONFIG.USERNAME = res.username;
@@ -4211,6 +4219,7 @@ function getPswcWinnerCount(username) {
                 creatorSpecialSettings = { order: [], visible: {} };
                 // 全ステージの本体データは、必要になった画面でページ単位に取得する。
                 cachedStages = null;
+                allStagesForOvrLoaded = false;
                 showLoggedInHome(res.username);
                 if (openTutorialAfterRegistration) {
                     openTutorialAfterRegistration = false;
@@ -4219,13 +4228,16 @@ function getPswcWinnerCount(username) {
                 startHomeSyncUI();
                 preloadAllData(res.username, res.loginBonusHistory)
                     .catch(error => console.error('初期データ同期エラー:', error))
-                    .finally(finishHomeSyncUI);
+                    .finally(() => {
+                        finishHomeSyncUI();
+                        preloadAllStagesInBackground(res.username);
+                    });
                 document.getElementById('sort-criteria').value = currentSort;
                 document.getElementById('filter-my-stages').checked = filterMyStages;
                 document.getElementById('filter-creator').value = filterCreatorName;
                 document.getElementById('filter-stage-name').value = filterStageName;
                 updateGoldDisplay();
-            }, 1000);
+            }, delay);
         }
 
         async function resumeLoginFromCookie() {
@@ -4235,15 +4247,14 @@ function getPswcWinnerCount(username) {
             let resumed = false;
             setAutoLoginInputState(true);
             msg.style.color = '#fff';
-            msg.innerText = '自動ログイン中...';
+            msg.innerText = 'Loading...';
             try {
                 const res = await callApi('resumeSession', { sessionToken: token });
                 if (res?.success) {
                     resumed = true;
                     activeSessionToken = token;
-                    msg.style.color = 'var(--primary-color)';
-                    msg.innerText = apiMessageText(res.message, '自動ログインしました。');
-                    completeLogin(res);
+                    // 自動ログイン専用の確認画面は出さず、認証完了後すぐ通常のロードへ進む。
+                    completeLogin(res, 0);
                     return;
                 }
                 clearAuthSessionCookie();
@@ -7247,7 +7258,17 @@ function getPswcWinnerCount(username) {
                 return;
             }
 
-            await ensureAllStagesForOvr();
+            // ギルド順位は全ステージを必要としない。全件先読みの完了待ちで
+            // ランキング全体が開けなくなるのを防ぐ。
+            if (tab !== 'guild') {
+                try {
+                    await ensureAllStagesForOvr();
+                } catch (error) {
+                    title.innerText = 'RANKING';
+                    body.innerHTML = '<tr><td colspan="3" style="padding:1.5cqh; color:#ff8a80;">ランキングを読み込めませんでした。<button class="pixel-btn small" style="margin-left:1cqw;" onclick="showGlobalRanking(\'player\')">再読み込み</button></td></tr>';
+                    return;
+                }
+            }
             await ensureBadgeSettingsLoaded();
 
         if (tab === 'guild') {
@@ -7684,8 +7705,7 @@ function getPswcWinnerCount(username) {
         let editorCustomColor = '#48d8ff';
         let isEditorDrawing = false;
         let currentEditingSprite = null;
-        // 固定色は基本の6色に絞り、細かな色は COLOR FORGE から選ぶ。
-        const SKIN_EDITOR_BASE_PALETTE_INDEXES = [0, 1, 2, 3, 4, 5];
+        // -1: カスタムカラー、23: 消しゴム、-2: スポイト
 
         function getEditorSelectedColor() {
             return editorSelectedColorIdx === -1 ? editorCustomColor : CUSTOM_PALETTE[editorSelectedColorIdx];
@@ -7726,32 +7746,6 @@ function getPswcWinnerCount(username) {
         function renderEditorPalette() {
             const container = document.getElementById('editor-palette');
             container.innerHTML = '';
-            SKIN_EDITOR_BASE_PALETTE_INDEXES.forEach(idx => {
-                const color = CUSTOM_PALETTE[idx];
-                const div = document.createElement('div');
-                div.className = 'color-swatch';
-                if (color === null) {
-                    div.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 10px 10px';
-                    div.title = "消しゴム";
-                } else {
-                    div.style.backgroundColor = color;
-                }
-                if (idx === editorSelectedColorIdx) div.classList.add('active');
-                div.onclick = () => {
-                    editorSelectedColorIdx = idx;
-                    renderEditorPalette();
-                };
-                container.appendChild(div);
-            });
-            const eraser = document.createElement('div');
-            eraser.className = 'color-swatch' + (editorSelectedColorIdx === 23 ? ' active' : '');
-            eraser.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 10px 10px';
-            eraser.title = '消しゴム';
-            eraser.onclick = () => {
-                editorSelectedColorIdx = 23;
-                renderEditorPalette();
-            };
-            container.appendChild(eraser);
             const custom = document.createElement('div');
             custom.className = 'color-swatch skin-custom-swatch' + (editorSelectedColorIdx === -1 ? ' active' : '');
             custom.style.background = editorCustomColor;
@@ -7761,9 +7755,31 @@ function getPswcWinnerCount(username) {
                 renderEditorPalette();
             };
             container.appendChild(custom);
+            const eraser = document.createElement('div');
+            eraser.className = 'color-swatch' + (editorSelectedColorIdx === 23 ? ' active' : '');
+            eraser.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 10px 10px';
+            eraser.title = '消しゴム';
+            eraser.innerText = '⌫';
+            eraser.onclick = () => {
+                editorSelectedColorIdx = 23;
+                renderEditorPalette();
+            };
+            container.appendChild(eraser);
+            const eyedropper = document.createElement('div');
+            eyedropper.className = 'color-swatch skin-eyedropper-swatch' + (editorSelectedColorIdx === -2 ? ' active' : '');
+            eyedropper.style.background = '#17253d';
+            eyedropper.title = 'スポイト：キャンバス上の色を取得';
+            eyedropper.innerText = '◉';
+            eyedropper.onclick = () => {
+                editorSelectedColorIdx = -2;
+                renderEditorPalette();
+            };
+            container.appendChild(eyedropper);
             const pen = document.getElementById('current-pen-color');
             const cur = getEditorSelectedColor();
-            if (cur === null) {
+            if (editorSelectedColorIdx === -2) {
+                pen.style.background = 'radial-gradient(circle, #dffcff 0 22%, transparent 25% 35%, #77e8ff 38% 48%, transparent 51%), #17253d';
+            } else if (cur === null) {
                 pen.style.background = 'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 15px 15px';
             } else {
                 pen.style.background = 'none';
@@ -7773,6 +7789,8 @@ function getPswcWinnerCount(username) {
             if (colorInput) colorInput.value = editorCustomColor;
             const hex = document.getElementById('editor-custom-color-hex');
             if (hex) hex.innerText = editorCustomColor.toUpperCase();
+            const canvas = document.getElementById('custom-edit-canvas');
+            if (canvas) canvas.style.cursor = editorSelectedColorIdx === -2 ? 'copy' : 'crosshair';
         }
 
         function drawCustomEditor() {
@@ -7811,6 +7829,18 @@ function getPswcWinnerCount(username) {
             const x = Math.floor((e.clientX - rect.left) / (rect.width / 16));
             const y = Math.floor((e.clientY - rect.top) / (rect.height / 16));
             if (x >= 0 && x < 16 && y >= 0 && y < 16) {
+                if (editorSelectedColorIdx === -2) {
+                    const picked = currentEditingSprite[y][x];
+                    if (picked) {
+                        editorCustomColor = picked;
+                        editorSelectedColorIdx = -1;
+                    } else {
+                        editorSelectedColorIdx = 23;
+                    }
+                    isEditorDrawing = false;
+                    renderEditorPalette();
+                    return;
+                }
                 currentEditingSprite[y][x] = getEditorSelectedColor();
                 drawCustomEditor();
             }
@@ -8432,7 +8462,10 @@ function getPswcWinnerCount(username) {
                         }
                     }
                     if (currentTool === 'S' && editorFace !== 'front') {
-                        showQuickMsg('スタートは表面にのみ配置できます。', '#ff5252');
+                        // 裏面でスタートを置こうとした場合は、誤配置せず表面へ案内する。
+                        showQuickMsg('スタートは表面にしか置けません。', '#ff5252');
+                        isDrawing = false;
+                        toggleEditorFace();
                         return;
                     }
                     if (currentTool === 'S' && editorGrid[y][x] !== 'S') {
