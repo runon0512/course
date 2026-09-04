@@ -2614,7 +2614,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.6.1"
+            VERSION: "3.6.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -6830,6 +6830,14 @@ function getPswcWinnerCount(username) {
             elite:   { bg: 'linear-gradient(135deg,#000000,#0d1b2a,#2979ff)', text: '#fff',    border: '#2979ff', glow: 'rgba(41,121,255,0.8)',  icon: '⚔️' },
             aurora:  { bg: 'linear-gradient(90deg,#00ff9d,#00bfff,#a020f0,#00ff9d)', text: '#fff', border: '#fff', glow: 'rgba(160,32,240,0.8)', icon: '🌌' }
         };
+        // 公式異名。ランクバッジの直後に表示し、特別な実績をひと目で分かるようにする。
+        const PLAYER_EPITHETS = Object.freeze({
+            'Test001':       { title: 'The Apex',          bg: 'linear-gradient(135deg,#050505,#211700 48%,#050505)', text: '#ffe68a', border: '#ffd54a', glow: 'rgba(255,197,42,.85)' },
+            'AKY_016':       { title: 'Master Architect',  bg: 'linear-gradient(135deg,#102b4b,#216ba3)', text: '#d8f5ff', border: '#71d9ff', glow: 'rgba(76,198,255,.55)' },
+            'りょくちゃくん': { title: 'Chrono Runner',    bg: 'linear-gradient(135deg,#173348,#1c7d86)', text: '#d7ffff', border: '#63f0e4', glow: 'rgba(75,241,224,.55)' },
+            'rauninkatawa':  { title: 'Godslayer',         bg: 'linear-gradient(135deg,#470c17,#8d2734)', text: '#ffe2e6', border: '#ff8290', glow: 'rgba(255,75,98,.55)' },
+            'ひすいゲームズ': { title: 'The Unbroken',     bg: 'linear-gradient(135deg,#31205c,#694399)', text: '#efe1ff', border: '#c79cff', glow: 'rgba(190,132,255,.55)' }
+        });
 
         function getBadgeTier(ovr) {
             const v = Math.max(0, Math.round(Number(ovr) || 0));
@@ -6886,7 +6894,11 @@ function getPswcWinnerCount(username) {
                 : '<span class="guild-badge guild-badge-empty" title="ギルド未所属"></span>';
             const wins = getPswcWinnerCount(username);
             const winnerBadge = wins > 0 ? `<span class="weekly-cup-winner-badge" title="PSWC 優勝 ${wins} 回">🏆×${wins}</span>` : '';
-            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${guildIcon}${winnerBadge}`;
+            const epithet = PLAYER_EPITHETS[String(username)];
+            const epithetBadge = epithet
+                ? `<span class="player-epithet" title="${epithet.title}" style="display:inline-flex; align-items:center; margin-left:.32em; padding:${size === 'small' ? '1px 5px' : '2px 7px'}; border:1px solid ${epithet.border}; border-radius:.2em; background:${epithet.bg}; color:${epithet.text}; font-size:${size === 'small' ? '.63cqw' : '.73cqw'}; font-weight:900; line-height:1.25; white-space:nowrap; text-shadow:0 1px #000; box-shadow:0 0 6px ${epithet.glow};">${epithet.title}</span>`
+                : '';
+            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${epithetBadge}${guildIcon}${winnerBadge}`;
         }
 
         // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
@@ -8062,6 +8074,9 @@ function getPswcWinnerCount(username) {
 
         // --- エディタ関連 ---
         function startEditor() {
+            // 確認ダイアログ中に画面を閉じた場合でも、次に開いた制作画面の操作を止めない。
+            stageTypeWarnPending = false;
+            isDrawing = false;
             activeStage = [];
             // エディタ背景をリセット
             const container = document.querySelector('.container');
@@ -8398,17 +8413,27 @@ function getPswcWinnerCount(username) {
         }
 
         const editorCanvas = document.getElementById('editor-canvas');
-        editorCanvas.addEventListener('mousedown', e => {
+        // Pointer Events に統一し、PC・スマートフォンのどちらでも確実に配置できるようにする。
+        editorCanvas.style.touchAction = 'none';
+        editorCanvas.addEventListener('pointerdown', e => {
             if (e.button === 2) return; // 右クリックはcontextmenuで処理
+            e.preventDefault();
             isDrawing = true;
+            try { editorCanvas.setPointerCapture(e.pointerId); } catch (_) {}
             handleEditorInput(e);
         });
-        editorCanvas.addEventListener('mousemove', e => {
-            if (isDrawing) handleEditorInput(e);
-            // 右クリックドラッグでも消去できるように
-            if (e.buttons === 2) eraseAt(e);
+        editorCanvas.addEventListener('pointermove', e => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            handleEditorInput(e);
         });
-        window.addEventListener('mouseup', () => { isDrawing = false; });
+        const stopEditorDrawing = e => {
+            isDrawing = false;
+            try { if (e && editorCanvas.hasPointerCapture(e.pointerId)) editorCanvas.releasePointerCapture(e.pointerId); } catch (_) {}
+        };
+        editorCanvas.addEventListener('pointerup', stopEditorDrawing);
+        editorCanvas.addEventListener('pointercancel', stopEditorDrawing);
+        window.addEventListener('blur', () => { isDrawing = false; });
 
         // 右クリックで消しゴム機能
         editorCanvas.addEventListener('contextmenu', e => {
@@ -9788,7 +9813,7 @@ function getPswcWinnerCount(username) {
                                 ${getFrontStageType(s.stageType) === 'beach' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff;">🏖️海辺</span>' : ''}
                                 ${(getFrontStageType(s.stageType) === 'rai_alvaro' || getFrontStageType(s.stageType) === 'rai_alvaro_v2') ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
                                 ${diffBadge}
-                                <span style="font-size:1.3cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
+                                <span style="font-size:1.3cqw; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
                             <div style="font-size:0.8cqw; color:#aaa;">by <span class="${getUserNameClasses(s.creator)}">${s.creator}</span></div>
                         </div>
