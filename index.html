@@ -1434,6 +1434,10 @@
         }
         .difficulty-badge::before { content:''; width:.43cqw; height:.43cqw; flex:0 0 .43cqw; border-radius:50%; background:currentColor; box-shadow:0 0 .4cqw currentColor; }
         .stage-type-badge { display:inline-flex; align-items:center; min-height:1.85cqw; box-sizing:border-box; padding:.3cqh .7cqw !important; border-radius:99px !important; font-size:.86cqw !important; font-weight:800; line-height:1; letter-spacing:.035em; box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); }
+        /* 従来のステージタイプバッジに近い丸い見た目で、表／裏だけを控えめに区別する。 */
+        .stage-face-types { display:inline-flex; align-items:center; min-height:1.85cqw; border:1px solid #85e6ff; border-radius:99px; overflow:hidden; background:linear-gradient(135deg,#166bb0,#269fbe); box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); white-space:nowrap; }
+        .stage-face-type { display:inline-flex; align-items:center; padding:.3cqh .58cqw; color:#fff; font-size:.86cqw; font-weight:800; line-height:1; letter-spacing:.035em; }
+        .stage-face-type.back { border-left:1px solid rgba(255,255,255,.48); }
         .difficulty-new { background:linear-gradient(135deg,#1d9273,#3578b8); border-color:#8ff3ce; }
         .difficulty-normal { background:linear-gradient(135deg,#166bb0,#269fbe); border-color:#85e6ff; }
         .difficulty-hard { background:linear-gradient(135deg,#572379,#9a3da0); border-color:#e5a3ff; }
@@ -2506,6 +2510,7 @@
                         <option value="water">🌊 水中</option>
                         <option value="dark">🌑 暗闇</option>
                         <option value="timeattack">⌛ タイムアタック</option>
+                        <option id="stage-type-option-big" value="big">⬛ ビッグ</option>
                         <option id="stage-type-option-hard" value="hard">💀 HARD（未購入）</option>
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                         <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
@@ -2627,7 +2632,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.6.2"
+            VERSION: "3.6.3"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2839,13 +2844,51 @@ function getPswcWinnerCount(username) {
             { type: 'normal', title: '通常', text: '標準的な物理と背景のステージです。' },
             { type: 'water', title: '水中', text: '水中では移動に抵抗がかかり、ジャンプキーで上昇します。' },
             { type: 'dark', title: '暗闇', text: 'プレイヤーとランプの周囲だけが明るく見えるステージです。' },
+            { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。' },
             { type: 'hard', title: 'HARD', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
             { type: 'volcano', title: '火山', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
             { type: 'moon', title: '月', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: '海辺', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
             { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' }
         ];
-        const GRID_W = 20, GRID_H = 10;
+        const BASE_GRID_W = 20, BASE_GRID_H = 10;
+        // ビッグステージのプレイ中だけ、論理グリッドを2倍に展開する。
+        // 制作画面と通常ステージは従来の20x10を保つ。
+        let GRID_W = BASE_GRID_W, GRID_H = BASE_GRID_H;
+        let bigStageActive = false;
+        const BIG_SINGLE_TILES = new Set(['S', 'M', 'j', 'e', 'WCN', 'PB', 'WB', 'BL']);
+        function resetGameGridSize() {
+            GRID_W = BASE_GRID_W;
+            GRID_H = BASE_GRID_H;
+            bigStageActive = false;
+        }
+        function expandBigStageGrid(grid) {
+            const expanded = Array.from({ length: BASE_GRID_H * 2 }, () => Array(BASE_GRID_W * 2).fill(null));
+            for (let y = 0; y < BASE_GRID_H; y++) {
+                for (let x = 0; x < BASE_GRID_W; x++) {
+                    const tile = grid[y]?.[x];
+                    if (!tile) continue;
+                    const px = x * 2, py = y * 2;
+                    expanded[py][px] = tile;
+                    // プレイヤーや敵は通常サイズのまま。その他のタイルは2x2へ拡大する。
+                    if (!BIG_SINGLE_TILES.has(tile)) {
+                        expanded[py][px + 1] = tile;
+                        expanded[py + 1][px] = tile;
+                        expanded[py + 1][px + 1] = tile;
+                    }
+                }
+            }
+            return expanded;
+        }
+        function configureGameGridForStage(frontGrid, backGrid, frontType, backType) {
+            resetGameGridSize();
+            if (frontType !== 'big' && backType !== 'big') return { front: frontGrid, back: backGrid };
+            bigStageActive = true;
+            GRID_W = BASE_GRID_W * 2;
+            GRID_H = BASE_GRID_H * 2;
+            // 表裏ワープ時に座標系が変わらないよう、どちらかがビッグなら両面を同じ倍率で扱う。
+            return { front: expandBigStageGrid(frontGrid), back: expandBigStageGrid(backGrid) };
+        }
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
         let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0 };
@@ -3651,18 +3694,25 @@ function getPswcWinnerCount(username) {
                     const type = activeStage[y][x];
                     if (!type) continue;
 
-                    if (type === 'LM') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch, radiusTiles: 1.8 });
+                    // ビッグステージは2x2に展開した同一タイルを、1つの大きなタイルとして描く。
+                    if (bigStageActive && ((x & 1) || (y & 1))) continue;
+                    const drawX = bigStageActive ? x / 2 : x;
+                    const drawY = bigStageActive ? y / 2 : y;
+                    const drawCW = bigStageActive ? cw * 2 : cw;
+                    const drawCH = bigStageActive ? ch * 2 : ch;
+
+                    if (type === 'LM') lampPositions.push({ x: (x + (bigStageActive ? 1 : .5)) * cw, y: (y + (bigStageActive ? 1 : .5)) * ch, radiusTiles: 1.8 });
                     // 炎ブロックも暗闇では光源になる。ランプより少し広く、暖色の光を想定する。
-                    if (type === 'FL') lampPositions.push({ x: (x + 0.5) * cw, y: (y + 0.55) * ch, radiusTiles: 2.25 });
-                    if (type === 'CA') candlePositions.push({ x: (x + 0.5) * cw, y: (y + 0.5) * ch });
+                    if (type === 'FL') lampPositions.push({ x: (x + (bigStageActive ? 1 : .5)) * cw, y: (y + (bigStageActive ? 1.1 : .55)) * ch, radiusTiles: 2.25 });
+                    if (type === 'CA') candlePositions.push({ x: (x + (bigStageActive ? 1 : .5)) * cw, y: (y + (bigStageActive ? 1 : .5)) * ch });
                     if (type === 'sp' || type === 'sp_blue') spawnerPositions.push({ x, y, blue: type === 'sp_blue' });
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
 
                     if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL', 'BH'].includes(type)) {
-                        dynamicTiles.push({x, y, type});
+                        dynamicTiles.push({x, y, type, big: bigStageActive});
                     } else {
-                        drawTile(stageCacheCtx, x, y, cw, ch, type, 0);
+                        drawTile(stageCacheCtx, drawX, drawY, drawCW, drawCH, type, 0);
                     }
                 }
             }
@@ -3676,6 +3726,8 @@ function getPswcWinnerCount(username) {
         // 描画するため、この部分更新でも見た目は変わらない。
         function updateStageCacheTile(x, y) {
             if (!stageCacheCanvas || activeStage.length === 0) return;
+            // 2x2タイルでは、部分描画より全体キャッシュの方が安全に境界を保てる。
+            if (bigStageActive) { updateStageCache(); return; }
             const cw = stageCacheCanvas.width / GRID_W;
             const ch = stageCacheCanvas.height / GRID_H;
             stageCacheCtx.clearRect(x * cw, y * ch, cw, ch);
@@ -4613,7 +4665,7 @@ function getPswcWinnerCount(username) {
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', hard: '#2a1018', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', water: '#006da8', dark: '#000', big: '#2d4d75', hard: '#2a1018', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach') {
@@ -8169,6 +8221,7 @@ function getPswcWinnerCount(username) {
             // 確認ダイアログ中に画面を閉じた場合でも、次に開いた制作画面の操作を止めない。
             stageTypeWarnPending = false;
             isDrawing = false;
+            resetGameGridSize();
             activeStage = [];
             // エディタ背景をリセット
             const container = document.querySelector('.container');
@@ -8313,6 +8366,18 @@ function getPswcWinnerCount(username) {
             const raiAlvaroOpt = document.getElementById('stage-type-option-rai-alvaro');
             const hasRaiAlvaroStage = purchasedSkins.includes('rai_alvaro_stage') || purchasedSkins.includes('rai_alvaro');
             if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロ' : '⚡ ライ・アルバロ（未購入）'; }
+            // Runon はステージタイプも含め、制作に必要な全要素を常に利用できる。
+            if (CONFIG.USERNAME === 'Runon') {
+                document.querySelectorAll('#stage-type-select option').forEach(option => {
+                    option.disabled = false;
+                    option.textContent = option.value === 'hard' ? '💀 HARD'
+                        : option.value === 'volcano' ? '🌋 火山'
+                        : option.value === 'moon' ? '🌙 月'
+                        : option.value === 'beach' ? '🏖️ 海辺'
+                        : option.value === 'rai_alvaro' ? '⚡ ライ・アルバロ'
+                        : option.textContent;
+                });
+            }
 
             resizeCanvas('editor-canvas');
             drawEditor();
@@ -9842,6 +9907,19 @@ function getPswcWinnerCount(username) {
                 const frontGrid = (s.data && !Array.isArray(s.data)) ? s.data.front : s.data;
                 const backGrid = (s.data && !Array.isArray(s.data)) ? s.data.back : null;
                 const hasWarpGate = grid => Array.isArray(grid) && grid.some(row => Array.isArray(row) && row.includes('WG'));
+                const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
+                const stageTypeNames = {
+                    normal: 'クラシック', water: '水中', dark: '暗闇', big: 'ビッグ', timeattack: 'タイムアタック',
+                    hard: 'HARD', volcano: '火山', moon: '月', beach: '海辺', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
+                };
+                const stageTypeSource = getStageTypeSource(s);
+                const frontType = getStageTypeForFace(stageTypeSource, 'front');
+                const backType = getStageTypeForFace(stageTypeSource, 'back', frontType);
+                const frontTypeName = stageTypeNames[frontType] || 'クラシック';
+                const backTypeName = stageTypeNames[backType] || 'クラシック';
+                const faceTypeLabel = hasBackFace
+                    ? `<span class="stage-face-types"><span class="stage-face-type">${frontTypeName}</span><span class="stage-face-type back">${backTypeName}</span></span>`
+                    : `<span class="stage-face-types"><span class="stage-face-type">${frontTypeName}</span></span>`;
                 if (Array.isArray(backGrid) && (hasWarpGate(frontGrid) || hasWarpGate(backGrid))) {
                     let showingBack = false;
                     const faceButton = document.createElement('button');
@@ -9898,15 +9976,8 @@ function getPswcWinnerCount(username) {
                             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.4cqw;">
                                 ${isPickUp ? '<span class="stage-type-badge" style="background:#ffc107; color:#000;">Pick up!</span>' : ''}
                                 ${isPswcStage ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#805200,#ffd54a,#fff0a0); color:#2c1c00; border:1px solid #fff2af;">🏆 PSWC</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'water' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#0077b6,#00b4d8); color:#fff;">🌊水中</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'dark'  ? '<span class="stage-type-badge" style="background:#111; color:#aaa; border:1px solid #444;">🌑暗闇</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'timeattack' ? '<span class="stage-type-badge" style="background:repeating-conic-gradient(#f7edcb 0 25%,#262231 0 50%) 50%/8px 8px; color:#fff; border:1px solid #f7edcb; text-shadow:0 1px 1px #000;">⌛タイムアタック</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'hard' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#4a1018,#a82434); color:#fff; border:1px solid #ff8a96;">💀HARD</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'volcano' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#780000,#ff6f00); color:#fff;">🌋火山</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'moon' ? '<span class="stage-type-badge" style="background:#18213f; color:#f4f6ff; border:1px solid #c9d2e5;">🌙月</span>' : ''}
-                                ${getFrontStageType(s.stageType) === 'beach' ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#72d8ff 48%,#087db4 49%); color:#fff;">🏖️海辺</span>' : ''}
-                                ${(getFrontStageType(s.stageType) === 'rai_alvaro' || getFrontStageType(s.stageType) === 'rai_alvaro_v2') ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#251f00,#8d7200); color:#fff36b; border:1px solid #fff36b;">⚡ライ・アルバロ</span>' : ''}
                                 ${diffBadge}
+                                ${faceTypeLabel}
                                 <span style="font-size:1.3cqw; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
                             <div style="font-size:0.8cqw; color:#aaa;">by <span class="${getUserNameClasses(s.creator)}">${s.creator}</span></div>
@@ -10026,7 +10097,7 @@ function getPswcWinnerCount(username) {
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'timeattack', 'hard', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'big', 'timeattack', 'hard', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -10221,10 +10292,21 @@ function getPswcWinnerCount(username) {
             document.getElementById('dm-inbox-btn').style.display = 'none';
             document.getElementById('audio-btn').style.display = 'none';
 
+            // 前回のビッグステージの拡大状態を戻してから、今回のデータを正規化する。
+            resetGameGridSize();
+            const stageTypes = getStageTypeSource(stageObj);
+            const requestedFrontStageType = getStageTypeForFace(stageTypes, 'front');
+            const requestedBackStageType = getStageTypeForFace(stageTypes, 'back', requestedFrontStageType);
             const stageFaces = getStageDataFaces(stageObj.data);
-            activeFrontStage = normalizeGrid(stageFaces.front);
+            const configuredGrids = configureGameGridForStage(
+                normalizeGrid(stageFaces.front),
+                normalizeGrid(stageFaces.back),
+                requestedFrontStageType,
+                requestedBackStageType
+            );
+            activeFrontStage = configuredGrids.front;
             activeStage = activeFrontStage;
-            activeBackStage = normalizeGrid(stageFaces.back);
+            activeBackStage = configuredGrids.back;
             isUsingBackFace = false;
             warpGateLocked = false;
             // ゴール条件は表・裏面にあるチェックポイントの合計。ワープのたびに足さない。
@@ -10241,9 +10323,8 @@ function getPswcWinnerCount(username) {
             killerGoalActive = killerGoalTiles.length > 0;
             lastKillerGoalEnemyCount = -1;
             // 既に投稿済みのVer2は、廃止後も従来のライ・アルバロとして再生する。
-            const stageTypes = getStageTypeSource(stageObj);
-            const frontStageType = getStageTypeForFace(stageTypes, 'front');
-            const backStageType = getStageTypeForFace(stageTypes, 'back', frontStageType);
+            const frontStageType = requestedFrontStageType;
+            const backStageType = requestedBackStageType;
             currentStageType = frontStageType === 'rai_alvaro_v2' ? 'rai_alvaro' : frontStageType;
             activeFrontStageType = currentStageType;
             activeBackStageType = backStageType === 'rai_alvaro_v2' ? 'rai_alvaro' : backStageType;
@@ -10431,6 +10512,7 @@ function getPswcWinnerCount(username) {
         function exitGame() {
             cancelAnimationFrame(gameLoopId);
             stopStageBGM();
+            resetGameGridSize();
             document.getElementById('game-screen').style.display = 'none';
             playHorizonBGM();
             setMobileGameViewportLock(false);
@@ -12918,7 +13000,8 @@ function getPswcWinnerCount(username) {
             // 動的なタイル（風など）のみをリストから高速に描画
             for (let i = 0; i < dynamicTiles.length; i++) {
                 const t = dynamicTiles[i];
-                drawTile(cachedGameCtx, t.x, t.y, cw, ch, t.type, time);
+                drawTile(cachedGameCtx, t.big ? t.x / 2 : t.x, t.big ? t.y / 2 : t.y,
+                    t.big ? cw * 2 : cw, t.big ? ch * 2 : ch, t.type, time);
             }
 
             // 木箱は物理座標で描画するため、静的なステージキャッシュには含めない。
