@@ -2665,7 +2665,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.1"
+            VERSION: "3.7.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -10417,17 +10417,21 @@ function getPswcWinnerCount(username) {
         function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
         function getNormalEnemyMaxHp() { return currentStageType === 'hard' ? 30 : 10; }
+        // ボスの行動周期はすべてフレーム（F）基準で管理する。
+        const BOSS_TURN_WARNING_FRAMES = 60;
+        const HESTIA_TURN_FRAMES = { normal: 420, hard: 240 };
+        const HERMES_TURN_FRAMES = { normal: 360, hard: 240 };
         function createHestiaEnemy(x, y) {
             const hardBoss = currentStageType === 'hard';
             return { x, y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false,
                 size: hardBoss ? 1.8 : BASE_PLAYER_SIZE, isHestia: true, isBoss: true, name: 'HESTIA',
-                hp: hardBoss ? 90 : 40, maxHp: hardBoss ? 90 : 40, hitCooldown: 0, directionTimer: hardBoss ? 240 : 420 };
+                hp: hardBoss ? 90 : 40, maxHp: hardBoss ? 90 : 40, hitCooldown: 0, directionTimer: hardBoss ? HESTIA_TURN_FRAMES.hard : HESTIA_TURN_FRAMES.normal };
         }
         function createHermesEnemy(x, y) {
             const hardBoss = currentStageType === 'hard';
             return { x, y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false,
                 size: hardBoss ? 1.8 : BASE_PLAYER_SIZE, isHermes: true, isBoss: true, name: 'HERMES',
-                hp: hardBoss ? 90 : 30, maxHp: hardBoss ? 90 : 30, hitCooldown: 0, directionTimer: hardBoss ? 240 : 360,
+                hp: hardBoss ? 90 : 30, maxHp: hardBoss ? 90 : 30, hitCooldown: 0, directionTimer: hardBoss ? HERMES_TURN_FRAMES.hard : HERMES_TURN_FRAMES.normal,
                 hermesDashArmed: false, isHermesDashing: false, hermesJumpCount: 0, hermesDoubleJumpPending: false };
         }
 
@@ -12026,25 +12030,25 @@ function getPswcWinnerCount(username) {
                     }
                 }
 
-                // ヘスティア: 7秒ごとにプレイヤーの方向へ向きを変え、その瞬間に周囲3マスも含めて炎へ変える。
+                // ヘスティア: 周期はFで管理。方向転換時に周囲を炎へ変える。
                 if (en.isHestia) {
                     en.directionTimer--;
                     if (en.directionTimer <= 0) {
                         const hestiaCenter = en.x + (en.size || BASE_PLAYER_SIZE) / 2;
                         en.vx = (playerCenterXForEnemies < hestiaCenter ? -1 : 1) * 0.04;
-                        en.directionTimer = 420;
+                        en.directionTimer = currentStageType === 'hard' ? HESTIA_TURN_FRAMES.hard : HESTIA_TURN_FRAMES.normal;
                         hestiaIgniteTiles(en);
                     }
                 }
 
-                // ヘルメス: 6秒ごとにプレイヤー側へ向きを変え、次の着地から壁まで高速で走る。
+                // ヘルメス: 周期はFで管理。方向転換後、次の着地から壁まで高速で走る。
                 if (en.isHermes) {
                     en.directionTimer--;
                     if (en.directionTimer <= 0 && !en.isHermesDashing) {
                         const hermesCenter = en.x + (en.size || BASE_PLAYER_SIZE) / 2;
                         en.vx = (playerCenterXForEnemies < hermesCenter ? -1 : 1) * 0.04;
                         en.hermesDashArmed = true;
-                        en.directionTimer = 360;
+                        en.directionTimer = currentStageType === 'hard' ? HERMES_TURN_FRAMES.hard : HERMES_TURN_FRAMES.normal;
                     }
                     // ダッシュ待機中以外は着地のたびにジャンプして移動を続ける。
                     if (en.onGround && !en.isHermesDashing && !en.hermesDashArmed) {
@@ -13459,8 +13463,48 @@ function getPswcWinnerCount(username) {
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.6, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
 
                     } else if (en.isHestia) {
+                        // 方向転換の60F前から、炎が集まる予兆を表示する。
+                        if (en.directionTimer <= BOSS_TURN_WARNING_FRAMES) {
+                            const warning = 1 - Math.max(0, en.directionTimer) / BOSS_TURN_WARNING_FRAMES;
+                            const centerX = (en.x + enSize / 2) * cw;
+                            const centerY = (en.y + enSize / 2) * ch;
+                            cachedGameCtx.save();
+                            cachedGameCtx.globalAlpha = .38 + warning * .5;
+                            cachedGameCtx.strokeStyle = '#ff7a21';
+                            cachedGameCtx.lineWidth = Math.max(1, cw * .045);
+                            cachedGameCtx.beginPath();
+                            cachedGameCtx.arc(centerX, centerY, cw * enSize * (.55 + warning * .28), 0, Math.PI * 2);
+                            cachedGameCtx.stroke();
+                            cachedGameCtx.fillStyle = '#ffe36a';
+                            for (let flame = 0; flame < 6; flame++) {
+                                const angle = time * 8 + flame * Math.PI / 3;
+                                const radius = cw * enSize * (.48 + warning * .22);
+                                cachedGameCtx.fillRect(centerX + Math.cos(angle) * radius - 2, centerY + Math.sin(angle) * radius - 2, 4, 4);
+                            }
+                            cachedGameCtx.restore();
+                        }
                         drawHestiaSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, en.vx < 0 ? 'left' : 'right');
                     } else if (en.isHermes) {
+                        // 方向転換の60F前から、ヘスティアと同型の輪と粒子を青緑で表示する。
+                        if (en.directionTimer <= BOSS_TURN_WARNING_FRAMES) {
+                            const warning = 1 - Math.max(0, en.directionTimer) / BOSS_TURN_WARNING_FRAMES;
+                            const centerX = (en.x + enSize / 2) * cw;
+                            const centerY = (en.y + enSize / 2) * ch;
+                            cachedGameCtx.save();
+                            cachedGameCtx.globalAlpha = .38 + warning * .5;
+                            cachedGameCtx.strokeStyle = '#3ee9d2';
+                            cachedGameCtx.lineWidth = Math.max(1, cw * .045);
+                            cachedGameCtx.beginPath();
+                            cachedGameCtx.arc(centerX, centerY, cw * enSize * (.55 + warning * .28), 0, Math.PI * 2);
+                            cachedGameCtx.stroke();
+                            cachedGameCtx.fillStyle = '#d6fffa';
+                            for (let wind = 0; wind < 6; wind++) {
+                                const angle = -time * 8 + wind * Math.PI / 3;
+                                const radius = cw * enSize * (.48 + warning * .22);
+                                cachedGameCtx.fillRect(centerX + Math.cos(angle) * radius - 2, centerY + Math.sin(angle) * radius - 2, 4, 4);
+                            }
+                            cachedGameCtx.restore();
+                        }
                         drawHermesSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, en.vx < 0 ? 'left' : 'right');
                     } else if (en.isBlack) {
                         // ブラック: 金の目と、キャンドルが残っている間の金色シールド。
