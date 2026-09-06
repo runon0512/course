@@ -2665,7 +2665,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.2"
+            VERSION: "3.7.3"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2893,6 +2893,21 @@ function getPswcWinnerCount(username) {
         let bigStageActive = false;
         let bigStagePair = false;
         const BIG_SINGLE_TILES = new Set(['S', 'M', 'j', 'e', 'WCN', 'PB', 'WB', 'BL']);
+        // ビッグの2x2展開後に、元の1マスを一意に示す左上座標を返す。
+        // チェックポイントや扉など、4マスを1つのギミックとして扱う処理で共有する。
+        function getBigTileOrigin(x, y) {
+            return bigStageActive ? { x: x & ~1, y: y & ~1 } : { x, y };
+        }
+        function clearBigTileGroup(x, y) {
+            const origin = getBigTileOrigin(x, y);
+            const width = bigStageActive ? 2 : 1;
+            const height = bigStageActive ? 2 : 1;
+            for (let dy = 0; dy < height; dy++) {
+                const row = activeStage[origin.y + dy];
+                if (!row) continue;
+                for (let dx = 0; dx < width; dx++) row[origin.x + dx] = null;
+            }
+        }
         function resetGameGridSize() {
             GRID_W = BASE_GRID_W;
             GRID_H = BASE_GRID_H;
@@ -3130,7 +3145,8 @@ function getPswcWinnerCount(username) {
         let activeCheckpoints = new Set();
         // 表と裏で同じ座標にチェックポイントを置けるため、面も含めて記録する。
         function getCheckpointKey(x, y) {
-            return `${isUsingBackFace ? 'back' : 'front'}:${x},${y}`;
+            const origin = getBigTileOrigin(x, y);
+            return `${isUsingBackFace ? 'back' : 'front'}:${origin.x},${origin.y}`;
         }
         let stageStartRespawn = null;
         // タイムアタックステージ専用: 最後に通過したチェックポイントへの復帰地点。
@@ -3783,13 +3799,31 @@ function getPswcWinnerCount(username) {
 
             stageCacheCtx.imageSmoothingEnabled = false;
             stageCacheCtx.clearRect(0, 0, stageCacheCanvas.width, stageCacheCanvas.height);
-            for(let y=0; y<GRID_H; y++){
-                for(let x=0; x<GRID_W; x++){
+            // ビッグは描画上では元の1マスごとなので、2x2の左上だけを走査する。
+            // 40x20を毎回全走査していた処理を20x10相当に抑える。
+            const cacheStep = bigStageActive ? 2 : 1;
+            for(let y=0; y<GRID_H; y += cacheStep){
+                for(let x=0; x<GRID_W; x += cacheStep){
                     const type = activeStage[y][x];
+                    // 鍵だけはビッグでも4本に分割され、個別に消える。
+                    // 左上の鍵を取った後も残り3本を正しく描くため、2x2全体を確認する。
+                    if (bigStageActive) {
+                        let hasSplitKey = false;
+                        for (let dy = 0; dy < 2 && !hasSplitKey; dy++) {
+                            for (let dx = 0; dx < 2; dx++) {
+                                if (activeStage[y + dy]?.[x + dx] === 'o') { hasSplitKey = true; break; }
+                            }
+                        }
+                        if (hasSplitKey) {
+                            for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+                                if (activeStage[y + dy]?.[x + dx] === 'o') drawTile(stageCacheCtx, x + dx, y + dy, cw, ch, 'o', 0);
+                            }
+                            continue;
+                        }
+                    }
                     if (!type) continue;
 
                     // ビッグステージは2x2に展開した同一タイルを、1つの大きなタイルとして描く。
-                    if (bigStageActive && ((x & 1) || (y & 1))) continue;
                     const drawX = bigStageActive ? x / 2 : x;
                     const drawY = bigStageActive ? y / 2 : y;
                     const drawCW = bigStageActive ? cw * 2 : cw;
@@ -9395,7 +9429,11 @@ function getPswcWinnerCount(username) {
                 }
             } else if(type === 'C') {
                 // チェックポイント（ゴールゲートの色違い版）
-                const isDone = activeStage.length > 0 && activeCheckpoints.has(getCheckpointKey(x, y));
+                // ステージキャッシュではビッグの描画座標を半分にしているため、
+                // 判定用には展開後の実座標へ戻して同じチェックポイントを参照する。
+                const checkpointX = bigStageActive ? x * 2 : x;
+                const checkpointY = bigStageActive ? y * 2 : y;
+                const isDone = activeStage.length > 0 && activeCheckpoints.has(getCheckpointKey(checkpointX, checkpointY));
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
                 if (isTimeAttackStageType(stageType)) {
@@ -11381,6 +11419,70 @@ function getPswcWinnerCount(username) {
             return true;
         }
 
+        // 木箱が落下・吸引・ボスの押し込みでプレイヤーに食い込んだ場合の安全な押し戻し。
+        // 最も浅い方向へ少し余裕を持って離し、同じ方向への小さな反動も与える。
+        function resolvePlayerWoodCrateOverlap(jumpRequested = false, jumpForce = -0.3) {
+            const inset = 0.025;
+            for (let i = 0; i < woodCrates.length; i++) {
+                const crate = woodCrates[i];
+                const playerLeft = player.x + inset, playerRight = player.x + player.w - inset;
+                const playerTop = player.y + inset, playerBottom = player.y + player.h - inset;
+                const crateLeft = crate.x + inset, crateRight = crate.x + 1 - inset;
+                const crateTop = crate.y + inset, crateBottom = crate.y + 1 - inset;
+                if (playerRight <= crateLeft || playerLeft >= crateRight || playerBottom <= crateTop || playerTop >= crateBottom) continue;
+
+                const overlapLeft = playerRight - crateLeft;
+                const overlapRight = crateRight - playerLeft;
+                const overlapTop = playerBottom - crateTop;
+                const overlapBottom = crateBottom - playerTop;
+                const minHorizontal = Math.min(overlapLeft, overlapRight);
+                const minVertical = Math.min(overlapTop, overlapBottom);
+                const gap = 0.006;
+
+                if (minHorizontal <= minVertical) {
+                    const pushLeft = overlapLeft <= overlapRight;
+                    const horizontalTargets = [
+                        { x: pushLeft ? crate.x - player.w - gap : crate.x + 1 + gap, left: pushLeft },
+                        { x: pushLeft ? crate.x + 1 + gap : crate.x - player.w - gap, left: !pushLeft }
+                    ];
+                    let pushedOut = false;
+                    for (const target of horizontalTargets) {
+                        if (!isCollideAt(target.x, player.y, player.w, player.h, true, 'x', crate)) {
+                            player.x = target.x;
+                            player.vx = target.left ? Math.min(player.vx, -0.08) : Math.max(player.vx, 0.08);
+                            // 木箱の反動中でもジャンプを押していれば、そのままジャンプへ繋げる。
+                            if (jumpRequested) {
+                                player.vy = jumpForce;
+                                player.onGround = false;
+                            }
+                            pushedOut = true;
+                            break;
+                        }
+                    }
+                    if (pushedOut) continue;
+                }
+
+                // 横に逃がせない場合は上下へ。上から触れた場合は木箱の上へ乗せる。
+                const pushUp = overlapTop <= overlapBottom;
+                const verticalTargets = [
+                    { y: pushUp ? crate.y - player.h - gap : crate.y + 1 + gap, up: pushUp },
+                    { y: pushUp ? crate.y + 1 + gap : crate.y - player.h - gap, up: !pushUp }
+                ];
+                for (const target of verticalTargets) {
+                    if (!isCollideAt(player.x, target.y, player.w, player.h, true, 'y', crate)) {
+                        player.y = target.y;
+                        if (target.up) {
+                            player.vy = jumpRequested ? jumpForce : Math.min(player.vy, -0.10);
+                            player.onGround = false;
+                        } else {
+                            player.vy = Math.max(player.vy, 0.10);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
         function bossHasPushPriority(crate) {
             for (let i = 0; i < enemies.length; i++) {
                 const boss = enemies[i];
@@ -11982,6 +12084,9 @@ function getPswcWinnerCount(username) {
                 player.vy = 0;
             }
 
+            // 木箱とプレイヤーが重なったまま残らないよう、移動確定後にも押し戻しを行う。
+            // ジャンプ入力中なら、木箱の反動からそのままジャンプできる。
+            resolvePlayerWoodCrateOverlap(!isWater && keys['Space'] && frameCount > 10, jumpForce);
             extinguishSteppedCandles();
             updateCrackBlocks();
 
@@ -12775,7 +12880,9 @@ function getPswcWinnerCount(username) {
                 if (!activeCheckpoints.has(checkpointKey)) {
                     activeCheckpoints.add(checkpointKey);
                     if (isTimeAttackStageType(currentStageType)) {
-                        timeAttackRespawn = { x: gx + 0.1, y: gy + 0.1, face: isUsingBackFace };
+                        // 2x2のどの部分に触れても、同じチェックポイントの左上から復帰する。
+                        const checkpointOrigin = getBigTileOrigin(gx, gy);
+                        timeAttackRespawn = { x: checkpointOrigin.x + 0.1, y: checkpointOrigin.y + 0.1, face: isUsingBackFace };
                     }
                     updateStageCache(); // チェックポイント通過で見た目が変わるので更新
                 }
@@ -12813,14 +12920,18 @@ function getPswcWinnerCount(username) {
             }
 
             // 鍵ブロック(D)の消費処理
-            if (player.hasKey > 0) {
+            // ビッグでは鍵1マスが4本に分かれるため、2x2の鍵ブロックには4本をまとめて使う。
+            const requiredKeys = bigStageActive ? 4 : 1;
+            if (player.hasKey >= requiredKeys) {
                 if (tile === 'D') {
-                    player.hasKey--;
-                    activeStage[gy][gx] = null;
+                    player.hasKey -= requiredKeys;
+                    if (bigStageActive) clearBigTileGroup(gx, gy);
+                    else activeStage[gy][gx] = null;
                     updateStageCache();
                 } else if (footTile === 'D') {
-                    player.hasKey--;
-                    activeStage[footY][gx] = null;
+                    player.hasKey -= requiredKeys;
+                    if (bigStageActive) clearBigTileGroup(gx, footY);
+                    else activeStage[footY][gx] = null;
                     updateStageCache();
                 }
             }
