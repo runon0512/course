@@ -685,6 +685,8 @@
         .chat-text-aurora { background-image:linear-gradient(90deg,#61fff0,#6ba7ff,#e18bff,#76ffc6,#61fff0); }
         .chat-text-rainbow { background-image:linear-gradient(90deg,#ff5c6f,#ffcc4f,#70e776,#57c7ff,#8e72ff,#f680d2,#ff5c6f); animation-name:chatRainbowShift; }
         .chat-block-icon, .chat-skin-icon { width:1.35em; height:1.35em; vertical-align:-.28em; margin:0 .08em; image-rendering:pixelated; }
+        .chat-skin-icon { cursor:pointer; transition:filter .14s ease, transform .14s ease; }
+        .chat-skin-icon:hover { filter:brightness(1.25) drop-shadow(0 0 .22em #8fffe3); transform:translateY(-.05em); }
         .chat-reply-source {
             display: block;
             background: none;
@@ -2712,7 +2714,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.4"
+            VERSION: "3.7.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -5227,6 +5229,11 @@ function getPswcWinnerCount(username) {
                 const username = decodeURIComponent(canvas.dataset.chatSkinUser || '');
                 const appearance = await getChatInlineSkin(username);
                 if (!appearance || !canvas.isConnected) return;
+                canvas.title = `${username} のプロフィールを開く`;
+                canvas.onclick = event => {
+                    event.stopPropagation();
+                    openProfile(username);
+                };
                 canvas.width = canvas.height = 24;
                 const ctx = canvas.getContext('2d');
                 ctx.imageSmoothingEnabled = false;
