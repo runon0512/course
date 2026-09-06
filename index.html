@@ -676,6 +676,12 @@
             text-shadow:0 0 .45cqw rgba(255,210,60,.72);
             box-shadow:0 0 .7cqw rgba(255,193,7,.38), inset 0 0 .7cqw rgba(255,226,130,.14);
         }
+        @keyframes chatAuroraShift { 0% { background-position:0% 50%; } 100% { background-position:200% 50%; } }
+        @keyframes chatRainbowShift { 0% { background-position:0% 50%; } 100% { background-position:180% 50%; } }
+        .chat-text-aurora, .chat-text-rainbow { background-size:200% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; font-weight:800; animation:chatAuroraShift 4s linear infinite; }
+        .chat-text-aurora { background-image:linear-gradient(90deg,#61fff0,#6ba7ff,#e18bff,#76ffc6,#61fff0); }
+        .chat-text-rainbow { background-image:linear-gradient(90deg,#ff5c6f,#ffcc4f,#70e776,#57c7ff,#8e72ff,#f680d2,#ff5c6f); animation-name:chatRainbowShift; }
+        .chat-block-icon, .chat-skin-icon { width:1.35em; height:1.35em; vertical-align:-.28em; margin:0 .08em; image-rendering:pixelated; }
         .chat-reply-source {
             display: block;
             background: none;
@@ -992,6 +998,22 @@
         .daily-shop-stock-head b { font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
         #daily-shop-date { margin:0 !important; color:#e8be75 !important; font-size:.88cqw !important; text-align:right; }
         #shop-overlay .shop-tabs { position:absolute; top:2.6cqh; right:5cqw; z-index:2; margin:0; }
+        #shop-overlay .shop-tabs { align-items:center; gap:.55cqw; }
+        .shop-switch-tabs { display:flex; align-items:center; gap:.45cqw; }
+        .daily-shop-stock-head .stock-head-tools { display:flex; align-items:center; gap:.8cqw; }
+        #shop-overlay .shop-section-tab { color:#f6d59b; background:rgba(77,39,24,.88); }
+        #shop-overlay .shop-section-tab.active { color:#281508; border-color:#ffe09b; background:linear-gradient(135deg,#ffd571,#e89b3e); box-shadow:0 0 .8cqw rgba(255,199,99,.48); }
+        .event-shop-interior { width:min(88cqw,1180px); height:70cqh; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.3cqh; padding:1.2cqw; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:radial-gradient(circle at 50% 38%,rgba(255,197,84,.16),transparent 30%),linear-gradient(135deg,rgba(43,22,18,.98),rgba(92,43,26,.92),rgba(43,22,18,.98)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
+        .event-shop-header { width:min(56cqw,760px); display:flex; align-items:center; justify-content:space-between; gap:1cqw; color:#ffe4a7; font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
+        .event-shop-grid { width:min(39cqw,500px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1cqw; }
+        #shop-overlay .event-shop-grid .shop-item { position:relative; min-height:24cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #d69b44; background:linear-gradient(180deg,rgba(101,45,33,.98),rgba(43,18,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
+        #shop-overlay .event-shop-grid .shop-item::before { content:'EVENT'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,229,157,.68); font-size:.65cqw; letter-spacing:.12em; pointer-events:none; }
+        #shop-overlay .event-shop-grid .shop-item canvas { flex:0 0 auto; margin-top:.8cqh; width:7cqw; height:7cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .55cqw rgba(255,121,72,.55)); }
+        #shop-overlay .event-shop-grid .daily-item-name { position:absolute; z-index:2; top:4.2cqh; left:.42cqw; right:.42cqw; margin:0; padding:.18cqh .28cqw; color:#fff7d5; font-size:1cqw; line-height:1.2; text-align:center; text-shadow:0 .1cqw .14cqw #21100b; background:rgba(37,18,15,.67); border-radius:.22cqw; pointer-events:none; }
+        #shop-overlay .event-shop-grid .daily-price-tag { width:100%; margin-top:.55cqh; border-color:#ffbd63; background:linear-gradient(135deg,#713116,#c65325); color:#fff0c1; }
+        .event-shop-empty { min-width:min(60cqw,680px); box-sizing:border-box; padding:4cqh 3cqw; border:.18cqw dashed #e3ae56; color:#ffe7ad; font:700 2cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.12em; text-align:center; background:rgba(24,12,13,.48); text-shadow:0 0 .8cqw rgba(255,190,82,.6); }
+        .event-shop-empty span { display:block; margin-top:1.3cqh; color:#e8c38b; font-size:1.05cqw; letter-spacing:.08em; }
+        .shop-event-notice { display:block; margin-top:.25cqh; color:#ffd25d; font-size:.72em; letter-spacing:.08em; text-shadow:0 0 .55cqw rgba(255,188,66,.76); }
         #shop-overlay .shop-grid { width:auto; min-height:0; max-height:none; flex:1; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1cqw; padding:1.2cqh .5cqh .6cqh; overflow-y:auto; overflow-x:hidden; align-content:start; }
         #shop-overlay .shop-item.daily-shelf-item { position:relative; min-width:0; min-height:19cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #9e6b39; background:linear-gradient(180deg,rgba(88,46,27,.96),rgba(40,22,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
         #shop-overlay .shop-item.daily-shelf-item::before { content:'DAILY'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,225,157,.56); font-size:.55cqw; letter-spacing:.12em; pointer-events:none; }
@@ -1001,10 +1023,12 @@
         #shop-overlay .daily-shelf-item .daily-owned-tag::first-letter { color:#fff5cc; }
         #shop-overlay .daily-shelf-item .daily-price-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #f1c56b; border-radius:.35cqw; background:linear-gradient(135deg,#5d3517,#a56525); color:#fff1bf; font:700 .85cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:inset 0 0 0 .08cqw rgba(255,241,190,.28),0 .16cqh 0 rgba(34,15,8,.65); transition:filter .16s ease,transform .16s ease; }
         #shop-overlay .daily-shelf-item .daily-price-tag:hover { background:linear-gradient(135deg,#8a4c17,#d68b2e); color:#fffbe8; border-color:#fff0a8; filter:brightness(1.1); transform:translateY(-.1cqh); }
+        #shop-overlay .event-shop-grid .shop-item.event-shelf-item::before { content:'EVENT'; color:rgba(255,229,157,.68); }
+        #shop-overlay .event-shop-grid .event-shelf-item .daily-price-tag { border-color:#ffbd63; background:linear-gradient(135deg,#713116,#c65325); }
         #explanation-btn { overflow:visible !important; }
         #explanation-btn::after { content:'New!'; position:absolute; top:-.9cqh; right:-1.2cqw; padding:.12cqh .42cqw; border:.1cqw solid #fff6a3; border-radius:.45cqw; background:#f04b7d; color:#fff; font:700 .8cqw/1 sans-serif; letter-spacing:.04em; text-shadow:none; box-shadow:0 0 .5cqw rgba(255,71,132,.8); animation:triviaNewPulse 1.2s ease-in-out infinite; pointer-events:none; }
         @keyframes triviaNewPulse { 50% { transform:translateY(-.18cqh) scale(1.08); filter:brightness(1.2); } }
-        @media (max-aspect-ratio:1/1) { #shop-overlay.daily-shop-room { padding:2cqh 2cqw; } .daily-shop-interior { width:94cqw; height:77cqh; grid-template-columns:28cqw minmax(0,1fr); gap:1cqh; } .daily-shop-counter { min-height:62cqh; } #shopkeeper-canvas, #shopkeeper-placeholder { width:22cqw; font-size:1.7cqw; } .daily-shop-keeper-name { font-size:1.9cqw; } .daily-shop-speech { font-size:1.55cqw; } #shop-overlay .shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2cqw; } #shop-overlay .shop-item.daily-shelf-item canvas { width:10cqw; height:10cqw; } #shop-overlay .shop-item.daily-shelf-item::before { font-size:1.1cqw; } .daily-shop-stock-head b { font-size:2.4cqw; } #daily-shop-date { font-size:1.3cqw !important; } }
+        @media (max-aspect-ratio:1/1) { #shop-overlay.daily-shop-room { padding:2cqh 2cqw; } .daily-shop-interior, .event-shop-interior { width:94cqw; height:77cqh; } .daily-shop-interior { grid-template-columns:28cqw minmax(0,1fr); gap:1cqh; } .event-shop-header { width:80cqw; font-size:2.2cqw; } .event-shop-grid { width:76cqw; } #shop-overlay .event-shop-grid .shop-item canvas { width:18cqw; height:18cqw; } #shop-overlay .event-shop-grid .shop-item::before { font-size:1.4cqw; } #shop-overlay .event-shop-grid .daily-item-name { font-size:1.7cqw; top:7.3cqh; } .event-shop-empty { min-width:74cqw; font-size:3cqw; } .event-shop-empty span { font-size:1.7cqw; } .daily-shop-counter { min-height:62cqh; } #shopkeeper-canvas, #shopkeeper-placeholder { width:22cqw; font-size:1.7cqw; } .daily-shop-keeper-name { font-size:1.9cqw; } .daily-shop-speech { font-size:1.55cqw; } #shop-overlay .shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2cqw; } #shop-overlay .shop-item.daily-shelf-item canvas { width:10cqw; height:10cqw; } #shop-overlay .shop-item.daily-shelf-item::before { font-size:1.1cqw; } .daily-shop-stock-head b { font-size:2.4cqw; } #daily-shop-date { font-size:1.3cqw !important; } }
         /* カスタムエディタ用 */
         #custom-editor-overlay {
             display: none;
@@ -2035,7 +2059,7 @@
             <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
             <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
             <button class="pixel-btn" onclick="openLocker()">ロッカー</button>
-            <button class="pixel-btn" onclick="openShop()">ショップ</button>
+            <button class="pixel-btn" onclick="openShop(false, 'daily')">ショップ<span class="shop-event-notice">イベント開催中！</span></button>
             <button id="guild-btn" class="pixel-btn" onclick="openGuild()">ギルド</button>
             </div>
 
@@ -2073,9 +2097,14 @@
                     <div id="shopkeeper-speech" class="daily-shop-speech" onclick="showNextShopkeeperLine()">「いらっしゃい。今日の掘り出し物を、ゆっくり見ていって。」</div>
                 </aside>
                 <section class="daily-shop-stock">
-                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div id="daily-shop-date"></div></div>
+                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div class="stock-head-tools"><div id="daily-shop-date"></div><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab active" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button></div></div></div>
                     <div class="shop-grid" id="shop-container"></div>
                 </section>
+            </div>
+            <div id="event-shop-interior" class="event-shop-interior" style="display:none;">
+                <div class="event-shop-empty">OLYMPUS EVENT<span>オリンポス12神　第一弾</span></div>
+                <div class="event-shop-header"><span>イベント商品棚</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button></div></div>
+                <div id="event-shop-container" class="event-shop-grid"></div>
             </div>
         </div>
 
@@ -2586,6 +2615,8 @@
                     <div class="tool-btn rank-legendary" id="btn-tool-PB" onclick="setTool('PB', this)" title="PURPLE (BOSS)" style="display:none;"><canvas id="icon-PB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-WB" onclick="setTool('WB', this)" title="WOLF (BOSS No.2)" style="display:none;"><canvas id="icon-WB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-BL" onclick="setTool('BL', this)" title="BLACK (BOSS)" style="display:none;"><canvas id="icon-BL" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-HS" onclick="setTool('HS', this)" title="HESTIA (MID BOSS)" style="display:none;"><canvas id="icon-HS" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-HM" onclick="setTool('HM', this)" title="HERMES (MID BOSS)" style="display:none;"><canvas id="icon-HM" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-SM" onclick="setTool('SM', this)" title="SLIME BLOCK" style="display:none;"><canvas id="icon-SM" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-FL" onclick="setTool('FL', this)" title="FIRE BLOCK" style="display:none;"><canvas id="icon-FL" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-GB" onclick="setTool('GB', this)" title="GOLD BLOCK" style="display:none;"><canvas id="icon-GB" class="tool-canvas"></canvas></div>
@@ -2634,7 +2665,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.6.5"
+            VERSION: "3.7.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2840,7 +2871,9 @@ function getPswcWinnerCount(username) {
             'FL': { title: '炎ブロック', text: '触れると即死する炎のブロックです。ボス「狼(No.2)」を倒すとステージから消滅します。' },
             'CA': { title: 'キャンドル', text: '踏むと消えるキャンドルです。ブラックのシールドを解除する鍵になります。' },
             'BL': { title: 'ブラック', text: '金色の目を持つボスです。すべてのキャンドルを踏み消すまで攻撃できず、撃破すると金ブロックが消えます。' },
-            'GB': { title: '金ブロック', text: 'ブラックを倒すと、ステージからすべて消える頑丈な金のブロックです。' }
+            'GB': { title: '金ブロック', text: 'ブラックを倒すと、ステージからすべて消える頑丈な金のブロックです。' },
+            'HS': { title: 'ヘスティア', text: 'プレイヤーと同じ大きさの中ボスです。7秒ごとにプレイヤーの方向へ向きを変え、その瞬間に自分の周囲を炎ブロックへ変えます。体力は40です。' }
+            ,'HM': { title: 'ヘルメス', text: 'プレイヤーと同じ大きさの中ボスです。跳ねながら移動し、6秒ごとにプレイヤーの方向へ向きを変えます。次の着地から壁まで高速で走り抜けます。体力は30です。' }
         };
         const STAGE_TYPE_DESCRIPTIONS = [
             { type: 'normal', title: '通常', text: '標準的な物理と背景のステージです。' },
@@ -2997,7 +3030,7 @@ function getPswcWinnerCount(username) {
             'Z': '#e040fb', 'LM': '#ffca28', 'CA': '#ffb300', 'GB': '#ffd54f', 'WC': '#795548', 'default': '#bdbdbd'
         };
         // 破壊できないタイル一覧（ミサイルの爆発・狼の大ジャンプ破壊など、ブロックを壊す処理全体で共有する）
-        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'WG', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'BL', 'CA', 'GB', 'FL'];
+        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'WG', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'CA', 'GB', 'FL'];
         // ブロック破壊時の破片パーティクルを生成する共通ヘルパー（以前はミサイル爆発処理内のローカル関数だった）
         function spawnBlockDebris(bx, by, tileType) {
             if (!cachedGameCanvas) return;
@@ -3433,6 +3466,56 @@ function getPswcWinnerCount(username) {
             "                "
         ];
 
+        // ヘスティアのドット絵データ。プレイヤーと同じ16x16・同じ大きさで描画する。
+        const HESTIA_SPRITE_DATA = [[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,"#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff",null,null,null,null,null],[null,null,null,"#ffffff","#ffffff","#ff0d61","#ff0d61","#ff0d61","#ff0d61","#ff0d61","#ffffff","#ffffff",null,null,null,null],[null,null,"#ffffff","#ffffff","#ff0d61","#ff0d61","#ff0d61","#ff0000","#ff0d61","#ff0d61","#ff0d61","#ffffff","#ffffff",null,null,null],[null,null,"#ffffff","#ff0059","#ff0059","#ff0059","#ff4d00","#fdca81","#fdca81","#ff0059","#ff0059","#ff0059","#ffffff",null,null,null],[null,"#ffffff","#ff0059","#ff0059","#ff1969","#fdca81","#fdca81","#ffda75","#fdca81","#fdca81","#ff1969","#ff0059","#ffffff",null,null,null],[null,"#ffffff","#ff0059","#ff0059","#fdca81","#ffffff","#fdca81","#fdca81","#fdca81","#ffffff","#fdca81","#ff0059","#ff0059","#ffffff",null,null],[null,"#ffffff","#ffffff","#ff0000","#fdca81","#ff7e05","#fdca81","#fdca81","#fdca81","#ff7e05","#fdca81","#ff0000","#ff0059","#ffffff",null,null],[null,"#ffffff","#ff4d00","#ff4d00","#ff0000","#fdca81","#fdca81","#fdca81","#fdca81","#fdca81","#ff0000","#ff0000","#ff4d00","#ffffff",null,null],[null,"#ffda75","#ff9e42","#ff4d00","#fffee5","#fffee5","#fdca81","#fdca81","#fdca81","#fdca81","#fdca81","#ff4d00","#ff9e42","#ffda75",null,null],[null,null,"#ffda75","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#ffda75","#ffda75","#ffda75",null,null,null],[null,"#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#ffffff","#fffee5","#fffee5","#fffee5","#fdca81","#fdca81","#fdca81",null,null],[null,"#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fdca81","#fdca81",null,null],[null,"#fdca81","#fdca81","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fdca81","#fdca81",null,null],[null,null,null,"#fdca81","#fdca81","#fffee5","#fffee5","#fffee5","#fffee7","#fffee5","#fffee5","#fffee5","#fffee5","#fffee5",null,null],[null,null,null,"#fdca81","#fdca81","#fdca81",null,"#fffee5","#fffee5","#fffee5","#fffee5","#fffee5","#fffee7","#fffee7","#fffee5",null]];
+        let hestiaSpriteCanvas = null;
+        function getHestiaSpriteCanvas() {
+            if (!hestiaSpriteCanvas) {
+                hestiaSpriteCanvas = document.createElement('canvas');
+                hestiaSpriteCanvas.width = 16;
+                hestiaSpriteCanvas.height = 16;
+                const c = hestiaSpriteCanvas.getContext('2d');
+                HESTIA_SPRITE_DATA.forEach((row, y) => row.forEach((color, x) => {
+                    if (color) { c.fillStyle = color; c.fillRect(x, y, 1, 1); }
+                }));
+            }
+            return hestiaSpriteCanvas;
+        }
+        function drawHestiaSprite(ctx, x, y, w, h, facing = 'right') {
+            const canvas = getHestiaSpriteCanvas();
+            ctx.imageSmoothingEnabled = false;
+            ctx.save();
+            ctx.translate(x + (facing === 'left' ? w : 0), y);
+            if (facing === 'left') ctx.scale(-1, 1);
+            ctx.drawImage(canvas, 0, 0, w, h);
+            ctx.restore();
+        }
+
+        // ヘルメスのドット絵データ。プレイヤーと同じ16x16・同じ大きさで描画する。
+        const HERMES_SPRITE_DATA = [[null,null,null,null,null,"#c3c3c3","#c3c3c3",null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,"#c3c3c3",null,null,null,null,null,null,null,null],[null,null,null,null,null,"#bdbdbd","#bdbdbd","#bdbdbd","#bdbdbd","#9cb0a2",null,null,null,null,null,null],[null,null,null,null,"#bdbdbd","#9cb0a2","#bdbdbd","#bdbdbd","#bdbdbd","#a49cb0","#bdbdbd",null,null,null,null,null],[null,null,null,"#bdbdbd","#bdbdbd","#bdbdbd","#bdbdbd","#9cb0a2","#a49cb0","#bdbdbd","#bdbdbd","#bdbdbd",null,null,"#7d791c",null],[null,null,null,"#9cb0a2","#bdbdbd","#ffdecc","#bdbdbd","#a49cb0","#ffdecc","#ffdecc","#bdbdbd","#a49cb0",null,"#7d791c","#7d791c","#7d791c"],[null,null,null,"#a49cb0","#bdbdbd","#ffffff","#ffdecc","#bdbdbd","#ffdecc","#ffffff","#9cb0a2","#bdbdbd",null,"#7d791c",null,"#7d791c"],[null,null,null,"#bdbdbd","#ffdecc","#ff7e05","#ffdecc","#ffdecc","#ffdecc","#ff7e05","#ffdecc","#a49cb0",null,"#7d791c",null,null],[null,null,null,"#bdbdbd","#ffdecc","#ffdecc","#ffdecc","#ffdecc","#ffdecc","#ffdecc","#ffdecc",null,null,"#7d791c",null,null],[null,null,null,"#7d4b1c","#7d4b1c","#ffdecc","#ffdecc","#ffdecc","#ffdecc","#ffdecc","#7d4b1c","#7d4b1c",null,"#b1ae3e","#7d791c",null],[null,null,"#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d791c","#7d791c",null],[null,"#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#ffffff","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#b1ae3e",null],[null,"#5de9d2","#5de9d2","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#fffee5","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#5de9d2","#5de9d2","#5de9d2",null],["#5de9d2","#ffffff","#5de9d2","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#fffee5","#7d4b1c","#7d4b1c","#7d4b1c","#7d4b1c","#5de9d2","#ffffff","#ffffff","#5de9d2"],[null,null,null,"#648433","#648433","#648433","#7d4b1c","#fffee5","#7d4b1c","#648433","#648433","#648433","#b1ae3e","#7d791c","#b1ae3e",null],[null,null,null,"#648433","#648433","#648433",null,null,null,"#648433","#648433","#648433",null,"#b1ae3e","#7d791c",null]];
+        let hermesSpriteCanvas = null;
+        function getHermesSpriteCanvas() {
+            if (!hermesSpriteCanvas) {
+                hermesSpriteCanvas = document.createElement('canvas');
+                hermesSpriteCanvas.width = 16;
+                hermesSpriteCanvas.height = 16;
+                const c = hermesSpriteCanvas.getContext('2d');
+                HERMES_SPRITE_DATA.forEach((row, y) => row.forEach((color, x) => {
+                    if (color) { c.fillStyle = color; c.fillRect(x, y, 1, 1); }
+                }));
+            }
+            return hermesSpriteCanvas;
+        }
+        function drawHermesSprite(ctx, x, y, w, h, facing = 'right') {
+            const canvas = getHermesSpriteCanvas();
+            ctx.imageSmoothingEnabled = false;
+            ctx.save();
+            ctx.translate(x + (facing === 'left' ? w : 0), y);
+            if (facing === 'left') ctx.scale(-1, 1);
+            ctx.drawImage(canvas, 0, 0, w, h);
+            ctx.restore();
+        }
+
         // 狼（ボスNo.2）のドット絵データ。プレイヤーのカスタムスキンと同じ16x16の色配列形式。
         const WOLF_BOSS_SPRITE_DATA = [[null,null,null,"#ffff00",null,null,"#800000","#800000","#800000","#800000",null,null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#800000","#800000","#800000","#800000","#800000","#800000",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffff00","#800000","#800000","#800000","#800000","#800000","#800000",null,null,null,null],[null,null,null,"#800000","#ffff00","#800000","#800000","#800000","#f1c27d","#800000","#800000","#808080",null,null,null,null],[null,null,null,"#800000","#800000","#800000","#f1c27d","#c0c0c0","#f1c27d","#800000","#c0c0c0","#800000","#808080",null,null,null],[null,null,null,"#800000","#800000","#f1c27d","#f1c27d","#800000","#f1c27d","#f1c27d","#800000","#f1c27d","#808080",null,null,null],[null,null,null,"#800000","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#808080",null,null,null],[null,null,null,null,null,"#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#808080","#808080",null,null,null],[null,null,null,null,"#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000",null,null,null],[null,null,null,"#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000",null,null],[null,null,"#000000","#000000","#808080","#000000","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000",null,null],[null,null,"#000000","#000000","#808080","#808080","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000",null],[null,null,"#000000","#000000","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000",null],[null,"#000000","#000000","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000",null],["#000000","#000000","#808080","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000",null],["#000000","#000000","#808080","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#808080","#000000"]];
         let wolfBossSpriteCanvas = null; // 上記データを16x16キャンバスへ1度だけ焼き込んでおくキャッシュ
@@ -3558,6 +3641,8 @@ function getPswcWinnerCount(username) {
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
             'black_boss': { name: 'BLACK + CANDLE + GOLD BLOCK', price: 30000, isBlockSet: true, sprite: null },
+            'hestia_boss': { name: 'HESTIA', price: 20, isES: true, isBlockSet: true, sprite: null },
+            'hermes_boss': { name: 'HERMES', price: 20, isES: true, isBlockSet: true, sprite: null },
             'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
             // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
             'rai_alvaro': { name: 'RAI ALVARO', price: 0, sprite: RAI_ALVARO_SPRITE, recolorIndex: null, isHiddenShop: true }
@@ -4321,8 +4406,30 @@ function getPswcWinnerCount(username) {
             if (speech) speech.textContent = `「${lines[index].replace(/^「|」$/g, '')}」`;
         }
 
-        async function openShop(preserveShopkeeperLine = false) {
-            document.getElementById('shop-overlay').style.display = 'flex';
+        let activeShopSection = 'daily';
+
+        function switchShopSection(section) {
+            openShop(false, section);
+        }
+
+        async function openShop(preserveShopkeeperLine = false, section = activeShopSection) {
+            activeShopSection = section === 'event' ? 'event' : 'daily';
+            const isDaily = activeShopSection === 'daily';
+            const overlay = document.getElementById('shop-overlay');
+            overlay.style.display = 'flex';
+            document.querySelector('.daily-shop-interior').style.display = isDaily ? 'grid' : 'none';
+            document.getElementById('event-shop-interior').style.display = isDaily ? 'none' : 'flex';
+            document.querySelectorAll('[data-shop-section]').forEach(button => {
+                button.classList.toggle('active', button.dataset.shopSection === activeShopSection);
+            });
+            overlay.querySelector('.daily-shop-sign').innerText = isDaily ? 'DAILY SHOP' : 'EVENT SHOP';
+            overlay.querySelector('.daily-shop-subtitle').innerText = isDaily
+                ? '本日の入荷品　—　毎日0:00（JST）更新'
+                : 'オリンポス12神　第一弾 開催中';
+            if (!isDaily) {
+                renderEventShop();
+                return;
+            }
             const container = document.getElementById('shop-container');
             const dateLabel = document.getElementById('daily-shop-date');
             container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#bdefff;">商品を読み込み中...</div>';
@@ -4422,12 +4529,27 @@ function getPswcWinnerCount(username) {
             }
         }
 
+        function renderEventShop() {
+            const container = document.getElementById('event-shop-container');
+            if (!container) return;
+            container.innerHTML = '';
+            ['hestia_boss', 'hermes_boss'].forEach(id => {
+                const item = SKINS[id];
+                if (!item) return;
+                createShopItem(container, id, item, purchasedSkins.includes(id), false,
+                    event => buyItem(id, item.price, event.target, 'ES'));
+            });
+        }
+
         function createShopItem(container, id, data, isPurchased, isEquipped, onBuy) {
             const item = document.createElement('div');
             item.className = 'shop-item';
             const isDailyShop = container?.id === 'shop-container';
-            if (isDailyShop) item.classList.add('daily-shelf-item');
-            item.style.borderColor = isEquipped ? 'var(--primary-color)' : (isDailyShop ? '' : '#fff');
+            const isEventShop = container?.classList.contains('event-shop-grid');
+            const isShelfShop = isDailyShop || isEventShop;
+            if (isShelfShop) item.classList.add('daily-shelf-item');
+            if (isEventShop) item.classList.add('event-shelf-item');
+            item.style.borderColor = isEquipped ? 'var(--primary-color)' : (isShelfShop ? '' : '#fff');
 
             const canvas = document.createElement('canvas');
             canvas.width = 64; canvas.height = 64;
@@ -4512,6 +4634,8 @@ function getPswcWinnerCount(username) {
                 if (id === 'purple_boss') previewType = 'PB';
                 if (id === 'wolf_boss') previewType = 'WB';
                 if (id === 'black_boss') previewType = 'BL';
+                if (id === 'hestia_boss') previewType = 'HS';
+                if (id === 'hermes_boss') previewType = 'HM';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -4529,13 +4653,13 @@ function getPswcWinnerCount(username) {
             btn.style.width = '100%';
             if (isPurchased) {
                 // デイリーショップでは、無機質な BOUGHT 表記ではなく商品札風に表示する。
-                btn.innerText = isDailyShop ? '✓ OWNED' : 'BOUGHT';
-                if (isDailyShop) btn.classList.add('daily-owned-tag');
+                btn.innerText = isShelfShop ? '✓ OWNED' : 'BOUGHT';
+                if (isShelfShop) btn.classList.add('daily-owned-tag');
                 btn.disabled = true;
                 item.style.opacity = '0.7'; /* 購入済みアイテムの視認性を少し上げる */
             } else {
                 btn.innerText = data.isES ? `ES:${data.price}` : `${data.price} ${data.isAS ? 'AS' : 'G'}`;
-                if (isDailyShop) btn.classList.add('daily-price-tag');
+                if (isShelfShop) btn.classList.add('daily-price-tag');
                 btn.onclick = onBuy;
             }
             item.appendChild(btn);
@@ -4584,7 +4708,7 @@ function getPswcWinnerCount(username) {
             common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
             rare: ['Y', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['hr', 'hb', 'e', '#'],
-            legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL']
+            legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -4977,6 +5101,53 @@ function getPswcWinnerCount(username) {
             return cachedMentionRegex;
         }
 
+        // チャットのインラインスキンは、表示済みメッセージから随時キャッシュする。
+        const chatInlineSkinCache = new Map();
+        const chatInlineSkinRequests = new Map();
+        function rememberChatInlineSkin(username, skin, color, customSprite) {
+            if (!username) return;
+            chatInlineSkinCache.set(String(username), { skin: skin || 'default', color: color || 'default', customSprite: customSprite || null });
+        }
+        async function getChatInlineSkin(username) {
+            const key = String(username || '');
+            if (!key) return null;
+            if (key === String(CONFIG.USERNAME)) return { skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null };
+            if (chatInlineSkinCache.has(key)) return chatInlineSkinCache.get(key);
+            if (!chatInlineSkinRequests.has(key)) {
+                chatInlineSkinRequests.set(key, callApi('getUserProfile', { username: key })
+                    .then(res => {
+                        if (!res?.success) return null;
+                        const value = { skin: res.skin || 'default', color: res.color || 'default', customSprite: res.customSprite || null };
+                        chatInlineSkinCache.set(key, value);
+                        return value;
+                    })
+                    .catch(() => null)
+                    .finally(() => chatInlineSkinRequests.delete(key)));
+            }
+            return chatInlineSkinRequests.get(key);
+        }
+        function renderChatInlineIcons(root) {
+            if (!root) return;
+            root.querySelectorAll('canvas.chat-block-icon:not([data-rendered])').forEach(canvas => {
+                const type = canvas.dataset.chatBlock;
+                canvas.width = canvas.height = 24;
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+                drawTile(ctx, 0, 0, 24, 24, type);
+                canvas.dataset.rendered = '1';
+            });
+            root.querySelectorAll('canvas.chat-skin-icon:not([data-rendered])').forEach(async canvas => {
+                const username = decodeURIComponent(canvas.dataset.chatSkinUser || '');
+                const appearance = await getChatInlineSkin(username);
+                if (!appearance || !canvas.isConnected) return;
+                canvas.width = canvas.height = 24;
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+                drawPlayer(ctx, 0, 0, 24, 24, appearance.skin, false, appearance.color, appearance.customSprite);
+                canvas.dataset.rendered = '1';
+            });
+        }
+
         // メッセージ内のURLをクリック可能なリンクに変換する（表示前にHTMLエスケープも行う）
         function linkifyMessage(text) {
             if (text === null || text === undefined) return '';
@@ -4987,6 +5158,9 @@ function getPswcWinnerCount(username) {
             const chatColors = { red: '#ff5252', blue: '#62a8ff', yellow: '#fff36b', green: '#66f2a0', white: '#ffffff', cyan: '#62efff' };
             const messageColor = colorMatch ? chatColors[colorMatch[1].toLowerCase()] : null;
             if (colorMatch) rawText = rawText.slice(colorMatch[0].length);
+            const effectMatch = rawText.match(/^\[(aurora|rainbow)\]/i);
+            const textEffect = effectMatch ? effectMatch[1].toLowerCase() : null;
+            if (effectMatch) rawText = rawText.slice(effectMatch[0].length);
             const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (ch) => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[ch]));
@@ -4998,8 +5172,22 @@ function getPswcWinnerCount(username) {
                 urls.push(match);
                 return token;
             });
+            // [_ユーザー名_] はインラインのスキン絵文字へ変換する。URLの中は先に退避済み。
+            const skinTokens = [];
+            const textWithSkinTokens = textWithUrlTokens.replace(/\[_([^\]\r\n]{1,64})_\]/g, (match, username) => {
+                const name = String(username || '').trim();
+                if (!name) return match;
+                const token = `@@PIXEL_SKIN_${skinTokens.length}@@`;
+                skinTokens.push(name);
+                return token;
+            });
             // HTMLをエスケープしてから、-文字- の部分だけ取り消し線へ置き換える。
-            const escaped = escapeHtml(textWithUrlTokens).replace(/-([^\-\r\n<>]+)-/g, '<s style="text-decoration-thickness:1px;">$1</s>');
+            const escaped = escapeHtml(textWithSkinTokens)
+                .replace(/-([^\-\r\n<>]+)-/g, '<s style="text-decoration-thickness:1px;">$1</s>')
+                .replace(/\[([A-Za-z][A-Za-z0-9_]*|[><]N?|!|#)\]/g, (match, blockType) => {
+                    if (!SUPPORTED_BLOCK_TYPES.has(blockType)) return match;
+                    return `<canvas class="chat-block-icon" data-chat-block="${blockType}" title="[${blockType}]"></canvas>`;
+                });
 
             const withLinks = escaped.replace(/@@PIXEL_URL_(\d+)@@/g, (token, index) => {
                 const match = urls[Number(index)] || '';
@@ -5031,7 +5219,14 @@ function getPswcWinnerCount(username) {
                 return `<span class="${getUserNameClasses(username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${safeUsername}')">@${safeUsername}</span>`;
             });
             const withMentions = mentionedText.replace(/@@PIXEL_LINK_(\d+)@@/g, (token, index) => links[Number(index)] || '');
-            const renderedMessage = messageColor ? `<span style="color:${messageColor};">${withMentions}</span>` : withMentions;
+            const withSkins = withMentions.replace(/@@PIXEL_SKIN_(\d+)@@/g, (token, index) => {
+                const username = skinTokens[Number(index)] || '';
+                const safeUser = encodeURIComponent(username).replace(/'/g, '%27');
+                return `<canvas class="chat-skin-icon" data-chat-skin-user="${safeUser}" title="[_${escapeHtml(username)}_]"></canvas>`;
+            });
+            let renderedMessage = messageColor ? `<span style="color:${messageColor};">${withSkins}</span>` : withSkins;
+            if (textEffect === 'aurora') renderedMessage = `<span class="chat-text-aurora">${renderedMessage}</span>`;
+            if (textEffect === 'rainbow') renderedMessage = `<span class="chat-text-rainbow">${renderedMessage}</span>`;
             return isAnnouncement ? `<div class="chat-announcement">${renderedMessage}</div>` : renderedMessage;
         }
 
@@ -5347,7 +5542,9 @@ function getPswcWinnerCount(username) {
                 item.appendChild(canvas);
                 const content = document.createElement('div');
                 content.style.flex = '1';
+                rememberChatInlineSkin(m.from, m.skin, m.color, m.customSprite);
                 content.innerHTML = `<div class="chat-user" style="color:var(--primary-color); font-weight:bold;">${isMine ? '自分' : m.from}</div><div style="word-break:break-all;">${linkifyMessage(m.message)}</div><div class="message-meta">${new Date(m.time).toLocaleString()}</div>`;
+                renderChatInlineIcons(content);
                 appendMessageVideoEmbeds(content, m.message);
                 if (m.attachedStageId) {
                     const stageBtn = document.createElement('button');
@@ -5562,6 +5759,7 @@ function getPswcWinnerCount(username) {
             const container = document.getElementById('chat-list');
             container.innerHTML = '';
             messages.forEach(m => {
+                rememberChatInlineSkin(m.username, m.skin, m.color, m.customSprite);
                 const item = document.createElement('div');
                 item.className = 'chat-msg-item';
                 
@@ -5580,6 +5778,7 @@ function getPswcWinnerCount(username) {
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                     ${stageBtn}
                 `;
+                renderChatInlineIcons(content);
                 appendMessageVideoEmbeds(content, m.message);
                 if (m.hasImage || m.image) {
                     appendChatImage(content, m.id, m.image || null);
@@ -6320,6 +6519,7 @@ function getPswcWinnerCount(username) {
 
             container.innerHTML = '';
             res.messages.forEach(m => {
+                rememberChatInlineSkin(m.username, m.skin, m.color, m.customSprite);
                 const item = document.createElement('div');
                 item.className = 'guild-bulletin-item';
                 
@@ -6335,6 +6535,7 @@ function getPswcWinnerCount(username) {
                     <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
+                renderChatInlineIcons(contentDiv);
                 appendMessageVideoEmbeds(contentDiv, m.message);
                 item.appendChild(contentDiv);
                 container.appendChild(item);
@@ -8103,6 +8304,8 @@ function getPswcWinnerCount(username) {
             if (['PB', 'SM'].includes(key)) return purchasedSkins.includes('purple_boss');
             if (['WB', 'FL'].includes(key)) return purchasedSkins.includes('wolf_boss');
             if (['BL', 'CA', 'GB'].includes(key)) return purchasedSkins.includes('black_boss');
+            if (key === 'HS') return purchasedSkins.includes('hestia_boss');
+            if (key === 'HM') return purchasedSkins.includes('hermes_boss');
             return true; // 基本ブロック
         }
 
@@ -8348,6 +8551,10 @@ function getPswcWinnerCount(username) {
             if(document.getElementById('btn-tool-CA')) document.getElementById('btn-tool-CA').style.display = hasBlackBoss ? 'flex' : 'none';
             if(document.getElementById('btn-tool-GB')) document.getElementById('btn-tool-GB').style.display = hasBlackBoss ? 'flex' : 'none';
 
+            const hasHestiaBoss = purchasedSkins.includes('hestia_boss');
+            if(document.getElementById('btn-tool-HS')) document.getElementById('btn-tool-HS').style.display = hasHestiaBoss ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-HM')) document.getElementById('btn-tool-HM').style.display = purchasedSkins.includes('hermes_boss') ? 'flex' : 'none';
+
             // 噴火制御機（購入済み、かつ火山・海辺ステージ選択中のみ表示）
             updateEruptionControlToolVisibility();
             // Runon は制作画面ですべてのブロックを選択できる。
@@ -8465,7 +8672,7 @@ function getPswcWinnerCount(username) {
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
-                {type:'LM', id:'icon-LM'}, {type:'CA', id:'icon-CA'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'BL', id:'icon-BL'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}, {type:'GB', id:'icon-GB'}
+                {type:'LM', id:'icon-LM'}, {type:'CA', id:'icon-CA'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'BL', id:'icon-BL'}, {type:'HS', id:'icon-HS'}, {type:'HM', id:'icon-HM'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}, {type:'GB', id:'icon-GB'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -8646,8 +8853,9 @@ function getPswcWinnerCount(username) {
                             return;
                         }
                     }
-                    // 噴火制御機・パープル（ボス）・狼（ボス）はステージに1つだけ配置できるツール
-                    if ((currentTool === 'EC' || currentTool === 'PB' || currentTool === 'WB' || currentTool === 'BL') && editorGrid[y][x] !== currentTool) {
+                    // 噴火制御機・ボスは、ステージタイプに関係なく各1体だけ配置できる。
+                    // 既存ボスと同様に、新しい位置へ置くと古い位置は自動で入れ替わる。
+                    if ((currentTool === 'EC' || currentTool === 'PB' || currentTool === 'WB' || currentTool === 'BL' || currentTool === 'HS' || currentTool === 'HM') && editorGrid[y][x] !== currentTool) {
                         for(let r=0; r<GRID_H; r++) {
                             for(let c=0; c<GRID_W; c++) {
                                 if(editorGrid[r][c] === currentTool) editorGrid[r][c] = null;
@@ -9507,6 +9715,22 @@ function getPswcWinnerCount(username) {
                 ctx.strokeStyle = "#ffca28";
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*0.05, y*ch + ch*0.1, cw*0.9, ch*0.9);
+            } else if(type === 'HS') {
+                // ヘスティア: プレイヤーと同じ1マスサイズの中ボス。
+                ctx.fillStyle = '#38111d';
+                ctx.fillRect(x*cw + cw*.04, y*ch + ch*.04, cw*.92, ch*.92);
+                drawHestiaSprite(ctx, x*cw + cw*.05, y*ch + ch*.05, cw*.9, ch*.9);
+                ctx.strokeStyle = '#ffda75';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*.04, y*ch + ch*.04, cw*.92, ch*.92);
+            } else if(type === 'HM') {
+                // ヘルメス: 翼の靴を持つ、同サイズの高速中ボス。
+                ctx.fillStyle = '#122b31';
+                ctx.fillRect(x*cw + cw*.04, y*ch + ch*.04, cw*.92, ch*.92);
+                drawHermesSprite(ctx, x*cw + cw*.05, y*ch + ch*.05, cw*.9, ch*.9);
+                ctx.strokeStyle = '#5de9d2';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*.04, y*ch + ch*.04, cw*.92, ch*.92);
             } else if(type === 'BL') {
                 // ブラック（ボス）の配置マーカー。
                 ctx.fillStyle = '#080808';
@@ -10193,13 +10417,26 @@ function getPswcWinnerCount(username) {
         function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
         function getNormalEnemyMaxHp() { return currentStageType === 'hard' ? 30 : 10; }
+        function createHestiaEnemy(x, y) {
+            const hardBoss = currentStageType === 'hard';
+            return { x, y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false,
+                size: hardBoss ? 1.8 : BASE_PLAYER_SIZE, isHestia: true, isBoss: true, name: 'HESTIA',
+                hp: hardBoss ? 90 : 40, maxHp: hardBoss ? 90 : 40, hitCooldown: 0, directionTimer: hardBoss ? 240 : 420 };
+        }
+        function createHermesEnemy(x, y) {
+            const hardBoss = currentStageType === 'hard';
+            return { x, y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false,
+                size: hardBoss ? 1.8 : BASE_PLAYER_SIZE, isHermes: true, isBoss: true, name: 'HERMES',
+                hp: hardBoss ? 90 : 30, maxHp: hardBoss ? 90 : 30, hitCooldown: 0, directionTimer: hardBoss ? 240 : 360,
+                hermesDashArmed: false, isHermesDashing: false, hermesJumpCount: 0, hermesDoubleJumpPending: false };
+        }
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','CB','HBK','S','G','WG','KG','K','M','E','A','T','TD','TL','TR','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','sp','mg','BB','BBN','LM','WC','WCN',
-            'EC','PB','WB','BL','SM','FL','CA','GB'
+            'EC','PB','WB','BL','HS','HM','SM','FL','CA','GB'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -10438,6 +10675,8 @@ function getPswcWinnerCount(username) {
             crackBlockTimers.clear();
             wolfBossRefs = [];
             blackBossRefs = [];
+            let hardHestiaSpawned = false;
+            let hardHermesSpawned = false;
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') {
@@ -10478,6 +10717,18 @@ function getPswcWinnerCount(username) {
                     }
                     if(activeStage[y][x] === 'BL') {
                         enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isBlack: true, isBoss: true, name: 'BLACK', hp: 100, maxHp: 100, hitCooldown: 0, raiDamageFlash: 0});
+                        activeStage[y][x] = null;
+                    }
+                    if(activeStage[y][x] === 'HS') {
+                        if (hardHestiaSpawned) { activeStage[y][x] = null; continue; }
+                        enemies.push(createHestiaEnemy(x, y));
+                        hardHestiaSpawned = true;
+                        activeStage[y][x] = null;
+                    }
+                    if(activeStage[y][x] === 'HM') {
+                        if (hardHermesSpawned) { activeStage[y][x] = null; continue; }
+                        enemies.push(createHermesEnemy(x, y));
+                        hardHermesSpawned = true;
                         activeStage[y][x] = null;
                     }
                 }
@@ -11489,6 +11740,7 @@ function getPswcWinnerCount(username) {
             // Keep the pre-move state for swept stomp detection.
             const playerPreviousBottom = player.y + player.h;
             const playerPreviousX = player.x;
+            const playerPreviousY = player.y;
             const playerWasFalling = player.vy >= 0;
             player.vy += gravity;
 
@@ -11743,6 +11995,7 @@ function getPswcWinnerCount(username) {
             for (let enIdx = 0; enIdx < enemies.length; enIdx++) {
                 const en = enemies[enIdx];
                 if(en.dead) continue;
+                const enemyPreviousX = en.x;
                 const enemyPreviousTop = en.y;
 
                 if (en.hitCooldown > 0) en.hitCooldown--;
@@ -11770,6 +12023,36 @@ function getPswcWinnerCount(username) {
                             // オーロラ形態はプレイヤーのいる高さにも同時に突進する。
                             en.vy = en.isAuroraPurple ? en.dashVerticalDirection * 0.24 : 0;
                         }
+                    }
+                }
+
+                // ヘスティア: 7秒ごとにプレイヤーの方向へ向きを変え、その瞬間に周囲3マスも含めて炎へ変える。
+                if (en.isHestia) {
+                    en.directionTimer--;
+                    if (en.directionTimer <= 0) {
+                        const hestiaCenter = en.x + (en.size || BASE_PLAYER_SIZE) / 2;
+                        en.vx = (playerCenterXForEnemies < hestiaCenter ? -1 : 1) * 0.04;
+                        en.directionTimer = 420;
+                        hestiaIgniteTiles(en);
+                    }
+                }
+
+                // ヘルメス: 6秒ごとにプレイヤー側へ向きを変え、次の着地から壁まで高速で走る。
+                if (en.isHermes) {
+                    en.directionTimer--;
+                    if (en.directionTimer <= 0 && !en.isHermesDashing) {
+                        const hermesCenter = en.x + (en.size || BASE_PLAYER_SIZE) / 2;
+                        en.vx = (playerCenterXForEnemies < hermesCenter ? -1 : 1) * 0.04;
+                        en.hermesDashArmed = true;
+                        en.directionTimer = 360;
+                    }
+                    // ダッシュ待機中以外は着地のたびにジャンプして移動を続ける。
+                    if (en.onGround && !en.isHermesDashing && !en.hermesDashArmed) {
+                        en.vy = -0.34;
+                        en.onGround = false;
+                        en.hermesJumpCount = (en.hermesJumpCount || 0) + 1;
+                        // HARDでは3回に1回、頂点で追加のジャンプを行う。
+                        en.hermesDoubleJumpPending = currentStageType === 'hard' && en.hermesJumpCount % 3 === 0;
                     }
                 }
 
@@ -11890,7 +12173,10 @@ function getPswcWinnerCount(username) {
                 } else {
                     if (enemyHalfBlockSideX !== null) en.x = enemyHalfBlockSideX;
                     if (!en.sync) {
-                        if (en.isPurple && en.isDashing) {
+                        if (en.isHermes && en.isHermesDashing) {
+                            en.isHermesDashing = false;
+                            en.vx = en.vx >= 0 ? -0.04 : 0.04;
+                        } else if (en.isPurple && en.isDashing) {
                             en.isDashing = false;
                             en.vx = -en.dashDirection * 0.04;
                             en.vy = 0;
@@ -11930,6 +12216,11 @@ function getPswcWinnerCount(username) {
                     en.vy += (currentStageType === 'moon' ? 0.0075 : 0.015);
                     if(current_tile === 'U') en.vy -= 0.025;
                     if(current_tile === 'd') en.vy += 0.025;
+                    // 3回に1回のヘルメスジャンプは、上昇が終わる頂点でそのまま二段目へつなぐ。
+                    if (en.isHermes && en.hermesDoubleJumpPending && en.vy >= 0) {
+                        en.vy = -0.31;
+                        en.hermesDoubleJumpPending = false;
+                    }
                 }
 
                 let nextY = en.y + en.vy;
@@ -11996,6 +12287,11 @@ function getPswcWinnerCount(username) {
                         if (en.vy > 0) {
                             en.y = (isBridge || enemyHalfBlockLandingY !== null) ? nextY : Math.floor(nextY + enSize + 0.05) - enSize;
                             en.onGround = true;
+                            if (en.isHermes && en.hermesDashArmed) {
+                                en.hermesDashArmed = false;
+                                en.isHermesDashing = true;
+                                en.vx = (en.vx >= 0 ? 1 : -1) * 0.22;
+                            }
                         }
                         en.vy = 0;
                     }
@@ -12016,7 +12312,7 @@ function getPswcWinnerCount(username) {
                 
                 // 摩擦を適用しつつ、ベース速度を維持して止まらないようにする
                 // 狼（ボスNo.2）は移動速度を通常の敵の1.5倍にするため、下限速度も1.5倍(0.04→0.06)にする。
-                if (!en.sync && !(en.isPurple && (en.isDashing || en.chargeFrames > 0))) {
+                if (!en.sync && !(en.isPurple && (en.isDashing || en.chargeFrames > 0)) && !en.isHermesDashing) {
                     en.vx *= 0.98;
                     const baseSpeed = en.isWolf ? 0.06 : 0.04;
                     if(Math.abs(en.vx) < baseSpeed) en.vx = (en.vx >= 0 ? baseSpeed : -baseSpeed);
@@ -12035,6 +12331,12 @@ function getPswcWinnerCount(username) {
                 // 判定範囲は「プレイヤーの半径＋敵の半径」を基準にスケール（元は0.9サイズの敵で0.8だった）
                 const proximityThresh = player.w/2 + enHalf - 0.1;
                 const isOverlappingEnemy = Math.abs(px - ex) < proximityThresh && Math.abs(py - ey) < proximityThresh;
+                // プレイヤー／敵のどちらが高速でも、前フレームから今フレームまでの軌道全体で接触を確認する。
+                // これにより敵の方が速く横切った場合も、踏みつけか接触かを正しく判定できる。
+                const sweptEnemyContact = didSweptBodiesCollide(
+                    playerPreviousX, playerPreviousY, player.x, player.y, player.w, player.h,
+                    enemyPreviousX, enemyPreviousTop, en.x, en.y, enSize, enSize
+                );
                 // 高速移動で敵をすり抜けないよう、ダッシュ前後の横移動全体を使って当たり判定する。
                 const dashLeft = Math.min(playerPreviousX, player.x);
                 const dashRight = Math.max(playerPreviousX + player.w, player.x + player.w);
@@ -12043,8 +12345,8 @@ function getPswcWinnerCount(username) {
                     player.y + player.h > en.y && player.y < en.y + enSize;
                 const enemyTop = Math.min(enemyPreviousTop, en.y);
                 const overlapsEnemyHorizontally = player.x < en.x + enSize - 0.05 && player.x + player.w > en.x + 0.05;
-                const stompedEnemy = (playerWasFalling || player.vy >= 0) && overlapsEnemyHorizontally &&
-                    playerPreviousBottom <= enemyTop + 0.16 && player.y + player.h >= enemyTop - 0.05;
+                const stompedEnemy = (playerWasFalling || player.vy >= 0) && (overlapsEnemyHorizontally || sweptEnemyContact) &&
+                    playerPreviousBottom <= enemyPreviousTop + 0.16 && player.y + player.h >= enemyTop - 0.05;
                 // 雷ダッシュ中は、ボス以外の敵を接触だけで倒せる。
                 if (isRaiDashContact && !en.isBoss) {
                     en.dead = true;
@@ -12062,7 +12364,7 @@ function getPswcWinnerCount(username) {
                         if (en.isBlack) removeAllGoldBlocks();
                     }
                 }
-                if (isOverlappingEnemy || stompedEnemy) {
+                if (isOverlappingEnemy || sweptEnemyContact || stompedEnemy) {
                     // 踏みつけ判定: 落下中かつ、プレイヤーの足元が敵の下部2割より高い位置にある場合
                     if (stompedEnemy) {
                         // 高速落下で敵の内部まで入り込んだ場合も、必ず敵の上面へ戻してから跳ねる。
@@ -12367,7 +12669,7 @@ function getPswcWinnerCount(username) {
                 let count = 0;
                 for (let y = 0; y < GRID_H; y++) {
                     for (let x = 0; x < GRID_W; x++) {
-                        if (stage[y] && ['M', 'j', 'e', 'PB', 'WB', 'BL'].includes(stage[y][x])) count++;
+                        if (stage[y] && ['M', 'j', 'e', 'PB', 'WB', 'BL', 'HS', 'HM'].includes(stage[y][x])) count++;
                     }
                 }
                 return count;
@@ -12409,6 +12711,8 @@ function getPswcWinnerCount(username) {
 
             enemies = [];
             woodCrates = [];
+            let hardHestiaSpawned = false;
+            let hardHermesSpawned = false;
             for (let y = 0; y < GRID_H; y++) {
                 for (let x = 0; x < GRID_W; x++) {
                     const tile = activeStage[y][x];
@@ -12426,6 +12730,16 @@ function getPswcWinnerCount(username) {
                         activeStage[y][x] = null;
                     } else if (tile === 'BL') {
                         enemies.push({ x, y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isBlack: true, isBoss: true, name: 'BLACK', hp: 100, maxHp: 100, hitCooldown: 0, raiDamageFlash: 0 });
+                        activeStage[y][x] = null;
+                    } else if (tile === 'HS') {
+                        if (hardHestiaSpawned) { activeStage[y][x] = null; continue; }
+                        enemies.push(createHestiaEnemy(x, y));
+                        hardHestiaSpawned = true;
+                        activeStage[y][x] = null;
+                    } else if (tile === 'HM') {
+                        if (hardHermesSpawned) { activeStage[y][x] = null; continue; }
+                        enemies.push(createHermesEnemy(x, y));
+                        hardHermesSpawned = true;
                         activeStage[y][x] = null;
                     }
                 }
@@ -12824,6 +13138,23 @@ function getPswcWinnerCount(username) {
             return isCollideAt(x, y, size, size, false, axis);
         }
 
+        // 2つの移動する矩形が、フレーム途中に重なったかを調べる。
+        // 1マス未満の移動を細かく補間するため、通常移動・高速ダッシュのどちらでも
+        // 接触をすり抜けず、プレイヤーの踏みつけ判定を先に処理できる。
+        function didSweptBodiesCollide(ax0, ay0, ax1, ay1, aw, ah, bx0, by0, bx1, by1, bw, bh) {
+            const maxTravel = Math.max(Math.abs(ax1 - ax0), Math.abs(ay1 - ay0), Math.abs(bx1 - bx0), Math.abs(by1 - by0));
+            const steps = Math.max(1, Math.ceil(maxTravel / 0.075));
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const ax = ax0 + (ax1 - ax0) * t;
+                const ay = ay0 + (ay1 - ay0) * t;
+                const bx = bx0 + (bx1 - bx0) * t;
+                const by = by0 + (by1 - by0) * t;
+                if (ax < bx + bw - 0.02 && ax + aw > bx + 0.02 && ay < by + bh - 0.02 && ay + ah > by + 0.02) return true;
+            }
+            return false;
+        }
+
 
         function isTouchingType(x, y, type) {
             const inset = 0.02;
@@ -12884,6 +13215,27 @@ function getPswcWinnerCount(username) {
                 }
             }
             if (removedAny) updateStageCache();
+        }
+
+        // ヘスティアの方向転換攻撃。本人のマスと、左右・上の隣接3マスを炎ブロックに変える。
+        // スタート・ゴールなど、進行に必須のギミックは消さない。
+        function hestiaIgniteTiles(hestia) {
+            const centerX = Math.floor(hestia.x + (hestia.size || BASE_PLAYER_SIZE) / 2);
+            const centerY = Math.floor(hestia.y + (hestia.size || BASE_PLAYER_SIZE) / 2);
+            const cells = currentStageType === 'hard'
+                // HARDの2x2ボスは、通常版の約2倍の横幅・高さへ炎を広げる。
+                ? [[0, 0], [-1, 0], [1, 0], [-2, 0], [2, 0], [0, -1], [0, -2]]
+                : [[0, 0], [-1, 0], [1, 0], [0, -1]];
+            const protectedTiles = new Set(['S', 'G', 'KG', 'WG', 'C', 'EC']);
+            let changed = false;
+            for (let i = 0; i < cells.length; i++) {
+                const x = centerX + cells[i][0], y = centerY + cells[i][1];
+                if (x < 0 || x >= GRID_W || y < 0 || y >= GRID_H || !activeStage[y]) continue;
+                if (protectedTiles.has(activeStage[y][x]) || activeStage[y][x] === 'FL') continue;
+                activeStage[y][x] = 'FL';
+                changed = true;
+            }
+            if (changed) updateStageCache();
         }
 
         // ボスの巨大化領域と重なる、破壊可能なブロックを取り除く
@@ -13106,6 +13458,10 @@ function getPswcWinnerCount(username) {
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.2, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
                         cachedGameCtx.fillRect(en.x * cw + cw*enSize*0.6, en.y * ch + ch*enSize*0.4, cw*enSize*0.18, ch*enSize*0.18);
 
+                    } else if (en.isHestia) {
+                        drawHestiaSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, en.vx < 0 ? 'left' : 'right');
+                    } else if (en.isHermes) {
+                        drawHermesSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, en.vx < 0 ? 'left' : 'right');
                     } else if (en.isBlack) {
                         // ブラック: 金の目と、キャンドルが残っている間の金色シールド。
                         const shielded = candlePositions.length > 0;
@@ -13491,9 +13847,9 @@ function getPswcWinnerCount(username) {
                 const hpRatio = Math.max(0, en.hp / en.maxHp);
                 cachedGameCtx.fillStyle = 'rgba(0,0,0,0.8)';
                 cachedGameCtx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
-                cachedGameCtx.fillStyle = en.isBlack ? '#4a3900' : '#4a148c';
+                cachedGameCtx.fillStyle = en.isHestia ? '#6e152c' : (en.isHermes ? '#164650' : (en.isBlack ? '#4a3900' : '#4a148c'));
                 cachedGameCtx.fillRect(barX, barY, barW, barH);
-                cachedGameCtx.fillStyle = en.isBlack ? '#ffd740' : '#e040fb';
+                cachedGameCtx.fillStyle = en.isHestia ? '#ff8a3d' : (en.isHermes ? '#5de9d2' : (en.isBlack ? '#ffd740' : '#e040fb'));
                 cachedGameCtx.fillRect(barX, barY, barW * hpRatio, barH);
                 if (en.raiDamageFlash > 0) {
                     cachedGameCtx.fillStyle = '#fff36b';
