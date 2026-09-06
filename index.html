@@ -1732,6 +1732,28 @@
         #leaderboard-overlay td { border-color:#444 !important; }
         .profile-container .ovr-box { border-width:.5cqw; }
 
+        /* チャットと同様に、ランキング本体を優先して縦方向の表示範囲を確保する。 */
+        #leaderboard-overlay {
+            padding:1.1cqh 8cqw 1.4cqh !important;
+            overflow:hidden;
+        }
+        #leaderboard-overlay .auth-box {
+            width:80% !important;
+            height:100%;
+            max-height:none !important;
+            box-sizing:border-box;
+            padding:1.15cqh 1.4cqw;
+            gap:.65cqh;
+        }
+        #leaderboard-overlay .auth-box > h2 {
+            margin:.1cqh 0 .25cqh !important;
+            font-size:3.1cqw !important;
+            line-height:1.1;
+            flex-shrink:0;
+        }
+        #leaderboard-overlay .auth-box > div[style*="margin-bottom"] { margin-bottom:.55cqh !important; flex-shrink:0; }
+        #leaderboard-overlay .auth-box > div[style*="overflow-y"] { min-height:0; flex:1 1 auto; }
+
         /* 大型メニューのコンテンツ幅と中央位置を統一 */
         #creators-road-overlay, #login-bonus-overlay, #explanation-overlay { align-items:center; box-sizing:border-box; }
         #creators-road-overlay > h2, #creators-road-overlay > button,
@@ -7255,7 +7277,8 @@ function getPswcWinnerCount(username) {
             'AKY_016':       { title: 'Master Architect',  bg: 'linear-gradient(135deg,#102b4b,#216ba3)', text: '#d8f5ff', border: '#71d9ff', glow: 'rgba(76,198,255,.55)' },
             'りょくちゃくん': { title: 'Chrono Runner',    bg: 'linear-gradient(135deg,#173348,#1c7d86)', text: '#d7ffff', border: '#63f0e4', glow: 'rgba(75,241,224,.55)' },
             'rauninkatawa':  { title: 'Godslayer',         bg: 'linear-gradient(135deg,#470c17,#8d2734)', text: '#ffe2e6', border: '#ff8290', glow: 'rgba(255,75,98,.55)' },
-            'ひすいゲームズ': { title: 'The Unbroken',     bg: 'linear-gradient(135deg,#31205c,#694399)', text: '#efe1ff', border: '#c79cff', glow: 'rgba(190,132,255,.55)' }
+            'ひすいゲームズ': { title: 'The Unbroken',     bg: 'linear-gradient(135deg,#31205c,#694399)', text: '#efe1ff', border: '#c79cff', glow: 'rgba(190,132,255,.55)' },
+            'こひょしの':     { title: 'Selfplay Master',  bg: 'linear-gradient(135deg,#123a34,#217d68)', text: '#dcfff3', border: '#77f6cf', glow: 'rgba(85,239,188,.58)' }
         });
 
         function getBadgeTier(ovr) {
