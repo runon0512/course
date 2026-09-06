@@ -2634,7 +2634,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.6.4"
+            VERSION: "3.6.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2858,11 +2858,13 @@ function getPswcWinnerCount(username) {
         // 制作画面と通常ステージは従来の20x10を保つ。
         let GRID_W = BASE_GRID_W, GRID_H = BASE_GRID_H;
         let bigStageActive = false;
+        let bigStagePair = false;
         const BIG_SINGLE_TILES = new Set(['S', 'M', 'j', 'e', 'WCN', 'PB', 'WB', 'BL']);
         function resetGameGridSize() {
             GRID_W = BASE_GRID_W;
             GRID_H = BASE_GRID_H;
             bigStageActive = false;
+            bigStagePair = false;
         }
         function expandBigStageGrid(grid) {
             const expanded = Array.from({ length: BASE_GRID_H * 2 }, () => Array(BASE_GRID_W * 2).fill(null));
@@ -2884,16 +2886,19 @@ function getPswcWinnerCount(username) {
         }
         function configureGameGridForStage(frontGrid, backGrid, frontType, backType) {
             resetGameGridSize();
-            if (frontType !== 'big' && backType !== 'big') return { front: frontGrid, back: backGrid };
-            bigStageActive = true;
-            GRID_W = BASE_GRID_W * 2;
-            GRID_H = BASE_GRID_H * 2;
-            // 表裏ワープ時に座標系が変わらないよう、どちらかがビッグなら両面を同じ倍率で扱う。
-            return { front: expandBigStageGrid(frontGrid), back: expandBigStageGrid(backGrid) };
+            // 表裏どちらかがビッグなら、ワープ後も同じ座標系・同じ大きさを保つため両面を展開する。
+            bigStagePair = frontType === 'big' || backType === 'big';
+            bigStageActive = bigStagePair;
+            GRID_W = bigStagePair ? BASE_GRID_W * 2 : BASE_GRID_W;
+            GRID_H = bigStagePair ? BASE_GRID_H * 2 : BASE_GRID_H;
+            return bigStagePair
+                ? { front: expandBigStageGrid(frontGrid), back: expandBigStageGrid(backGrid) }
+                : { front: frontGrid, back: backGrid };
         }
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
-        let player = { x: 0, y: 0, w: 0.9, h: 0.9, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0 };
+        const BASE_PLAYER_SIZE = 0.9;
+        let player = { x: 0, y: 0, w: BASE_PLAYER_SIZE, h: BASE_PLAYER_SIZE, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0 };
         let isSwitchOn = true;
         let keys = {};
         let pendingJumpPress = false;
@@ -9878,14 +9883,14 @@ function getPswcWinnerCount(username) {
                 const crNum = s.attempts > 0 ? Math.min(100, (s.clears || 0) / s.attempts * 100) : 100;
                 const isNewDimension = (s.attempts >= 500 && crNum <= 0.1);
 
-                if (crNum >= 90) {
-                    // 簡単
-                    diffBadge = '<span class="difficulty-badge difficulty-easy">簡単</span>';
-                    customFrameStyle = "background:linear-gradient(135deg, rgba(30,110,65,.48), rgba(100,220,135,.16)); border-color:#68d890; box-shadow:inset 0 0 10px rgba(117,245,157,.28);";
-                } else if (s.attempts < 5) {
+                if (s.attempts < 5) {
                     // 新風: プレイ数5以下
                     diffBadge = '<span class="difficulty-badge difficulty-new">新風</span>';
                     customFrameStyle = "background:linear-gradient(135deg, rgba(46,125,50,.42), rgba(129,199,132,.16)); border-color:#4caf50; box-shadow:inset 0 0 10px rgba(76,175,80,.3);";
+                } else if (crNum >= 90) {
+                    // 簡単
+                    diffBadge = '<span class="difficulty-badge difficulty-easy">簡単</span>';
+                    customFrameStyle = "background:linear-gradient(135deg, rgba(30,110,65,.48), rgba(100,220,135,.16)); border-color:#68d890; box-shadow:inset 0 0 10px rgba(117,245,157,.28);";
                 } else {
                     if (crNum <= 0.1) {
                         if (isNewDimension) {
@@ -10342,8 +10347,10 @@ function getPswcWinnerCount(username) {
             isUsingBackFace = false;
             warpGateLocked = false;
             // ゴール条件は表・裏面にあるチェックポイントの合計。ワープのたびに足さない。
-            totalCheckpoints = [activeFrontStage, activeBackStage].reduce((total, grid) =>
-                total + grid.reduce((count, row) => count + row.filter(cell => cell === 'C').length, 0), 0);
+            const countCheckpoints = (grid, isBig) => grid.reduce((count, row, y) =>
+                count + row.reduce((rowCount, cell, x) => rowCount + (cell === 'C' && (!isBig || (!(x & 1) && !(y & 1))) ? 1 : 0), 0), 0);
+            totalCheckpoints = countCheckpoints(activeFrontStage, bigStagePair)
+                + countCheckpoints(activeBackStage, bigStagePair);
             const faceIndicator = document.getElementById('stage-face-indicator');
             if (faceIndicator) faceIndicator.innerText = '1';
             killerGoalTiles = [];
@@ -12461,7 +12468,7 @@ function getPswcWinnerCount(username) {
                 // 表面・裏面の同じ座標のゲートを往復する。
                 saveActiveFaceRuntime();
                 isUsingBackFace = !isUsingBackFace;
-                applyActiveFaceStageType();
+                applyActiveFaceStageType(true);
                 killerGoalTiles = [];
                 for (let y = 0; y < GRID_H; y++) {
                     for (let x = 0; x < GRID_W; x++) {
@@ -12470,7 +12477,7 @@ function getPswcWinnerCount(username) {
                 }
                 killerGoalActive = killerGoalTiles.length > 0;
                 lastKillerGoalEnemyCount = -1;
-                playBackFaceWarpEffect(gx, gy);
+                playBackFaceWarpEffect(Math.floor(player.x), Math.floor(player.y));
                 warpGateLocked = true;
                 restoreActiveFaceRuntime();
                 arrows = [];
@@ -12537,9 +12544,26 @@ function getPswcWinnerCount(username) {
         }
 
         // 表／裏面を切り替えた時に、タイプ依存の状態を一か所で確実に同期する。
-        function applyActiveFaceStageType() {
+        function applyActiveFaceStageType(convertPlayerCoordinates = false) {
+            const wasBigFace = bigStageActive;
             activeStage = isUsingBackFace ? activeBackStage : activeFrontStage;
             currentStageType = isUsingBackFace ? activeBackStageType : activeFrontStageType;
+            const isBigFace = bigStagePair;
+            if (convertPlayerCoordinates && wasBigFace !== isBigFace) {
+                // 通常ステージからビッグステージへ切り替わる場合だけ座標を換算する。
+                // 表裏内ではbigStagePairが共通なので、ワープ時の換算は発生しない。
+                const scale = isBigFace ? 2 : 0.5;
+                player.x *= scale;
+                player.y *= scale;
+                player.vx *= scale;
+                player.vy *= scale;
+            }
+            bigStageActive = isBigFace;
+            GRID_W = isBigFace ? BASE_GRID_W * 2 : BASE_GRID_W;
+            GRID_H = isBigFace ? BASE_GRID_H * 2 : BASE_GRID_H;
+            // プレイヤー本体は常に通常サイズ。通常面の物理挙動を変えない。
+            player.w = BASE_PLAYER_SIZE;
+            player.h = BASE_PLAYER_SIZE;
             refreshBlackHolePositions();
 
             eruptionControlLimitTiles = null;
