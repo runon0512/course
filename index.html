@@ -13,6 +13,8 @@
             --secondary-color: #00bfff; /* クールな青に変更 */
             --text-color: #ffffff;
             --pixel-size: 4px;
+            /* JS で実際に表示されている領域（ブラウザUIを除く）へ更新する。 */
+            --app-visible-height: 100vh;
         }
 
         body {
@@ -22,7 +24,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: var(--app-visible-height);
+            min-height: var(--app-visible-height);
             font-family: 'Roboto', 'Noto Sans JP', sans-serif;
             color: var(--text-color);
             overflow: hidden;
@@ -88,8 +91,8 @@
         .container {
             /* 10:5 (2:1) の比率を厳密に固定 */
             position: relative;
-            width: min(100vw, 200vh);
-            height: min(50vw, 100vh);
+            width: min(100vw, calc(var(--app-visible-height) * 2));
+            height: min(50vw, var(--app-visible-height));
             text-align: center;
             image-rendering: pixelated;
             overflow: hidden;
@@ -2543,6 +2546,7 @@
                         <option value="timeattack">⌛ タイムアタック</option>
                         <option id="stage-type-option-big" value="big">⬛ ビッグ</option>
                         <option id="stage-type-option-hard" value="hard">💀 HARD（未購入）</option>
+                        <option id="stage-type-option-untouchable" value="untouchable">☠️ アンタッチャブル（未購入）</option>
                         <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
                         <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
                         <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
@@ -2629,6 +2633,10 @@
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
             <div id="face-warp-effect"></div>
+            <div id="embedded-block-warning" style="display:none; position:absolute; z-index:120; left:50%; top:13cqh; width:min(28cqw,360px); transform:translateX(-50%); padding:.65cqh .75cqw; border:.12cqw solid #ffcf45; background:rgba(24,10,16,.88); color:#fff3c7; text-align:center; font-weight:bold; font-size:1cqw; letter-spacing:.08em; pointer-events:none;">
+                <div>BLOCKED — ESCAPE!</div>
+                <div style="height:.65cqh; margin-top:.45cqh; overflow:hidden; background:rgba(0,0,0,.72); border:.08cqw solid rgba(255,255,255,.52);"><div id="embedded-block-bar" style="width:0%; height:100%; background:linear-gradient(90deg,#ffcf45,#ff3d57); transition:width .04s linear;"></div></div>
+            </div>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
                 <span id="stage-face-indicator" style="min-width:2.2cqw; padding:.35cqh .7cqw; text-align:center; color:#fff; background:rgba(0,100,180,.78); border:.12cqw solid #fff; border-radius:.25cqw; font-weight:bold;">1</span>
                 <span id="game-controls-label">ARROWS: MOVE | SPACE: JUMP</span>
@@ -2658,6 +2666,23 @@
     <div id="mention-dropdown" style="display:none; position:fixed; z-index:9999; background:#1a1a2e; border:0.15cqw solid var(--primary-color); max-height:28vh; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.7); min-width:12cqw;"></div>
 
     <script>
+        // モバイルでは 100vh にブラウザのアドレスバー等が含まれることがあるため、
+        // 実際に見えている Visual Viewport をゲーム全体の基準にする。
+        function syncVisibleViewportHeight() {
+            const viewport = window.visualViewport;
+            const height = Math.round((viewport && viewport.height) || window.innerHeight || 0);
+            const value = `${height}px`;
+            if (height <= 0 || document.documentElement.style.getPropertyValue('--app-visible-height') === value) return;
+            document.documentElement.style.setProperty('--app-visible-height', value);
+            if (document.readyState !== 'loading') queueViewportCanvasSync();
+        }
+        syncVisibleViewportHeight();
+        window.addEventListener('resize', syncVisibleViewportHeight, { passive: true });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', syncVisibleViewportHeight, { passive: true });
+            window.visualViewport.addEventListener('scroll', syncVisibleViewportHeight, { passive: true });
+        }
+
         // --- 設定エリア ---
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
@@ -2665,7 +2690,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.3"
+            VERSION: "3.7.4"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2881,6 +2906,7 @@ function getPswcWinnerCount(username) {
             { type: 'dark', title: '暗闇', text: 'プレイヤーとランプの周囲だけが明るく見えるステージです。' },
             { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。' },
             { type: 'hard', title: 'HARD', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
+            { type: 'untouchable', title: 'アンタッチャブル', text: '敵には上からでも触れられません。接触すると即座にミスになります。' },
             { type: 'volcano', title: '火山', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
             { type: 'moon', title: '月', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: '海辺', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
@@ -2897,16 +2923,6 @@ function getPswcWinnerCount(username) {
         // チェックポイントや扉など、4マスを1つのギミックとして扱う処理で共有する。
         function getBigTileOrigin(x, y) {
             return bigStageActive ? { x: x & ~1, y: y & ~1 } : { x, y };
-        }
-        function clearBigTileGroup(x, y) {
-            const origin = getBigTileOrigin(x, y);
-            const width = bigStageActive ? 2 : 1;
-            const height = bigStageActive ? 2 : 1;
-            for (let dy = 0; dy < height; dy++) {
-                const row = activeStage[origin.y + dy];
-                if (!row) continue;
-                for (let dx = 0; dx < width; dx++) row[origin.x + dx] = null;
-            }
         }
         function resetGameGridSize() {
             GRID_W = BASE_GRID_W;
@@ -3141,12 +3157,13 @@ function getPswcWinnerCount(username) {
         let lastGameTimerColor = '';
         let lastRetryLabel = '';
         let lastControlEnabled = null;
+        // ブロック内部に取り残された時の、脱出猶予（60フレーム = 1秒）。
+        let embeddedBlockFrames = 0;
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
-        // 表と裏で同じ座標にチェックポイントを置けるため、面も含めて記録する。
+        // 表裏およびビッグの分割マスごとに、チェックポイント通過状況を記録する。
         function getCheckpointKey(x, y) {
-            const origin = getBigTileOrigin(x, y);
-            return `${isUsingBackFace ? 'back' : 'front'}:${origin.x},${origin.y}`;
+            return `${isUsingBackFace ? 'back' : 'front'}:${x},${y}`;
         }
         let stageStartRespawn = null;
         // タイムアタックステージ専用: 最後に通過したチェックポイントへの復帰地点。
@@ -3653,6 +3670,7 @@ function getPswcWinnerCount(username) {
             'moon_stage': { name: 'MOON STAGE', price: 40000, isBlockSet: true, isStageType: true, sprite: null },
             'beach_stage': { name: 'BEACH STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
             'hard_stage': { name: 'HARD STAGE', price: 20000, isBlockSet: true, isStageType: true, sprite: null },
+            'untouchable_stage': { name: 'UNTOUCHABLE STAGE', price: 20000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
@@ -3805,18 +3823,20 @@ function getPswcWinnerCount(username) {
             for(let y=0; y<GRID_H; y += cacheStep){
                 for(let x=0; x<GRID_W; x += cacheStep){
                     const type = activeStage[y][x];
-                    // 鍵だけはビッグでも4本に分割され、個別に消える。
-                    // 左上の鍵を取った後も残り3本を正しく描くため、2x2全体を確認する。
+                    // 鍵・鍵ブロック・チェックポイントはビッグでも4つに分割され、個別に状態を持つ。
+                    // 左上が先に消えても残りを正しく描くため、2x2全体を確認する。
                     if (bigStageActive) {
-                        let hasSplitKey = false;
-                        for (let dy = 0; dy < 2 && !hasSplitKey; dy++) {
+                        let hasSplitKeyItem = false;
+                        for (let dy = 0; dy < 2 && !hasSplitKeyItem; dy++) {
                             for (let dx = 0; dx < 2; dx++) {
-                                if (activeStage[y + dy]?.[x + dx] === 'o') { hasSplitKey = true; break; }
+                                const item = activeStage[y + dy]?.[x + dx];
+                                if (item === 'o' || item === 'D' || item === 'C') { hasSplitKeyItem = true; break; }
                             }
                         }
-                        if (hasSplitKey) {
+                        if (hasSplitKeyItem) {
                             for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
-                                if (activeStage[y + dy]?.[x + dx] === 'o') drawTile(stageCacheCtx, x + dx, y + dy, cw, ch, 'o', 0);
+                                const item = activeStage[y + dy]?.[x + dx];
+                                if (item === 'o' || item === 'D' || item === 'C') drawTile(stageCacheCtx, x + dx, y + dy, cw, ch, item, 0);
                             }
                             continue;
                         }
@@ -4603,6 +4623,17 @@ function getPswcWinnerCount(username) {
                 ctx.beginPath(); ctx.arc(20, 40, 3, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(40, 50, 2, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(48, 36, 2.5, 0, Math.PI * 2); ctx.fill();
+            } else if (data.isStageType && id === 'untouchable_stage') {
+                // アンタッチャブル: 接触禁止を黄色い警告と赤い斜線で表したアイコン。
+                const dangerBg = ctx.createRadialGradient(32, 30, 4, 32, 32, 48);
+                dangerBg.addColorStop(0, '#3a2638'); dangerBg.addColorStop(1, '#100d17');
+                ctx.fillStyle = dangerBg; ctx.fillRect(0, 0, 64, 64);
+                ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1;
+                for (let x = -64; x < 80; x += 12) { ctx.beginPath(); ctx.moveTo(x, 64); ctx.lineTo(x + 44, 0); ctx.stroke(); }
+                ctx.fillStyle = '#f8d54a';
+                ctx.beginPath(); ctx.moveTo(32, 10); ctx.lineTo(55, 51); ctx.lineTo(9, 51); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#211522'; ctx.fillRect(29, 23, 6, 16); ctx.fillRect(29, 43, 6, 5);
+                ctx.strokeStyle = '#ff4257'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(13, 55); ctx.lineTo(52, 14); ctx.stroke();
             } else if (data.isStageType && id === 'hard_stage') {
                 // HARDステージ: 深紅の危険地帯と、3回踏む敵の体力バーを表したアイコン。
                 const hardBg = ctx.createLinearGradient(0, 0, 64, 64);
@@ -8613,6 +8644,9 @@ function getPswcWinnerCount(username) {
             const hardOpt = document.getElementById('stage-type-option-hard');
             const hasHardStage = purchasedSkins.includes('hard_stage');
             if (hardOpt) { hardOpt.disabled = !hasHardStage; hardOpt.textContent = hasHardStage ? '💀 HARD' : '💀 HARD（未購入）'; }
+            const untouchableOpt = document.getElementById('stage-type-option-untouchable');
+            const hasUntouchableStage = purchasedSkins.includes('untouchable_stage');
+            if (untouchableOpt) { untouchableOpt.disabled = !hasUntouchableStage; untouchableOpt.textContent = hasUntouchableStage ? '☠️ アンタッチャブル' : '☠️ アンタッチャブル（未購入）'; }
             const raiAlvaroOpt = document.getElementById('stage-type-option-rai-alvaro');
             const hasRaiAlvaroStage = purchasedSkins.includes('rai_alvaro_stage') || purchasedSkins.includes('rai_alvaro');
             if (raiAlvaroOpt) { raiAlvaroOpt.disabled = !hasRaiAlvaroStage; raiAlvaroOpt.textContent = hasRaiAlvaroStage ? '⚡ ライ・アルバロ' : '⚡ ライ・アルバロ（未購入）'; }
@@ -8621,6 +8655,7 @@ function getPswcWinnerCount(username) {
                 document.querySelectorAll('#stage-type-select option').forEach(option => {
                     option.disabled = false;
                     option.textContent = option.value === 'hard' ? '💀 HARD'
+                        : option.value === 'untouchable' ? '☠️ アンタッチャブル'
                         : option.value === 'volcano' ? '🌋 火山'
                         : option.value === 'moon' ? '🌙 月'
                         : option.value === 'beach' ? '🏖️ 海辺'
@@ -8820,6 +8855,27 @@ function getPswcWinnerCount(username) {
             c.width = container.clientWidth;
             c.height = container.clientHeight;
         }
+
+        // アドレスバーの表示・非表示で領域が変わっても、見た目だけ引き伸ばさず
+        // キャンバスの座標系も同じ表示領域に合わせる。
+        let viewportCanvasSyncFrame = 0;
+        function queueViewportCanvasSync() {
+            if (viewportCanvasSyncFrame) return;
+            viewportCanvasSyncFrame = requestAnimationFrame(() => {
+                viewportCanvasSyncFrame = 0;
+                const editorScreen = document.getElementById('editor-screen');
+                const gameScreen = document.getElementById('game-screen');
+                if (editorScreen?.style.display === 'block') {
+                    resizeCanvas('editor-canvas');
+                    drawEditor();
+                }
+                if (gameScreen?.style.display === 'block') {
+                    resizeCanvas('game-canvas');
+                    drawGame();
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', queueViewportCanvasSync, { once: true });
 
         const editorCanvas = document.getElementById('editor-canvas');
         // Pointer Events に統一し、PC・スマートフォンのどちらでも確実に配置できるようにする。
@@ -9429,11 +9485,8 @@ function getPswcWinnerCount(username) {
                 }
             } else if(type === 'C') {
                 // チェックポイント（ゴールゲートの色違い版）
-                // ステージキャッシュではビッグの描画座標を半分にしているため、
-                // 判定用には展開後の実座標へ戻して同じチェックポイントを参照する。
-                const checkpointX = bigStageActive ? x * 2 : x;
-                const checkpointY = bigStageActive ? y * 2 : y;
-                const isDone = activeStage.length > 0 && activeCheckpoints.has(getCheckpointKey(checkpointX, checkpointY));
+                // ビッグでもチェックポイント自体を4分割するため、描画座標をそのまま判定に使う。
+                const isDone = activeStage.length > 0 && activeCheckpoints.has(getCheckpointKey(x, y));
                 ctx.fillStyle = "#000";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.1, cw*0.6, ch*0.9);
                 if (isTimeAttackStageType(stageType)) {
@@ -10209,7 +10262,7 @@ function getPswcWinnerCount(username) {
                 const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
                 const stageTypeNames = {
                     normal: 'クラシック', water: '水中', dark: '暗闇', big: 'ビッグ', timeattack: 'タイムアタック',
-                    hard: 'HARD', volcano: '火山', moon: '月', beach: '海辺', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
+                    hard: 'HARD', untouchable: 'アンタッチャブル', volcano: '火山', moon: '月', beach: '海辺', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
                 };
                 const stageTypeSource = getStageTypeSource(s);
                 const frontType = getStageTypeForFace(stageTypeSource, 'front');
@@ -10396,7 +10449,7 @@ function getPswcWinnerCount(username) {
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'big', 'timeattack', 'hard', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'big', 'timeattack', 'hard', 'untouchable', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -10454,6 +10507,7 @@ function getPswcWinnerCount(username) {
         }
         function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
+        function isUntouchableStageType(type) { return type === 'untouchable'; }
         function getNormalEnemyMaxHp() { return currentStageType === 'hard' ? 30 : 10; }
         // ボスの行動周期はすべてフレーム（F）基準で管理する。
         const BOSS_TURN_WARNING_FRAMES = 60;
@@ -10626,10 +10680,11 @@ function getPswcWinnerCount(username) {
             isUsingBackFace = false;
             warpGateLocked = false;
             // ゴール条件は表・裏面にあるチェックポイントの合計。ワープのたびに足さない。
-            const countCheckpoints = (grid, isBig) => grid.reduce((count, row, y) =>
-                count + row.reduce((rowCount, cell, x) => rowCount + (cell === 'C' && (!isBig || (!(x & 1) && !(y & 1))) ? 1 : 0), 0), 0);
-            totalCheckpoints = countCheckpoints(activeFrontStage, bigStagePair)
-                + countCheckpoints(activeBackStage, bigStagePair);
+            // ビッグのチェックポイントは2x2の4つへ分かれるため、全マスを個別に数える。
+            const countCheckpoints = grid => grid.reduce((count, row) =>
+                count + row.reduce((rowCount, cell) => rowCount + (cell === 'C' ? 1 : 0), 0), 0);
+            totalCheckpoints = countCheckpoints(activeFrontStage)
+                + countCheckpoints(activeBackStage);
             const faceIndicator = document.getElementById('stage-face-indicator');
             if (faceIndicator) faceIndicator.innerText = '1';
             killerGoalTiles = [];
@@ -10702,6 +10757,7 @@ function getPswcWinnerCount(username) {
             isCountingDown = true;
             startTime = 0;
             activeCheckpoints.clear();
+            resetEmbeddedBlockEscapeState();
             spectatorLastSwitchKey = null;
             stageStartRespawn = null;
             timeAttackRespawn = null;
@@ -10845,6 +10901,7 @@ function getPswcWinnerCount(username) {
             cancelAnimationFrame(gameLoopId);
             stopStageBGM();
             resetGameGridSize();
+            resetEmbeddedBlockEscapeState();
             document.getElementById('game-screen').style.display = 'none';
             playHorizonBGM();
             setMobileGameViewportLock(false);
@@ -11933,6 +11990,13 @@ function getPswcWinnerCount(username) {
             // X衝突
             let nextX = player.x + player.vx;
             let collidedX = isCollide(nextX, player.y, true, 'x');
+            if (!collidedX) {
+                const sweptX = sweepPlayerAxisCollision(player.x, nextX, 'x');
+                if (sweptX.hit) {
+                    collidedX = true;
+                    nextX = sweptX.position;
+                }
+            }
             // ハーフブロックは下半分だけが壁になる。横から当たった時も、
             // ブロックの端で止めてめり込み・不自然な隙間を防ぐ。
             const halfBlockSideX = player.vx !== 0
@@ -12003,6 +12067,14 @@ function getPswcWinnerCount(username) {
                 nextY = hitWoodCrateFromBelow.y + 1;
             }
             let collidedY = !!hitWoodCrateFromBelow || isCollide(player.x, nextY, true, 'y');
+            if (!collidedY) {
+                const sweptY = sweepPlayerAxisCollision(player.y, nextY, 'y');
+                if (sweptY.hit) {
+                    collidedY = true;
+                    // 上方向の既存処理は衝突セルの直下へ丸めるため、境界ちょうどを避ける。
+                    nextY = player.vy < 0 ? sweptY.position - 0.001 : sweptY.position;
+                }
+            }
             // ハーフブロックの実体は下半分だけ。通常ブロックの上端ではなく、
             // 実際の上面（セル中央）へ正確に着地させる。
             const halfBlockLandingY = player.vy > 0
@@ -12087,6 +12159,8 @@ function getPswcWinnerCount(username) {
             // 木箱とプレイヤーが重なったまま残らないよう、移動確定後にも押し戻しを行う。
             // ジャンプ入力中なら、木箱の反動からそのままジャンプできる。
             resolvePlayerWoodCrateOverlap(!isWater && keys['Space'] && frameCount > 10, jumpForce);
+            // 固体ブロックに埋まった場合は1秒だけ脱出を待つ。
+            if (updateEmbeddedBlockEscapeState()) return;
             extinguishSteppedCandles();
             updateCrackBlocks();
 
@@ -12456,6 +12530,11 @@ function getPswcWinnerCount(username) {
                 const overlapsEnemyHorizontally = player.x < en.x + enSize - 0.05 && player.x + player.w > en.x + 0.05;
                 const stompedEnemy = (playerWasFalling || player.vy >= 0) && (overlapsEnemyHorizontally || sweptEnemyContact) &&
                     playerPreviousBottom <= enemyPreviousTop + 0.16 && player.y + player.h >= enemyTop - 0.05;
+                // アンタッチャブルでは踏みつけを含む敵との全接触が即ミス。
+                if (isUntouchableStageType(currentStageType) && (isOverlappingEnemy || sweptEnemyContact || stompedEnemy)) {
+                    handlePlayerDeath();
+                    return;
+                }
                 // 雷ダッシュ中は、ボス以外の敵を接触だけで倒せる。
                 if (isRaiDashContact && !en.isBoss) {
                     en.dead = true;
@@ -12880,9 +12959,8 @@ function getPswcWinnerCount(username) {
                 if (!activeCheckpoints.has(checkpointKey)) {
                     activeCheckpoints.add(checkpointKey);
                     if (isTimeAttackStageType(currentStageType)) {
-                        // 2x2のどの部分に触れても、同じチェックポイントの左上から復帰する。
-                        const checkpointOrigin = getBigTileOrigin(gx, gy);
-                        timeAttackRespawn = { x: checkpointOrigin.x + 0.1, y: checkpointOrigin.y + 0.1, face: isUsingBackFace };
+                        // ビッグでは分割された各チェックポイントの位置から復帰する。
+                        timeAttackRespawn = { x: gx + 0.1, y: gy + 0.1, face: isUsingBackFace };
                     }
                     updateStageCache(); // チェックポイント通過で見た目が変わるので更新
                 }
@@ -12891,9 +12969,16 @@ function getPswcWinnerCount(username) {
             if (tile !== 'WG') warpGateLocked = false;
             if (tile === 'WG' && !warpGateLocked) {
                 // 表面・裏面の同じ座標のゲートを往復する。
+                const warpOrigin = getBigTileOrigin(gx, gy);
+                const warpSize = bigStageActive ? 2 : 1;
+                const warpCenterX = warpOrigin.x + warpSize / 2;
+                const warpCenterY = warpOrigin.y + warpSize / 2;
                 saveActiveFaceRuntime();
                 isUsingBackFace = !isUsingBackFace;
                 applyActiveFaceStageType(true);
+                // 出現位置は必ずワープゲートの中央。ビッグでは2x2全体の中央へ揃える。
+                player.x = warpCenterX - player.w / 2;
+                player.y = warpCenterY - player.h / 2;
                 killerGoalTiles = [];
                 for (let y = 0; y < GRID_H; y++) {
                     for (let x = 0; x < GRID_W; x++) {
@@ -12902,7 +12987,7 @@ function getPswcWinnerCount(username) {
                 }
                 killerGoalActive = killerGoalTiles.length > 0;
                 lastKillerGoalEnemyCount = -1;
-                playBackFaceWarpEffect(Math.floor(player.x), Math.floor(player.y));
+                playBackFaceWarpEffect(warpOrigin.x + (bigStageActive ? 0.5 : 0), warpOrigin.y + (bigStageActive ? 0.5 : 0));
                 warpGateLocked = true;
                 restoreActiveFaceRuntime();
                 arrows = [];
@@ -12920,18 +13005,15 @@ function getPswcWinnerCount(username) {
             }
 
             // 鍵ブロック(D)の消費処理
-            // ビッグでは鍵1マスが4本に分かれるため、2x2の鍵ブロックには4本をまとめて使う。
-            const requiredKeys = bigStageActive ? 4 : 1;
-            if (player.hasKey >= requiredKeys) {
+            // ビッグでは鍵も鍵ブロックも4つの小マスに分かれるため、1本ずつ解除する。
+            if (player.hasKey > 0) {
                 if (tile === 'D') {
-                    player.hasKey -= requiredKeys;
-                    if (bigStageActive) clearBigTileGroup(gx, gy);
-                    else activeStage[gy][gx] = null;
+                    player.hasKey--;
+                    activeStage[gy][gx] = null;
                     updateStageCache();
                 } else if (footTile === 'D') {
-                    player.hasKey -= requiredKeys;
-                    if (bigStageActive) clearBigTileGroup(gx, footY);
-                    else activeStage[footY][gx] = null;
+                    player.hasKey--;
+                    activeStage[footY][gx] = null;
                     updateStageCache();
                 }
             }
@@ -13249,6 +13331,50 @@ function getPswcWinnerCount(username) {
             return isCollideAt(x, y, player.w, player.h, isPlayer, axis);
         }
 
+        // 高速移動で、開始・終了位置の間にある細い地形を飛び越えないための軸方向スイープ判定。
+        // 通常のジャンプ速度では既存の単発判定で十分なため、強い反動・ダッシュだけを細分化する。
+        function sweepPlayerAxisCollision(from, to, axis) {
+            const distance = Math.abs(to - from);
+            if (distance <= 0.4) return { hit: false, position: to };
+            const steps = Math.min(80, Math.ceil(distance / 0.05));
+            let safePosition = from;
+            for (let step = 1; step <= steps; step++) {
+                const position = from + (to - from) * (step / steps);
+                const hit = axis === 'x'
+                    ? isCollide(position, player.y, true, 'x')
+                    : isCollide(player.x, position, true, 'y');
+                if (hit) return { hit: true, position: safePosition };
+                safePosition = position;
+            }
+            return { hit: false, position: to };
+        }
+
+        function resetEmbeddedBlockEscapeState() {
+            embeddedBlockFrames = 0;
+            const warning = document.getElementById('embedded-block-warning');
+            const bar = document.getElementById('embedded-block-bar');
+            if (warning) warning.style.display = 'none';
+            if (bar) bar.style.width = '0%';
+        }
+
+        // 通常の床に立っているだけでは当たらず、プレイヤーの内側が固体に重なった時だけtrueになる。
+        function updateEmbeddedBlockEscapeState() {
+            const embedded = isCollide(player.x, player.y, true);
+            const warning = document.getElementById('embedded-block-warning');
+            const bar = document.getElementById('embedded-block-bar');
+            if (!embedded) {
+                if (embeddedBlockFrames) resetEmbeddedBlockEscapeState();
+                return false;
+            }
+            embeddedBlockFrames++;
+            if (warning) warning.style.display = 'block';
+            if (bar) bar.style.width = `${Math.min(100, embeddedBlockFrames / 60 * 100)}%`;
+            if (embeddedBlockFrames < 60) return false;
+            resetEmbeddedBlockEscapeState();
+            handlePlayerDeath();
+            return true;
+        }
+
         function isEnemyCollide(x, y, axis = null, size = 0.9) {
             return isCollideAt(x, y, size, size, false, axis);
         }
@@ -13257,8 +13383,18 @@ function getPswcWinnerCount(username) {
         // 1マス未満の移動を細かく補間するため、通常移動・高速ダッシュのどちらでも
         // 接触をすり抜けず、プレイヤーの踏みつけ判定を先に処理できる。
         function didSweptBodiesCollide(ax0, ay0, ax1, ay1, aw, ah, bx0, by0, bx1, by1, bw, bh) {
+            // ほとんどの敵はプレイヤーから離れているため、まず軌道全体の外接矩形だけで除外する。
+            // これにより遠くの敵ごとに細かな補間ループを回す無駄をなくす。
+            const aMinX = Math.min(ax0, ax1), aMaxX = Math.max(ax0 + aw, ax1 + aw);
+            const aMinY = Math.min(ay0, ay1), aMaxY = Math.max(ay0 + ah, ay1 + ah);
+            const bMinX = Math.min(bx0, bx1), bMaxX = Math.max(bx0 + bw, bx1 + bw);
+            const bMinY = Math.min(by0, by1), bMaxY = Math.max(by0 + bh, by1 + bh);
+            if (aMaxX <= bMinX || aMinX >= bMaxX || aMaxY <= bMinY || aMinY >= bMaxY) return false;
             const maxTravel = Math.max(Math.abs(ax1 - ax0), Math.abs(ay1 - ay0), Math.abs(bx1 - bx0), Math.abs(by1 - by0));
-            const steps = Math.max(1, Math.ceil(maxTravel / 0.075));
+            // 通常の低速移動は最終位置の重なり判定で十分。補間はすり抜け得る速度だけに限定する。
+            if (maxTravel <= 0.1) return false;
+            // 高速の敵・ダッシュも細かく追跡し、敵の上を通った時の接触取りこぼしを抑える。
+            const steps = Math.max(1, Math.ceil(maxTravel / 0.025));
             for (let i = 0; i <= steps; i++) {
                 const t = i / steps;
                 const ax = ax0 + (ax1 - ax0) * t;
