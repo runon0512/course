@@ -2711,7 +2711,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.6"
+            VERSION: "3.7.7"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2919,7 +2919,8 @@ function getPswcWinnerCount(username) {
             'BL': { title: 'ブラック', text: '金色の目を持つボスです。すべてのキャンドルを踏み消すまで攻撃できず、撃破すると金ブロックが消えます。' },
             'GB': { title: '金ブロック', text: 'ブラックを倒すと、ステージからすべて消える頑丈な金のブロックです。' },
             'HS': { title: 'ヘスティア', text: 'プレイヤーと同じ大きさの中ボスです。7秒ごとにプレイヤーの方向へ向きを変え、その瞬間に自分の周囲を炎ブロックへ変えます。体力は40です。' }
-            ,'HM': { title: 'ヘルメス', text: 'プレイヤーと同じ大きさの中ボスです。跳ねながら移動し、6秒ごとにプレイヤーの方向へ向きを変えます。次の着地から壁まで高速で走り抜けます。体力は30です。' }
+            ,'HM': { title: 'ヘルメス', text: 'プレイヤーと同じ大きさの中ボスです。跳ねながら移動し、6秒ごとにプレイヤーの方向へ向きを変えます。次の着地から壁まで高速で走り抜けます。体力は30です。' },
+            'DM': { title: 'デメテル', text: '25,000Gで入手できる中ボスです。体力30で、4秒ごとに向きを変えて5方向へ種を放ちます。種は重力で落下し、踏むか5秒後に爆発します。HARDでは2×2・体力100になり、ジャンプの最高点から種を発射します。' }
         };
         const STAGE_TYPE_DESCRIPTIONS = [
             { type: 'normal', title: '通常', text: '標準的な物理と背景のステージです。' },
@@ -11552,7 +11553,7 @@ function getPswcWinnerCount(username) {
         }
 
         // 木箱が落下・吸引・ボスの押し込みでプレイヤーに食い込んだ場合の安全な押し戻し。
-        // 最も浅い方向へ少し余裕を持って離し、同じ方向への小さな反動も与える。
+        // 最も浅い方向へ少し余裕を持って離す。
         function resolvePlayerWoodCrateOverlap(jumpRequested = false, jumpForce = -0.3) {
             const inset = 0.025;
             for (let i = 0; i < woodCrates.length; i++) {
@@ -11604,8 +11605,10 @@ function getPswcWinnerCount(username) {
                     if (!isCollideAt(player.x, target.y, player.w, player.h, true, 'y', crate)) {
                         player.y = target.y;
                         if (target.up) {
-                            player.vy = jumpRequested ? jumpForce : Math.min(player.vy, -0.10);
-                            player.onGround = false;
+                            // 木箱の上に乗った時は床と同じ扱いにする。ここで反動を与えると
+                            // 毎フレーム再び食い込み、「ピョンピョン」跳ね続けてしまう。
+                            player.vy = jumpRequested ? jumpForce : 0;
+                            player.onGround = !jumpRequested;
                         } else {
                             player.vy = Math.max(player.vy, 0.10);
                         }
@@ -11635,6 +11638,20 @@ function getPswcWinnerCount(username) {
                 const overlapsX = player.x + player.w - 0.05 > crate.x + 0.05 && player.x + 0.05 < crate.x + 0.95;
                 const crateBottom = crate.y + 1;
                 if (overlapsX && player.y >= crateBottom - 0.05 && nextY < crateBottom - 0.01) return crate;
+            }
+            return null;
+        }
+
+        // 木箱の上面を床として扱う。これを通常の縦衝突より先に判定して、
+        // 落下中のプレイヤーが木箱へ食い込む前に安定して着地させる。
+        function getWoodCrateLandingSurface(nextY) {
+            for (let i = 0; i < woodCrates.length; i++) {
+                const crate = woodCrates[i];
+                const overlapsX = player.x + player.w - 0.05 > crate.x + 0.05 && player.x + 0.05 < crate.x + 0.95;
+                if (!overlapsX) continue;
+                const playerBottom = player.y + player.h;
+                const nextBottom = nextY + player.h;
+                if (playerBottom <= crate.y + 0.05 && nextBottom >= crate.y) return crate.y - player.h;
             }
             return null;
         }
@@ -12159,6 +12176,11 @@ function getPswcWinnerCount(username) {
                 collidedY = true;
                 nextY = halfBlockLandingY - player.h;
             }
+            const woodCrateLandingY = player.vy >= 0 ? getWoodCrateLandingSurface(nextY) : null;
+            if (woodCrateLandingY !== null) {
+                collidedY = true;
+                nextY = woodCrateLandingY;
+            }
             let hitDownOneWayCeiling = false;
             
             // 橋（下から抜けられる足場）の特殊判定
@@ -12225,7 +12247,7 @@ function getPswcWinnerCount(username) {
                         }
                     }
                 } else if (player.vy > 0) {
-                    if (halfBlockLandingY !== null) player.y = nextY;
+                    if (halfBlockLandingY !== null || woodCrateLandingY !== null) player.y = nextY;
                     player.onGround = true;
                 }
                 player.vy = 0;
