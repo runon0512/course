@@ -12999,16 +12999,11 @@ function getPswcWinnerCount(username) {
             if (tile !== 'WG') warpGateLocked = false;
             if (tile === 'WG' && !warpGateLocked) {
                 // 表面・裏面の同じ座標のゲートを往復する。
-                const warpOrigin = getBigTileOrigin(gx, gy);
-                const warpSize = bigStageActive ? 2 : 1;
-                const warpCenterX = warpOrigin.x + warpSize / 2;
-                const warpCenterY = warpOrigin.y + warpSize / 2;
                 saveActiveFaceRuntime();
                 isUsingBackFace = !isUsingBackFace;
                 applyActiveFaceStageType(true);
-                // 出現位置は必ずワープゲートの中央。ビッグでは2x2全体の中央へ揃える。
-                player.x = warpCenterX - player.w / 2;
-                player.y = warpCenterY - player.h / 2;
+                // ワープした瞬間のプレイヤー座標をそのまま反対面へ引き継ぐ。
+                // ゲート中央・左上などへ座標を補正しない。
                 killerGoalTiles = [];
                 for (let y = 0; y < GRID_H; y++) {
                     for (let x = 0; x < GRID_W; x++) {
@@ -13017,7 +13012,7 @@ function getPswcWinnerCount(username) {
                 }
                 killerGoalActive = killerGoalTiles.length > 0;
                 lastKillerGoalEnemyCount = -1;
-                playBackFaceWarpEffect(warpOrigin.x + (bigStageActive ? 0.5 : 0), warpOrigin.y + (bigStageActive ? 0.5 : 0));
+                playBackFaceWarpEffect(gx, gy);
                 warpGateLocked = true;
                 restoreActiveFaceRuntime();
                 arrows = [];
