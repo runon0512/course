@@ -2645,6 +2645,7 @@
                     <div class="tool-btn rank-legendary" id="btn-tool-BL" onclick="setTool('BL', this)" title="BLACK (BOSS)" style="display:none;"><canvas id="icon-BL" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-HS" onclick="setTool('HS', this)" title="HESTIA (MID BOSS)" style="display:none;"><canvas id="icon-HS" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-HM" onclick="setTool('HM', this)" title="HERMES (MID BOSS)" style="display:none;"><canvas id="icon-HM" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-DM" onclick="setTool('DM', this)" title="DEMETER (MID BOSS)" style="display:none;"><canvas id="icon-DM" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-SM" onclick="setTool('SM', this)" title="SLIME BLOCK" style="display:none;"><canvas id="icon-SM" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-FL" onclick="setTool('FL', this)" title="FIRE BLOCK" style="display:none;"><canvas id="icon-FL" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-GB" onclick="setTool('GB', this)" title="GOLD BLOCK" style="display:none;"><canvas id="icon-GB" class="tool-canvas"></canvas></div>
@@ -2657,10 +2658,6 @@
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
             <div id="face-warp-effect"></div>
-            <div id="embedded-block-warning" style="display:none; position:absolute; z-index:120; left:50%; top:13cqh; width:min(28cqw,360px); transform:translateX(-50%); padding:.65cqh .75cqw; border:.12cqw solid #ffcf45; background:rgba(24,10,16,.88); color:#fff3c7; text-align:center; font-weight:bold; font-size:1cqw; letter-spacing:.08em; pointer-events:none;">
-                <div>BLOCKED — ESCAPE!</div>
-                <div style="height:.65cqh; margin-top:.45cqh; overflow:hidden; background:rgba(0,0,0,.72); border:.08cqw solid rgba(255,255,255,.52);"><div id="embedded-block-bar" style="width:0%; height:100%; background:linear-gradient(90deg,#ffcf45,#ff3d57); transition:width .04s linear;"></div></div>
-            </div>
             <div style="position:absolute; top:2cqh; left:2cqw; font-size:1.8cqw; display: flex; align-items: center; gap: 2cqw;">
                 <span id="stage-face-indicator" style="min-width:2.2cqw; padding:.35cqh .7cqw; text-align:center; color:#fff; background:rgba(0,100,180,.78); border:.12cqw solid #fff; border-radius:.25cqw; font-weight:bold;">1</span>
                 <span id="game-controls-label">ARROWS: MOVE | SPACE: JUMP</span>
@@ -2714,7 +2711,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxi30es3dIoOW5HMqAo69MuTQgxjpqRt2YIJpvJckpd68TSbwr2Kdgoxnl3PdZ5mthu/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.5"
+            VERSION: "3.7.6"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3085,7 +3082,7 @@ function getPswcWinnerCount(username) {
             'Z': '#e040fb', 'LM': '#ffca28', 'CA': '#ffb300', 'GB': '#ffd54f', 'WC': '#795548', 'default': '#bdbdbd'
         };
         // 破壊できないタイル一覧（ミサイルの爆発・狼の大ジャンプ破壊など、ブロックを壊す処理全体で共有する）
-        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'WG', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'CA', 'GB', 'FL'];
+        const INDESTRUCTIBLE_TILES = ['S', 'G', 'C', 'WG', 'sp', 'sp_blue', 'mg', 'V', '!', 'A', 'ug', 'dg', 'rg', 'W', 'L', 'U', 'd', 'J', 'P', 'o', 'D', 'K', 'k', 'q', 'y', 'M', 'j', 'e', 'BB', 'BBN', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM', 'CA', 'GB', 'FL'];
         // ブロック破壊時の破片パーティクルを生成する共通ヘルパー（以前はミサイル爆発処理内のローカル関数だった）
         function spawnBlockDebris(bx, by, tileType) {
             if (!cachedGameCanvas) return;
@@ -3110,6 +3107,9 @@ function getPswcWinnerCount(username) {
             }
         }
         let enemies = [];
+        // デメテルの種と爆発予兆。表・裏面の動的状態として保存する。
+        let demeterSeeds = [];
+        let demeterBurstEffects = [];
         // 木箱はグリッドから独立した物理オブジェクトとして扱う。
         // 座標はタイル単位だが、移動時は描画キャンバス上の1px以下には進めない。
         let woodCrates = [];
@@ -3181,8 +3181,6 @@ function getPswcWinnerCount(username) {
         let lastGameTimerColor = '';
         let lastRetryLabel = '';
         let lastControlEnabled = null;
-        // ブロック内部に取り残された時の、脱出猶予（60フレーム = 1秒）。
-        let embeddedBlockFrames = 0;
         let totalCheckpoints = 0;
         let activeCheckpoints = new Set();
         // 表裏およびビッグの分割マスごとに、チェックポイント通過状況を記録する。
@@ -3573,6 +3571,26 @@ function getPswcWinnerCount(username) {
             ctx.restore();
         }
 
+        // デメテルのドット絵データ。春の花冠と穀物色を基調にした中ボス。
+        const DEMETER_SPRITE_DATA = [[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,"#ff004c",null,null,null,"#ff004c",null,null,null,null,null,null],[null,null,null,"#ff004c",null,"#e9ff7a","#ff004c","#c2d855","#ff004c","#e9ff7a",null,"#ff004c",null,null,null,null],[null,null,null,null,"#ff004c","#c2d855","#c2d855","#97a550","#c2d855","#c2d855","#ff004c",null,null,null,null,null],[null,null,"#ff004c","#e9ff7a","#c2d855","#c2d855","#c2d855","#c2d855","#ffe2c7","#97a550","#c2d855","#e9ff7a","#ff004c",null,null,null],[null,null,null,"#c2d855","#c2d855","#97a550","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#c2d855","#c2d855",null,null,null,null],[null,null,null,"#c2d855","#ffe2c7","#ffffff","#ffe2c7","#ffe2c7","#ffe2c7","#ffffff","#97a550","#c2d855",null,null,null,null],[null,null,null,"#97a550","#ffe2c7","#ff7e05","#ffe2c7","#ffe2c7","#ffe2c7","#ff7e05","#ffe2c7","#97a550",null,null,null,null],[null,null,null,"#c2d855","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffda75",null,null,null,null],[null,null,"#ffda75","#c2d855","#ffda75","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffda75","#ffda75","#ffda75",null,null,null],[null,"#ffda75","#ffda75","#c2d855","#c2d855","#ffda75","#ffe2c7","#ddc6b1","#ffe2c7","#ffda75","#ffda75","#ffda75","#ffda75","#ffda75",null,null],[null,"#ffe2c7","#ffda75","#c2d855","#97a550","#ffda75","#ffda75","#ffda75","#ffda75","#ffda75","#ffda75","#ffda75","#ffe2c7","#ffe2c7",null,null],[null,"#ffe2c7","#ffe2c7","#c2d855","#97a550","#97a550","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7","#ffe2c7",null,null],[null,"#ffe2c7","#ffe2c7","#ff9029","#ff9029","#97a550","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ffe2c7","#ffe2c7",null,null],[null,null,"#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029","#ff9029",null,null,null],[null,null,null,"#ffe2c7","#ffe2c7","#ffe2c7",null,null,null,"#ffe2c7","#ffe2c7","#ffe2c7",null,null,null,null]];
+        let demeterSpriteCanvas = null;
+        function drawDemeterSprite(ctx, x, y, w, h, facing = 'right') {
+            if (!demeterSpriteCanvas) {
+                demeterSpriteCanvas = document.createElement('canvas');
+                demeterSpriteCanvas.width = demeterSpriteCanvas.height = 16;
+                const spriteCtx = demeterSpriteCanvas.getContext('2d');
+                DEMETER_SPRITE_DATA.forEach((row, py) => row.forEach((color, px) => {
+                    if (color) { spriteCtx.fillStyle = color; spriteCtx.fillRect(px, py, 1, 1); }
+                }));
+            }
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;
+            ctx.translate(x + (facing === 'left' ? w : 0), y);
+            if (facing === 'left') ctx.scale(-1, 1);
+            ctx.drawImage(demeterSpriteCanvas, 0, 0, w, h);
+            ctx.restore();
+        }
+
         // 狼（ボスNo.2）のドット絵データ。プレイヤーのカスタムスキンと同じ16x16の色配列形式。
         const WOLF_BOSS_SPRITE_DATA = [[null,null,null,"#ffff00",null,null,"#800000","#800000","#800000","#800000",null,null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#800000","#800000","#800000","#800000","#800000","#800000",null,null,null,null,null],[null,null,null,"#ffff00","#ffff00","#ffff00","#800000","#800000","#800000","#800000","#800000","#800000",null,null,null,null],[null,null,null,"#800000","#ffff00","#800000","#800000","#800000","#f1c27d","#800000","#800000","#808080",null,null,null,null],[null,null,null,"#800000","#800000","#800000","#f1c27d","#c0c0c0","#f1c27d","#800000","#c0c0c0","#800000","#808080",null,null,null],[null,null,null,"#800000","#800000","#f1c27d","#f1c27d","#800000","#f1c27d","#f1c27d","#800000","#f1c27d","#808080",null,null,null],[null,null,null,"#800000","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#808080",null,null,null],[null,null,null,null,null,"#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#f1c27d","#808080","#808080",null,null,null],[null,null,null,null,"#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000","#000000",null,null,null],[null,null,null,"#000000","#000000","#000000","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000",null,null],[null,null,"#000000","#000000","#808080","#000000","#000000","#000000","#ffffff","#000000","#000000","#000000","#000000","#000000",null,null],[null,null,"#000000","#000000","#808080","#808080","#000000","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000","#000000",null],[null,null,"#000000","#000000","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000",null],[null,"#000000","#000000","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000","#000000",null],["#000000","#000000","#808080","#808080","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#000000",null],["#000000","#000000","#808080","#000000","#000000","#000000","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#000000","#000000","#000000","#808080","#000000"]];
         let wolfBossSpriteCanvas = null; // 上記データを16x16キャンバスへ1度だけ焼き込んでおくキャッシュ
@@ -3701,6 +3719,7 @@ function getPswcWinnerCount(username) {
             'black_boss': { name: 'BLACK + CANDLE + GOLD BLOCK', price: 30000, isBlockSet: true, sprite: null },
             'hestia_boss': { name: 'HESTIA', price: 20, isES: true, isBlockSet: true, sprite: null },
             'hermes_boss': { name: 'HERMES', price: 20, isES: true, isBlockSet: true, sprite: null },
+            'demeter_boss': { name: 'DEMETER', price: 25000, isBlockSet: true, sprite: null },
             'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
             // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
             'rai_alvaro': { name: 'RAI ALVARO', price: 0, sprite: RAI_ALVARO_SPRITE, recolorIndex: null, isHiddenShop: true }
@@ -4611,11 +4630,11 @@ function getPswcWinnerCount(username) {
             const container = document.getElementById('event-shop-container');
             if (!container) return;
             container.innerHTML = '';
-            ['hestia_boss', 'hermes_boss'].forEach(id => {
+            ['hestia_boss', 'hermes_boss', 'demeter_boss'].forEach(id => {
                 const item = SKINS[id];
                 if (!item) return;
                 createShopItem(container, id, item, purchasedSkins.includes(id), false,
-                    event => buyItem(id, item.price, event.target, 'ES'));
+                    event => buyItem(id, item.price, event.target, item.isES ? 'ES' : 'gold'));
             });
         }
 
@@ -4725,6 +4744,7 @@ function getPswcWinnerCount(username) {
                 if (id === 'black_boss') previewType = 'BL';
                 if (id === 'hestia_boss') previewType = 'HS';
                 if (id === 'hermes_boss') previewType = 'HM';
+                if (id === 'demeter_boss') previewType = 'DM';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -4797,7 +4817,7 @@ function getPswcWinnerCount(username) {
             common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
             rare: ['Y', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['hr', 'hb', 'e', '#'],
-            legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM']
+            legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -8401,6 +8421,7 @@ function getPswcWinnerCount(username) {
             if (['BL', 'CA', 'GB'].includes(key)) return purchasedSkins.includes('black_boss');
             if (key === 'HS') return purchasedSkins.includes('hestia_boss');
             if (key === 'HM') return purchasedSkins.includes('hermes_boss');
+            if (key === 'DM') return purchasedSkins.includes('demeter_boss');
             return true; // 基本ブロック
         }
 
@@ -8649,6 +8670,7 @@ function getPswcWinnerCount(username) {
             const hasHestiaBoss = purchasedSkins.includes('hestia_boss');
             if(document.getElementById('btn-tool-HS')) document.getElementById('btn-tool-HS').style.display = hasHestiaBoss ? 'flex' : 'none';
             if(document.getElementById('btn-tool-HM')) document.getElementById('btn-tool-HM').style.display = purchasedSkins.includes('hermes_boss') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-DM')) document.getElementById('btn-tool-DM').style.display = purchasedSkins.includes('demeter_boss') ? 'flex' : 'none';
 
             // 噴火制御機（購入済み、かつ火山・海辺ステージ選択中のみ表示）
             updateEruptionControlToolVisibility();
@@ -8771,7 +8793,7 @@ function getPswcWinnerCount(username) {
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
-                {type:'LM', id:'icon-LM'}, {type:'CA', id:'icon-CA'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'BL', id:'icon-BL'}, {type:'HS', id:'icon-HS'}, {type:'HM', id:'icon-HM'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}, {type:'GB', id:'icon-GB'}
+                {type:'LM', id:'icon-LM'}, {type:'CA', id:'icon-CA'}, {type:'WC', id:'icon-WC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'BL', id:'icon-BL'}, {type:'HS', id:'icon-HS'}, {type:'HM', id:'icon-HM'}, {type:'DM', id:'icon-DM'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}, {type:'GB', id:'icon-GB'}
             ];
             const gunTools = [{type:'ug', id:'icon-ug'}, {type:'dg', id:'icon-dg'}, {type:'rg', id:'icon-rg'}];
             const yellowSpike = {type:'y', id:'icon-y'};
@@ -8975,7 +8997,7 @@ function getPswcWinnerCount(username) {
                     }
                     // 噴火制御機・ボスは、ステージタイプに関係なく各1体だけ配置できる。
                     // 既存ボスと同様に、新しい位置へ置くと古い位置は自動で入れ替わる。
-                    if ((currentTool === 'EC' || currentTool === 'PB' || currentTool === 'WB' || currentTool === 'BL' || currentTool === 'HS' || currentTool === 'HM') && editorGrid[y][x] !== currentTool) {
+                    if ((currentTool === 'EC' || currentTool === 'PB' || currentTool === 'WB' || currentTool === 'BL' || currentTool === 'HS' || currentTool === 'HM' || currentTool === 'DM') && editorGrid[y][x] !== currentTool) {
                         for(let r=0; r<GRID_H; r++) {
                             for(let c=0; c<GRID_W; c++) {
                                 if(editorGrid[r][c] === currentTool) editorGrid[r][c] = null;
@@ -9852,6 +9874,14 @@ function getPswcWinnerCount(username) {
                 ctx.strokeStyle = '#5de9d2';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x*cw + cw*.04, y*ch + ch*.04, cw*.92, ch*.92);
+            } else if(type === 'DM') {
+                // デメテル: 花冠と穀物色の中ボス。
+                ctx.fillStyle = '#283b1d';
+                ctx.fillRect(x*cw + cw*.04, y*ch + ch*.04, cw*.92, ch*.92);
+                drawDemeterSprite(ctx, x*cw + cw*.05, y*ch + ch*.05, cw*.9, ch*.9);
+                ctx.strokeStyle = '#e9ff7a';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x*cw + cw*.04, y*ch + ch*.04, cw*.92, ch*.92);
             } else if(type === 'BL') {
                 // ブラック（ボス）の配置マーカー。
                 ctx.fillStyle = '#080808';
@@ -10543,6 +10573,7 @@ function getPswcWinnerCount(username) {
         const BOSS_TURN_WARNING_FRAMES = 60;
         const HESTIA_TURN_FRAMES = { normal: 420, hard: 240 };
         const HERMES_TURN_FRAMES = { normal: 360, hard: 240 };
+        const DEMETER_TURN_FRAMES = 240;
         function createHestiaEnemy(x, y) {
             const hardBoss = currentStageType === 'hard';
             return { x, y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false,
@@ -10556,13 +10587,20 @@ function getPswcWinnerCount(username) {
                 hp: hardBoss ? 90 : 30, maxHp: hardBoss ? 90 : 30, hitCooldown: 0, directionTimer: hardBoss ? HERMES_TURN_FRAMES.hard : HERMES_TURN_FRAMES.normal,
                 hermesDashArmed: false, isHermesDashing: false, hermesJumpCount: 0, hermesDoubleJumpPending: false };
         }
+        function createDemeterEnemy(x, y) {
+            const hardBoss = currentStageType === 'hard';
+            return { x, y, vx: -0.0266667, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false,
+                size: hardBoss ? 2 : BASE_PLAYER_SIZE, isDemeter: true, isBoss: true, name: 'DEMETER',
+                hp: hardBoss ? 100 : 30, maxHp: hardBoss ? 100 : 30, hitCooldown: 0, directionTimer: DEMETER_TURN_FRAMES,
+                demeterSeedPending: false, demeterSeedAtPeak: false };
+        }
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','CB','HBK','S','G','WG','KG','K','M','E','A','T','TD','TL','TR','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','sp','mg','BB','BBN','LM','WC','WCN',
-            'EC','PB','WB','BL','HS','HM','SM','FL','CA','GB'
+            'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -10787,7 +10825,6 @@ function getPswcWinnerCount(username) {
             isCountingDown = true;
             startTime = 0;
             activeCheckpoints.clear();
-            resetEmbeddedBlockEscapeState();
             spectatorLastSwitchKey = null;
             stageStartRespawn = null;
             timeAttackRespawn = null;
@@ -10805,6 +10842,9 @@ function getPswcWinnerCount(username) {
             blackBossRefs = [];
             let hardHestiaSpawned = false;
             let hardHermesSpawned = false;
+            let demeterSpawned = false;
+            demeterSeeds = [];
+            demeterBurstEffects = [];
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') {
@@ -10857,6 +10897,12 @@ function getPswcWinnerCount(username) {
                         if (hardHermesSpawned) { activeStage[y][x] = null; continue; }
                         enemies.push(createHermesEnemy(x, y));
                         hardHermesSpawned = true;
+                        activeStage[y][x] = null;
+                    }
+                    if(activeStage[y][x] === 'DM') {
+                        if (demeterSpawned) { activeStage[y][x] = null; continue; }
+                        enemies.push(createDemeterEnemy(x, y));
+                        demeterSpawned = true;
                         activeStage[y][x] = null;
                     }
                 }
@@ -10931,7 +10977,6 @@ function getPswcWinnerCount(username) {
             cancelAnimationFrame(gameLoopId);
             stopStageBGM();
             resetGameGridSize();
-            resetEmbeddedBlockEscapeState();
             document.getElementById('game-screen').style.display = 'none';
             playHorizonBGM();
             setMobileGameViewportLock(false);
@@ -12189,10 +12234,9 @@ function getPswcWinnerCount(username) {
             // 木箱とプレイヤーが重なったまま残らないよう、移動確定後にも押し戻しを行う。
             // ジャンプ入力中なら、木箱の反動からそのままジャンプできる。
             resolvePlayerWoodCrateOverlap(!isWater && keys['Space'] && frameCount > 10, jumpForce);
-            // 固体ブロックに埋まった場合は1秒だけ脱出を待つ。
-            if (updateEmbeddedBlockEscapeState()) return;
             extinguishSteppedCandles();
             updateCrackBlocks();
+            if (updateDemeterSeeds()) return;
 
             // ギミック判定
             checkGimmicks();
@@ -12266,6 +12310,28 @@ function getPswcWinnerCount(username) {
                         en.hermesJumpCount = (en.hermesJumpCount || 0) + 1;
                         // HARDでは3回に1回、頂点で追加のジャンプを行う。
                         en.hermesDoubleJumpPending = currentStageType === 'hard' && en.hermesJumpCount % 3 === 0;
+                    }
+                }
+
+                // デメテル: 4秒ごとにプレイヤー側へ向き直る。HARDでは跳び上がり、頂点で種を放つ。
+                if (en.isDemeter) {
+                    en.directionTimer--;
+                    if (en.directionTimer <= 0) {
+                        const demeterCenter = en.x + (en.size || BASE_PLAYER_SIZE) / 2;
+                        en.vx = (playerCenterXForEnemies < demeterCenter ? -1 : 1) * 0.0266667;
+                        en.directionTimer = DEMETER_TURN_FRAMES;
+                        if (currentStageType === 'hard') en.demeterSeedPending = true;
+                        else sowDemeterSeeds(en);
+                    }
+                    if (currentStageType === 'hard' && en.demeterSeedPending && en.onGround) {
+                        en.vy = -0.34;
+                        en.onGround = false;
+                        en.demeterSeedPending = false;
+                        en.demeterSeedAtPeak = true;
+                    }
+                    if (en.demeterSeedAtPeak && en.vy >= 0) {
+                        sowDemeterSeeds(en);
+                        en.demeterSeedAtPeak = false;
                     }
                 }
 
@@ -12527,7 +12593,7 @@ function getPswcWinnerCount(username) {
                 // 狼（ボスNo.2）は移動速度を通常の敵の1.5倍にするため、下限速度も1.5倍(0.04→0.06)にする。
                 if (!en.sync && !(en.isPurple && (en.isDashing || en.chargeFrames > 0)) && !en.isHermesDashing) {
                     en.vx *= 0.98;
-                    const baseSpeed = en.isWolf ? 0.06 : 0.04;
+                    const baseSpeed = en.isWolf ? 0.06 : (en.isDemeter ? 0.0266667 : 0.04);
                     if(Math.abs(en.vx) < baseSpeed) en.vx = (en.vx >= 0 ? baseSpeed : -baseSpeed);
                 }
 
@@ -12887,7 +12953,7 @@ function getPswcWinnerCount(username) {
                 let count = 0;
                 for (let y = 0; y < GRID_H; y++) {
                     for (let x = 0; x < GRID_W; x++) {
-                        if (stage[y] && ['M', 'j', 'e', 'PB', 'WB', 'BL', 'HS', 'HM'].includes(stage[y][x])) count++;
+                        if (stage[y] && ['M', 'j', 'e', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'].includes(stage[y][x])) count++;
                     }
                 }
                 return count;
@@ -12912,7 +12978,7 @@ function getPswcWinnerCount(username) {
         // 面ごとに保存する。従来はワープ時に enemies を空にしていたため、裏面の敵が
         // 描画も当たり判定も持たない状態になっていた。
         function saveActiveFaceRuntime() {
-            const runtime = { enemies, woodCrates };
+            const runtime = { enemies, woodCrates, demeterSeeds, demeterBurstEffects };
             if (isUsingBackFace) backFaceRuntime = runtime;
             else frontFaceRuntime = runtime;
         }
@@ -12922,6 +12988,8 @@ function getPswcWinnerCount(username) {
             if (runtime) {
                 enemies = runtime.enemies || [];
                 woodCrates = runtime.woodCrates || [];
+                demeterSeeds = runtime.demeterSeeds || [];
+                demeterBurstEffects = runtime.demeterBurstEffects || [];
                 wolfBossRefs = enemies.filter(en => en.isWolf);
                 blackBossRefs = enemies.filter(en => en.isBlack);
                 return;
@@ -12929,8 +12997,11 @@ function getPswcWinnerCount(username) {
 
             enemies = [];
             woodCrates = [];
+            demeterSeeds = [];
+            demeterBurstEffects = [];
             let hardHestiaSpawned = false;
             let hardHermesSpawned = false;
+            let demeterSpawned = false;
             for (let y = 0; y < GRID_H; y++) {
                 for (let x = 0; x < GRID_W; x++) {
                     const tile = activeStage[y][x];
@@ -12958,6 +13029,11 @@ function getPswcWinnerCount(username) {
                         if (hardHermesSpawned) { activeStage[y][x] = null; continue; }
                         enemies.push(createHermesEnemy(x, y));
                         hardHermesSpawned = true;
+                        activeStage[y][x] = null;
+                    } else if (tile === 'DM') {
+                        if (demeterSpawned) { activeStage[y][x] = null; continue; }
+                        enemies.push(createDemeterEnemy(x, y));
+                        demeterSpawned = true;
                         activeStage[y][x] = null;
                     }
                 }
@@ -13374,32 +13450,6 @@ function getPswcWinnerCount(username) {
             return { hit: false, position: to };
         }
 
-        function resetEmbeddedBlockEscapeState() {
-            embeddedBlockFrames = 0;
-            const warning = document.getElementById('embedded-block-warning');
-            const bar = document.getElementById('embedded-block-bar');
-            if (warning) warning.style.display = 'none';
-            if (bar) bar.style.width = '0%';
-        }
-
-        // 通常の床に立っているだけでは当たらず、プレイヤーの内側が固体に重なった時だけtrueになる。
-        function updateEmbeddedBlockEscapeState() {
-            const embedded = isCollide(player.x, player.y, true);
-            const warning = document.getElementById('embedded-block-warning');
-            const bar = document.getElementById('embedded-block-bar');
-            if (!embedded) {
-                if (embeddedBlockFrames) resetEmbeddedBlockEscapeState();
-                return false;
-            }
-            embeddedBlockFrames++;
-            if (warning) warning.style.display = 'block';
-            if (bar) bar.style.width = `${Math.min(100, embeddedBlockFrames / 60 * 100)}%`;
-            if (embeddedBlockFrames < 60) return false;
-            resetEmbeddedBlockEscapeState();
-            handlePlayerDeath();
-            return true;
-        }
-
         function isEnemyCollide(x, y, axis = null, size = 0.9) {
             return isCollideAt(x, y, size, size, false, axis);
         }
@@ -13512,6 +13562,64 @@ function getPswcWinnerCount(username) {
                 changed = true;
             }
             if (changed) updateStageCache();
+        }
+
+        // デメテルは5方向へ種を放つ。種は重力・壁・床の影響を受け、踏むか5秒で爆発する。
+        function sowDemeterSeeds(demeter) {
+            const size = demeter.size || BASE_PLAYER_SIZE;
+            const centerX = demeter.x + size / 2;
+            const startY = demeter.y + Math.min(.34, size * .28);
+            // 真上、左右30度、左右60度（いずれも上方向）。
+            const angles = [-90, -60, -120, -30, -150];
+            const speed = .145;
+            for (let i = 0; i < angles.length; i++) {
+                const radians = angles[i] * Math.PI / 180;
+                demeterSeeds.push({
+                    x: centerX, y: startY, vx: Math.cos(radians) * speed, vy: Math.sin(radians) * speed,
+                    onGround: false, timer: 300
+                });
+            }
+        }
+
+        function updateDemeterSeeds() {
+            for (let i = demeterBurstEffects.length - 1; i >= 0; i--) {
+                if (--demeterBurstEffects[i].frames <= 0) demeterBurstEffects.splice(i, 1);
+            }
+            for (let i = demeterSeeds.length - 1; i >= 0; i--) {
+                const seed = demeterSeeds[i];
+                seed.timer--;
+                // 小さな種にも敵と同じタイル衝突を使い、跳ねずに床へ着地させる。
+                const seedSize = .24;
+                const nextX = seed.x + seed.vx;
+                if (!isEnemyCollide(nextX - seedSize / 2, seed.y - seedSize / 2, 'x', seedSize)) {
+                    seed.x = nextX;
+                } else {
+                    seed.vx *= -.32;
+                }
+                seed.vy += currentStageType === 'moon' ? .0075 : .015;
+                const nextY = seed.y + seed.vy;
+                if (!isEnemyCollide(seed.x - seedSize / 2, nextY - seedSize / 2, 'y', seedSize)) {
+                    seed.y = nextY;
+                    seed.onGround = false;
+                } else if (seed.vy > 0) {
+                    seed.onGround = true;
+                    seed.vy = 0;
+                    seed.vx *= .92;
+                } else {
+                    seed.vy = 0;
+                }
+                const stepped = player.x + player.w > seed.x - .17 && player.x < seed.x + .17 &&
+                    player.y + player.h > seed.y - .17 && player.y < seed.y + .17;
+                if (!stepped && seed.timer > 0) continue;
+                demeterSeeds.splice(i, 1);
+                demeterBurstEffects.push({ x: seed.x, y: seed.y, frames: 16 });
+                const centerX = player.x + player.w / 2, centerY = player.y + player.h / 2;
+                if (stepped || Math.hypot(centerX - seed.x, centerY - seed.y) < .78) {
+                    handlePlayerDeath();
+                    return true;
+                }
+            }
+            return false;
         }
 
         // ボスの巨大化領域と重なる、破壊可能なブロックを取り除く
@@ -13660,6 +13768,33 @@ function getPswcWinnerCount(username) {
             // キャッシュされた静的レイヤー（ブロック等）を描画
             cachedGameCtx.drawImage(stageCacheCanvas, 0, 0);
 
+            // デメテルの種。茶色と白を切り替え、爆発へ近づくほどゆっくり加速して点滅する。
+            for (let i = 0; i < demeterSeeds.length; i++) {
+                const seed = demeterSeeds[i];
+                const elapsed = 1 - Math.max(0, seed.timer) / 300;
+                const blinkSpeed = 1 + elapsed * 10;
+                const isBright = Math.sin(time * blinkSpeed) >= 0;
+                const sx = seed.x * cw, sy = seed.y * ch;
+                cachedGameCtx.save();
+                cachedGameCtx.globalAlpha = 1;
+                cachedGameCtx.fillStyle = isBright ? '#ffffff' : '#795548';
+                const side = Math.max(4, cw * .22);
+                cachedGameCtx.fillRect(sx - side / 2, sy - side / 2, side, side);
+                cachedGameCtx.restore();
+            }
+            for (let i = 0; i < demeterBurstEffects.length; i++) {
+                const burst = demeterBurstEffects[i];
+                const progress = 1 - burst.frames / 16;
+                cachedGameCtx.save();
+                cachedGameCtx.globalAlpha = 1 - progress;
+                cachedGameCtx.strokeStyle = '#ffcf52';
+                cachedGameCtx.lineWidth = Math.max(2, cw * .06);
+                cachedGameCtx.beginPath();
+                cachedGameCtx.arc(burst.x * cw, burst.y * ch, cw * (.14 + progress * .7), 0, Math.PI * 2);
+                cachedGameCtx.stroke();
+                cachedGameCtx.restore();
+            }
+
             // ブラックのキャンドルシールド。残っている全キャンドルへ金色の線を伸ばす。
             if (blackBossRefs.length && candlePositions.length) {
                 cachedGameCtx.save();
@@ -13778,6 +13913,28 @@ function getPswcWinnerCount(username) {
                             cachedGameCtx.restore();
                         }
                         drawHermesSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, en.vx < 0 ? 'left' : 'right');
+                    } else if (en.isDemeter) {
+                        // 種まき直前の60Fは、花粉の輪で攻撃を予告する。
+                        if (en.directionTimer <= BOSS_TURN_WARNING_FRAMES) {
+                            const warning = 1 - Math.max(0, en.directionTimer) / BOSS_TURN_WARNING_FRAMES;
+                            const centerX = (en.x + enSize / 2) * cw;
+                            const centerY = (en.y + enSize / 2) * ch;
+                            cachedGameCtx.save();
+                            cachedGameCtx.globalAlpha = .38 + warning * .5;
+                            cachedGameCtx.strokeStyle = '#e9ff7a';
+                            cachedGameCtx.lineWidth = Math.max(1, cw * .045);
+                            cachedGameCtx.beginPath();
+                            cachedGameCtx.arc(centerX, centerY, cw * enSize * (.55 + warning * .28), 0, Math.PI * 2);
+                            cachedGameCtx.stroke();
+                            cachedGameCtx.fillStyle = '#ff4d78';
+                            for (let petal = 0; petal < 6; petal++) {
+                                const angle = time * 8 + petal * Math.PI / 3;
+                                const radius = cw * enSize * (.48 + warning * .22);
+                                cachedGameCtx.fillRect(centerX + Math.cos(angle) * radius - 2, centerY + Math.sin(angle) * radius - 2, 4, 4);
+                            }
+                            cachedGameCtx.restore();
+                        }
+                        drawDemeterSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, en.vx < 0 ? 'left' : 'right');
                     } else if (en.isBlack) {
                         // ブラック: 金の目と、キャンドルが残っている間の金色シールド。
                         const shielded = candlePositions.length > 0;
@@ -14163,9 +14320,9 @@ function getPswcWinnerCount(username) {
                 const hpRatio = Math.max(0, en.hp / en.maxHp);
                 cachedGameCtx.fillStyle = 'rgba(0,0,0,0.8)';
                 cachedGameCtx.fillRect(barX - 2, barY - 2, barW + 4, barH + 4);
-                cachedGameCtx.fillStyle = en.isHestia ? '#6e152c' : (en.isHermes ? '#164650' : (en.isBlack ? '#4a3900' : '#4a148c'));
+                cachedGameCtx.fillStyle = en.isHestia ? '#6e152c' : (en.isHermes ? '#164650' : (en.isDemeter ? '#526c25' : (en.isBlack ? '#4a3900' : '#4a148c')));
                 cachedGameCtx.fillRect(barX, barY, barW, barH);
-                cachedGameCtx.fillStyle = en.isHestia ? '#ff8a3d' : (en.isHermes ? '#5de9d2' : (en.isBlack ? '#ffd740' : '#e040fb'));
+                cachedGameCtx.fillStyle = en.isHestia ? '#ff8a3d' : (en.isHermes ? '#5de9d2' : (en.isDemeter ? '#e9ff7a' : (en.isBlack ? '#ffd740' : '#e040fb')));
                 cachedGameCtx.fillRect(barX, barY, barW * hpRatio, barH);
                 if (en.raiDamageFlash > 0) {
                     cachedGameCtx.fillStyle = '#fff36b';
