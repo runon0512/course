@@ -1132,11 +1132,24 @@
             background:rgba(255,255,255,.45); box-shadow:0 0 .8cqw rgba(255,255,255,.35);
             pointer-events:none;
         }
-        #settings-overlay { overflow-y:auto; padding:4cqh 0; box-sizing:border-box; }
-        .settings-card { width:min(86%,48cqw); max-height:82cqh; overflow-y:auto; box-sizing:border-box; text-align:left; }
-        .settings-choice { display:flex; align-items:center; gap:1cqw; padding:1.05cqh 1cqw; margin:.75cqh 0; cursor:pointer; border:.1cqw solid rgba(132,221,255,.38); background:rgba(15,38,65,.58); }
-        .settings-choice:hover { border-color:#8eeaff; background:rgba(42,104,141,.58); }
-        .settings-choice input { accent-color:#67ddff; }
+        #settings-overlay { overflow-y:auto; padding:4cqh 0; box-sizing:border-box; background:radial-gradient(circle at 13% 10%,rgba(87,220,255,.19),transparent 27%),radial-gradient(circle at 90% 85%,rgba(141,91,255,.18),transparent 33%),rgba(2,8,20,.9) !important; }
+        .settings-card { width:min(86%,48cqw); max-height:82cqh; overflow-y:auto; box-sizing:border-box; padding:2cqw !important; text-align:left; border:.16cqw solid #75e8ff !important; border-radius:.7cqw; background:linear-gradient(135deg,rgba(13,43,77,.98),rgba(23,18,59,.98)) !important; box-shadow:0 0 2.2cqw rgba(76,204,255,.35),inset 0 0 1.5cqw rgba(100,220,255,.07) !important; }
+        .settings-header { display:flex; align-items:center; justify-content:space-between; gap:1cqw; margin-bottom:1.5cqh; padding-bottom:1.1cqh; border-bottom:.1cqw solid rgba(132,225,255,.3); }
+        .settings-heading { display:flex; align-items:center; gap:.9cqw; }
+        .settings-heading-icon { width:3.2cqw; height:3.2cqw; min-width:28px; min-height:28px; display:grid; place-items:center; border:.12cqw solid #7ce9ff; border-radius:50%; background:#245e99; color:#fff3ae; font-size:1.7cqw; box-shadow:0 0 .9cqw rgba(105,222,255,.35); }
+        .settings-kicker { color:#8deaff; font-size:.78cqw; font-weight:700; letter-spacing:.18em; }
+        .settings-title { margin:0; color:#f0fcff; font-size:2.2cqw; letter-spacing:.08em; }
+        .settings-section { margin-top:1.4cqh; padding:1.1cqw; border:.1cqw solid rgba(132,225,255,.25); border-radius:.5cqw; background:rgba(2,15,39,.3); }
+        .settings-section-title { display:flex; align-items:center; gap:.55cqw; margin-bottom:.8cqh; color:#aeeeff; font-size:1.35cqw; font-weight:700; letter-spacing:.08em; }
+        .settings-section-note { margin:-.3cqh 0 .9cqh; color:#b8dced; font-size:.93cqw; line-height:1.45; }
+        .settings-choice { display:flex; align-items:center; gap:1cqw; min-height:7cqw; box-sizing:border-box; padding:1cqh 1cqw; margin:.75cqh 0; cursor:pointer; border:.12cqw solid rgba(132,221,255,.32); border-radius:.45cqw; background:rgba(15,38,65,.58); transition:border-color .16s ease,background .16s ease,transform .16s ease,box-shadow .16s ease; }
+        .settings-choice:hover { border-color:#8eeaff; background:rgba(42,104,141,.58); transform:translateY(-.1cqh); }
+        .settings-choice:has(input:checked) { border-color:#8eeaff; background:linear-gradient(90deg,rgba(30,120,164,.54),rgba(90,70,170,.38)); box-shadow:inset 0 0 1cqw rgba(104,234,255,.16),0 0 .8cqw rgba(70,208,255,.22); }
+        .settings-choice input { width:1.25cqw; height:1.25cqw; min-width:14px; min-height:14px; margin:0; accent-color:#67ddff; }
+        .settings-choice-text { flex:1; min-width:0; } .settings-choice-text b { color:#f1fcff; font-size:1.18cqw; letter-spacing:.04em; } .settings-choice-text small { color:#bddcec; font-size:.9cqw; }
+        .settings-choice input:checked + .control-preview { border-color:#d9fbff; box-shadow:0 0 1cqw rgba(111,232,255,.58),inset 0 0 .7cqw rgba(93,219,255,.2); }
+        .settings-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.8cqw; } .settings-actions .pixel-btn { min-height:5cqh; padding:.7cqh .5cqw; font-size:1.05cqw; }
+        @media (max-aspect-ratio:1/1) { .settings-card { width:min(92%,68cqw); } .settings-title { font-size:3cqw; } .settings-kicker { font-size:1.2cqw; } .settings-section-title { font-size:2cqw; } .settings-section-note,.settings-choice-text small { font-size:1.45cqw; } .settings-choice-text b { font-size:1.8cqw; } .settings-actions { grid-template-columns:1fr; } .settings-actions .pixel-btn { font-size:1.65cqw; } }
         .control-preview { width:8.6cqw; height:5.6cqw; min-width:76px; min-height:50px; flex:0 0 auto; position:relative; overflow:hidden; border:.1cqw solid rgba(195,241,255,.72); border-radius:.35cqw; background:rgba(2,14,32,.72); box-shadow:inset 0 0 .7cqw rgba(93,219,255,.12); }
         .control-preview .preview-key { position:absolute; display:flex; align-items:center; justify-content:center; width:2cqw; height:1.7cqw; min-width:18px; min-height:15px; border:.1cqw solid #a8eaff; border-radius:.18cqw; color:#e9fbff; background:#1c5b7b; font:bold 1cqw/1 sans-serif; box-shadow:0 .1cqh 0 rgba(0,0,0,.45); }
         .preview-key.left { left:1.25cqw; bottom:.95cqw; } .preview-key.up { left:3.32cqw; top:.8cqw; } .preview-key.right { left:5.4cqw; bottom:.95cqw; }
@@ -2225,21 +2238,27 @@
 
         <div id="settings-overlay" class="screen" style="display:none; z-index:189; align-items:flex-start; justify-content:center; background:rgba(2,8,20,.82);">
             <div class="auth-box settings-card">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:1cqw; margin-bottom:1.4cqh;">
-                    <h2 style="margin:0; font-size:2.2cqw;">設定</h2>
+                <div class="settings-header">
+                    <div class="settings-heading"><div class="settings-heading-icon">⚙</div><div><div class="settings-kicker">PLAYER OPTIONS</div><h2 class="settings-title">設定</h2></div></div>
                     <button class="pixel-btn small" style="background:#546e7a;" onclick="closeSettings()">閉じる</button>
                 </div>
-                <div style="font-size:1.45cqw; color:#aeeeff; margin-bottom:.6cqh;">操作方法</div>
-                <label class="settings-choice"><input type="radio" name="control-mode-setting" value="keyboard" onchange="setControlMode(this.value)"><div class="control-preview preview-keyboard" aria-hidden="true"><span class="preview-key left">←</span><span class="preview-key up">↑</span><span class="preview-key right">→</span></div><span><b>キーボード操作</b><br><small>矢印キー / A・D、Space / W で操作</small></span></label>
-                <label class="settings-choice"><input type="radio" name="control-mode-setting" value="buttons" onchange="setControlMode(this.value)"><div class="control-preview preview-buttons" aria-hidden="true"><span class="preview-key left">◀</span><span class="preview-key right">▶</span><span class="preview-jump">JUMP</span></div><span><b>ボタン操作</b><br><small>画面の左右ボタンとジャンプボタンで操作</small></span></label>
-                <label class="settings-choice"><input type="radio" name="control-mode-setting" value="joystick" onchange="setControlMode(this.value)"><div class="control-preview preview-joystick" aria-hidden="true"><span class="preview-stick-base"></span><span class="preview-stick-knob"></span><span class="preview-jump">JUMP</span></div><span><b>ジョイスティック操作</b><br><small>仮想ジョイスティックとジャンプボタンで操作</small></span></label>
-                <div style="border-top:.1cqw solid rgba(152,225,255,.32); margin:2cqh 0 1.2cqh;"></div>
-                <div style="display:flex; flex-wrap:wrap; gap:1cqw; justify-content:center;">
+                <section class="settings-section">
+                    <div class="settings-section-title">🎮 操作方法</div>
+                    <p class="settings-section-note">プレイ中の操作方法を選べます。変更はすぐに保存されます。</p>
+                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="keyboard" onchange="setControlMode(this.value)"><div class="control-preview preview-keyboard" aria-hidden="true"><span class="preview-key left">←</span><span class="preview-key up">↑</span><span class="preview-key right">→</span></div><span class="settings-choice-text"><b>キーボード操作</b><br><small>矢印キー / A・D、Space / W で操作</small></span></label>
+                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="buttons" onchange="setControlMode(this.value)"><div class="control-preview preview-buttons" aria-hidden="true"><span class="preview-key left">◀</span><span class="preview-key right">▶</span><span class="preview-jump">JUMP</span></div><span class="settings-choice-text"><b>ボタン操作</b><br><small>画面の左右ボタンとジャンプボタンで操作</small></span></label>
+                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="joystick" onchange="setControlMode(this.value)"><div class="control-preview preview-joystick" aria-hidden="true"><span class="preview-stick-base"></span><span class="preview-stick-knob"></span><span class="preview-jump">JUMP</span></div><span class="settings-choice-text"><b>ジョイスティック操作</b><br><small>仮想ジョイスティックとジャンプボタンで操作</small></span></label>
+                </section>
+                <section class="settings-section">
+                    <div class="settings-section-title">👤 アカウント・ヘルプ</div>
+                    <div class="settings-actions">
                     <button class="pixel-btn small" onclick="closeSettings(); openPasswordChange()">パスワードを変更</button>
                     <button class="pixel-btn small" style="background:#296a9d;" onclick="closeSettings(); openTutorial()">チュートリアルを見る</button>
                     <button class="pixel-btn small" style="background:#b71c1c;" onclick="logoutUser()">ログアウト</button>
-                </div>
+                    </div>
+                </section>
             </div>
+        </div>
         </div>
 
         <div id="tutorial-overlay" class="screen" style="display:none; z-index:205; align-items:center; justify-content:center; background:rgba(2,8,20,.86);">
