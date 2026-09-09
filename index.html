@@ -30,6 +30,20 @@
             color: var(--text-color);
             overflow: hidden;
         }
+        /* 2:1のゲーム画面で生じる上下の余白にも、プレイ中の背景を連続して表示する。 */
+        body[class*="stage-viewport-bg-"] { background-size:100% 100%; background-attachment:fixed; }
+        body.stage-viewport-bg-bg-clear-sky { background:linear-gradient(180deg, #35aef2 0%, #76cef8 58%, #c8efff 100%); }
+        body.stage-viewport-bg-bg-water { background:linear-gradient(180deg, #003d6b 0%, #005580 40%, #004466 100%); }
+        body.stage-viewport-bg-bg-dark { background:#000; }
+        body.stage-viewport-bg-bg-volcano { background:linear-gradient(180deg, #1a0500 0%, #3d0f00 55%, #1a0500 100%); }
+        body.stage-viewport-bg-bg-moon { background:linear-gradient(180deg, #050816, #141b36); }
+        body.stage-viewport-bg-bg-beach { background:linear-gradient(180deg, #6fd4ff 0%, #d8f5ff 62%, #f5d68c 63%, #dba95b 100%); }
+        body.stage-viewport-bg-bg-cloudy { background:linear-gradient(180deg, #4a2379 0%, #6c3d9a 48%, #30144f 100%); }
+        body.stage-viewport-bg-bg-sunset { background:linear-gradient(#ff7043, #3f51b5); }
+        body.stage-viewport-bg-bg-hell { background:linear-gradient(#000, #b71c1c); }
+        body.stage-viewport-bg-bg-heaven { background:linear-gradient(180deg, #63bcff 0%, #a8dcff 42%, #e4f6ff 70%, #fff9df 100%); }
+        body.stage-viewport-bg-bg-bw { background:linear-gradient(125deg, #000 0%, #190000 48%, #000 100%); }
+        body.stage-viewport-bg-bg-aurora { background:#050510; }
         .inline-loading-spinner { display:inline-block; width:1.05em; height:1.05em; box-sizing:border-box; margin-left:.45em; vertical-align:-.13em; border:.16em solid currentColor; border-right-color:transparent; border-radius:50%; opacity:.9; animation:apiLoadingSpin .72s linear infinite; }
         @keyframes apiLoadingSpin { to { transform:rotate(360deg); } }
         /* スマートフォンでプレイ中は、スワイプ・引っ張り更新・ピンチ操作で画面を動かさない。 */
@@ -1892,6 +1906,10 @@
         #main-menu { top:auto; bottom:3.1cqh; gap:.55cqh; padding:1.2cqw 1.5cqw; }
         #main-menu .pixel-btn { padding:.92cqh .25cqw; font-size:2cqw; line-height:1.08; }
         #user-info { top:1.3cqh; right:2cqw; border:.1cqw solid #b88c43; background:linear-gradient(90deg,rgba(27,17,23,.92),rgba(70,43,30,.78)); box-shadow:inset 0 0 .7cqw rgba(255,212,119,.08); color:#f7e7c0; font-family:'Roboto','Noto Sans JP',sans-serif; }
+        .player-control-logo { display:inline-grid; place-items:center; width:1.35cqw; height:1.35cqw; min-width:15px; min-height:15px; margin-left:.35cqw; vertical-align:middle; box-sizing:border-box; border:.1cqw solid #98eaff; border-radius:50%; background:rgba(21,83,111,.78); color:#f3fdff; font:800 .86cqw/1 'Roboto','Noto Sans JP',sans-serif; text-shadow:0 0 .3cqw rgba(255,255,255,.8); box-shadow:0 0 .5cqw rgba(98,221,255,.45); }
+        .player-control-logo[data-mode="buttons"] { border-color:#ffd77c; background:rgba(116,73,25,.8); color:#fff7df; box-shadow:0 0 .5cqw rgba(255,197,89,.42); }
+        .player-control-logo[data-mode="joystick"] { border-color:#d4a6ff; background:rgba(80,43,116,.8); color:#f7eaff; box-shadow:0 0 .5cqw rgba(201,139,255,.42); }
+        .ranking-control-logo { width:1.32em; height:1.32em; min-width:0; min-height:0; margin-left:.38em; border-width:1px; font-size:.72em; vertical-align:.08em; }
         #home-level-gauge { right:2.4cqw; bottom:3.1cqh; background:linear-gradient(135deg,rgba(32,20,25,.94),rgba(75,45,30,.9)); border:.14cqw solid #bf944b; box-shadow:inset 0 0 .8cqw rgba(255,215,132,.12); }
         #home-level-gauge-title { color:#f5d476; font-family:'Roboto','Noto Sans JP',sans-serif; } #home-level-gauge-track { background:#211720; border-color:#8d6839; } #home-level-gauge-fill { background:linear-gradient(90deg,#a46728,#f1c965,#fff1ba); }
         #global-rank-btn, #creators-road-btn, #explanation-btn, #chat-btn, #login-bonus-btn, #patch-notes-btn, #dm-inbox-btn, #audio-btn, #password-settings-btn {
@@ -2003,7 +2021,7 @@
 
         <!-- ユーザー情報 -->
         <div id="user-info">
-            USER: <span id="user-level" style="color:#fff36b; font-weight:bold;">Lv.1</span> <span id="current-user">-</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
+            USER: <span id="user-level" style="color:#fff36b; font-weight:bold;">Lv.1</span> <span id="current-user">-</span><span id="player-control-logo" class="player-control-logo" data-mode="keyboard" title="クラシック操作" aria-label="クラシック操作">C</span><span id="current-version" style="margin-left:0.4cqw; color:#00f0ff; font-size:0.95em;">v2.7.5</span> | 
             <span style="color:#2ecc71; cursor:pointer; text-decoration:underline;" onclick="toggleOnlineUsers()">ONLINE: <span id="online-count">0</span></span> | 
             <span style="color:#f1c40f;">G: <span id="user-gold">0</span></span> | 
             <span style="color:#00ff41;">CP: <span id="user-cp">0</span></span> | 
@@ -2629,16 +2647,17 @@
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
                     <select id="stage-type-select" class="filter-control" style="font-size:1.2cqw; padding:0.3cqh 0.5cqw; background:#1a1a2e; color:#fff; border:0.15cqw solid var(--primary-color); cursor:pointer;" title="ステージタイプ" onchange="onStageTypeChange(this)">
-                        <option value="normal">🌿 通常</option>
-                        <option value="water">🌊 水中</option>
-                        <option value="dark">🌑 暗闇</option>
+                        <option value="normal">🌿 クラシック</option>
+                        <option value="water">🌊 ウォーター</option>
+                        <option value="dark">🌑 ダーク</option>
                         <option value="timeattack">⌛ タイムアタック</option>
+                        <option value="autorun">🏃 オートラン</option>
                         <option id="stage-type-option-big" value="big">⬛ ビッグ</option>
-                        <option id="stage-type-option-hard" value="hard">💀 HARD（未購入）</option>
+                        <option id="stage-type-option-hard" value="hard">💀 ハード（未購入）</option>
                         <option id="stage-type-option-untouchable" value="untouchable">☠️ アンタッチャブル（未購入）</option>
-                        <option id="stage-type-option-volcano" value="volcano">🌋 火山</option>
-                        <option id="stage-type-option-moon" value="moon">🌙 月（未購入）</option>
-                        <option id="stage-type-option-beach" value="beach">🏖️ 海辺（未購入）</option>
+                        <option id="stage-type-option-volcano" value="volcano">🌋 ボルケーノ</option>
+                        <option id="stage-type-option-moon" value="moon">🌙 ムーン（未購入）</option>
+                        <option id="stage-type-option-beach" value="beach">🏖️ ビーチ（未購入）</option>
                         <option id="stage-type-option-rai-alvaro" value="rai_alvaro">⚡ ライ・アルバロ（未購入）</option>
                     </select>
                     <button class="pixel-btn small" style="margin-top:0" onclick="exitEditor()">戻る</button>
@@ -2780,10 +2799,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzNbgVdLIU4gW9LGGdXkgJEzvpNWeSALSIRFJWbyAdWQKOfmHafGq3zdXgSJjp6gtos/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzhereaU6yqWxD0BplMDihzDvK-2FdAcVToVwAuL8OYRc-RI4rC-SIt65yI3uboMObP/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.9"
+            VERSION: "3.7.10"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -2858,10 +2877,30 @@ function getPswcWinnerCount(username) {
             return `<span style="color:#fff36b; font-size:.82em; font-weight:900; margin-right:.32em;">Lv.${level}</span>`;
         }
 
+        function getControlModeInfo(mode) {
+            const modes = {
+                keyboard: { mark: 'C', label: 'クラシック操作（キーボード）' },
+                buttons: { mark: 'M', label: 'モバイル操作' },
+                joystick: { mark: 'J', label: 'ジョイスティック操作' }
+            };
+            return modes[mode] || modes.keyboard;
+        }
+
+        function renderPlayerControlLogo(username, extraClass = '') {
+            const mode = String(username) === String(CONFIG.USERNAME)
+                ? controlMode
+                : playerControlModesByUsername.get(String(username));
+            const info = getControlModeInfo(mode);
+            return `<span class="player-control-logo ranking-control-logo ${extraClass}" data-mode="${mode || 'keyboard'}" title="${info.label}" aria-label="${info.label}">${info.mark}</span>`;
+        }
+
         async function ensurePlayerLevelsLoaded(forceRefresh = false) {
             if (!forceRefresh && playerLevelsByUsername.size) return playerLevelsByUsername;
             const res = await callApi('getPlayerLevels', {});
-            if (res?.success) playerLevelsByUsername = new Map(Object.entries(res.levels || {}));
+            if (res?.success) {
+                playerLevelsByUsername = new Map(Object.entries(res.levels || {}));
+                playerControlModesByUsername = new Map(Object.entries(res.controlModes || {}));
+            }
             return playerLevelsByUsername;
         }
 
@@ -2995,15 +3034,16 @@ function getPswcWinnerCount(username) {
             'DM': { title: 'デメテル', text: '25,000Gで入手できる中ボスです。体力30で、4秒ごとに向きを変えて5方向へ種を放ちます。種は重力で落下し、踏むか5秒後に爆発します。HARDでは2×2・体力100になり、ジャンプの最高点から種を発射します。' }
         };
         const STAGE_TYPE_DESCRIPTIONS = [
-            { type: 'normal', title: '通常', text: '標準的な物理と背景のステージです。' },
-            { type: 'water', title: '水中', text: '水中では移動に抵抗がかかり、ジャンプキーで上昇します。' },
-            { type: 'dark', title: '暗闇', text: 'プレイヤーとランプの周囲だけが明るく見えるステージです。' },
+            { type: 'normal', title: 'クラシック', text: '標準的な物理と背景のステージです。' },
+            { type: 'water', title: 'ウォーター', text: '水中では移動に抵抗がかかり、ジャンプキーで上昇します。' },
+            { type: 'dark', title: 'ダーク', text: 'プレイヤーとランプの周囲だけが明るく見えるステージです。' },
+            { type: 'autorun', title: 'オートラン', text: '左右の移動はできず、プレイヤーが自動で走ります。壁にぶつかると方向を反転し、ジャンプだけを操作します。' },
             { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。' },
-            { type: 'hard', title: 'HARD', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
+            { type: 'hard', title: 'ハード', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
             { type: 'untouchable', title: 'アンタッチャブル', text: '敵には上からでも触れられません。接触すると即座にミスになります。' },
-            { type: 'volcano', title: '火山', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
-            { type: 'moon', title: '月', text: '重力が通常の半分になるステージです。敵にも影響します。' },
-            { type: 'beach', title: '海辺', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
+            { type: 'volcano', title: 'ボルケーノ', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
+            { type: 'moon', title: 'ムーン', text: '重力が通常の半分になるステージです。敵にも影響します。' },
+            { type: 'beach', title: 'ビーチ', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
             { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' }
         ];
         const BASE_GRID_W = 20, BASE_GRID_H = 10;
@@ -3118,6 +3158,7 @@ function getPswcWinnerCount(username) {
         let cachedAllUsernames = null; // @メンション検索用の全ユーザー名一覧
         let verifiedUsernames = new Map(); // UsersシートI列の認証状態
         let playerLevelsByUsername = new Map();
+        let playerControlModesByUsername = new Map();
         let cachedMentionRegexSource = undefined; // メンション検出用正規表現をキャッシュしたときのcachedAllUsernames参照
         let cachedMentionRegex = null; // linkifyMessageで使い回すメンション検出用正規表現（毎回のsort/エスケープ/コンパイルを避けるため）
         let mentionActiveInput = null; // 現在メンション検索対象になっている入力欄
@@ -5109,6 +5150,8 @@ function getPswcWinnerCount(username) {
             updateGoldDisplay();
             updatePasswordSecurityNotification();
             updateHomeCharacter();
+            // 既存ユーザーも最初のログイン時に操作方法を保存し、ランキングで表示できるようにする。
+            savePlayerControlMode();
             playHorizonBGM();
         }
 
@@ -5128,7 +5171,10 @@ function getPswcWinnerCount(username) {
                 verifiedUsernames = new Map((verifiedUsersRes.users || []).map(user => [String(user.username), String(user.status)]));
                 document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(CONFIG.USERNAME)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${CONFIG.USERNAME}</span>`;
             }
-            if (playerLevelsRes?.success) playerLevelsByUsername = new Map(Object.entries(playerLevelsRes.levels || {}));
+            if (playerLevelsRes?.success) {
+                playerLevelsByUsername = new Map(Object.entries(playerLevelsRes.levels || {}));
+                playerControlModesByUsername = new Map(Object.entries(playerLevelsRes.controlModes || {}));
+            }
 
             // 全ステージは初期同期の完了後、OVR用としてバックグラウンドで先読みする。
 
@@ -7128,6 +7174,28 @@ function getPswcWinnerCount(username) {
             if (legacyMobile) legacyMobile.checked = controlMode !== 'keyboard';
         }
 
+        function updatePlayerControlLogo() {
+            const logo = document.getElementById('player-control-logo');
+            if (!logo) return;
+            const controls = {
+                keyboard: { mark: 'C', label: 'クラシック操作（キーボード）' },
+                buttons: { mark: 'M', label: 'モバイル操作' },
+                joystick: { mark: 'J', label: 'ジョイスティック操作' }
+            };
+            const current = controls[controlMode] || controls.keyboard;
+            logo.textContent = current.mark;
+            logo.title = current.label;
+            logo.setAttribute('aria-label', current.label);
+            logo.dataset.mode = controlMode;
+        }
+
+        function savePlayerControlMode() {
+            if (!CONFIG.IS_LOGGED_IN || !CONFIG.USERNAME || !activeSessionToken) return;
+            playerControlModesByUsername.set(String(CONFIG.USERNAME), controlMode);
+            callApi('updateControlMode', { username: CONFIG.USERNAME, controlMode })
+                .catch(error => console.warn('操作方法の保存に失敗しました:', error));
+        }
+
         function setControlMode(mode) {
             controlMode = normalizeControlMode(mode);
             isMobileMode = controlMode !== 'keyboard';
@@ -7135,6 +7203,8 @@ function getPswcWinnerCount(username) {
             // 旧設定を利用している環境にも、ボタン操作として自然に引き継がれるよう残す。
             localStorage.setItem('pixel_stages_mobile', String(isMobileMode));
             syncControlModeInputs();
+            updatePlayerControlLogo();
+            savePlayerControlMode();
             updateTouchControlVisibility();
             if (document.getElementById('game-screen')?.style.display === 'block') {
                 setMobileGameViewportLock(controlMode !== 'keyboard');
@@ -7145,10 +7215,26 @@ function getPswcWinnerCount(username) {
             const gameVisible = document.getElementById('game-screen')?.style.display === 'block';
             const useButtons = gameVisible && controlMode === 'buttons';
             const useJoystick = gameVisible && controlMode === 'joystick';
+            const isAutoRun = isAutoRunStageType(currentStageType);
             const mobileControls = document.getElementById('mobile-controls');
             const joystickControls = document.getElementById('joystick-controls');
             if (mobileControls) mobileControls.style.display = useButtons ? 'block' : 'none';
             if (joystickControls) joystickControls.style.display = useJoystick ? 'block' : 'none';
+
+            // オートランでは横移動が無効なので、左右ボタン／ジョイスティック本体だけを隠す。
+            // ジャンプボタンはどちらの操作方法でも残す。
+            const directionButtons = document.getElementById('btn-left')?.parentElement;
+            const joystick = document.getElementById('virtual-joystick');
+            if (directionButtons) directionButtons.style.display = isAutoRun ? 'none' : 'flex';
+            if (joystick) joystick.style.display = isAutoRun ? 'none' : 'block';
+            if (isAutoRun) {
+                joystickAxisX = 0;
+                keys.ArrowLeft = false;
+                keys.ArrowRight = false;
+                const joystickKnob = document.getElementById('virtual-joystick-knob');
+                if (joystickKnob) joystickKnob.style.transform = 'translate(-50%, -50%)';
+            }
+
             const showSpecial = isRaiAlvaroStageType(currentStageType) && (useButtons || useJoystick);
             const buttonSpecial = document.getElementById('btn-special');
             const joystickSpecial = document.getElementById('btn-joystick-special');
@@ -7871,7 +7957,8 @@ function getPswcWinnerCount(username) {
                     const minutes = Math.floor((total % 3600) / 60);
                     return `${hours}時間${minutes}分`;
                 };
-                body.innerHTML = (res.ranking || []).map((entry, index) => `<tr class="${String(entry.username) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom:.1cqw solid #444;"><td style="padding:1.5cqh;">${index + 1}</td><td style="padding:1.5cqh;">${getPlayerLevelPrefix(entry.username)}<span class="${getUserNameClasses(entry.username)}">${entry.username}</span></td><td style="padding:1.5cqh; text-align:right; color:#ffe082;">${formatPlaytime(entry.seconds)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">データがありません。</td></tr>';
+                await ensurePlayerLevelsLoaded();
+                body.innerHTML = (res.ranking || []).map((entry, index) => `<tr class="${String(entry.username) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom:.1cqw solid #444;"><td style="padding:1.5cqh;">${index + 1}</td><td style="padding:1.5cqh;">${getPlayerLevelPrefix(entry.username)}<span class="${getUserNameClasses(entry.username)}">${entry.username}</span>${renderPlayerControlLogo(entry.username)}</td><td style="padding:1.5cqh; text-align:right; color:#ffe082;">${formatPlaytime(entry.seconds)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">データがありません。</td></tr>';
                 return;
             }
 
@@ -7887,6 +7974,7 @@ function getPswcWinnerCount(username) {
                 }
             }
             await ensureBadgeSettingsLoaded();
+            await ensurePlayerLevelsLoaded();
 
         if (tab === 'guild') {
             title.innerText = "RANK: GUILD EXP";
@@ -7953,7 +8041,7 @@ function getPswcWinnerCount(username) {
             ]));
             let sorted = [], headerHtml = "", rowFunc = null;
 
-            const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span> ${renderBadgeChip(u, 'small')}</td>`;
+            const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span>${renderPlayerControlLogo(u)} ${renderBadgeChip(u, 'small')}</td>`;
 
             if (tab === 'ovr') {
                 title.innerText = "RANK: OVR";
@@ -8116,7 +8204,7 @@ function getPswcWinnerCount(username) {
                 body.innerHTML += `
                     <tr class="${String(rec.name) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom: 0.1cqw solid #444;">
                         <td style="padding: 1.5cqh;">${rec._displayRank}</td>
-                        <td style="padding: 1.5cqh;">${getPlayerLevelPrefix(rec.name)}<span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span> ${renderBadgeChip(rec.name, 'small')}</td>
+                        <td style="padding: 1.5cqh;">${getPlayerLevelPrefix(rec.name)}<span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span>${renderPlayerControlLogo(rec.name)} ${renderBadgeChip(rec.name, 'small')}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
                         <td style="padding: 1.5cqh; text-align: right;"><button class="pixel-btn small" style="margin:0; padding:.45cqh .7cqw; ${Array.isArray(rec.ghost) && rec.ghost.length ? '' : 'opacity:.45;'}" ${Array.isArray(rec.ghost) && rec.ghost.length ? `onclick="watchLeaderboardGhost(${idx})"` : 'disabled'}>観る</button></td>
                     </tr>`;
@@ -8821,17 +8909,17 @@ function getPswcWinnerCount(username) {
             const volcanoOpt = document.getElementById('stage-type-option-volcano');
             if (volcanoOpt) {
                 volcanoOpt.disabled = !hasVolcanoStage;
-                volcanoOpt.textContent = hasVolcanoStage ? '🌋 火山' : '🌋 火山（未購入）';
+                volcanoOpt.textContent = hasVolcanoStage ? '🌋 ボルケーノ' : '🌋 ボルケーノ（未購入）';
             }
             const moonOpt = document.getElementById('stage-type-option-moon');
             const hasMoonStage = purchasedSkins.includes('moon_stage');
-            if (moonOpt) { moonOpt.disabled = !hasMoonStage; moonOpt.textContent = hasMoonStage ? '🌙 月' : '🌙 月（未購入）'; }
+            if (moonOpt) { moonOpt.disabled = !hasMoonStage; moonOpt.textContent = hasMoonStage ? '🌙 ムーン' : '🌙 ムーン（未購入）'; }
             const beachOpt = document.getElementById('stage-type-option-beach');
             const hasBeachStage = purchasedSkins.includes('beach_stage');
-            if (beachOpt) { beachOpt.disabled = !hasBeachStage; beachOpt.textContent = hasBeachStage ? '🏖️ 海辺' : '🏖️ 海辺（未購入）'; }
+            if (beachOpt) { beachOpt.disabled = !hasBeachStage; beachOpt.textContent = hasBeachStage ? '🏖️ ビーチ' : '🏖️ ビーチ（未購入）'; }
             const hardOpt = document.getElementById('stage-type-option-hard');
             const hasHardStage = purchasedSkins.includes('hard_stage');
-            if (hardOpt) { hardOpt.disabled = !hasHardStage; hardOpt.textContent = hasHardStage ? '💀 HARD' : '💀 HARD（未購入）'; }
+            if (hardOpt) { hardOpt.disabled = !hasHardStage; hardOpt.textContent = hasHardStage ? '💀 ハード' : '💀 ハード（未購入）'; }
             const untouchableOpt = document.getElementById('stage-type-option-untouchable');
             const hasUntouchableStage = purchasedSkins.includes('untouchable_stage');
             if (untouchableOpt) { untouchableOpt.disabled = !hasUntouchableStage; untouchableOpt.textContent = hasUntouchableStage ? '☠️ アンタッチャブル' : '☠️ アンタッチャブル（未購入）'; }
@@ -8842,11 +8930,11 @@ function getPswcWinnerCount(username) {
             if (CONFIG.USERNAME === 'Runon') {
                 document.querySelectorAll('#stage-type-select option').forEach(option => {
                     option.disabled = false;
-                    option.textContent = option.value === 'hard' ? '💀 HARD'
+                    option.textContent = option.value === 'hard' ? '💀 ハード'
                         : option.value === 'untouchable' ? '☠️ アンタッチャブル'
-                        : option.value === 'volcano' ? '🌋 火山'
-                        : option.value === 'moon' ? '🌙 月'
-                        : option.value === 'beach' ? '🏖️ 海辺'
+                        : option.value === 'volcano' ? '🌋 ボルケーノ'
+                        : option.value === 'moon' ? '🌙 ムーン'
+                        : option.value === 'beach' ? '🏖️ ビーチ'
                         : option.value === 'rai_alvaro' ? '⚡ ライ・アルバロ'
                         : option.textContent;
                 });
@@ -10471,8 +10559,8 @@ function getPswcWinnerCount(username) {
                 const hasWarpGate = grid => Array.isArray(grid) && grid.some(row => Array.isArray(row) && row.includes('WG'));
                 const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
                 const stageTypeNames = {
-                    normal: 'クラシック', water: '水中', dark: '暗闇', big: 'ビッグ', timeattack: 'タイムアタック',
-                    hard: 'HARD', untouchable: 'アンタッチャブル', volcano: '火山', moon: '月', beach: '海辺', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
+                    normal: 'クラシック', water: 'ウォーター', dark: 'ダーク', autorun: 'オートラン', big: 'ビッグ', timeattack: 'タイムアタック',
+                    hard: 'ハード', untouchable: 'アンタッチャブル', volcano: 'ボルケーノ', moon: 'ムーン', beach: 'ビーチ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
                 };
                 const stageTypeSource = getStageTypeSource(s);
                 const frontType = getStageTypeForFace(stageTypeSource, 'front');
@@ -10659,7 +10747,7 @@ function getPswcWinnerCount(username) {
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'big', 'timeattack', 'hard', 'untouchable', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'water', 'dark', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -10717,6 +10805,7 @@ function getPswcWinnerCount(username) {
         }
         function isRaiAlvaroStageType(type) { return type === 'rai_alvaro'; }
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
+        function isAutoRunStageType(type) { return type === 'autorun'; }
         function isUntouchableStageType(type) { return type === 'untouchable'; }
         function getNormalEnemyMaxHp() { return currentStageType === 'hard' ? 30 : 10; }
         // ボスの行動周期はすべてフレーム（F）基準で管理する。
@@ -10924,6 +11013,8 @@ function getPswcWinnerCount(username) {
             if (gameControlsLabel) {
                 gameControlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
                     ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
+                    : isAutoRunStageType(currentStageType)
+                        ? 'AUTO RUN | SPACE / W: JUMP | '
                     : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
             }
             document.getElementById('game-screen').style.display = 'block';
@@ -10963,6 +11054,7 @@ function getPswcWinnerCount(username) {
             } else {
                 container.classList.add('bg-clear-sky'); // 新風
             }
+            syncViewportStageBackground();
 
             // 状態リセット 
             frameCount = 0;
@@ -10972,6 +11064,7 @@ function getPswcWinnerCount(username) {
             raiDashHitBoss = false;
             isCountingDown = true;
             startTime = 0;
+            player.autoRunDirection = 1;
             activeCheckpoints.clear();
             spectatorLastSwitchKey = null;
             stageStartRespawn = null;
@@ -11126,6 +11219,7 @@ function getPswcWinnerCount(username) {
             stopStageBGM();
             resetGameGridSize();
             document.getElementById('game-screen').style.display = 'none';
+            clearViewportStageBackground();
             playHorizonBGM();
             setMobileGameViewportLock(false);
             updateTouchControlVisibility();
@@ -12101,10 +12195,18 @@ function getPswcWinnerCount(username) {
                 currentSpeed *= 0.5; // 速度（加速）が1/2
             }
 
-            const horizontalInput = getHorizontalInputAxis();
-            // スティックは倒し具合に比例して加速する。最大まで倒した時はキー入力と同じ加速量。
-            if (horizontalInput < 0) { player.vx += currentSpeed * horizontalInput; player.facing = 'left'; }
-            if (horizontalInput > 0) { player.vx += currentSpeed * horizontalInput; player.facing = 'right'; }
+            const isAutoRunStage = isAutoRunStageType(currentStageType);
+            const horizontalInput = isAutoRunStage ? 0 : getHorizontalInputAxis();
+            if (isAutoRunStage) {
+                // オートランでは左右入力を受け付けず、現在の向きへだけ自動加速する。
+                const direction = player.autoRunDirection === -1 ? -1 : 1;
+                player.vx += currentSpeed * direction;
+                player.facing = direction < 0 ? 'left' : 'right';
+            } else {
+                // スティックは倒し具合に比例して加速する。最大まで倒した時はキー入力と同じ加速量。
+                if (horizontalInput < 0) { player.vx += currentSpeed * horizontalInput; player.facing = 'left'; }
+                if (horizontalInput > 0) { player.vx += currentSpeed * horizontalInput; player.facing = 'right'; }
+            }
 
             // ライ・アルバロ: スペシャルキー（↓ / S / SPECIAL）を「押した瞬間」だけ、地上・空中を問わず前方へ約4マス雷ダッシュする。
             if (isRaiAlvaroStageType(currentStageType) && justPressedSpecial && !isWater &&
@@ -12294,7 +12396,12 @@ function getPswcWinnerCount(username) {
                 player.x = nextX;
             } else {
                 if (halfBlockSideX !== null) player.x = nextX;
-                if(isTouchingType(nextX, player.y, 'X')) player.vx = (player.vx > 0 ? -0.5 : 0.5);
+                if (isAutoRunStage) {
+                    // 壁へ当たったフレームの進行方向を反転。次フレームから逆向きに走り出す。
+                    player.autoRunDirection = player.vx >= 0 ? -1 : 1;
+                    player.facing = player.autoRunDirection < 0 ? 'left' : 'right';
+                    player.vx = 0;
+                } else if(isTouchingType(nextX, player.y, 'X')) player.vx = (player.vx > 0 ? -0.5 : 0.5);
                 else player.vx = 0;
             }
 
@@ -12423,7 +12530,7 @@ function getPswcWinnerCount(username) {
             // 直接的に重いわけではないが、他の描画系forEachと合わせて毎フレーム大量の使い捨てクロージャを
             // 生成しており、GC（ガベージコレクション）の発生頻度を上げて「時々一瞬カクつく」原因になっていた。
             // 単純なfor文に変換し、ループのたびに関数オブジェクトを作らないようにする（処理内容は変更なし）。
-            const syncEnemyVx = getHorizontalInputAxis() * 0.04;
+            const syncEnemyVx = isAutoRunStage ? 0 : getHorizontalInputAxis() * 0.04;
             const playerCenterXForEnemies = player.x + player.w / 2;
             const playerCenterYForEnemies = player.y + player.h / 2;
             for (let enIdx = 0; enIdx < enemies.length; enIdx++) {
@@ -13319,6 +13426,25 @@ function getPswcWinnerCount(username) {
         let activeFrontStageType = 'normal';
         let activeBackStageType = 'normal';
 
+        const viewportStageBackgroundClasses = [
+            'stage-viewport-bg-bg-clear-sky', 'stage-viewport-bg-bg-water', 'stage-viewport-bg-bg-dark',
+            'stage-viewport-bg-bg-volcano', 'stage-viewport-bg-bg-moon', 'stage-viewport-bg-bg-beach',
+            'stage-viewport-bg-bg-cloudy', 'stage-viewport-bg-bg-sunset', 'stage-viewport-bg-bg-hell',
+            'stage-viewport-bg-bg-heaven', 'stage-viewport-bg-bg-bw', 'stage-viewport-bg-bg-aurora'
+        ];
+
+        function clearViewportStageBackground() {
+            document.body.classList.remove(...viewportStageBackgroundClasses);
+        }
+
+        function syncViewportStageBackground() {
+            const container = document.querySelector('.container');
+            if (!container) return;
+            clearViewportStageBackground();
+            const backgroundClass = Array.from(container.classList).find(name => name.startsWith('bg-') && name !== 'bg-city' && name !== 'bg-sky');
+            if (backgroundClass) document.body.classList.add(`stage-viewport-${backgroundClass}`);
+        }
+
         function applyWarpFaceBackground() {
             const container = document.querySelector('.container');
             if (!container) return;
@@ -13330,6 +13456,7 @@ function getPswcWinnerCount(username) {
             else if (currentStageType === 'moon') container.classList.add('bg-moon');
             else if (currentStageType === 'beach') container.classList.add('bg-beach');
             else container.classList.add('bg-clear-sky');
+            syncViewportStageBackground();
         }
 
         // 表／裏面を切り替えた時に、タイプ依存の状態を一か所で確実に同期する。
@@ -13372,6 +13499,8 @@ function getPswcWinnerCount(username) {
             const controlsLabel = document.getElementById('game-controls-label');
             if (controlsLabel) controlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
                 ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
+                : isAutoRunStageType(currentStageType)
+                    ? 'AUTO RUN | SPACE / W: JUMP | '
                 : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
             updateTouchControlVisibility();
             applyWarpFaceBackground();
@@ -14755,6 +14884,7 @@ function getPswcWinnerCount(username) {
             controlMode = normalizeControlMode(savedControlMode || (legacyMobile ? 'buttons' : 'keyboard'));
             isMobileMode = controlMode !== 'keyboard';
             syncControlModeInputs();
+            updatePlayerControlLogo();
             setupMobileControls();
 
             isSchoolMode = localStorage.getItem('pixel_stages_school_mode') === 'true';
