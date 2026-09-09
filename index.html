@@ -4747,6 +4747,15 @@ function getPswcWinnerCount(username) {
                 purchasedSkins = res.purchasedSkins || ['default', 'girl'];
                 equippedSkin = res.equippedSkin || 'default';
                 equippedColor = res.equippedColor || 'default';
+                // 新規登録時を含め、サーバーに保存された操作方法をログイン直後から反映する。
+                if (['keyboard', 'buttons', 'joystick'].includes(res.controlMode)) {
+                    controlMode = normalizeControlMode(res.controlMode);
+                    isMobileMode = controlMode !== 'keyboard';
+                    localStorage.setItem('pixel_stages_control_mode', controlMode);
+                    localStorage.setItem('pixel_stages_mobile', String(isMobileMode));
+                    syncControlModeInputs();
+                    updatePlayerControlLogo();
+                }
                 claimedRoadRewards = res.claimedRoadRewards || [];
                 userGuild = res.guild;
                 userBadgeVisible = res.badgeVisible !== false;
@@ -5781,6 +5790,7 @@ function getPswcWinnerCount(username) {
             document.getElementById('dm-selected-image-info').style.display = 'none';
             const res = await callApi('getDirectMessageInbox', { username: CONFIG.USERNAME });
             if (!res || !res.success) return;
+            await ensurePlayerLevelsLoaded();
             const container = document.getElementById('dm-list');
             container.innerHTML = '';
             const conversations = res.conversations || [];
@@ -5791,7 +5801,7 @@ function getPswcWinnerCount(username) {
                 const item = document.createElement('button');
                 item.className = 'chat-msg-item';
                 item.style.cssText = 'width:100%; box-sizing:border-box; cursor:pointer; color:#fff; text-align:left; font:inherit; display:block;';
-                item.innerHTML = `<div style="display:flex; justify-content:space-between; gap:1cqw;"><strong style="color:var(--primary-color);">${conversation.from}</strong><span class="message-meta">${new Date(conversation.time).toLocaleString()}</span></div><div style="color:#d8e9ff; margin-top:.4cqh; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${linkifyMessage(conversation.message || '')}</div>`;
+                item.innerHTML = `<div style="display:flex; justify-content:space-between; gap:1cqw;"><strong style="color:var(--primary-color);">${getPlayerLevelPrefix(conversation.from)}${conversation.from}${renderPlayerControlLogo(conversation.from)}</strong><span class="message-meta">${new Date(conversation.time).toLocaleString()}</span></div><div style="color:#d8e9ff; margin-top:.4cqh; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${linkifyMessage(conversation.message || '')}</div>`;
                 item.onclick = () => openDirectMessage(conversation.from);
                 container.appendChild(item);
             });
@@ -5828,6 +5838,7 @@ function getPswcWinnerCount(username) {
             const partner = currentDmPartner;
             const res = await callApi('getDirectMessages', { username: CONFIG.USERNAME, partner });
             if (!res || !res.success || partner !== currentDmPartner) return;
+            await ensurePlayerLevelsLoaded();
             const container = document.getElementById('dm-list');
             container.innerHTML = '';
             const messages = res.messages || [];
@@ -5843,7 +5854,7 @@ function getPswcWinnerCount(username) {
                 const content = document.createElement('div');
                 content.style.flex = '1';
                 rememberChatInlineSkin(m.from, m.skin, m.color, m.customSprite);
-                content.innerHTML = `<div class="chat-user" style="color:var(--primary-color); font-weight:bold;">${isMine ? '自分' : m.from}</div><div style="word-break:break-all;">${linkifyMessage(m.message)}</div><div class="message-meta">${new Date(m.time).toLocaleString()}</div>`;
+                content.innerHTML = `<div class="chat-user" style="color:var(--primary-color); font-weight:bold;">${getPlayerLevelPrefix(m.from)}${isMine ? '自分' : m.from}${renderPlayerControlLogo(m.from)}</div><div style="word-break:break-all;">${linkifyMessage(m.message)}</div><div class="message-meta">${new Date(m.time).toLocaleString()}</div>`;
                 renderChatInlineIcons(content);
                 appendMessageVideoEmbeds(content, m.message);
                 if (m.attachedStageId) {
@@ -6072,7 +6083,7 @@ function getPswcWinnerCount(username) {
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
                 const replyInfo = '';
                 content.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderPlayerControlLogo(m.username)}${renderBadgeChip(m.username, 'small')}</div>
                     ${replyInfo}
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
@@ -6816,6 +6827,7 @@ function getPswcWinnerCount(username) {
                 cachedStages = stageRes.stages || [];
             }
             await ensureBadgeSettingsLoaded();
+            await ensurePlayerLevelsLoaded();
 
             container.innerHTML = '';
             res.messages.forEach(m => {
@@ -6831,7 +6843,7 @@ function getPswcWinnerCount(username) {
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
                 contentDiv.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderPlayerControlLogo(m.username)}${renderBadgeChip(m.username, 'small')}</div>
                     <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
@@ -14795,7 +14807,8 @@ function getPswcWinnerCount(username) {
             }
 
             // 観戦ゴーストは水・暗闇などの全画面効果やボスHP表示よりも前面に描画する。
-            if (isGhostSpectatorMode && !isCountingDown && playbackGhosts.length > 0) {
+            // 観戦中も上部のGHOSTS切り替えで、選択中ゴーストの表示だけをON/OFFできる。
+            if (isGhostSpectatorMode && !isCountingDown && showGhosts && playbackGhosts.length > 0) {
                 cachedGameCtx.save();
                 cachedGameCtx.globalAlpha = 1;
                 cachedGameCtx.font = `${ch * 0.3}px sans-serif`;
