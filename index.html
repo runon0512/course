@@ -14828,16 +14828,15 @@ function getPswcWinnerCount(username) {
                 }
             }
 
-            // 観戦ゴーストは水・暗闇などの全画面効果やボスHP表示よりも前面に描画する。
-            // 観戦中も上部のGHOSTS切り替えで、選択中ゴーストの表示だけをON/OFFできる。
-            if (isGhostSpectatorMode && !isCountingDown && showGhosts && playbackGhosts.length > 0) {
+            // 観戦対象は常に表示する。GHOSTSをOFFにした時だけ、ほかの参加者を隠す。
+            if (isGhostSpectatorMode && !isCountingDown && playbackGhosts.length > 0) {
                 cachedGameCtx.save();
                 cachedGameCtx.font = `${ch * 0.3}px sans-serif`;
                 cachedGameCtx.textAlign = 'center';
                 const ghost = selectedSpectatorGhost || playbackGhosts[0];
                 const frameIdx = Math.floor(frameCount / 5);
-                // 選択対象以外は半透明で再生する。選択した1人はこのあと通常色で前面描画する。
-                for (const otherGhost of playbackGhosts) {
+                // 選択対象以外は、GHOSTSがONの時だけ半透明で再生する。
+                if (showGhosts) for (const otherGhost of playbackGhosts) {
                     const isSelected = otherGhost === ghost
                         || (String(otherGhost.name) === String(ghost?.name) && Number(otherGhost.time) === Number(ghost?.time));
                     if (isSelected) continue;
