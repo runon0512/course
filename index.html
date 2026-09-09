@@ -292,7 +292,21 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 20;
+            /* ログインは常に最前面。背景レイヤーに入力操作を奪わせない。 */
+            z-index: 2100;
+            pointer-events: auto;
+        }
+
+        #auth-overlay .auth-box,
+        #auth-overlay input,
+        #auth-overlay button,
+        #auth-overlay label {
+            pointer-events: auto;
+        }
+
+        /* 背景は装飾専用。ログイン画面を含む前面UIのクリックを遮らない。 */
+        .bg-layer {
+            pointer-events: none;
         }
 
         .auth-box {
@@ -2816,7 +2830,7 @@
         // 画面（ステータス・設定・結果など）は、最後に開いたものを必ず最前面へ出す。
         // 個々の画面ごとにz-indexを手作業で管理しないことで、同時に開いた時の表示崩れを防ぐ。
         let latestOverlayZIndex = 1000;
-        const OVERLAY_FRONT_SELECTOR = '.screen, #auth-overlay, #stage-list-overlay, #msg-overlay, #image-lightbox, #online-users-popup, #level-up-effect';
+        const OVERLAY_FRONT_SELECTOR = '.screen, #stage-list-overlay, #msg-overlay, #image-lightbox, #online-users-popup, #level-up-effect';
 
         function bringOverlayToFront(target) {
             const overlay = typeof target === 'string' ? document.getElementById(target) : target;
@@ -2860,10 +2874,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzhereaU6yqWxD0BplMDihzDvK-2FdAcVToVwAuL8OYRc-RI4rC-SIt65yI3uboMObP/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxiuSEsH1bkdWz75yuP_E1rWvE3lbq0UgtO3u4R3cdYC-AJKsb50Rd_JFN2CLckUIw2/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.10"
+            VERSION: "3.7.10R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -7289,8 +7303,9 @@ function getPswcWinnerCount(username) {
 
         function updateTouchControlVisibility() {
             const gameVisible = document.getElementById('game-screen')?.style.display === 'block';
-            const useButtons = gameVisible && controlMode === 'buttons';
-            const useJoystick = gameVisible && controlMode === 'joystick';
+            const isSpectating = gameMode === 'watch' || isGhostSpectatorMode;
+            const useButtons = gameVisible && !isSpectating && controlMode === 'buttons';
+            const useJoystick = gameVisible && !isSpectating && controlMode === 'joystick';
             const isAutoRun = isAutoRunStageType(currentStageType);
             const mobileControls = document.getElementById('mobile-controls');
             const joystickControls = document.getElementById('joystick-controls');
@@ -11068,8 +11083,13 @@ function getPswcWinnerCount(username) {
             // 「プレイ」を押してからゲーム画面を始めるまでの間に一度だけ変換する。
             // Retry 時は既存の playbackGhosts をそのまま使う。
             if (!isRetry) playbackGhosts = preloadStageGhosts(stageObj);
-            // 観戦では、通常ゴーストの読み込み結果を必ず選択中の1人だけで上書きする。
-            if (mode === 'watch') playbackGhosts = selectedSpectatorGhost ? [selectedSpectatorGhost] : [];
+            // 観戦では選択中のゴーストに加え、他プレイヤーも半透明表示できるよう全員分を保持する。
+            if (mode === 'watch') {
+                playbackGhosts = preloadStageGhosts(stageObj);
+                if (selectedSpectatorGhost && !playbackGhosts.some(ghost => String(ghost.name) === String(selectedSpectatorGhost.name) && Number(ghost.time) === Number(selectedSpectatorGhost.time))) {
+                    playbackGhosts.push(selectedSpectatorGhost);
+                }
+            }
 
             gameMode = mode;
             isGhostSpectatorMode = mode === 'watch';
@@ -11173,7 +11193,9 @@ function getPswcWinnerCount(username) {
             applyActiveFaceStageType();
             const gameControlsLabel = document.getElementById('game-controls-label');
             if (gameControlsLabel) {
-                gameControlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
+                gameControlsLabel.innerText = mode === 'watch'
+                    ? 'SPECTATOR | GHOSTS: ON / OFF | '
+                    : isRaiAlvaroStageType(currentStageType)
                     ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
                     : isAutoRunStageType(currentStageType)
                         ? 'AUTO RUN | SPACE / W: JUMP | '
@@ -14810,12 +14832,28 @@ function getPswcWinnerCount(username) {
             // 観戦中も上部のGHOSTS切り替えで、選択中ゴーストの表示だけをON/OFFできる。
             if (isGhostSpectatorMode && !isCountingDown && showGhosts && playbackGhosts.length > 0) {
                 cachedGameCtx.save();
-                cachedGameCtx.globalAlpha = 1;
                 cachedGameCtx.font = `${ch * 0.3}px sans-serif`;
                 cachedGameCtx.textAlign = 'center';
-                const ghost = playbackGhosts[0];
+                const ghost = selectedSpectatorGhost || playbackGhosts[0];
+                const frameIdx = Math.floor(frameCount / 5);
+                // 選択対象以外は半透明で再生する。選択した1人はこのあと通常色で前面描画する。
+                for (const otherGhost of playbackGhosts) {
+                    const isSelected = otherGhost === ghost
+                        || (String(otherGhost.name) === String(ghost?.name) && Number(otherGhost.time) === Number(ghost?.time));
+                    if (isSelected) continue;
+                    const otherFrames = otherGhost.frames || [];
+                    const otherPos = otherFrames[frameIdx] || otherFrames[otherFrames.length - 1];
+                    if (!otherPos || ((otherPos[3] === 1) !== isUsingBackFace)) continue;
+                    const otherFacing = otherPos[2] === 1 ? 'right' : 'left';
+                    const otherSkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : (otherGhost.skin || 'default');
+                    cachedGameCtx.globalAlpha = 0.5;
+                    drawPlayer(cachedGameCtx, otherPos[0] * cw, otherPos[1] * ch, player.w * cw, player.h * ch, otherSkin, true, otherGhost.color || 'default', otherGhost.customSprite, otherFacing, otherGhost.name);
+                    cachedGameCtx.fillStyle = '#fff';
+                    cachedGameCtx.fillText(otherGhost.name || 'GHOST', (otherPos[0] + player.w / 2) * cw, otherPos[1] * ch - 10);
+                }
+                cachedGameCtx.globalAlpha = 1;
                 const frames = ghost.frames || [];
-                const pos = frames[Math.floor(frameCount / 5)] || frames[frames.length - 1];
+                const pos = frames[frameIdx] || frames[frames.length - 1];
                 if (pos && ((pos[3] === 1) === isUsingBackFace)) {
                     const gx = pos[0], gy = pos[1];
                     const gf = pos[2] === 1 ? 'right' : 'left';
