@@ -12356,8 +12356,13 @@ function getPswcWinnerCount(username) {
                 const newDownOneWaySurface = iy + 0.92;
                 const hitsNewDownOneWay = downOneWayTile === 'vN' && player.y >= newDownOneWaySurface;
                 if (hitsOldDownOneWay || hitsNewDownOneWay) {
+                    const oneWayStopY = downOneWayTile === 'vN' ? newDownOneWaySurface : iy + 1;
+                    // 下向き一方通行と通常ブロックが接している場合、矢印側の停止位置へ
+                    // 強制的に置くと通常ブロックへ埋まることがある。安全に置ける時だけ
+                    // 一方通行の天井判定を適用し、置けない場合は移動前の位置で止める。
+                    const safeStopY = isCollide(player.x, oneWayStopY, true, 'y') ? player.y : oneWayStopY;
                     collidedY = true;
-                    nextY = downOneWayTile === 'vN' ? newDownOneWaySurface : iy + 1;
+                    nextY = safeStopY;
                     hitDownOneWayCeiling = true;
                 }
             }
