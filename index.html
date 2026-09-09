@@ -30,20 +30,23 @@
             color: var(--text-color);
             overflow: hidden;
         }
-        /* 2:1のゲーム画面で生じる上下の余白にも、プレイ中の背景を連続して表示する。 */
-        body[class*="stage-viewport-bg-"] { background-size:100% 100%; background-attachment:fixed; }
+        /* 2:1のゲーム画面で生じる上下の余白にも、プレイ中の背景を画面端まで連続して表示する。 */
+        body[class*="stage-viewport-bg-"] { background-repeat:no-repeat; background-size:cover; background-attachment:fixed; }
         body.stage-viewport-bg-bg-clear-sky { background:linear-gradient(180deg, #35aef2 0%, #76cef8 58%, #c8efff 100%); }
         body.stage-viewport-bg-bg-water { background:linear-gradient(180deg, #003d6b 0%, #005580 40%, #004466 100%); }
         body.stage-viewport-bg-bg-dark { background:#000; }
         body.stage-viewport-bg-bg-volcano { background:linear-gradient(180deg, #1a0500 0%, #3d0f00 55%, #1a0500 100%); }
-        body.stage-viewport-bg-bg-moon { background:linear-gradient(180deg, #050816, #141b36); }
-        body.stage-viewport-bg-bg-beach { background:linear-gradient(180deg, #6fd4ff 0%, #d8f5ff 62%, #f5d68c 63%, #dba95b 100%); }
-        body.stage-viewport-bg-bg-cloudy { background:linear-gradient(180deg, #4a2379 0%, #6c3d9a 48%, #30144f 100%); }
+        body.stage-viewport-bg-bg-moon { background:radial-gradient(circle at 72% 20%, #e9edf5 0 7%, transparent 7.3%), radial-gradient(1px 1px at 16% 24%, #fff 0 100%, transparent 100%), radial-gradient(1px 1px at 38% 66%, #cce6ff 0 100%, transparent 100%), radial-gradient(1px 1px at 84% 72%, #fff 0 100%, transparent 100%), linear-gradient(180deg, #050816, #141b36); }
+        body.stage-viewport-bg-bg-beach { background:radial-gradient(ellipse at 74% 16%, rgba(255,250,194,.95) 0 4%, transparent 12%), linear-gradient(180deg, #6fd4ff 0%, #d8f5ff 62%, #f5d68c 63%, #dba95b 100%); }
+        body.stage-viewport-bg-bg-cloudy { background:radial-gradient(ellipse at 50% -10%, rgba(221,170,255,.55), transparent 43%), linear-gradient(180deg, #4a2379 0%, #6c3d9a 48%, #30144f 100%); }
         body.stage-viewport-bg-bg-sunset { background:linear-gradient(#ff7043, #3f51b5); }
         body.stage-viewport-bg-bg-hell { background:linear-gradient(#000, #b71c1c); }
-        body.stage-viewport-bg-bg-heaven { background:linear-gradient(180deg, #63bcff 0%, #a8dcff 42%, #e4f6ff 70%, #fff9df 100%); }
-        body.stage-viewport-bg-bg-bw { background:linear-gradient(125deg, #000 0%, #190000 48%, #000 100%); }
-        body.stage-viewport-bg-bg-aurora { background:#050510; }
+        body.stage-viewport-bg-bg-heaven { background:radial-gradient(circle at 72% 18%, rgba(255,249,196,.98) 0 4%, rgba(255,232,134,.5) 9%, transparent 21%), radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.96) 0 25%, transparent 57%), linear-gradient(180deg, #63bcff 0%, #a8dcff 42%, #e4f6ff 70%, #fff9df 100%); }
+        body.stage-viewport-bg-bg-bw { background-color:#030000; background-image:repeating-radial-gradient(circle at 18% 30%, rgba(255,0,0,.34) 0 1px, transparent 1px 5px), repeating-radial-gradient(circle at 76% 68%, rgba(190,0,0,.28) 0 1px, transparent 1px 4px), linear-gradient(125deg, #000 0%, #190000 48%, #000 100%); background-size:17px 13px, 11px 19px, 100% 100%; }
+        body.stage-viewport-bg-bg-aurora { background:radial-gradient(ellipse at 25% 12%, rgba(0,255,150,.24), transparent 38%), radial-gradient(ellipse at 76% 30%, rgba(160,32,240,.28), transparent 45%), linear-gradient(180deg, #050510, #10122b 54%, #050510); }
+        /* 背景指定のshort-handで初期化されるため、端まで伸ばす指定は最後に適用する。 */
+        body[class*="stage-viewport-bg-"]:not(.stage-viewport-bg-bg-bw) { background-repeat:no-repeat; background-size:cover; background-attachment:fixed; }
+        body.stage-viewport-bg-bg-bw { background-repeat:repeat, repeat, no-repeat; background-attachment:fixed; }
         .inline-loading-spinner { display:inline-block; width:1.05em; height:1.05em; box-sizing:border-box; margin-left:.45em; vertical-align:-.13em; border:.16em solid currentColor; border-right-color:transparent; border-radius:50%; opacity:.9; animation:apiLoadingSpin .72s linear infinite; }
         @keyframes apiLoadingSpin { to { transform:rotate(360deg); } }
         /* スマートフォンでプレイ中は、スワイプ・引っ張り更新・ピンチ操作で画面を動かさない。 */
@@ -1405,9 +1408,24 @@
         }
 
         #game-canvas {
+            /* 描画面をUIから独立させ、背景や操作表示との重なりを安定させる。 */
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             display: block;
+            z-index: 1;
+            image-rendering: pixelated;
+        }
+
+        #game-screen {
+            isolation: isolate;
+            overflow: hidden;
+        }
+
+        /* キャンバスより常に前にゲーム用HUDを描く。操作ボタンの個別z-indexは維持する。 */
+        #game-screen > :not(#game-canvas) {
+            z-index: 5;
         }
 
         /* ステージ選択オーバーレイ */
@@ -2795,6 +2813,49 @@
             window.visualViewport.addEventListener('scroll', syncVisibleViewportHeight, { passive: true });
         }
 
+        // 画面（ステータス・設定・結果など）は、最後に開いたものを必ず最前面へ出す。
+        // 個々の画面ごとにz-indexを手作業で管理しないことで、同時に開いた時の表示崩れを防ぐ。
+        let latestOverlayZIndex = 1000;
+        const OVERLAY_FRONT_SELECTOR = '.screen, #auth-overlay, #stage-list-overlay, #msg-overlay, #image-lightbox, #online-users-popup, #level-up-effect';
+
+        function bringOverlayToFront(target) {
+            const overlay = typeof target === 'string' ? document.getElementById(target) : target;
+            if (!overlay || !overlay.matches?.(OVERLAY_FRONT_SELECTOR)) return;
+            latestOverlayZIndex += 1;
+            overlay.style.zIndex = String(latestOverlayZIndex);
+        }
+
+        function getInlineDisplay(styleText) {
+            const match = String(styleText || '').match(/(?:^|;)\s*display\s*:\s*([^;]+)/i);
+            // .screen とステージ一覧は、指定がない時点ではCSS側で非表示。
+            return match ? match[1].trim().toLowerCase() : 'none';
+        }
+
+        function initializeOverlayStacking() {
+            document.addEventListener('pointerdown', event => {
+                const overlay = event.target.closest?.(OVERLAY_FRONT_SELECTOR);
+                if (overlay) bringOverlayToFront(overlay);
+            }, true);
+
+            const observer = new MutationObserver(records => {
+                for (const record of records) {
+                    const overlay = record.target;
+                    if (!overlay.matches?.(OVERLAY_FRONT_SELECTOR)) continue;
+                    const wasHidden = getInlineDisplay(record.oldValue) === 'none';
+                    const isVisible = getComputedStyle(overlay).display !== 'none';
+                    if (wasHidden && isVisible) bringOverlayToFront(overlay);
+                }
+            });
+            observer.observe(document.body, {
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style'],
+                attributeOldValue: true
+            });
+        }
+
+        initializeOverlayStacking();
+
         // --- 設定エリア ---
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
@@ -3167,6 +3228,9 @@ function getPswcWinnerCount(username) {
         let mentionSelectedIndex = -1; // キーボード操作中の選択インデックス
         let _badgeOvrCache = {};    // OVR計算結果のメモ化キャッシュ（同一cachedStagesの間だけ有効）
         let _badgeOvrCacheRef = null;
+        // プロフィール／ランキング共通の集計結果。ステージ配列が変わるまで使い回す。
+        let profileStatsByUsername = Object.create(null);
+        let profileStatsCacheRef = null;
         let currentSort = 'newest'; // デフォルトのソート順
         let filterMyStages = false;
         let filterUnplayed = false;
@@ -7363,7 +7427,7 @@ function getPswcWinnerCount(username) {
             alert(res?.message || 'パスワードの変更に失敗しました。');
         }
 
-        function calculateProfileStats(targetUser) {
+        function calculateProfileStatsLegacy(targetUser) {
             const stages = getCachedStagesArray();
             const allUsers = {}; // 全ユーザーの集計用
             
@@ -7486,6 +7550,73 @@ function getPswcWinnerCount(username) {
                 color: allUsers[targetUser]?.color || 'default',
                 customSprite: allUsers[targetUser]?.customSprite || null
             };
+        }
+
+        // ランキング向けのOVR集計。全ステージをプレイヤーごとに再走査せず、一度の集計で共有する。
+        function calculateProfileStats(targetUser) {
+            const stages = getCachedStagesArray();
+            const key = String(targetUser || '');
+            if (profileStatsCacheRef === stages && profileStatsByUsername[key]) return profileStatsByUsername[key];
+
+            const users = Object.create(null);
+            const register = (name, skin = 'default', color = 'default', customSprite = null) => {
+                const username = String(name || '');
+                if (!username) return;
+                if (!users[username]) users[username] = { clears: 0, posts: 0, firsts: 0, totalPlays: 0, stagePlays: [], skin, color, customSprite };
+                else if (skin !== 'default') Object.assign(users[username], { skin, color, customSprite });
+            };
+            for (const stage of stages) {
+                const creator = String(stage?.creator || '');
+                if (!creator) continue;
+                register(creator);
+                const owner = users[creator];
+                const attempts = Number(stage.attempts) || 0;
+                owner.posts++;
+                owner.totalPlays += attempts;
+                owner.stagePlays.push(attempts);
+                const leaderboard = Array.isArray(stage.leaderboard) ? stage.leaderboard : [];
+                const topTime = leaderboard.length ? leaderboard[0].time : null;
+                for (const record of leaderboard) {
+                    register(record?.name, record?.skin, record?.color, record?.customSprite);
+                    const user = users[String(record?.name || '')];
+                    if (!user) continue;
+                    user.clears++;
+                    if (record.time === topTime) user.firsts++;
+                }
+            }
+            if (CONFIG.USERNAME) {
+                register(CONFIG.USERNAME, equippedSkin, equippedColor, customSpriteStore[equippedSkin]);
+                Object.assign(users[CONFIG.USERNAME], { skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] });
+            }
+            register(key);
+
+            const rows = Object.values(users);
+            const totalStages = Math.max(1, stages.length);
+            const baseline = totalStages / Math.max(1, rows.length);
+            const maxClears = Math.max(...rows.map(user => user.clears), 1);
+            const maxFirsts = Math.max(...rows.map(user => user.firsts), 1);
+            const maxContribution = Math.max(...rows.map(user => user.clears + user.posts), 1);
+            const maxTotalPlays = Math.max(...rows.map(user => user.totalPlays), 1);
+            const globalAvgPlays = stages.reduce((total, stage) => total + (Number(stage.attempts) || 0), 0) / totalStages;
+            const top5Averages = new Map(rows.map(user => {
+                const top = user.stagePlays.slice().sort((a, b) => b - a).slice(0, 5);
+                return [user, top.length ? top.reduce((sum, value) => sum + value, 0) / top.length : 0];
+            }));
+            const maxAvgPlays = Math.max(...top5Averages.values(), 1);
+            const results = Object.create(null);
+            Object.entries(users).forEach(([username, user]) => {
+                const leader = Math.round(Math.max(1, Math.min(100, user.clears / maxClears * 100)));
+                const timeAttacker = Math.round(Math.max(1, user.firsts >= maxFirsts ? 100 : user.firsts > baseline ? 50 + (user.firsts - baseline) * 50 / Math.max(1, maxFirsts - baseline) : user.firsts / Math.max(1, baseline) * 50));
+                const averagePlays = top5Averages.get(user) || 0;
+                const quality = averagePlays >= globalAvgPlays ? 50 + (averagePlays - globalAvgPlays) / Math.max(1, maxAvgPlays - globalAvgPlays) * 50 : 1 + (globalAvgPlays > 0 ? averagePlays / globalAvgPlays * 49 : 0);
+                const stageQuality = Math.round(Math.max(1, Math.min(100, quality)));
+                const contribution = Math.round(Math.max(1, (user.clears + user.posts) / maxContribution * 100));
+                const creator = Math.round(Math.max(1, Math.min(100, user.totalPlays / maxTotalPlays * 100)));
+                results[username] = { leader, timeAttacker, stageQuality, contribution, creator, ovr: Math.round((leader + timeAttacker + stageQuality + contribution + creator) / 5), skin: user.skin || 'default', color: user.color || 'default', customSprite: user.customSprite || null };
+            });
+            profileStatsCacheRef = stages;
+            profileStatsByUsername = results;
+            return results[key] || { leader: 1, timeAttacker: 1, stageQuality: 1, contribution: 1, creator: 1, ovr: 1, skin: 'default', color: 'default', customSprite: null };
         }
 
         // --- OVRバッジシステム ---
@@ -7962,19 +8093,29 @@ function getPswcWinnerCount(username) {
                 return;
             }
 
-            // ギルド順位は全ステージを必要としない。全件先読みの完了待ちで
-            // ランキング全体が開けなくなるのを防ぐ。
-            if (tab !== 'guild') {
-                try {
-                    await ensureAllStagesForOvr();
-                } catch (error) {
+            // 全ステージ通信（最大60秒）を待って画面全体が固まらないよう、
+            // 先に手元のキャッシュを表示し、同期完了後だけ自動で描き直す。
+            const isStageSyncing = tab !== 'guild' && !allStagesForOvrLoaded;
+            if (isStageSyncing) {
+                const stageSync = ensureAllStagesForOvr();
+                stageSync.then(() => {
+                    if (leaderboardView?.type === 'global' && leaderboardView.tab === tab && overlay.style.display !== 'none') showGlobalRanking(tab);
+                }).catch(error => console.warn('ランキング用ステージ同期に失敗:', error));
+                if (!Array.isArray(cachedStages) || cachedStages.length === 0) {
                     title.innerText = 'RANKING';
-                    body.innerHTML = '<tr><td colspan="3" style="padding:1.5cqh; color:#ff8a80;">ランキングを読み込めませんでした。<button class="pixel-btn small" style="margin-left:1cqw;" onclick="showGlobalRanking(\'player\')">再読み込み</button></td></tr>';
+                    body.innerHTML = '<tr><td colspan="3" style="padding:1.5cqh; color:#bdeaff;">ステージ情報を同期中です。完了すると自動で表示します。</td></tr>';
                     return;
                 }
             }
-            await ensureBadgeSettingsLoaded();
-            await ensurePlayerLevelsLoaded();
+            // バッジ・レベルは未取得でも既定値で即時描画し、取得後に一度だけ更新する。
+            const metadataLoads = [];
+            if (!cachedBadgeSettings) metadataLoads.push(ensureBadgeSettingsLoaded());
+            if (!playerLevelsByUsername.size) metadataLoads.push(ensurePlayerLevelsLoaded());
+            if (metadataLoads.length) {
+                Promise.allSettled(metadataLoads).then(() => {
+                    if (leaderboardView?.type === 'global' && leaderboardView.tab === tab && overlay.style.display !== 'none') showGlobalRanking(tab);
+                });
+            }
 
         if (tab === 'guild') {
             title.innerText = "RANK: GUILD EXP";
@@ -8076,7 +8217,7 @@ function getPswcWinnerCount(username) {
             body.innerHTML = sorted.map((u, i) => `
                 <tr class="${String(u) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom: 0.1cqw solid #444;">
                     ${rowFunc(u, i)}
-                </tr>`).join('');
+                </tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">まだランキング対象のデータがありません。</td></tr>';
         }
 
         // --- レースモード関連 ---
@@ -10404,7 +10545,15 @@ function getPswcWinnerCount(username) {
             // Pick up! は、ログイン後に裏で取得済みの全ステージキャッシュから流用する。
             // 一覧ページ用の通信でPick up!のグリッドを重ねて取得しない。
             if (stageListPage === 0) {
-                const allStages = await ensureAllStagesForOvr();
+                // 全ステージの裏読み込みが一時的に失敗しても、ゲーム終了後の一覧復帰を止めない。
+                // Pick up! の差し込みだけを省略し、取得済みの現在ページは必ず表示する。
+                let allStages = [];
+                try {
+                    allStages = await ensureAllStagesForOvr();
+                } catch (error) {
+                    console.warn('Pick up! 用の全ステージ読み込みに失敗しました:', error);
+                    allStages = Array.isArray(cachedStages) ? cachedStages : [];
+                }
                 if (renderVersion !== stageListRenderVersion) return;
                 const pickupStages = (Array.isArray(allStages) ? allStages : []).filter(stage => {
                     if (!stage || !stage.data || !String(stage.name || '').startsWith('$')) return false;
@@ -10878,6 +11027,7 @@ function getPswcWinnerCount(username) {
                 <button class="pixel-btn small" onclick="document.getElementById('msg-overlay').style.display='none';" style="background:#546e7a;">閉じる</button>
             `;
             overlay.style.display = 'flex';
+            bringOverlayToFront(overlay);
         }
 
         function startGame(stageObj, mode = 'play', isRetry = false) {
@@ -11018,6 +11168,7 @@ function getPswcWinnerCount(username) {
                     : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
             }
             document.getElementById('game-screen').style.display = 'block';
+            bringOverlayToFront('game-screen');
             setMobileGameViewportLock(controlMode !== 'keyboard');
             updateTouchControlVisibility();
             resizeCanvas('game-canvas');
@@ -11249,6 +11400,7 @@ function getPswcWinnerCount(username) {
             if (contentEl) contentEl.innerText = content;
             if (retryEl) retryEl.style.display = showRetry ? 'block' : 'none';
             if (overlay) overlay.style.display = 'flex';
+            bringOverlayToFront(overlay);
             // ゲームを停止
             if (gameLoopId !== null) cancelAnimationFrame(gameLoopId);
             gameLoopId = null;
@@ -11419,6 +11571,7 @@ function getPswcWinnerCount(username) {
             const okBtn = document.getElementById('reward-ok-btn');
             const retryBtn = document.getElementById('reward-retry-btn');
             if (rewardOverlay) rewardOverlay.style.display = 'flex';
+            bringOverlayToFront(rewardOverlay);
 
             // 全プレイヤーのゴーストを表示できるよう、順位に関係なくゴーストを保存する。
             const isTop5Candidate = true;
@@ -11515,11 +11668,14 @@ function getPswcWinnerCount(username) {
                     }, 30000);
                 }
 
-                if (res && res.success && res.auroraStoneAwarded) {
-                    userAS++;
+                if (res && res.success && (res.auroraStoneAwarded || res.auroraStones !== undefined)) {
+                    const serverAuroraStones = Number(res.auroraStones);
+                    userAS = Number.isFinite(serverAuroraStones)
+                        ? serverAuroraStones
+                        : userAS + (res.auroraStoneAwarded ? 1 : 0);
                     updateGoldDisplay();
                     // まだ報酬画面を見ている場合のみ表示を更新（クイック送信でOKを押して離脱済みの場合は触らない）
-                    if (rewardOverlay && rewardOverlay.style.display !== 'none') {
+                    if (res.auroraStoneAwarded && rewardOverlay && rewardOverlay.style.display !== 'none') {
                         const asWrap = document.getElementById('reward-as-wrap');
                         const asVal = document.getElementById('reward-as');
                         if (asWrap) asWrap.style.display = 'inline';
