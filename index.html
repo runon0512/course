@@ -1720,6 +1720,7 @@
         #stage-list-overlay .filter-control::placeholder { color:#666; opacity:1; }
         #stage-list-overlay .remember-wrap { border-color:var(--primary-color) !important; background:rgba(0,0,0,.5) !important; color:inherit; }
         #stage-list-container { display:block; scrollbar-color:auto; }
+        #stage-list-container .stage-list-loading { min-height:100%; height:100%; box-sizing:border-box; display:flex; align-items:center; justify-content:center; color:#fff4dc; font:700 1.7cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.1em; text-align:center; }
         .stage-item { width:80%; background:#35354e; border:.2cqw solid #fff; padding:1cqw; margin:0 auto 1cqh; box-shadow:none; transition:none; }
         .stage-item:hover { background:#444; border-color:#fff; transform:none; box-shadow:none; }
         .stage-stats { color:#bbb; }
@@ -2782,7 +2783,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzNbgVdLIU4gW9LGGdXkgJEzvpNWeSALSIRFJWbyAdWQKOfmHafGq3zdXgSJjp6gtos/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.8"
+            VERSION: "3.7.9"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -9093,10 +9094,24 @@ function getPswcWinnerCount(username) {
             eraseAt(e);
         });
 
-        function eraseAt(e) {
+        // CSS上の表示サイズとキャンバス内部の解像度は、端末の表示倍率やアドレスバーの伸縮で
+        // 異なることがある。入力位置は常に画面に表示されている矩形の比率から求める。
+        function getEditorTileFromInput(e) {
             const rect = editorCanvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / (editorCanvas.width / GRID_W));
-            const y = Math.floor((e.clientY - rect.top) / (editorCanvas.height / GRID_H));
+            if (!rect.width || !rect.height) return null;
+            const relativeX = (e.clientX - rect.left) / rect.width;
+            const relativeY = (e.clientY - rect.top) / rect.height;
+            if (relativeX < 0 || relativeX >= 1 || relativeY < 0 || relativeY >= 1) return null;
+            return {
+                x: Math.floor(relativeX * GRID_W),
+                y: Math.floor(relativeY * GRID_H)
+            };
+        }
+
+        function eraseAt(e) {
+            const tile = getEditorTileFromInput(e);
+            if (!tile) return;
+            const { x, y } = tile;
             if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
                 if (editorGrid[y][x] !== null) {
                     if (!confirmClearLoss("消しゴム")) return;
@@ -9109,9 +9124,9 @@ function getPswcWinnerCount(username) {
         }
 
         function handleEditorInput(e) {
-            const rect = editorCanvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / (editorCanvas.width / GRID_W));
-            const y = Math.floor((e.clientY - rect.top) / (editorCanvas.height / GRID_H));
+            const tile = getEditorTileFromInput(e);
+            if (!tile) return;
+            const { x, y } = tile;
             if (x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
                 if (currentTool === 'E') {
                     if (editorGrid[y][x] !== null) {
@@ -10292,7 +10307,7 @@ function getPswcWinnerCount(username) {
             if (forceRefresh) stageListPageCache.clear();
             let res = stageListPageCache.get(pageCacheKey);
             if (!res) {
-                container.innerHTML = "LOADING STAGES...";
+                container.innerHTML = '<div class="stage-list-loading">Loading...</div>';
                 res = await callApi('getPublishedPage', pageRequest);
                 if (renderVersion !== stageListRenderVersion) return;
                 stageListPageCache.set(pageCacheKey, res);
