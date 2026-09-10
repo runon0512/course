@@ -2871,16 +2871,14 @@
             window.visualViewport.addEventListener('scroll', syncVisibleViewportHeight, { passive: true });
         }
 
-        // 画面（ステータス・設定・結果など）は、最後に開いたものを必ず最前面へ出す。
-        // 個々の画面ごとにz-indexを手作業で管理しないことで、同時に開いた時の表示崩れを防ぐ。
-        let latestOverlayZIndex = 1000;
+        // 画面レイヤーはCSSで定めた順番に固定する。
+        // 開いた順・タップした順でz-indexを書き換えると、結果画面の操作が背面へ回ることがある。
         const OVERLAY_FRONT_SELECTOR = '.screen, #stage-list-overlay, #msg-overlay, #image-lightbox, #online-users-popup, #level-up-effect';
 
         function bringOverlayToFront(target) {
             const overlay = typeof target === 'string' ? document.getElementById(target) : target;
             if (!overlay || !overlay.matches?.(OVERLAY_FRONT_SELECTOR)) return;
-            latestOverlayZIndex += 1;
-            overlay.style.zIndex = String(latestOverlayZIndex);
+            // 固定レイヤー方式: CSS／HTMLで指定した順番を変更しない。
         }
 
         function getInlineDisplay(styleText) {
@@ -2890,26 +2888,7 @@
         }
 
         function initializeOverlayStacking() {
-            document.addEventListener('pointerdown', event => {
-                const overlay = event.target.closest?.(OVERLAY_FRONT_SELECTOR);
-                if (overlay) bringOverlayToFront(overlay);
-            }, true);
-
-            const observer = new MutationObserver(records => {
-                for (const record of records) {
-                    const overlay = record.target;
-                    if (!overlay.matches?.(OVERLAY_FRONT_SELECTOR)) continue;
-                    const wasHidden = getInlineDisplay(record.oldValue) === 'none';
-                    const isVisible = getComputedStyle(overlay).display !== 'none';
-                    if (wasHidden && isVisible) bringOverlayToFront(overlay);
-                }
-            });
-            observer.observe(document.body, {
-                subtree: true,
-                attributes: true,
-                attributeFilter: ['style'],
-                attributeOldValue: true
-            });
+            // 固定レイヤー方式: タップ・表示切替ではz-indexを変更しない。
         }
 
         initializeOverlayStacking();
@@ -2921,7 +2900,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxxqHXkcGckj5kBb_sm9ThncrCbIdMjvVZa33Ffbtb0VkVPq13MjxyA8-Y8YYyfFDRE/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.12R"
+            VERSION: "3.7.12X"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
