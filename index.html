@@ -2783,6 +2783,7 @@
                     <div class="tool-btn rank-epic" id="btn-tool-#" onclick="setTool('#', this)" title="WIRE MESH" style="display:none;"><canvas id="icon-#" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-V" onclick="setTool('V', this)" title="AURORA BLOCK" style="display:none;"><canvas id="icon-V" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-BH" onclick="setTool('BH', this)" title="BLACK HOLE" style="display:none;"><canvas id="icon-BH" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-aurora" id="btn-tool-WH" onclick="setTool('WH', this)" title="WHITE HOLE" style="display:none;"><canvas id="icon-WH" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-sp" onclick="setTool('sp', this)" title="SPAWNER BLOCK" style="display:none;"><canvas id="icon-sp" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-mg" onclick="setTool('mg', this)" title="MISSILE GUN" style="display:none;"><canvas id="icon-mg" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-LM" onclick="setTool('LM', this)" title="LAMP BLOCK" style="display:none;"><canvas id="icon-LM" class="tool-canvas"></canvas></div>
@@ -3054,6 +3055,7 @@ function getPswcWinnerCount(username) {
         let editorGrid = [];
         let currentTool = 'B';
         const TOOL_DESCRIPTIONS = {
+            'WH': { title: 'WHITE HOLE', text: 'Repels nearby players, enemies, and crates with the inverse force of a black hole.' },
             'B': { title: 'ブロック', text: '通常の足場ブロック。ステージの基本構造に使います。' },
             'CB': { title: 'クラックブロック', text: '乗ると0.5秒後に崩壊する、ひび割れた足場ブロックです。' },
             'S': { title: 'スタート', text: 'プレイヤーの開始位置を設定するブロックです。ステージに1つだけ配置します。' },
@@ -4113,7 +4115,7 @@ function getPswcWinnerCount(username) {
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
 
-                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL', 'BH'].includes(type)) {
+                    if(['W', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL', 'BH', 'WH'].includes(type)) {
                         dynamicTiles.push({x, y, type, big: bigStageActive});
                     } else {
                         drawTile(stageCacheCtx, drawX, drawY, drawCW, drawCH, type, 0);
@@ -5043,7 +5045,7 @@ function getPswcWinnerCount(username) {
             rare: ['Y', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['hr', 'hb', 'e', '#'],
             legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
-            aurora: ['IC']
+            aurora: ['IC', 'WH']
         };
         const TOOL_RANK_LABELS = {
             common: 'Common',
@@ -5059,7 +5061,7 @@ function getPswcWinnerCount(username) {
             'T', 'TD', 'X', 'H', '>N', '<N', 'vN', 'Y', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
             'k', 'q', 'y', 'j', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
             'r', 'b', '!', 'J', 'hr', 'hb',
-            'W', 'L', 'U', 'd', 'P', 'C', 'KG', 'BH', 'sp', 'EC'
+            'W', 'L', 'U', 'd', 'P', 'C', 'KG', 'BH', 'WH', 'sp', 'EC'
         ];
 
         function arrangeCreatorToolsByCategory() {
@@ -8846,7 +8848,10 @@ function getPswcWinnerCount(username) {
         // クリエイト画面設定には、実際に使用できるブロックだけを並べる。
         const IRON_CRATE_ALLOWED_USERS = new Set(['Runon', 'こひょしの', 'なご', 'Test001', 'Ryu 0302', 'うじまっちゃ', 'KEVIN', 'キービィ']);
 
+        const WHITE_HOLE_ALLOWED_USERS = new Set(['AKY_016', 'Kirby', 'Runon']);
+
         function hasCreatorToolOwnership(key) {
+            if (key === 'WH') return WHITE_HOLE_ALLOWED_USERS.has(CONFIG.USERNAME);
             // IRON CRATEは配布対象者のみ使用可能（Runonを含む全権限の例外を適用しない）。
             if (key === 'IC') return IRON_CRATE_ALLOWED_USERS.has(CONFIG.USERNAME);
             // Runon は検証・制作用として、購入・解放状況に関係なく全ブロックを使用できる。
@@ -9097,6 +9102,7 @@ function getPswcWinnerCount(username) {
             // オーロラブロック
             if(document.getElementById('btn-tool-V')) document.getElementById('btn-tool-V').style.display = purchasedSkins.includes('aurora_block') ? 'flex' : 'none';
             if(document.getElementById('btn-tool-BH')) document.getElementById('btn-tool-BH').style.display = purchasedSkins.includes('black_hole') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-WH')) document.getElementById('btn-tool-WH').style.display = hasCreatorToolOwnership('WH') ? 'flex' : 'none';
 
             // 金網セット
             if(document.getElementById('btn-tool-#')) document.getElementById('btn-tool-#').style.display = purchasedSkins.includes('wire_mesh') ? 'flex' : 'none';
@@ -9257,7 +9263,7 @@ function getPswcWinnerCount(username) {
                 {type:'B', id:'icon-B'}, {type:'CB', id:'icon-CB'}, {type:'HBK', id:'icon-HBK'}, {type:'TL', id:'icon-TL'}, {type:'TR', id:'icon-TR'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'WG', id:'icon-WG'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
-                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'},
+                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'}, {type:'WH', id:'icon-WH'},
                 {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
@@ -9994,6 +10000,28 @@ function getPswcWinnerCount(username) {
                 ctx.rotate(spin);
                 ctx.strokeStyle = '#d8a8ff';
                 ctx.lineWidth = Math.max(1, radius*.12);
+                for (let ring = 0; ring < 3; ring++) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius * (.88 - ring*.22), ring * 1.4, ring * 1.4 + Math.PI * 1.15);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            } else if(type === 'WH') {
+                const cx = x*cw + cw/2, cy = y*ch + ch/2;
+                const radius = Math.min(cw, ch) * .38;
+                const spin = -time * 3.2;
+                const outer = ctx.createRadialGradient(cx, cy, radius*.06, cx, cy, radius);
+                outer.addColorStop(0, '#ffffff');
+                outer.addColorStop(.32, '#d9fbff');
+                outer.addColorStop(.66, '#75dfff');
+                outer.addColorStop(1, 'rgba(138,104,255,.14)');
+                ctx.fillStyle = outer;
+                ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(spin);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = Math.max(1, radius*.11);
                 for (let ring = 0; ring < 3; ring++) {
                     ctx.beginPath();
                     ctx.arc(0, 0, radius * (.88 - ring*.22), ring * 1.4, ring * 1.4 + Math.PI * 1.15);
@@ -11162,7 +11190,7 @@ function getPswcWinnerCount(username) {
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','CB','HBK','S','G','WG','KG','K','M','E','A','T','TD','TL','TR','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
-            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','sp','mg','BB','BBN','LM','WC','WCN','IC',
+            'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','WH','sp','mg','BB','BBN','LM','WC','WCN','IC',
             'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB'
         ]);
 
@@ -12464,20 +12492,24 @@ function getPswcWinnerCount(username) {
             }
         }
 
+        let whiteHolePositions = [];
+
         function refreshBlackHolePositions() {
             blackHolePositions = [];
+            whiteHolePositions = [];
             for (let y = 0; y < GRID_H; y++) {
                 const row = activeStage[y];
                 if (!row) continue;
                 for (let x = 0; x < GRID_W; x++) {
                     if (row[x] === 'BH') blackHolePositions.push({ x: x + .5, y: y + .5 });
+                    if (row[x] === 'WH') whiteHolePositions.push({ x: x + .5, y: y + .5 });
                 }
             }
         }
 
         // 吸引は速度へ加えるだけで、中心に達しても消滅させない。
         function applyBlackHolePull() {
-            if (!blackHolePositions.length) return;
+            if (!blackHolePositions.length && !whiteHolePositions.length) return;
             const pullBody = (body, size) => {
                 const centerX = body.x + size / 2;
                 const centerY = body.y + size / 2;
@@ -12496,6 +12528,23 @@ function getPswcWinnerCount(username) {
             pullBody(player, player.w);
             for (let i = 0; i < enemies.length; i++) if (!enemies[i].dead) pullBody(enemies[i], enemies[i].size || .9);
             for (let i = 0; i < woodCrates.length; i++) pullBody(woodCrates[i], 1);
+
+            const repelBody = (body, size) => {
+                const centerX = body.x + size / 2;
+                const centerY = body.y + size / 2;
+                for (let i = 0; i < whiteHolePositions.length; i++) {
+                    const hole = whiteHolePositions[i];
+                    const dx = centerX - hole.x, dy = centerY - hole.y;
+                    const distance = Math.hypot(dx, dy);
+                    if (distance <= .001 || distance > 4) continue;
+                    const strength = .012 * (1 - distance / 4) + .003;
+                    body.vx += dx / distance * strength;
+                    body.vy += dy / distance * strength * 2;
+                }
+            };
+            repelBody(player, player.w);
+            for (let i = 0; i < enemies.length; i++) if (!enemies[i].dead) repelBody(enemies[i], enemies[i].size || .9);
+            for (let i = 0; i < woodCrates.length; i++) repelBody(woodCrates[i], 1);
         }
 
         function updateGame() {
