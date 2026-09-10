@@ -239,10 +239,18 @@
             min-width: 40%;
         }
 
-        /* クリア／ゲームオーバー結果は、プレイ画面より必ず前面に固定する。 */
-        #msg-overlay,
+        /* クリア／ゲームオーバー結果は、Canvasの親要素に左右されない画面固定の最前面にする。 */
+        #msg-overlay {
+            position: fixed !important;
+            z-index: 2147483646 !important;
+            pointer-events: auto;
+            isolation: isolate;
+        }
         #reward-overlay {
-            z-index: 100000 !important;
+            position: fixed !important;
+            inset: 0;
+            z-index: 2147483647 !important;
+            pointer-events: auto;
             isolation: isolate;
         }
 
@@ -2913,7 +2921,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxxqHXkcGckj5kBb_sm9ThncrCbIdMjvVZa33Ffbtb0VkVPq13MjxyA8-Y8YYyfFDRE/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.12"
+            VERSION: "3.7.12R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -4175,14 +4183,16 @@ function getPswcWinnerCount(username) {
             const maxAttempts = action === 'getChat' ? 3 : (isRetryableReadAction(action) ? 2 : 1);
             let lastError = null;
             for (let i = 0; i < maxAttempts; i++) {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+                // 古いiPad Safariには AbortController がない場合がある。
+                // その場合も通信自体は行い、タイムアウト中断だけを省略する。
+                const controller = typeof window.AbortController === 'function' ? new AbortController() : null;
+                const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
                 try {
                     const requestPayload = { action: action, ...(payload || {}) };
                     // 書き込み・個人データ取得時の本人確認用。ログイン直後はメモリ上だけに保持し、
                     // 「次回から自動ログイン」を選んだ場合のみ永続ストレージへ保存する。
                     if (!requestPayload.sessionToken && activeSessionToken) requestPayload.sessionToken = activeSessionToken;
-                    const response = await fetch(CONFIG.DEPLOY_URL, {
+                    const fetchOptions = {
                         method: 'POST',
                         mode: 'cors', 
                         cache: 'no-cache',
@@ -4190,15 +4200,16 @@ function getPswcWinnerCount(username) {
                         headers: {
                             'Content-Type': 'text/plain;charset=utf-8' 
                         },
-                        signal: controller.signal,
                         body: JSON.stringify(requestPayload)
-                    });
-                    clearTimeout(timeoutId);
+                    };
+                    if (controller) fetchOptions.signal = controller.signal;
+                    const response = await fetch(CONFIG.DEPLOY_URL, fetchOptions);
+                    if (timeoutId) clearTimeout(timeoutId);
 
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     return await response.json();
                 } catch (error) {
-                    clearTimeout(timeoutId);
+                    if (timeoutId) clearTimeout(timeoutId);
                     lastError = error;
                     console.warn(`API attempt ${i + 1}/${maxAttempts} failed (${action}):`, error);
                     // GASの一時的な混雑時に即時連打しないよう、読み取り再試行には短い待機を入れる。
@@ -9445,26 +9456,49 @@ function getPswcWinnerCount(username) {
         document.addEventListener('DOMContentLoaded', queueViewportCanvasSync, { once: true });
 
         const editorCanvas = document.getElementById('editor-canvas');
-        // Pointer Events に統一し、PC・スマートフォンのどちらでも確実に配置できるようにする。
+        // Pointer Eventsがない古いiPadでも、タッチイベントに切り替えて制作できるようにする。
         editorCanvas.style.touchAction = 'none';
-        editorCanvas.addEventListener('pointerdown', e => {
-            if (e.button === 2) return; // 右クリックはcontextmenuで処理
-            e.preventDefault();
-            isDrawing = true;
-            try { editorCanvas.setPointerCapture(e.pointerId); } catch (_) {}
-            handleEditorInput(e);
-        });
-        editorCanvas.addEventListener('pointermove', e => {
-            if (!isDrawing) return;
-            e.preventDefault();
-            handleEditorInput(e);
-        });
-        const stopEditorDrawing = e => {
-            isDrawing = false;
-            try { if (e && editorCanvas.hasPointerCapture(e.pointerId)) editorCanvas.releasePointerCapture(e.pointerId); } catch (_) {}
-        };
-        editorCanvas.addEventListener('pointerup', stopEditorDrawing);
-        editorCanvas.addEventListener('pointercancel', stopEditorDrawing);
+        if (window.PointerEvent) {
+            editorCanvas.addEventListener('pointerdown', e => {
+                if (e.button === 2) return; // 右クリックはcontextmenuで処理
+                e.preventDefault();
+                isDrawing = true;
+                try { editorCanvas.setPointerCapture(e.pointerId); } catch (_) {}
+                handleEditorInput(e);
+            });
+            editorCanvas.addEventListener('pointermove', e => {
+                if (!isDrawing) return;
+                e.preventDefault();
+                handleEditorInput(e);
+            });
+            const stopEditorDrawing = e => {
+                isDrawing = false;
+                try { if (e && editorCanvas.hasPointerCapture(e.pointerId)) editorCanvas.releasePointerCapture(e.pointerId); } catch (_) {}
+            };
+            editorCanvas.addEventListener('pointerup', stopEditorDrawing);
+            editorCanvas.addEventListener('pointercancel', stopEditorDrawing);
+        } else {
+            const getFirstTouch = event => event.touches && event.touches[0] || event.changedTouches && event.changedTouches[0];
+            editorCanvas.addEventListener('touchstart', event => {
+                const touch = getFirstTouch(event);
+                if (!touch) return;
+                event.preventDefault();
+                isDrawing = true;
+                handleEditorInput(touch);
+            }, { passive: false });
+            editorCanvas.addEventListener('touchmove', event => {
+                const touch = getFirstTouch(event);
+                if (!isDrawing || !touch) return;
+                event.preventDefault();
+                handleEditorInput(touch);
+            }, { passive: false });
+            const stopLegacyEditorDrawing = () => { isDrawing = false; };
+            editorCanvas.addEventListener('touchend', stopLegacyEditorDrawing, { passive: false });
+            editorCanvas.addEventListener('touchcancel', stopLegacyEditorDrawing, { passive: false });
+            editorCanvas.addEventListener('mousedown', event => { if (event.button === 0) { isDrawing = true; handleEditorInput(event); } });
+            editorCanvas.addEventListener('mousemove', event => { if (isDrawing) handleEditorInput(event); });
+            window.addEventListener('mouseup', stopLegacyEditorDrawing);
+        }
         window.addEventListener('blur', () => { isDrawing = false; });
 
         // 右クリックで消しゴム機能
@@ -11568,6 +11602,15 @@ function getPswcWinnerCount(username) {
             }
         }
 
+        // 結果画面中はモバイル操作パネルを消し、結果ボタンへのタップを常に優先する。
+        // Retry／Exitでは startGame・exitGame 側の updateTouchControlVisibility() が通常表示へ戻す。
+        function hideGameplayControlsForResult() {
+            const mobileControls = document.getElementById('mobile-controls');
+            const joystickControls = document.getElementById('joystick-controls');
+            if (mobileControls) mobileControls.style.display = 'none';
+            if (joystickControls) joystickControls.style.display = 'none';
+        }
+
         function showMessage(title, content, showRetry = false) {
             const overlay = document.getElementById('msg-overlay');
             stopStageBGM();
@@ -11579,6 +11622,7 @@ function getPswcWinnerCount(username) {
             if (contentEl) contentEl.innerText = content;
             if (retryEl) retryEl.style.display = showRetry ? 'block' : 'none';
             if (overlay) overlay.style.display = 'flex';
+            hideGameplayControlsForResult();
             bringOverlayToFront(overlay);
             // ゲームを停止
             if (gameLoopId !== null) cancelAnimationFrame(gameLoopId);
@@ -11750,6 +11794,7 @@ function getPswcWinnerCount(username) {
             const okBtn = document.getElementById('reward-ok-btn');
             const retryBtn = document.getElementById('reward-retry-btn');
             if (rewardOverlay) rewardOverlay.style.display = 'flex';
+            hideGameplayControlsForResult();
             bringOverlayToFront(rewardOverlay);
 
             // 全プレイヤーのゴーストを表示できるよう、順位に関係なくゴーストを保存する。
@@ -15237,21 +15282,48 @@ function getPswcWinnerCount(username) {
                 keys.ArrowLeft = joystickAxisX < 0;
                 keys.ArrowRight = joystickAxisX > 0;
             };
-            pad.addEventListener('pointerdown', (event) => {
-                if (event.cancelable) event.preventDefault();
-                activePointerId = event.pointerId;
-                pad.setPointerCapture?.(event.pointerId);
-                updateJoystick(event);
-            });
-            pad.addEventListener('pointermove', (event) => {
-                if (event.pointerId === activePointerId) updateJoystick(event);
-            });
-            ['pointerup', 'pointercancel'].forEach(type => pad.addEventListener(type, (event) => {
-                if (event.pointerId === activePointerId) {
-                    activePointerId = null;
-                    resetJoystick();
-                }
-            }));
+            if (window.PointerEvent) {
+                pad.addEventListener('pointerdown', (event) => {
+                    if (event.cancelable) event.preventDefault();
+                    activePointerId = event.pointerId;
+                    pad.setPointerCapture?.(event.pointerId);
+                    updateJoystick(event);
+                });
+                pad.addEventListener('pointermove', (event) => {
+                    if (event.pointerId === activePointerId) updateJoystick(event);
+                });
+                ['pointerup', 'pointercancel'].forEach(type => pad.addEventListener(type, (event) => {
+                    if (event.pointerId === activePointerId) {
+                        activePointerId = null;
+                        resetJoystick();
+                    }
+                }));
+            } else {
+                // Pointer Events非対応のiPadでは最初のタッチをスティック操作として使う。
+                const legacyTouch = event => event.touches && event.touches[0] || event.changedTouches && event.changedTouches[0];
+                pad.addEventListener('touchstart', event => {
+                    const touch = legacyTouch(event);
+                    if (!touch) return;
+                    if (event.cancelable) event.preventDefault();
+                    activePointerId = touch.identifier;
+                    updateJoystick(touch);
+                }, { passive: false });
+                pad.addEventListener('touchmove', event => {
+                    const touch = Array.prototype.find.call(event.touches || [], item => item.identifier === activePointerId) || legacyTouch(event);
+                    if (!touch) return;
+                    if (event.cancelable) event.preventDefault();
+                    updateJoystick(touch);
+                }, { passive: false });
+                const endLegacyJoystick = event => {
+                    const touch = legacyTouch(event);
+                    if (!touch || touch.identifier === activePointerId) {
+                        activePointerId = null;
+                        resetJoystick();
+                    }
+                };
+                pad.addEventListener('touchend', endLegacyJoystick, { passive: false });
+                pad.addEventListener('touchcancel', endLegacyJoystick, { passive: false });
+            }
         }
 
         // 起動時に保存された情報を読み込む
