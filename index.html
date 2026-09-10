@@ -239,21 +239,6 @@
             min-width: 40%;
         }
 
-        /* クリア／ゲームオーバー結果は、Canvasの親要素に左右されない画面固定の最前面にする。 */
-        #msg-overlay {
-            position: fixed !important;
-            z-index: 2147483646 !important;
-            pointer-events: auto;
-            isolation: isolate;
-        }
-        #reward-overlay {
-            position: fixed !important;
-            inset: 0;
-            z-index: 2147483647 !important;
-            pointer-events: auto;
-            isolation: isolate;
-        }
-
         /* 通知用オーバーレイ（共通） */
         #msg-overlay {
             position: absolute;
@@ -1226,6 +1211,11 @@
             z-index: 30;
             background: transparent;
         }
+
+        /* プレイ結果の固定レイヤー順。実行中に書き換えず、Canvasより確実に前へ置く。 */
+        #game-screen { z-index: 30 !important; }
+        #msg-overlay { z-index: 120 !important; }
+        #reward-overlay { z-index: 130 !important; }
 
         #canvas-container {
             position: relative;
