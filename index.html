@@ -239,6 +239,13 @@
             min-width: 40%;
         }
 
+        /* クリア／ゲームオーバー結果は、プレイ画面より必ず前面に固定する。 */
+        #msg-overlay,
+        #reward-overlay {
+            z-index: 100000 !important;
+            isolation: isolate;
+        }
+
         /* 通知用オーバーレイ（共通） */
         #msg-overlay {
             position: absolute;
@@ -1336,6 +1343,12 @@
             background: rgba(0,0,0,.7);
             box-shadow: none;
             animation: auroraToolBorder 3s linear infinite;
+        }
+        /* 枠の内側に余白を確保し、IRON CRATEの絵を背景からはみ出させない。 */
+        #btn-tool-IC .tool-canvas {
+            width: calc(100% - .45cqw);
+            height: calc(100% - .45cqw);
+            display: block;
         }
         @keyframes auroraToolBorder {
             0%, 100% { border-color:#61fff0; }
@@ -2891,7 +2904,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxjQH9WPnH1u4og1D92YLEfltJp3Y509Fd1_86FbT0mJC0h9Qn08AbWjF8jbLg4XzxY/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.7.11"
+            VERSION: "3.7.12"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -9318,6 +9331,32 @@ function getPswcWinnerCount(username) {
         function resizeCanvas(id) {
             const c = document.getElementById(id);
             const container = document.querySelector('.container');
+            if (!c || !container) return;
+
+            // ステージは常に20×10（2:1）の表示領域へ収める。
+            // これにより画面の縦横比に左右されず、1マス = 正方形になる。
+            if (id === 'editor-canvas' || id === 'game-canvas') {
+                const stageAspect = BASE_GRID_W / BASE_GRID_H;
+                const availableWidth = container.clientWidth;
+                const availableHeight = container.clientHeight;
+                let width = availableWidth;
+                let height = width / stageAspect;
+                if (height > availableHeight) {
+                    height = availableHeight;
+                    width = height * stageAspect;
+                }
+                c.style.position = 'absolute';
+                c.style.width = `${Math.round(width)}px`;
+                c.style.height = `${Math.round(height)}px`;
+                c.style.left = `${Math.round((availableWidth - width) / 2)}px`;
+                c.style.top = `${Math.round((availableHeight - height) / 2)}px`;
+                c.style.right = 'auto';
+                c.style.bottom = 'auto';
+                c.width = Math.round(width);
+                c.height = Math.round(height);
+                return;
+            }
+
             c.width = container.clientWidth;
             c.height = container.clientHeight;
         }
@@ -9582,6 +9621,12 @@ function getPswcWinnerCount(username) {
         }
 
         function drawTile(ctx, x, y, cw, ch, type, time = 0, stageType = currentStageType) {
+            // 各ブロックの描画は自分のマス（ビッグ時は2x2マス）の背景内に限定する。
+            // エフェクトや線が隣接マス・ステージ外へはみ出さないようにするための共通クリップ。
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x * cw, y * ch, cw, ch);
+            ctx.clip();
             const pad = 2;
             const drawNormalBlock = () => {
                 ctx.fillStyle = isWeeklyCupMatch ? "#b77b05" : "#5d4037";
@@ -10458,6 +10503,7 @@ function getPswcWinnerCount(username) {
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
             }
+            ctx.restore();
         }
 
         async function saveStage() {
