@@ -105,6 +105,13 @@
         #home-level-gauge-title { color:#fff36b; font-weight:900; font-size:1.35cqw; display:flex; justify-content:space-between; }
         #home-level-gauge-track { height:1.15cqh; margin-top:.65cqh; background:#101827; border:.08cqw solid #eafcff; }
         #home-level-gauge-fill { height:100%; width:0; background:linear-gradient(90deg,#ff9d00,#fff36b,#fff); transition:width .35s ease; }
+        /* プレイヤーレベルの炎。共通クラスなのでチャット・DM・ランキングにも同じ演出を使う。 */
+        .level-flame { display:inline-block; font-weight:900; animation:levelFlameFlicker 1.05s ease-in-out infinite alternate; }
+        .level-flame-mild { color:#ffd15c !important; text-shadow:0 .06em 0 #ca4a00, 0 -.08em .15em #ff7a00, 0 -.18em .34em rgba(255,91,0,.72); }
+        .level-flame-strong { color:#fff2ae !important; text-shadow:0 .07em 0 #a92300, 0 -.1em .2em #ff4200, 0 -.25em .45em #ff8f00, 0 -.4em .72em rgba(255,51,0,.82); animation-duration:.56s; }
+        .level-flame-blue { color:#dfffff !important; text-shadow:0 .07em 0 #075bc4, 0 -.1em .2em #09bfff, 0 -.26em .48em #42e8ff, 0 -.43em .76em rgba(44,160,255,.92); animation-duration:.5s; }
+        .level-flame-white { color:#fff !important; text-shadow:0 .07em 0 #9bcaff, 0 -.12em .22em #fff, 0 -.28em .52em #dffaff, 0 -.46em .85em rgba(255,255,255,.96); animation-duration:.42s; }
+        @keyframes levelFlameFlicker { from { transform:translateY(0) scaleY(.96); filter:brightness(.94); } to { transform:translateY(-.06em) scaleY(1.08); filter:brightness(1.22); } }
 
         .container {
             /* 10:5 (2:1) の比率を厳密に固定 */
@@ -788,6 +795,21 @@
         .guild-badge.guild-rank-5, #my-guild-icon-wrap.guild-rank-5 { outline:3px double #ffd54d; box-shadow:0 0 1.15cqw rgba(255,205,45,1), inset 0 0 .75cqw rgba(255,245,165,.6); }
         .guild-badge.guild-rank-6, #my-guild-icon-wrap.guild-rank-6 { outline:3px double #7fffe5; box-shadow:0 0 1.35cqw #24dfff, 0 0 .6cqw #ffd952, inset 0 0 .8cqw rgba(190,255,245,.7); }
         .guild-badge.guild-rank-7, #my-guild-icon-wrap.guild-rank-7 { outline:3px double #fff; box-shadow:0 0 1.5cqw #ff5bd7, 0 0 1cqw #4eeaff, 0 0 .7cqw #ffe65b, inset 0 0 .9cqw rgba(255,255,255,.7); animation:guildRankPrism 2.4s linear infinite; }
+        /* ギルドランクフレーム: ランク上昇ごとに装飾と発光を段階的に追加。 */
+        .guild-badge[class*="guild-rank-"], #my-guild-icon-wrap[class*="guild-rank-"] { isolation:isolate; border-radius:.18cqw; }
+        .guild-badge[class*="guild-rank-"] img, #my-guild-icon-wrap[class*="guild-rank-"] canvas { position:relative; z-index:1; }
+        .guild-badge[class*="guild-rank-"]::before, #my-guild-icon-wrap[class*="guild-rank-"]::before { content:''; position:absolute; z-index:2; inset:-.12cqw; pointer-events:none; border:1px solid currentColor; border-radius:inherit; box-shadow:inset 0 0 .35cqw rgba(255,255,255,.35); }
+        .guild-badge.guild-rank-1, #my-guild-icon-wrap.guild-rank-1 { color:#c9d8eb; outline:1px solid #9eb2ca; box-shadow:0 0 .38cqw rgba(185,210,235,.58), inset 0 0 .25cqw rgba(225,241,255,.32); }
+        .guild-badge.guild-rank-2, #my-guild-icon-wrap.guild-rank-2 { color:#73d6ff; outline:2px solid #45b9ff; box-shadow:0 0 .8cqw rgba(69,185,255,.9), inset 0 0 .5cqw rgba(126,222,255,.48); }
+        .guild-badge.guild-rank-3, #my-guild-icon-wrap.guild-rank-3 { color:#e4b8ff; outline:2px double #b66cff; box-shadow:0 0 1cqw rgba(182,108,255,.98), 0 0 .3cqw #4e1d83, inset 0 0 .65cqw rgba(236,165,255,.52); }
+        .guild-badge.guild-rank-4, #my-guild-icon-wrap.guild-rank-4 { color:#ffe0a0; outline:3px double #ff8f4d; box-shadow:0 0 1.15cqw rgba(255,110,50,1), 0 0 .5cqw #ffd34c, inset 0 0 .72cqw rgba(255,210,105,.58); }
+        .guild-badge.guild-rank-5, #my-guild-icon-wrap.guild-rank-5 { color:#fff6b2; outline:3px double #ffd54d; box-shadow:0 0 1.32cqw rgba(255,205,45,1), 0 0 .65cqw #ff8b20, inset 0 0 .9cqw rgba(255,245,165,.68); }
+        .guild-badge.guild-rank-6, #my-guild-icon-wrap.guild-rank-6 { color:#d9ffff; outline:3px double #7fffe5; box-shadow:0 0 1.52cqw #24dfff, 0 0 .82cqw #ffd952, 0 0 .35cqw #fff, inset 0 0 1cqw rgba(190,255,245,.76); }
+        .guild-badge.guild-rank-7, #my-guild-icon-wrap.guild-rank-7 { color:#fff; outline:3px double #fff; box-shadow:0 0 1.75cqw #ff5bd7, 0 0 1.2cqw #4eeaff, 0 0 .85cqw #ffe65b, 0 0 .35cqw #fff, inset 0 0 1.15cqw rgba(255,255,255,.78); animation:guildRankPrism 2.4s linear infinite; }
+        .guild-badge.guild-rank-8, #my-guild-icon-wrap.guild-rank-8 { color:#fff7d0; outline:3px double #ffe27a; box-shadow:0 0 2cqw #ffd54a, 0 0 1.35cqw #ff8c42, 0 0 .8cqw #fff, inset 0 0 1.3cqw rgba(255,241,173,.82); animation:guildRankPrism 2.1s linear infinite; }
+        .guild-badge.guild-rank-9, #my-guild-icon-wrap.guild-rank-9 { color:#ffffff; outline:4px double #fff; box-shadow:0 0 2.3cqw #ffffff, 0 0 1.75cqw #62f7ff, 0 0 1.2cqw #ff5bd7, 0 0 .9cqw #ffe65b, inset 0 0 1.55cqw rgba(255,255,255,.9); animation:guildRankPrism 1.7s linear infinite; }
+        .guild-badge.guild-rank-5::before, #my-guild-icon-wrap.guild-rank-5::before, .guild-badge.guild-rank-6::before, #my-guild-icon-wrap.guild-rank-6::before, .guild-badge.guild-rank-7::before, #my-guild-icon-wrap.guild-rank-7::before, .guild-badge.guild-rank-8::before, #my-guild-icon-wrap.guild-rank-8::before, .guild-badge.guild-rank-9::before, #my-guild-icon-wrap.guild-rank-9::before { inset:-.2cqw; border-width:2px; }
+        .guild-badge-rank, #my-guild-rank-frame { z-index:3; }
         @keyframes guildRankPrism { 0%,100% { filter:hue-rotate(0deg) brightness(1); } 50% { filter:hue-rotate(85deg) brightness(1.3); } }
         .chat-delete-btn { margin-left:.7cqw; padding:0; border:0; background:transparent; color:#a6b4c6; font-size:.78em; cursor:pointer; }
         .chat-delete-btn:hover { color:#ff697d; }
@@ -836,6 +858,25 @@
         .rank-master  { background: linear-gradient(135deg,#3a095f,#bd5cff,#f0cbff); clip-path: polygon(50% 0,84% 14%,100% 50%,84% 86%,50% 100%,16% 86%,0 50%,16% 14%); }
         .rank-elite   { background: linear-gradient(135deg,#05070f,#1d4fd7,#62b5ff); clip-path: polygon(50% 0,68% 25%,100% 18%,82% 50%,100% 82%,68% 75%,50% 100%,32% 75%,0 82%,18% 50%,0 18%,32% 25%); }
         .rank-aurora  { background: conic-gradient(#00ff9d,#00d9ff,#9b5cff,#ff5cd6,#00ff9d); clip-path: polygon(50% 0,61% 34%,97% 32%,68% 54%,79% 91%,50% 69%,21% 91%,32% 54%,3% 32%,39% 34%); animation: rankAuroraSpin 4s linear infinite; }
+        /* ランクロゴ: 小さくても階級差が伝わる、メダル／紋章型の共通デザイン。 */
+        .badge-chip .rank-logo { position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.66); border-radius:28% 28% 42% 42%; box-shadow:inset 0 1px 0 rgba(255,255,255,.72), inset 0 -2px 3px rgba(0,0,0,.32), 0 0 .48em currentColor; letter-spacing:-.08em; }
+        .badge-chip .rank-logo::after { content:''; position:absolute; inset:12% 18% auto; height:18%; border-radius:50%; background:rgba(255,255,255,.36); pointer-events:none; }
+        .badge-chip .rank-rookie { background:linear-gradient(145deg,#334452,#7f99aa); clip-path:polygon(50% 0,92% 20%,82% 88%,50% 100%,18% 88%,8% 20%); }
+        .badge-chip .rank-iron { background:linear-gradient(145deg,#1d252d,#98a6ad,#313b42); clip-path:polygon(18% 0,82% 0,100% 28%,82% 100%,18% 100%,0 28%); }
+        .badge-chip .rank-bronze { background:linear-gradient(145deg,#70370f,#e5a05a,#8a4718); clip-path:polygon(50% 0,95% 18%,82% 88%,50% 100%,18% 88%,5% 18%); }
+        .badge-chip .rank-silver { background:linear-gradient(145deg,#65717b,#f4fbff,#7b8995); clip-path:polygon(50% 0,100% 38%,72% 100%,28% 100%,0 38%); }
+        .badge-chip .rank-gold { background:linear-gradient(145deg,#8c5300,#fff29b,#bd7800); clip-path:polygon(50% 0,64% 22%,100% 25%,74% 54%,82% 100%,50% 78%,18% 100%,26% 54%,0 25%,36% 22%); }
+        .badge-chip .rank-diamond { background:linear-gradient(145deg,#087690,#89f9ff,#1465b4); clip-path:polygon(50% 0,100% 38%,72% 100%,28% 100%,0 38%); }
+        .badge-chip .rank-blackdiamond { background:linear-gradient(145deg,#010509,#154b61,#02070c); clip-path:polygon(50% 0,84% 16%,100% 50%,84% 84%,50% 100%,16% 84%,0 50%,16% 16%); color:#d7fcff; }
+        .badge-chip .rank-master { background:linear-gradient(145deg,#30004b,#df8dff,#6811a0); clip-path:polygon(50% 0,84% 14%,100% 50%,84% 86%,50% 100%,16% 86%,0 50%,16% 14%); }
+        .badge-chip .rank-grandmaster { background:linear-gradient(145deg,#500414,#f5c057,#a20f31); clip-path:polygon(50% 0,70% 23%,100% 17%,83% 50%,100% 83%,70% 77%,50% 100%,30% 77%,0 83%,17% 50%,0 17%,30% 23%); }
+        .badge-chip .rank-ultimatemaster { background:linear-gradient(145deg,#07162f,#b8f5ff,#18579d); clip-path:polygon(50% 0,68% 25%,100% 18%,82% 50%,100% 82%,68% 75%,50% 100%,32% 75%,0 82%,18% 50%,0 18%,32% 25%); }
+        .badge-chip .rank-suprememaster { background:linear-gradient(145deg,#42155c,#fff2ff,#8b4dce); clip-path:polygon(50% 0,64% 29%,97% 32%,70% 55%,80% 94%,50% 72%,20% 94%,30% 55%,3% 32%,36% 29%); }
+        .badge-chip .rank-aurora { background:conic-gradient(#00ff9d,#00d9ff,#9b5cff,#ff5cd6,#00ff9d); clip-path:polygon(50% 0,61% 34%,97% 32%,68% 54%,79% 91%,50% 69%,21% 91%,32% 54%,3% 32%,39% 34%); animation:rankAuroraSpin 4s linear infinite; }
+        .badge-chip .rank-legend { background:linear-gradient(145deg,#090704,#d59a19,#fff6bc,#9b6500,#080604); clip-path:polygon(50% 0,61% 26%,89% 14%,82% 43%,100% 62%,70% 67%,58% 100%,42% 100%,30% 67%,0 62%,18% 43%,11% 14%,39% 26%); color:#fff9d8; }
+        .badge-chip .rank-blackdiamond, .badge-chip .rank-grandmaster, .badge-chip .rank-ultimatemaster, .badge-chip .rank-suprememaster { font-size:.58em; }
+        .badge-chip.badge-legend { background-size:280% 280% !important; animation:badgeLegendShift 2.4s linear infinite; }
+        @keyframes badgeLegendShift { to { background-position:220% 50%; } }
         @keyframes rankAuroraSpin { to { filter: hue-rotate(360deg); } }
         @keyframes badgeAuroraShift {
             0% { background-position: 0% 50%; }
@@ -1216,6 +1257,33 @@
         #game-screen { z-index: 30 !important; }
         #msg-overlay { z-index: 120 !important; }
         #reward-overlay { z-index: 130 !important; }
+
+        /* 結果画面はゲーム用コンテナから分離して表示する。
+           端末固有のCanvas合成／古いキャッシュでも、Canvasの背面へ回らないようにする。 */
+        #game-result-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 2147483000;
+            pointer-events: none;
+        }
+        #game-result-layer > #msg-overlay,
+        #game-result-layer > #reward-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            box-sizing: border-box;
+            pointer-events: auto;
+        }
+        #game-result-layer > #msg-overlay {
+            top: 50% !important;
+            left: 50% !important;
+            right: auto !important;
+            bottom: auto !important;
+            width: auto !important;
+            height: auto !important;
+            max-width: min(86vw, 760px);
+        }
 
         #canvas-container {
             position: relative;
@@ -2098,11 +2166,11 @@
         </div>
 
         <!-- グローバルランキングボタン -->
-        <button id="global-rank-btn" class="pixel-btn small" onclick="showGlobalRanking()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
-        <button id="password-settings-btn" class="pixel-btn small" onclick="openSettings()" style="position:absolute; top:7cqh; left:2cqw; z-index:15; display:none;">⚙ 設定</button>
-        <button id="patch-notes-btn" class="pixel-btn small" onclick="openPatchNotes()" style="position:absolute; top:13cqh; left:2cqw; z-index:15; display:none;">パッチノート</button>
-        <button id="dm-inbox-btn" class="pixel-btn small" onclick="openDirectMessageInbox()" style="position:absolute; top:19cqh; left:2cqw; z-index:15; display:none;">✉ DMを確認</button>
-        <button id="audio-btn" class="pixel-btn small" onclick="openAudioPanel()" style="position:absolute; top:25cqh; left:2cqw; z-index:15; display:none;">♫ オーディオ</button>
+        <button id="global-rank-btn" class="pixel-btn small" data-i18n="home.ranking" onclick="showGlobalRanking()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
+        <button id="password-settings-btn" class="pixel-btn small" data-i18n="home.settings" onclick="openSettings()" style="position:absolute; top:7cqh; left:2cqw; z-index:15; display:none;">⚙ 設定</button>
+        <button id="patch-notes-btn" class="pixel-btn small" data-i18n="home.patchNotes" onclick="openPatchNotes()" style="position:absolute; top:13cqh; left:2cqw; z-index:15; display:none;">パッチノート</button>
+        <button id="dm-inbox-btn" class="pixel-btn small" data-i18n="home.dm" onclick="openDirectMessageInbox()" style="position:absolute; top:19cqh; left:2cqw; z-index:15; display:none;">✉ DMを確認</button>
+        <button id="audio-btn" class="pixel-btn small" data-i18n="home.audio" onclick="openAudioPanel()" style="position:absolute; top:25cqh; left:2cqw; z-index:15; display:none;">♫ オーディオ</button>
 
         <div id="audio-overlay" class="screen" style="display:none; z-index:190; align-items:center; justify-content:center; background:rgba(5,10,25,.94);">
             <div class="auth-box" style="width:min(58cqw,680px); padding:2.5cqw; border-color:#65dfff; background:linear-gradient(135deg,#071a34,#101536);">
@@ -2205,11 +2273,11 @@
         <canvas id="home-character-canvas" width="256" height="256" style="position: absolute; right: 10cqw; top: 58%; transform: translateY(-50%); width: 35cqw; height: 35cqw; image-rendering: pixelated; pointer-events: none; z-index: 4; display: none;"></canvas>
 
         <div id="main-menu" class="menu">
-            <button class="pixel-btn" onclick="openStageSelect()">プレイ</button>
-            <button class="pixel-btn" onclick="startEditor()">ステージ制作</button>
-            <button class="pixel-btn" onclick="openLocker()">ロッカー</button>
-            <button class="pixel-btn" onclick="openShop(false, 'daily')">ショップ<span class="shop-event-notice">イベント開催中！</span></button>
-            <button id="guild-btn" class="pixel-btn" onclick="openGuild()">ギルド</button>
+            <button id="menu-play" class="pixel-btn" data-i18n="home.play" onclick="openStageSelect()">プレイ</button>
+            <button id="menu-create" class="pixel-btn" data-i18n="home.create" onclick="startEditor()">ステージ制作</button>
+            <button id="menu-locker" class="pixel-btn" data-i18n="home.locker" onclick="openLocker()">ロッカー</button>
+            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice" data-i18n="home.eventNow">イベント開催中！</span></button>
+            <button id="guild-btn" class="pixel-btn" data-i18n="home.guild" onclick="openGuild()">ギルド</button>
             </div>
 
         <!-- パッチノート -->
@@ -2322,22 +2390,27 @@
         <div id="settings-overlay" class="screen" style="display:none; z-index:189; align-items:flex-start; justify-content:center; background:rgba(2,8,20,.82);">
             <div class="auth-box settings-card">
                 <div class="settings-header">
-                    <div class="settings-heading"><div class="settings-heading-icon">⚙</div><div><div class="settings-kicker">PLAYER OPTIONS</div><h2 class="settings-title">設定</h2></div></div>
-                    <button class="pixel-btn small" style="background:#546e7a;" onclick="closeSettings()">閉じる</button>
+                    <div class="settings-heading"><div class="settings-heading-icon">⚙</div><div><div class="settings-kicker">PLAYER OPTIONS</div><h2 class="settings-title" data-i18n="settings.title">設定</h2></div></div>
+                    <button class="pixel-btn small" data-i18n="common.close" style="background:#546e7a;" onclick="closeSettings()">閉じる</button>
                 </div>
                 <section class="settings-section">
-                    <div class="settings-section-title">🎮 操作方法</div>
-                    <p class="settings-section-note">プレイ中の操作方法を選べます。変更はすぐに保存されます。</p>
-                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="keyboard" onchange="setControlMode(this.value)"><div class="control-preview preview-keyboard" aria-hidden="true"><span class="preview-key left">←</span><span class="preview-key up">↑</span><span class="preview-key right">→</span></div><span class="settings-choice-text"><b>キーボード操作</b><br><small>矢印キー / A・D、Space / W で操作</small></span></label>
-                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="buttons" onchange="setControlMode(this.value)"><div class="control-preview preview-buttons" aria-hidden="true"><span class="preview-key left">◀</span><span class="preview-key right">▶</span><span class="preview-jump">JUMP</span></div><span class="settings-choice-text"><b>ボタン操作</b><br><small>画面の左右ボタンとジャンプボタンで操作</small></span></label>
-                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="joystick" onchange="setControlMode(this.value)"><div class="control-preview preview-joystick" aria-hidden="true"><span class="preview-stick-base"></span><span class="preview-stick-knob"></span><span class="preview-jump">JUMP</span></div><span class="settings-choice-text"><b>ジョイスティック操作</b><br><small>仮想ジョイスティックとジャンプボタンで操作</small></span></label>
+                    <div class="settings-section-title">🌐 Language / 言語</div>
+                    <p class="settings-section-note" data-i18n="settings.languageNote">表示する言語を選べます。変更はすぐに保存されます。</p>
+                    <select id="language-setting" onchange="setLanguage(this.value)" style="width:100%; padding:1cqh 1cqw; color:#effbff; background:#142e50; border:.12cqw solid #75e8ff; border-radius:.35cqw; font:inherit;"><option value="ja">日本語</option><option value="en">English</option></select>
                 </section>
                 <section class="settings-section">
-                    <div class="settings-section-title">👤 アカウント・ヘルプ</div>
+                    <div class="settings-section-title" data-i18n="settings.controls">🎮 操作方法</div>
+                    <p class="settings-section-note" data-i18n="settings.controlsNote">プレイ中の操作方法を選べます。変更はすぐに保存されます。</p>
+                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="keyboard" onchange="setControlMode(this.value)"><div class="control-preview preview-keyboard" aria-hidden="true"><span class="preview-key left">←</span><span class="preview-key up">↑</span><span class="preview-key right">→</span></div><span class="settings-choice-text"><b data-i18n="settings.keyboard">キーボード操作</b><br><small data-i18n="settings.keyboardNote">矢印キー / A・D、Space / W で操作</small></span></label>
+                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="buttons" onchange="setControlMode(this.value)"><div class="control-preview preview-buttons" aria-hidden="true"><span class="preview-key left">◀</span><span class="preview-key right">▶</span><span class="preview-jump">JUMP</span></div><span class="settings-choice-text"><b data-i18n="settings.buttons">ボタン操作</b><br><small data-i18n="settings.buttonsNote">画面の左右ボタンとジャンプボタンで操作</small></span></label>
+                    <label class="settings-choice"><input type="radio" name="control-mode-setting" value="joystick" onchange="setControlMode(this.value)"><div class="control-preview preview-joystick" aria-hidden="true"><span class="preview-stick-base"></span><span class="preview-stick-knob"></span><span class="preview-jump">JUMP</span></div><span class="settings-choice-text"><b data-i18n="settings.joystick">ジョイスティック操作</b><br><small data-i18n="settings.joystickNote">仮想ジョイスティックとジャンプボタンで操作</small></span></label>
+                </section>
+                <section class="settings-section">
+                    <div class="settings-section-title" data-i18n="settings.account">👤 アカウント・ヘルプ</div>
                     <div class="settings-actions">
-                    <button class="pixel-btn small" onclick="closeSettings(); openPasswordChange()">パスワードを変更</button>
-                    <button class="pixel-btn small" style="background:#296a9d;" onclick="closeSettings(); openTutorial()">チュートリアルを見る</button>
-                    <button class="pixel-btn small" style="background:#b71c1c;" onclick="logoutUser()">ログアウト</button>
+                    <button class="pixel-btn small" data-i18n="settings.changePassword" onclick="closeSettings(); openPasswordChange()">パスワードを変更</button>
+                    <button class="pixel-btn small" data-i18n="settings.tutorial" style="background:#296a9d;" onclick="closeSettings(); openTutorial()">チュートリアルを見る</button>
+                    <button class="pixel-btn small" data-i18n="settings.logout" style="background:#b71c1c;" onclick="logoutUser()">ログアウト</button>
                     </div>
                 </section>
             </div>
@@ -2753,6 +2826,7 @@
                     <div class="tool-btn rank-common" onclick="setTool('>N', this)" title="ONEWAY RIGHT"><canvas id="icon-owr" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('<N', this)" title="ONEWAY LEFT"><canvas id="icon-owl" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('vN', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-common" onclick="setTool('^N', this)" title="ONEWAY UP"><canvas id="icon-uow" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-q" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-k" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
@@ -2872,6 +2946,23 @@
             // 固定レイヤー方式: CSS／HTMLで指定した順番を変更しない。
         }
 
+        // 結果画面だけは body 直下の専用レイヤーへ移す。
+        // 一部端末ではCanvasを含む親要素が独自の描画合成面になり、
+        // z-index が大きくても兄弟の結果画面が背面へ回ることがあるため。
+        function ensureGameResultLayer() {
+            let layer = document.getElementById('game-result-layer');
+            if (!layer) {
+                layer = document.createElement('div');
+                layer.id = 'game-result-layer';
+                document.body.appendChild(layer);
+            }
+            ['msg-overlay', 'reward-overlay'].forEach(id => {
+                const overlay = document.getElementById(id);
+                if (overlay && overlay.parentElement !== layer) layer.appendChild(overlay);
+            });
+            return layer;
+        }
+
         function getInlineDisplay(styleText) {
             const match = String(styleText || '').match(/(?:^|;)\s*display\s*:\s*([^;]+)/i);
             // .screen とステージ一覧は、指定がない時点ではCSS側で非表示。
@@ -2880,6 +2971,7 @@
 
         function initializeOverlayStacking() {
             // 固定レイヤー方式: タップ・表示切替ではz-indexを変更しない。
+            ensureGameResultLayer();
         }
 
         initializeOverlayStacking();
@@ -2888,7 +2980,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxxqHXkcGckj5kBb_sm9ThncrCbIdMjvVZa33Ffbtb0VkVPq13MjxyA8-Y8YYyfFDRE/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwXzFn43r0VFWnlQg4kNhphw5qTFTQ5HAv-rbGVTfEo_GM1_WOq1a-AuIyoQSesktVa/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "3.7.13"
@@ -2926,14 +3018,14 @@ function getPswcWinnerCount(username) {
   return Number(PSWC_MANUAL_WINNER_COUNTS[key]) || 0;
 }
         const guildIconDataUrlCache = Object.create(null);
-        const GUILD_RANK_EXP = [0, 10000, 50000, 100000, 300000, 500000, 1000000, 2500000];
+        const GUILD_RANK_EXP = [0, 10000, 50000, 100000, 300000, 500000, 1000000, 2500000, 5000000, 10000000];
 
         function renderGuildRankProgress(guild) {
             const holder = document.getElementById('my-guild-rank-progress');
             if (!holder) return;
-            const rank = Math.min(7, Number(guild.rank) || 0);
+            const rank = Math.min(GUILD_RANK_EXP.length - 1, Number(guild.rank) || 0);
             const exp = Number(guild.exp) || 0;
-            if (rank >= 7) {
+            if (rank >= GUILD_RANK_EXP.length - 1) {
                 holder.innerHTML = '<div class="guild-exp-gauge"><div style="width:100%"></div></div><div class="guild-exp-caption">MAX RANK</div>';
                 return;
             }
@@ -2963,7 +3055,23 @@ function getPswcWinnerCount(username) {
 
         function getPlayerLevelPrefix(username) {
             const level = String(username) === String(CONFIG.USERNAME) ? userPlayerLevel : (playerLevelsByUsername.get(String(username)) || 1);
-            return `<span style="color:#fff36b; font-size:.82em; font-weight:900; margin-right:.32em;">Lv.${level}</span>`;
+            return `<span class="level-flame ${getPlayerLevelFlameClass(level)}" style="color:#fff36b; font-size:.82em; font-weight:900; margin-right:.32em;">Lv.${level}</span>`;
+        }
+
+        function getPlayerLevelFlameClass(value) {
+            const level = Math.max(1, Number(value) || 1);
+            if (level > 100) return 'level-flame-white';
+            if (level >= 71) return 'level-flame-blue';
+            if (level >= 51) return 'level-flame-strong';
+            if (level >= 30) return 'level-flame-mild';
+            return '';
+        }
+
+        function applyPlayerLevelFlame(element, level) {
+            if (!element) return;
+            element.classList.remove('level-flame', 'level-flame-mild', 'level-flame-strong', 'level-flame-blue', 'level-flame-white');
+            const effectClass = getPlayerLevelFlameClass(level);
+            if (effectClass) element.classList.add('level-flame', effectClass);
         }
 
         function getControlModeInfo(mode) {
@@ -3055,6 +3163,7 @@ function getPswcWinnerCount(username) {
         let editorGrid = [];
         let currentTool = 'B';
         const TOOL_DESCRIPTIONS = {
+            '^N': { title: 'ONEWAY UP', text: 'Allows upward passage, but blocks movement from above.' },
             'WH': { title: 'WHITE HOLE', text: 'Repels nearby players, enemies, and crates with the inverse force of a black hole.' },
             'B': { title: 'ブロック', text: '通常の足場ブロック。ステージの基本構造に使います。' },
             'CB': { title: 'クラックブロック', text: '乗ると0.5秒後に崩壊する、ひび割れた足場ブロックです。' },
@@ -4110,7 +4219,7 @@ function getPswcWinnerCount(username) {
                     if (type === 'LM') lampPositions.push({ x: (x + (bigStageActive ? 1 : .5)) * cw, y: (y + (bigStageActive ? 1 : .5)) * ch, radiusTiles: 1.8 });
                     // 炎ブロックも暗闇では光源になる。ランプより少し広く、暖色の光を想定する。
                     if (type === 'FL') lampPositions.push({ x: (x + (bigStageActive ? 1 : .5)) * cw, y: (y + (bigStageActive ? 1.1 : .55)) * ch, radiusTiles: 2.25 });
-                    if (type === 'CA') candlePositions.push({ x: (x + (bigStageActive ? 1 : .5)) * cw, y: (y + (bigStageActive ? 1 : .5)) * ch });
+                    if (type === 'CA') candlePositions.push({ x: (x + (bigStageActive ? 1 : .5)) * cw, y: (y + (bigStageActive ? 1 : .5)) * ch, tileX: x, tileY: y });
                     if (type === 'sp' || type === 'sp_blue') spawnerPositions.push({ x, y, blue: type === 'sp_blue' });
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
@@ -4130,6 +4239,10 @@ function getPswcWinnerCount(username) {
         // updateStageCache()（全マス走査＋全体再描画）を呼ぶとラグの原因になるため、
         // そのマスの矩形だけをクリアして再描画する。drawTileは各タイルを自分のマス内だけに
         // 描画するため、この部分更新でも見た目は変わらない。
+        function removeCandlePosition(x, y) {
+            candlePositions = candlePositions.filter(candle => candle.tileX !== x || candle.tileY !== y);
+        }
+
         function updateStageCacheTile(x, y) {
             if (!stageCacheCanvas || activeStage.length === 0) return;
             // 2x2タイルでは、部分描画より全体キャッシュの方が安全に境界を保てる。
@@ -5041,7 +5154,7 @@ function getPswcWinnerCount(username) {
             basic: ['B', 'AC', 'S', 'G', 'WG', 'K', 'M', 'E']
         };
         const TOOL_RANK_GROUPS = {
-            common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', 'C', 'q', 'k', 'r', 'b', '!'],
+            common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', '^N', 'C', 'q', 'k', 'r', 'b', '!'],
             rare: ['Y', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['hr', 'hb', 'e', '#'],
             legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
@@ -5058,7 +5171,7 @@ function getPswcWinnerCount(username) {
         // 下部バーは役割ごとに一定の順番で並べる。
         // ブロック系 → 敵・トゲ・銃 → R/B系 → 特殊系
         const CREATOR_TOOL_CATEGORY_ORDER = [
-            'T', 'TD', 'X', 'H', '>N', '<N', 'vN', 'Y', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
+            'T', 'TD', 'X', 'H', '>N', '<N', 'vN', '^N', 'Y', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
             'k', 'q', 'y', 'j', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
             'r', 'b', '!', 'J', 'hr', 'hb',
             'W', 'L', 'U', 'd', 'P', 'C', 'KG', 'BH', 'WH', 'sp', 'EC'
@@ -6725,7 +6838,7 @@ function getPswcWinnerCount(username) {
 
             document.getElementById('my-guild-name').innerText = g.name;
             document.getElementById('my-guild-rank-frame').innerText = `RANK ${g.rank || 0}`;
-            document.getElementById('my-guild-icon-wrap').className = `guild-rank-${Math.max(0, Math.min(7, Number(g.rank) || 0))}`;
+            document.getElementById('my-guild-icon-wrap').className = `guild-rank-${Math.max(0, Math.min(GUILD_RANK_EXP.length - 1, Number(g.rank) || 0))}`;
             document.getElementById('my-guild-rank-display').innerText = `RANK ${g.rank || 0} ・ EXP ${(Number(g.exp) || 0).toLocaleString()} ・ G×${g.goldMultiplier || 1}`;
             renderGuildRankProgress(g);
             document.getElementById('my-guild-benefit').innerText = (Number(g.rank) || 0) === 0 ? '特典: なし' : `特典: クリア報酬G ×${g.goldMultiplier}`;
@@ -7292,10 +7405,60 @@ function getPswcWinnerCount(username) {
             if (overlay) overlay.style.display = 'flex';
         }
 
+        let currentLanguage = 'ja';
+        const UI_TEXT = {
+            ja: {
+                'home.play':'プレイ', 'home.create':'ステージ制作', 'home.locker':'ロッカー', 'home.shop':'ショップ', 'home.guild':'ギルド',
+                'home.ranking':'🏆 ランキング', 'home.settings':'⚙ 設定', 'home.patchNotes':'パッチノート', 'home.dm':'✉ DMを確認', 'home.audio':'♫ オーディオ', 'home.eventNow':'イベント開催中！',
+                'common.close':'閉じる',
+                'settings.title':'設定', 'settings.languageNote':'表示する言語を選べます。変更はすぐに保存されます。',
+                'settings.controls':'🎮 操作方法', 'settings.controlsNote':'プレイ中の操作方法を選べます。変更はすぐに保存されます。',
+                'settings.keyboard':'キーボード操作', 'settings.keyboardNote':'矢印キー / A・D、Space / W で操作',
+                'settings.buttons':'ボタン操作', 'settings.buttonsNote':'画面の左右ボタンとジャンプボタンで操作',
+                'settings.joystick':'ジョイスティック操作', 'settings.joystickNote':'仮想ジョイスティックとジャンプボタンで操作',
+                'settings.account':'👤 アカウント・ヘルプ', 'settings.changePassword':'パスワードを変更', 'settings.tutorial':'チュートリアルを見る', 'settings.logout':'ログアウト',
+                'game.failed':'ステージ失敗！', 'game.testFailed':'ミスしてしまいました。', 'game.timeUp':'時間切れです！'
+            },
+            en: {
+                'home.play':'PLAY', 'home.create':'CREATE', 'home.locker':'LOCKER', 'home.shop':'SHOP', 'home.guild':'GUILD',
+                'home.ranking':'🏆 RANKING', 'home.settings':'⚙ SETTINGS', 'home.patchNotes':'PATCH NOTES', 'home.dm':'✉ DIRECT MESSAGES', 'home.audio':'♫ AUDIO', 'home.eventNow':'EVENT LIVE!',
+                'common.close':'CLOSE',
+                'settings.title':'SETTINGS', 'settings.languageNote':'Choose the display language. Your choice is saved immediately.',
+                'settings.controls':'🎮 CONTROLS', 'settings.controlsNote':'Choose how you control the game. Changes are saved immediately.',
+                'settings.keyboard':'Keyboard', 'settings.keyboardNote':'Arrow keys / A・D to move, Space / W to jump',
+                'settings.buttons':'Touch Buttons', 'settings.buttonsNote':'Use the on-screen left, right, and jump buttons',
+                'settings.joystick':'Joystick', 'settings.joystickNote':'Use the virtual joystick and jump button',
+                'settings.account':'👤 ACCOUNT & HELP', 'settings.changePassword':'CHANGE PASSWORD', 'settings.tutorial':'VIEW TUTORIAL', 'settings.logout':'LOG OUT',
+                'game.failed':'Stage failed!', 'game.testFailed':'You missed it.', 'game.timeUp':'Time is up!'
+            }
+        };
+
+        function t(key, fallback = '') {
+            return UI_TEXT[currentLanguage]?.[key] || UI_TEXT.ja[key] || fallback;
+        }
+
+        function applyLanguage() {
+            document.documentElement.lang = currentLanguage === 'en' ? 'en' : 'ja';
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const translated = t(element.dataset.i18n, element.textContent);
+                if (translated) element.textContent = translated;
+            });
+            const languageSelect = document.getElementById('language-setting');
+            if (languageSelect) languageSelect.value = currentLanguage;
+            updatePlayerControlLogo();
+        }
+
+        function setLanguage(language) {
+            currentLanguage = language === 'en' ? 'en' : 'ja';
+            try { localStorage.setItem('pixel_stages_language', currentLanguage); } catch (e) { /* 保存不可でも表示は切り替える */ }
+            applyLanguage();
+        }
+
         function openSettings() {
             const overlay = document.getElementById('settings-overlay');
             if (!overlay) return;
             syncControlModeInputs();
+            applyLanguage();
             overlay.style.display = 'flex';
         }
 
@@ -7320,9 +7483,9 @@ function getPswcWinnerCount(username) {
             const logo = document.getElementById('player-control-logo');
             if (!logo) return;
             const controls = {
-                keyboard: { mark: 'C', label: 'クラシック操作（キーボード）' },
-                buttons: { mark: 'M', label: 'モバイル操作' },
-                joystick: { mark: 'J', label: 'ジョイスティック操作' }
+                keyboard: { mark: 'C', label: currentLanguage === 'en' ? 'Classic controls (keyboard)' : 'クラシック操作（キーボード）' },
+                buttons: { mark: 'M', label: currentLanguage === 'en' ? 'Mobile controls' : 'モバイル操作' },
+                joystick: { mark: 'J', label: currentLanguage === 'en' ? 'Joystick controls' : 'ジョイスティック操作' }
             };
             const current = controls[controlMode] || controls.keyboard;
             logo.textContent = current.mark;
@@ -7591,11 +7754,11 @@ function getPswcWinnerCount(username) {
             // 2. TimeAttacker
             const myFirsts = allUsers[targetUser]?.firsts || 0;
             const baseline = totalStages / totalUserCount;
-            let timeAttacker = 50;
+            let timeAttacker = 60;
             const maxFirsts = Math.max(...Object.values(allUsers).map(u => u.firsts), 1);
             if (myFirsts >= maxFirsts) timeAttacker = 100;
-            else if (myFirsts > baseline) timeAttacker = 50 + (myFirsts - baseline) * (50 / (maxFirsts - baseline));
-            else timeAttacker = (myFirsts / baseline) * 50;
+            else if (myFirsts > baseline) timeAttacker = 60 + (myFirsts - baseline) * (40 / Math.max(1, maxFirsts - baseline));
+            else timeAttacker = (myFirsts / Math.max(1, baseline)) * 60;
             timeAttacker = Math.round(Math.max(1, timeAttacker));
 
             // 3. StageQuality (上位5ステージの平均プレイ数: 全体平均を50、1位を100とした相対評価)
@@ -7614,9 +7777,9 @@ function getPswcWinnerCount(username) {
             let qualityScore = 1;
             if (myAvgPlays >= globalAvgPlays) {
                 const denom = maxAvgPlays - globalAvgPlays;
-                qualityScore = 50 + (denom > 0 ? ((myAvgPlays - globalAvgPlays) / denom) * 50 : 50);
+                qualityScore = 60 + (denom > 0 ? ((myAvgPlays - globalAvgPlays) / denom) * 40 : 0);
             } else {
-                qualityScore = 1 + (globalAvgPlays > 0 ? (myAvgPlays / globalAvgPlays) * 49 : 0);
+                qualityScore = 1 + (globalAvgPlays > 0 ? (myAvgPlays / globalAvgPlays) * 59 : 0);
             }
             const stageQuality = Math.round(Math.max(1, Math.min(100, qualityScore)));
 
@@ -7628,13 +7791,14 @@ function getPswcWinnerCount(username) {
 
             // 5. Creator (自作ステージの総プレイ数: 1位のプレイヤーを100とした相対評価)
             const maxTotalPlays = Math.max(...Object.values(allUsers).map(u => u.totalPlays), 1);
+            const averageCreatorPlays = Object.values(allUsers).reduce((sum, user) => sum + user.totalPlays, 0) / totalUserCount;
             const targetTotalPlays = allUsers[targetUser]?.totalPlays || 0;
-            const creator = Math.round(Math.max(1, Math.min(100, (targetTotalPlays / maxTotalPlays) * 100)));
+            const creator = Math.round(Math.max(1, Math.min(100, targetTotalPlays <= 0 ? 1 : targetTotalPlays >= averageCreatorPlays ? 60 + (targetTotalPlays - averageCreatorPlays) * 40 / Math.max(1, maxTotalPlays - averageCreatorPlays) : 1 + targetTotalPlays / Math.max(1, averageCreatorPlays) * 59)));
  
-            const ovr = Math.round((leader + timeAttacker + stageQuality + contribution + creator) / 5);
+            const ovr = Math.round((timeAttacker + stageQuality + creator) / 3);
 
             return { 
-                leader, timeAttacker, stageQuality, contribution, creator, ovr,
+                timeAttacker, stageQuality, creator, ovr,
                 skin: allUsers[targetUser]?.skin || 'default',
                 color: allUsers[targetUser]?.color || 'default',
                 customSprite: allUsers[targetUser]?.customSprite || null
@@ -7686,6 +7850,7 @@ function getPswcWinnerCount(username) {
             const maxFirsts = Math.max(...rows.map(user => user.firsts), 1);
             const maxContribution = Math.max(...rows.map(user => user.clears + user.posts), 1);
             const maxTotalPlays = Math.max(...rows.map(user => user.totalPlays), 1);
+            const averageCreatorPlays = rows.reduce((sum, user) => sum + user.totalPlays, 0) / Math.max(1, rows.length);
             const globalAvgPlays = stages.reduce((total, stage) => total + (Number(stage.attempts) || 0), 0) / totalStages;
             const top5Averages = new Map(rows.map(user => {
                 const top = user.stagePlays.slice().sort((a, b) => b - a).slice(0, 5);
@@ -7695,50 +7860,50 @@ function getPswcWinnerCount(username) {
             const results = Object.create(null);
             Object.entries(users).forEach(([username, user]) => {
                 const leader = Math.round(Math.max(1, Math.min(100, user.clears / maxClears * 100)));
-                const timeAttacker = Math.round(Math.max(1, user.firsts >= maxFirsts ? 100 : user.firsts > baseline ? 50 + (user.firsts - baseline) * 50 / Math.max(1, maxFirsts - baseline) : user.firsts / Math.max(1, baseline) * 50));
+                const timeAttacker = Math.round(Math.max(1, user.firsts >= maxFirsts ? 100 : user.firsts > baseline ? 60 + (user.firsts - baseline) * 40 / Math.max(1, maxFirsts - baseline) : user.firsts / Math.max(1, baseline) * 60));
                 const averagePlays = top5Averages.get(user) || 0;
-                const quality = averagePlays >= globalAvgPlays ? 50 + (averagePlays - globalAvgPlays) / Math.max(1, maxAvgPlays - globalAvgPlays) * 50 : 1 + (globalAvgPlays > 0 ? averagePlays / globalAvgPlays * 49 : 0);
+                const quality = averagePlays >= globalAvgPlays ? 60 + (averagePlays - globalAvgPlays) / Math.max(1, maxAvgPlays - globalAvgPlays) * 40 : 1 + (globalAvgPlays > 0 ? averagePlays / globalAvgPlays * 59 : 0);
                 const stageQuality = Math.round(Math.max(1, Math.min(100, quality)));
                 const contribution = Math.round(Math.max(1, (user.clears + user.posts) / maxContribution * 100));
-                const creator = Math.round(Math.max(1, Math.min(100, user.totalPlays / maxTotalPlays * 100)));
-                results[username] = { leader, timeAttacker, stageQuality, contribution, creator, ovr: Math.round((leader + timeAttacker + stageQuality + contribution + creator) / 5), skin: user.skin || 'default', color: user.color || 'default', customSprite: user.customSprite || null };
+                const creator = Math.round(Math.max(1, Math.min(100, user.totalPlays <= 0 ? 1 : user.totalPlays >= averageCreatorPlays ? 60 + (user.totalPlays - averageCreatorPlays) * 40 / Math.max(1, maxTotalPlays - averageCreatorPlays) : 1 + user.totalPlays / Math.max(1, averageCreatorPlays) * 59)));
+                results[username] = { timeAttacker, stageQuality, creator, ovr: Math.round((timeAttacker + stageQuality + creator) / 3), skin: user.skin || 'default', color: user.color || 'default', customSprite: user.customSprite || null };
             });
             profileStatsCacheRef = stages;
             profileStatsByUsername = results;
-            return results[key] || { leader: 1, timeAttacker: 1, stageQuality: 1, contribution: 1, creator: 1, ovr: 1, skin: 'default', color: 'default', customSprite: null };
+            return results[key] || { timeAttacker: 1, stageQuality: 1, creator: 1, ovr: 1, skin: 'default', color: 'default', customSprite: null };
         }
 
         // --- OVRバッジシステム ---
         // OVR 1〜5がBronze 1、以降5上がるごとに1段階昇格
         const BADGE_TIERS = [
-            { label: 'Bronze 1',  min: 1,  group: 'bronze' },
-            { label: 'Bronze 2',  min: 6,  group: 'bronze' },
-            { label: 'Bronze 3',  min: 11, group: 'bronze' },
-            { label: 'Silver 1',  min: 16, group: 'silver' },
-            { label: 'Silver 2',  min: 21, group: 'silver' },
-            { label: 'Silver 3',  min: 26, group: 'silver' },
-            { label: 'Gold 1',    min: 31, group: 'gold' },
-            { label: 'Gold 2',    min: 36, group: 'gold' },
-            { label: 'Gold 3',    min: 41, group: 'gold' },
-            { label: 'Diamond 1', min: 46, group: 'diamond' },
-            { label: 'Diamond 2', min: 51, group: 'diamond' },
-            { label: 'Diamond 3', min: 56, group: 'diamond' },
-            { label: 'Master 1',  min: 61, group: 'master' },
-            { label: 'Master 2',  min: 66, group: 'master' },
-            { label: 'Master 3',  min: 71, group: 'master' },
-            { label: 'Elite 1',   min: 76, group: 'elite' },
-            { label: 'Elite 2',   min: 81, group: 'elite' },
-            { label: 'Elite 3',   min: 86, group: 'elite' },
-            { label: 'Aurora',    min: 90, group: 'aurora' },
+            { label: 'Rookie',          min: 1,  group: 'rookie',          mark: 'R' },
+            { label: 'Iron',            min: 11, group: 'iron',            mark: 'I' },
+            { label: 'Bronze',          min: 21, group: 'bronze',          mark: 'B' },
+            { label: 'Silver',          min: 31, group: 'silver',          mark: 'S' },
+            { label: 'Gold',            min: 41, group: 'gold',            mark: 'G' },
+            { label: 'Diamond',         min: 51, group: 'diamond',         mark: 'D' },
+            { label: 'Black Diamond',   min: 61, group: 'blackdiamond',    mark: 'BD' },
+            { label: 'Master',          min: 66, group: 'master',          mark: 'M' },
+            { label: 'Grand Master',    min: 71, group: 'grandmaster',     mark: 'GM' },
+            { label: 'Ultimate Master', min: 76, group: 'ultimatemaster',  mark: 'UM' },
+            { label: 'Supreme Master',  min: 81, group: 'suprememaster',   mark: 'SM' },
+            { label: 'Aurora',          min: 86, group: 'aurora',          mark: 'A' },
+            { label: 'Legend',          min: 96, group: 'legend',          mark: 'L' }
         ];
         const BADGE_GROUP_STYLE = {
-            bronze:  { bg: 'linear-gradient(135deg,#8a5a2b,#cd7f32,#e8a765)', text: '#2b1a05', border: '#a9702f', glow: 'rgba(205,127,50,0.55)', icon: '🥉' },
-            silver:  { bg: 'linear-gradient(135deg,#8f8f8f,#c9c9c9,#f2f2f2)', text: '#1a1a1a', border: '#a9a9a9', glow: 'rgba(192,192,192,0.55)', icon: '🥈' },
-            gold:    { bg: 'linear-gradient(135deg,#a97400,#ffd700,#fff3b0)', text: '#3a2600', border: '#e0b100', glow: 'rgba(255,215,0,0.6)',  icon: '🥇' },
-            diamond: { bg: 'linear-gradient(135deg,#0097a7,#4dd0e1,#e0ffff)', text: '#00303a', border: '#4dd0e1', glow: 'rgba(77,208,225,0.6)',  icon: '💎' },
-            master:  { bg: 'linear-gradient(135deg,#4a0080,#9b30ff,#d9a3ff)', text: '#fff',    border: '#9b30ff', glow: 'rgba(155,48,255,0.7)',  icon: '👑' },
-            elite:   { bg: 'linear-gradient(135deg,#000000,#0d1b2a,#2979ff)', text: '#fff',    border: '#2979ff', glow: 'rgba(41,121,255,0.8)',  icon: '⚔️' },
-            aurora:  { bg: 'linear-gradient(90deg,#00ff9d,#00bfff,#a020f0,#00ff9d)', text: '#fff', border: '#fff', glow: 'rgba(160,32,240,0.8)', icon: '🌌' }
+            rookie:         { bg: 'linear-gradient(135deg,#28313c,#607080)', text: '#eff7ff', border: '#93a7b8', glow: 'rgba(130,160,185,.38)' },
+            iron:           { bg: 'linear-gradient(135deg,#20262c,#59636b,#252c33)', text: '#f2f6f8', border: '#9ba7ae', glow: 'rgba(152,166,175,.44)' },
+            bronze:         { bg: 'linear-gradient(135deg,#60320f,#cd7f32,#f0b26d)', text: '#291403', border: '#e3a35d', glow: 'rgba(211,128,48,.55)' },
+            silver:         { bg: 'linear-gradient(135deg,#6c7780,#e9f0f4,#96a4ae)', text: '#17232c', border: '#effaff', glow: 'rgba(205,229,244,.58)' },
+            gold:           { bg: 'linear-gradient(135deg,#875100,#ffe370,#b87500)', text: '#332000', border: '#fff0a3', glow: 'rgba(255,208,48,.7)' },
+            diamond:        { bg: 'linear-gradient(135deg,#075973,#36d6ea,#e2ffff)', text: '#003643', border: '#9cfaff', glow: 'rgba(70,227,255,.72)' },
+            blackdiamond:   { bg: 'linear-gradient(135deg,#03070d,#102a3d,#080d15)', text: '#d6fbff', border: '#43d8ef', glow: 'rgba(31,201,234,.7)' },
+            master:         { bg: 'linear-gradient(135deg,#26003c,#9b32db,#e3b5ff)', text: '#fff', border: '#dfacff', glow: 'rgba(179,75,255,.76)' },
+            grandmaster:    { bg: 'linear-gradient(135deg,#3c0715,#bc2344,#f6bb58)', text: '#fff7e7', border: '#ffc968', glow: 'rgba(246,121,71,.78)' },
+            ultimatemaster: { bg: 'linear-gradient(135deg,#061127,#1c5b9d,#d5f3ff)', text: '#f4fcff', border: '#a6eaff', glow: 'rgba(90,191,255,.82)' },
+            suprememaster:  { bg: 'linear-gradient(135deg,#2b123f,#9f66e7,#fff3ff)', text: '#fff', border: '#f3d2ff', glow: 'rgba(212,136,255,.88)' },
+            aurora:         { bg: 'linear-gradient(90deg,#00ff9d,#00bfff,#a020f0,#ff56c9,#00ff9d)', text: '#fff', border: '#fff', glow: 'rgba(120,245,255,.9)' },
+            legend:         { bg: 'linear-gradient(135deg,#080603,#6c4800,#fff0a1,#6c4800,#080603)', text: '#fff9dc', border: '#fff1a8', glow: 'rgba(255,210,71,.95)' }
         };
         // 公式異名。ランクバッジの直後に表示し、特別な実績をひと目で分かるようにする。
         const PLAYER_EPITHETS = Object.freeze({
@@ -7797,11 +7962,11 @@ function getPswcWinnerCount(username) {
             const style = BADGE_GROUP_STYLE[tier.group];
             const fontSize = size === 'small' ? '0.65cqw' : '0.75cqw';
             const padding = size === 'small' ? '1px 5px' : '2px 7px';
-            const isAurora = tier.group === 'aurora' ? ' badge-aurora' : '';
-            const rankMark = tier.group === 'aurora' ? 'A' : tier.label.slice(-1);
+            const specialBadgeClass = tier.group === 'aurora' ? ' badge-aurora' : (tier.group === 'legend' ? ' badge-legend' : '');
+            const rankMark = tier.mark || tier.label.charAt(0);
             const guild = guildBadgeByMember[username];
             const guildIcon = guild
-                ? `<span class="guild-badge guild-rank-${Math.max(0, Math.min(7, Number(guild.rank) || 0))}" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
+                ? `<span class="guild-badge guild-rank-${Math.max(0, Math.min(GUILD_RANK_EXP.length - 1, Number(guild.rank) || 0))}" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
                 : '<span class="guild-badge guild-badge-empty" title="ギルド未所属"></span>';
             const wins = getPswcWinnerCount(username);
             const winnerBadge = wins > 0 ? `<span class="weekly-cup-winner-badge" title="PSWC 優勝 ${wins} 回">🏆×${wins}</span>` : '';
@@ -7809,7 +7974,7 @@ function getPswcWinnerCount(username) {
             const epithetBadge = epithet
                 ? `<span class="player-epithet" title="${epithet.title}" style="display:inline-flex; align-items:center; margin-left:.32em; padding:${size === 'small' ? '1px 5px' : '2px 7px'}; border:1px solid ${epithet.border}; border-radius:.2em; background:${epithet.bg}; color:${epithet.text}; font-size:${size === 'small' ? '.63cqw' : '.73cqw'}; font-weight:900; line-height:1.25; white-space:nowrap; text-shadow:0 1px #000; box-shadow:0 0 6px ${epithet.glow};">${epithet.title}</span>`
                 : '';
-            return `<span class="badge-chip${isAurora}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${epithetBadge}${guildIcon}${winnerBadge}`;
+            return `<span class="badge-chip${specialBadgeClass}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${epithetBadge}${guildIcon}${winnerBadge}`;
         }
 
         // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
@@ -7856,8 +8021,9 @@ function getPswcWinnerCount(username) {
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const radius = 150;
-            const labels = ["Leader", "TimeAttacker", "Quality", "Contrib.", "Creator"];
-            const values = [stats.leader, stats.timeAttacker, stats.stageQuality, stats.contribution, stats.creator];
+            const labels = ["Time Attack", "Creator", "Quality"];
+            const values = [stats.timeAttacker, stats.creator, stats.stageQuality];
+            const axisCount = labels.length;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -7873,8 +8039,8 @@ function getPswcWinnerCount(username) {
             ctx.lineWidth = 1;
             for (let j = 1; j <= 5; j++) {
                 ctx.beginPath();
-                for (let i = 0; i < 5; i++) {
-                    const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                for (let i = 0; i < axisCount; i++) {
+                    const angle = (i * 2 * Math.PI / axisCount) - Math.PI / 2;
                     const r = (radius / 5) * j;
                     ctx.lineTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
                 }
@@ -7882,8 +8048,8 @@ function getPswcWinnerCount(username) {
                 ctx.strokeStyle = j === 5 ? 'rgba(117, 229, 255, .62)' : 'rgba(150, 213, 255, .2)';
                 ctx.stroke();
             }
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+            for (let i = 0; i < axisCount; i++) {
+                const angle = (i * 2 * Math.PI / axisCount) - Math.PI / 2;
                 ctx.beginPath(); ctx.moveTo(centerX, centerY);
                 ctx.lineTo(centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle));
                 ctx.strokeStyle = 'rgba(160, 225, 255, .24)'; ctx.stroke();
@@ -7891,8 +8057,8 @@ function getPswcWinnerCount(username) {
 
             // ステータスの面と頂点。
             ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+            for (let i = 0; i < axisCount; i++) {
+                const angle = (i * 2 * Math.PI / axisCount) - Math.PI / 2;
                 const r = (radius * values[i] / 100);
                 ctx.lineTo(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle));
             }
@@ -7908,8 +8074,8 @@ function getPswcWinnerCount(username) {
             ctx.lineWidth = 3;
             ctx.stroke();
             ctx.shadowBlur = 0;
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+            for (let i = 0; i < axisCount; i++) {
+                const angle = (i * 2 * Math.PI / axisCount) - Math.PI / 2;
                 const r = radius * values[i] / 100;
                 ctx.beginPath(); ctx.arc(centerX + r * Math.cos(angle), centerY + r * Math.sin(angle), 5, 0, Math.PI * 2);
                 ctx.fillStyle = '#eaffff'; ctx.fill();
@@ -7918,8 +8084,8 @@ function getPswcWinnerCount(username) {
 
             // ラベルは項目名と数値を色分けして読みやすくする。
             ctx.textAlign = "center";
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+            for (let i = 0; i < axisCount; i++) {
+                const angle = (i * 2 * Math.PI / axisCount) - Math.PI / 2;
                 const labelR = radius + 40;
                 const lx = centerX + labelR * Math.cos(angle);
                 const ly = centerY + labelR * Math.sin(angle);
@@ -8282,7 +8448,7 @@ function getPswcWinnerCount(username) {
                 title.innerText = "RANK: LEVEL";
                 sorted = users.slice().sort((a, b) => (Number(playerLevelsByUsername.get(b)) || 1) - (Number(playerLevelsByUsername.get(a)) || 1) || String(a).localeCompare(String(b)));
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">LEVEL</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#fff36b;">Lv.${Number(playerLevelsByUsername.get(u)) || 1}</td>`;
+                rowFunc = (u, i) => { const level = Number(playerLevelsByUsername.get(u)) || 1; return `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;"><span class="level-flame ${getPlayerLevelFlameClass(level)}">Lv.${level}</span></td>`; };
             } else if (tab === 'player') {
                 title.innerText = "RANK: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
@@ -9264,7 +9430,7 @@ function getPswcWinnerCount(username) {
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'}, {type:'WH', id:'icon-WH'},
-                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
+                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'^N', id:'icon-uow'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
@@ -10101,6 +10267,21 @@ function getPswcWinnerCount(username) {
                     ctx.lineTo(x*cw + cw - pad, y*ch + ch - pad);
                     ctx.stroke();
                 }
+            } else if(type === '^N') {
+                const upOneWayInset = pad;
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(x*cw + upOneWayInset, y*ch + upOneWayInset, cw - upOneWayInset * 2, ch - upOneWayInset * 2);
+                ctx.strokeStyle = '#ffeb3b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x*cw + cw*.2, y*ch + ch*.7);
+                ctx.lineTo(x*cw + cw*.5, y*ch + ch*.3);
+                ctx.lineTo(x*cw + cw*.8, y*ch + ch*.7);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x*cw + pad, y*ch + pad);
+                ctx.lineTo(x*cw + cw - pad, y*ch + pad);
+                ctx.stroke();
             } else if(type === 'C') {
                 // チェックポイント（ゴールゲートの色違い版）
                 // ビッグでもチェックポイント自体を4分割するため、描画座標をそのまま判定に使う。
@@ -11189,7 +11370,7 @@ function getPswcWinnerCount(username) {
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
             'B','CB','HBK','S','G','WG','KG','K','M','E','A','T','TD','TL','TR','X','W','L','U','P','H','AC',
-            '>','<','v','>N','<N','vN','C','q','k','r','b','!','Y','d','J','j','y',
+            '>','<','v','>N','<N','vN','^N','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','WH','sp','mg','BB','BBN','LM','WC','WCN','IC',
             'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB'
         ]);
@@ -11609,6 +11790,7 @@ function getPswcWinnerCount(username) {
         }
 
         function showMessage(title, content, showRetry = false) {
+            ensureGameResultLayer();
             const overlay = document.getElementById('msg-overlay');
             stopStageBGM();
             playHorizonBGM();
@@ -11719,6 +11901,7 @@ function getPswcWinnerCount(username) {
         }
 
         async function showReward() {
+            ensureGameResultLayer();
             stopStageBGM();
             playHorizonBGM();
             // タイムを小数第三位まで計算
@@ -11978,12 +12161,12 @@ function getPswcWinnerCount(username) {
             if (cpDisplay) cpDisplay.innerText = userCP;
             const levelDisplay = document.getElementById('user-level');
             const levelExpDisplay = document.getElementById('user-level-exp');
-            if (levelDisplay) levelDisplay.innerText = `Lv.${userPlayerLevel}`;
+            if (levelDisplay) { levelDisplay.innerText = `Lv.${userPlayerLevel}`; applyPlayerLevelFlame(levelDisplay, userPlayerLevel); }
             if (levelExpDisplay) levelExpDisplay.innerText = `${userPlayerLevelExp}/${userPlayerLevelNextExp}`;
             const gaugeLevel = document.getElementById('home-level-gauge-level');
             const gaugeExp = document.getElementById('home-level-gauge-exp');
             const gaugeFill = document.getElementById('home-level-gauge-fill');
-            if (gaugeLevel) gaugeLevel.innerText = `Lv.${userPlayerLevel}`;
+            if (gaugeLevel) { gaugeLevel.innerText = `Lv.${userPlayerLevel}`; applyPlayerLevelFlame(gaugeLevel, userPlayerLevel); }
             if (gaugeExp) gaugeExp.innerText = `${userPlayerLevelExp} / ${userPlayerLevelNextExp} EXP`;
             if (gaugeFill) gaugeFill.style.width = `${Math.max(0, Math.min(100, userPlayerLevelExp / Math.max(1, userPlayerLevelNextExp) * 100))}%`;
             const asDisplay = document.getElementById('user-as');
@@ -12121,6 +12304,7 @@ function getPswcWinnerCount(username) {
                     if (t && !INDESTRUCTIBLE_TILES.includes(t)) {
                         spawnBlockDebris(bx, by, t);
                         activeStage[by][bx] = null;
+                        if (t === 'CA') removeCandlePosition(bx, by);
                         updateStageCacheTile(bx, by);
                     }
                 }
@@ -12368,7 +12552,7 @@ function getPswcWinnerCount(username) {
         // フリースタイルで壁キックできる、実体のある通常ブロック。
         // 鉄（BB/BBN/IC）と氷（I）は対象外。半ブロックや一方通行は壁全体ではないため除外する。
         function isFreestyleWallKickTile(tile) {
-            if (!tile || ['I', 'BB', 'BBN', 'IC', 'HBK', 'H', '>N', '<N', 'vN'].includes(tile)) return false;
+            if (!tile || ['I', 'BB', 'BBN', 'IC', 'HBK', 'H', '>N', '<N', 'vN', '^N'].includes(tile)) return false;
             if (tile === 'r') return isSwitchOn;
             if (tile === 'b') return !isSwitchOn;
             if (tile.startsWith('Z') && tile.length > 1) return true;
@@ -12457,6 +12641,7 @@ function getPswcWinnerCount(username) {
                     if (activeStage[footY][x] === 'CA') {
                         spawnBlockDebris(x, footY, 'CA');
                         activeStage[footY][x] = null;
+                        removeCandlePosition(x, footY);
                         extinguished = true;
                     }
                 }
@@ -12592,7 +12777,7 @@ function getPswcWinnerCount(username) {
                 const elapsed = frameCount / 60;
                 if (elapsed >= 100) {
                     isGoalTriggered = true;
-                    showMessage("TIME UP", "時間切れです！", true);
+                showMessage("TIME UP", t('game.timeUp'), true);
                     return;
                 }
             }
@@ -12882,6 +13067,18 @@ function getPswcWinnerCount(username) {
                 }
             }
             // 一方通行（下 'v'）の判定：上への移動をブロック
+            if (!collidedY && player.vy > 0) {
+                const footY = player.y + player.h;
+                const nextFootY = nextY + player.h;
+                const ix = Math.floor(player.x + player.w / 2);
+                const iy = Math.floor(nextFootY);
+                const upOneWayTile = activeStage[iy] && activeStage[iy][ix];
+                const upOneWaySurface = iy + 0.08;
+                if (upOneWayTile === '^N' && footY <= upOneWaySurface) {
+                    collidedY = true;
+                    nextY = upOneWaySurface - player.h;
+                }
+            }
             if (!collidedY && player.vy < 0) {
                 let headY = nextY;
                 let ix = Math.floor(player.x + player.w/2), iy = Math.floor(headY);
@@ -13510,6 +13707,7 @@ function getPswcWinnerCount(username) {
                                 if (t && !INDESTRUCTIBLE_TILES.includes(t)) {
                                     spawnBlockDebris(bx, by, t);
                                     activeStage[by][bx] = null;
+                                    if (t === 'CA') removeCandlePosition(bx, by);
                                 }
                             }
                         }
@@ -13560,7 +13758,7 @@ function getPswcWinnerCount(username) {
                 // 壁（主要なソリッドブロック）に当たったら消える（矢の壁判定に準拠）
                 const sx_tile = Math.floor(s.x), sy_tile = Math.floor(s.y);
                 const sTile = activeStage[sy_tile] && activeStage[sy_tile][sx_tile];
-                const sHitWall = sTile === 'B' || sTile === 'X' || sTile === 'LM' || ['WC', 'IC'].includes(sTile) || sTile === 'BB' || sTile === 'BBN' || sTile === '>N' || sTile === '<N' || sTile === 'vN';
+                const sHitWall = sTile === 'B' || sTile === 'X' || sTile === 'LM' || ['WC', 'IC'].includes(sTile) || sTile === 'BB' || sTile === 'BBN' || sTile === '>N' || sTile === '<N' || sTile === 'vN' || sTile === '^N';
 
                 if (s.life <= 0 || s.x < -1 || s.x > GRID_W + 1 || s.y < -1 || s.y > GRID_H + 1 || sHitWall) {
                     sickles.splice(i, 1);
@@ -13587,7 +13785,7 @@ function getPswcWinnerCount(username) {
 
                 const fx_tile = Math.floor(f.x), fy_tile = Math.floor(f.y);
                 const fTile = activeStage[fy_tile] && activeStage[fy_tile][fx_tile];
-                const fHitWall = fTile === 'B' || fTile === 'X' || fTile === 'LM' || ['WC', 'IC'].includes(fTile) || fTile === 'BB' || fTile === 'BBN' || fTile === '>N' || fTile === '<N' || fTile === 'vN';
+                const fHitWall = fTile === 'B' || fTile === 'X' || fTile === 'LM' || ['WC', 'IC'].includes(fTile) || fTile === 'BB' || fTile === 'BBN' || fTile === '>N' || fTile === '<N' || fTile === 'vN' || fTile === '^N';
 
                 if (f.life <= 0 || f.x < -1 || f.x > GRID_W + 1 || f.y < -1 || f.y > GRID_H + 1 || fHitWall) {
                     fireballs.splice(i, 1);
@@ -14377,6 +14575,7 @@ function getPswcWinnerCount(username) {
                     if (tile && (!protectedTiles.has(tile) || (boss.isPurple && tile === 'V'))) {
                         if (boss.isPurple && boss.purpleBrokenBlocks?.length < 3) boss.purpleBrokenBlocks.push(tile);
                         activeStage[y][x] = null;
+                        if (tile === 'CA') removeCandlePosition(x, y);
                     }
                 }
             }
@@ -14422,10 +14621,10 @@ function getPswcWinnerCount(username) {
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
             }
             if (gameMode === 'test') {
-                showMessage("TEST FAILED", "ミスしてしまいました。", true);
+                showMessage("TEST FAILED", t('game.testFailed'), true);
             } else if (gameMode === 'play') {
                 // プレイモードでもメッセージを出して「OK（戻る）」を押せるように修正
-                showMessage("GAME OVER", "ステージ失敗！", true);
+                showMessage("GAME OVER", t('game.failed'), true);
             } else {
                 isGoalTriggered = false;
                 resetPlayer();
@@ -15357,12 +15556,16 @@ function getPswcWinnerCount(username) {
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
 
+            const savedLanguage = localStorage.getItem('pixel_stages_language');
+            currentLanguage = savedLanguage === 'en' ? 'en' : 'ja';
+
             const savedControlMode = localStorage.getItem('pixel_stages_control_mode');
             const legacyMobile = localStorage.getItem('pixel_stages_mobile') === 'true';
             controlMode = normalizeControlMode(savedControlMode || (legacyMobile ? 'buttons' : 'keyboard'));
             isMobileMode = controlMode !== 'keyboard';
             syncControlModeInputs();
             updatePlayerControlLogo();
+            applyLanguage();
             setupMobileControls();
 
             isSchoolMode = localStorage.getItem('pixel_stages_school_mode') === 'true';
