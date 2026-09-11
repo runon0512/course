@@ -7812,8 +7812,9 @@ function getPswcWinnerCount(username) {
                 owner.posts++;
                 owner.totalPlays += attempts;
                 owner.stagePlays.push(attempts);
-                // 神以上（神・神＋・未知・新次元）のクリア数をPioneer用に集計する。
-                const isPioneerStage = ['god', 'godplus', 'unknown', 'newdimension'].includes(getStageDifficultyFilterKey(stage));
+                // Pioneerは、5プレイ以上かつクリア率2%以下の高難度ステージのクリア数で評価する。
+                const clearRate = attempts > 0 ? (Number(stage.clears) || 0) / attempts * 100 : 100;
+                const isPioneerStage = attempts >= 5 && clearRate <= 2;
                 const leaderboard = Array.isArray(stage.leaderboard) ? stage.leaderboard : [];
                 const topTime = leaderboard.length ? leaderboard[0].time : null;
                 for (const record of leaderboard) {
