@@ -7800,7 +7800,7 @@ function getPswcWinnerCount(username) {
             const register = (name, skin = 'default', color = 'default', customSprite = null) => {
                 const username = String(name || '');
                 if (!username) return;
-                if (!users[username]) users[username] = { clears: 0, posts: 0, firsts: 0, totalPlays: 0, stagePlays: [], skin, color, customSprite };
+                if (!users[username]) users[username] = { clears: 0, pioneerClears: 0, posts: 0, firsts: 0, totalPlays: 0, stagePlays: [], skin, color, customSprite };
                 else if (skin !== 'default') Object.assign(users[username], { skin, color, customSprite });
             };
             for (const stage of stages) {
@@ -7812,6 +7812,8 @@ function getPswcWinnerCount(username) {
                 owner.posts++;
                 owner.totalPlays += attempts;
                 owner.stagePlays.push(attempts);
+                // 神以上（神・神＋・未知・新次元）のクリア数をPioneer用に集計する。
+                const isPioneerStage = ['god', 'godplus', 'unknown', 'newdimension'].includes(getStageDifficultyFilterKey(stage));
                 const leaderboard = Array.isArray(stage.leaderboard) ? stage.leaderboard : [];
                 const topTime = leaderboard.length ? leaderboard[0].time : null;
                 for (const record of leaderboard) {
@@ -7819,6 +7821,7 @@ function getPswcWinnerCount(username) {
                     const user = users[String(record?.name || '')];
                     if (!user) continue;
                     user.clears++;
+                    if (isPioneerStage) user.pioneerClears++;
                     if (record.time === topTime) user.firsts++;
                 }
             }
@@ -7836,6 +7839,8 @@ function getPswcWinnerCount(username) {
             const maxContribution = Math.max(...rows.map(user => user.clears + user.posts), 1);
             const maxTotalPlays = Math.max(...rows.map(user => user.totalPlays), 1);
             const averageCreatorPlays = rows.reduce((sum, user) => sum + user.totalPlays, 0) / Math.max(1, rows.length);
+            const maxPioneerClears = Math.max(...rows.map(user => user.pioneerClears), 1);
+            const averagePioneerClears = rows.reduce((sum, user) => sum + user.pioneerClears, 0) / Math.max(1, rows.length);
             const globalAvgPlays = stages.reduce((total, stage) => total + (Number(stage.attempts) || 0), 0) / totalStages;
             const top5Averages = new Map(rows.map(user => {
                 const top = user.stagePlays.slice().sort((a, b) => b - a).slice(0, 5);
@@ -7851,11 +7856,17 @@ function getPswcWinnerCount(username) {
                 const stageQuality = Math.round(Math.max(1, Math.min(100, quality)));
                 const contribution = Math.round(Math.max(1, (user.clears + user.posts) / maxContribution * 100));
                 const creator = Math.round(Math.max(1, Math.min(100, user.totalPlays <= 0 ? 1 : user.totalPlays >= averageCreatorPlays ? 60 + (user.totalPlays - averageCreatorPlays) * 40 / Math.max(1, maxTotalPlays - averageCreatorPlays) : 1 + user.totalPlays / Math.max(1, averageCreatorPlays) * 59)));
-                results[username] = { timeAttacker, stageQuality, creator, ovr: Math.round((timeAttacker + stageQuality + creator) / 3), skin: user.skin || 'default', color: user.color || 'default', customSprite: user.customSprite || null };
+                const pioneer = Math.round(Math.max(1, Math.min(100,
+                    user.pioneerClears <= 0 ? 1
+                    : user.pioneerClears >= maxPioneerClears ? 100
+                    : user.pioneerClears >= averagePioneerClears ? 60 + (user.pioneerClears - averagePioneerClears) * 40 / Math.max(1, maxPioneerClears - averagePioneerClears)
+                    : 1 + user.pioneerClears / Math.max(1, averagePioneerClears) * 59
+                )));
+                results[username] = { timeAttacker, stageQuality, creator, pioneer, ovr: Math.round((timeAttacker + stageQuality + creator + pioneer) / 4), skin: user.skin || 'default', color: user.color || 'default', customSprite: user.customSprite || null };
             });
             profileStatsCacheRef = stages;
             profileStatsByUsername = results;
-            return results[key] || { timeAttacker: 1, stageQuality: 1, creator: 1, ovr: 1, skin: 'default', color: 'default', customSprite: null };
+            return results[key] || { timeAttacker: 1, stageQuality: 1, creator: 1, pioneer: 1, ovr: 1, skin: 'default', color: 'default', customSprite: null };
         }
 
         // --- OVRバッジシステム ---
@@ -8006,8 +8017,8 @@ function getPswcWinnerCount(username) {
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             const radius = 150;
-            const labels = ["Time Attack", "Creator", "Quality"];
-            const values = [stats.timeAttacker, stats.creator, stats.stageQuality];
+            const labels = ["Time Attack", "Creator", "Quality", "Pioneer"];
+            const values = [stats.timeAttacker, stats.creator, stats.stageQuality, stats.pioneer || 1];
             const axisCount = labels.length;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
