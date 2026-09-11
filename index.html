@@ -2704,7 +2704,7 @@
                     <select id="stage-type-crown-select" onchange="showGlobalRanking(this.value === 'all' ? 'player' : 'typeCrowns:' + this.value)" style="min-width:15cqw; padding:.55cqh .7cqw; color:#effbff; background:#142e50; border:.12cqw solid #75e8ff; border-radius:.3cqw; font:inherit; cursor:pointer;">
                         <option value="all">タイプ別1位</option>
                         <option value="normal">☀ クラシック</option>
-                        <option value="water">🌊 ウォーター</option><option value="dark">🌑 ダーク</option><option value="volcano">🌋 ボルケーノ</option><option value="moon">🌙 ムーン</option><option value="beach">🏖 ビーチ</option>
+                        <option value="water">🌊 ウォーター</option><option value="dark">🌑 ダーク</option><option value="mist">🌫 ミスト</option><option value="volcano">🌋 ボルケーノ</option><option value="submarine_volcano">🌊🌋 サブマリンボルケーノ</option><option value="moon">🌙 ムーン</option><option value="beach">🏖 ビーチ</option>
                         <option value="timeattack">⌛ タイムアタック</option><option value="hard">⚔ ハード</option><option value="untouchable">☠ アンタッチャブル</option><option value="autorun">▶ オートラン</option><option value="freestyle">🧗 フリースタイル</option><option value="rai_alvaro">⚡ ライ・アルバロ</option>
                     </select>
                     <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
@@ -3264,6 +3264,8 @@ function getPswcWinnerCount(username) {
             { type: 'freestyle', title: 'フリースタイル', text: '鉄・氷以外の壁ならどこでも壁キックできます。アクションブロック以外の壁キック速度は半分です。' },
             { type: 'water', title: 'ウォーター', text: '水中では移動に抵抗がかかり、ジャンプキーで上昇します。' },
             { type: 'dark', title: 'ダーク', text: 'プレイヤーとランプの周囲だけが明るく見えるステージです。' },
+            { type: 'mist', title: 'ミスト', text: '薄緑の霧が未探索の道を覆います。一度明るくなった固定地形は見え続けます。' },
+            { type: 'submarine_volcano', title: 'サブマリンボルケーノ', text: '水中の抵抗と、下から迫る溶岩が同時に適用されるステージです。' },
             { type: 'autorun', title: 'オートラン', text: '左右の移動はできず、プレイヤーが自動で走ります。壁にぶつかると方向を反転し、ジャンプだけを操作します。' },
             { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。' },
             { type: 'hard', title: 'ハード', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
@@ -8510,8 +8512,8 @@ function getPswcWinnerCount(username) {
 
             const stageTypeCrownKey = tab.startsWith('typeCrowns:') ? tab.slice('typeCrowns:'.length) : '';
             const stageTypeCrownNames = {
-                normal:'クラシック', freestyle:'フリースタイル', water:'ウォーター', dark:'ダーク', autorun:'オートラン', big:'ビッグ',
-                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', volcano:'ボルケーノ', moon:'ムーン', beach:'ビーチ', rai_alvaro:'ライ・アルバロ'
+                normal:'クラシック', freestyle:'フリースタイル', water:'ウォーター', dark:'ダーク', mist:'ミスト', autorun:'オートラン', big:'ビッグ',
+                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', rai_alvaro:'ライ・アルバロ'
             };
             if (stageTypeCrownKey) {
                 const typeName = stageTypeCrownNames[stageTypeCrownKey] || stageTypeCrownKey;
@@ -11203,8 +11205,8 @@ function getPswcWinnerCount(username) {
                 const hasWarpGate = grid => Array.isArray(grid) && grid.some(row => Array.isArray(row) && row.includes('WG'));
                 const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
                 const stageTypeNames = {
-                    normal: 'クラシック', freestyle: 'フリースタイル', water: 'ウォーター', dark: 'ダーク', autorun: 'オートラン', big: 'ビッグ', timeattack: 'タイムアタック',
-                    hard: 'ハード', untouchable: 'アンタッチャブル', volcano: 'ボルケーノ', moon: 'ムーン', beach: 'ビーチ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
+                    normal: 'クラシック', freestyle: 'フリースタイル', water: 'ウォーター', dark: 'ダーク', mist: 'ミスト', autorun: 'オートラン', big: 'ビッグ', timeattack: 'タイムアタック',
+                    hard: 'ハード', untouchable: 'アンタッチャブル', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
                 };
                 const stageTypeSource = getStageTypeSource(s);
                 const frontType = getStageTypeForFace(stageTypeSource, 'front');
