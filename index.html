@@ -42,8 +42,10 @@
         body.stage-viewport-bg-bg-sunset { background:linear-gradient(#ff7043, #3f51b5); }
         body.stage-viewport-bg-bg-hell { background:linear-gradient(#000, #b71c1c); }
         body.stage-viewport-bg-bg-heaven { background:radial-gradient(circle at 72% 18%, rgba(255,249,196,.98) 0 4%, rgba(255,232,134,.5) 9%, transparent 21%), radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.96) 0 25%, transparent 57%), linear-gradient(180deg, #63bcff 0%, #a8dcff 42%, #e4f6ff 70%, #fff9df 100%); }
+        body.stage-viewport-bg-bg-heaven-plus { background:radial-gradient(circle at 72% 18%, rgba(255,249,196,.98) 0 4%, rgba(255,219,132,.55) 10%, transparent 23%), radial-gradient(ellipse at 18% 12%, rgba(220,180,255,.5), transparent 28%), radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.94) 0 24%, transparent 56%), linear-gradient(180deg, #7766b7 0%, #a8c5ee 43%, #eadfff 72%, #fff5cc 100%); }
         body.stage-viewport-bg-bg-bw { background-color:#030000; background-image:repeating-radial-gradient(circle at 18% 30%, rgba(255,0,0,.34) 0 1px, transparent 1px 5px), repeating-radial-gradient(circle at 76% 68%, rgba(190,0,0,.28) 0 1px, transparent 1px 4px), linear-gradient(125deg, #000 0%, #190000 48%, #000 100%); background-size:17px 13px, 11px 19px, 100% 100%; }
         body.stage-viewport-bg-bg-aurora { background:radial-gradient(ellipse at 25% 12%, rgba(0,255,150,.24), transparent 38%), radial-gradient(ellipse at 76% 30%, rgba(160,32,240,.28), transparent 45%), linear-gradient(180deg, #050510, #10122b 54%, #050510); }
+        body.stage-viewport-bg-bg-limit { background:radial-gradient(ellipse at 50% -8%, rgba(255,252,204,.96) 0 8%, rgba(255,234,132,.42) 18%, transparent 42%), linear-gradient(180deg, #e3efff 0%, #8aa3c9 29%, #281b2c 51%, #4b080b 74%, #130003 100%); }
         /* 背景指定のshort-handで初期化されるため、端まで伸ばす指定は最後に適用する。 */
         body[class*="stage-viewport-bg-"]:not(.stage-viewport-bg-bg-bw) { background-repeat:no-repeat; background-size:cover; background-attachment:fixed; }
         body.stage-viewport-bg-bg-bw { background-repeat:repeat, repeat, no-repeat; background-attachment:fixed; }
@@ -144,6 +146,7 @@
         .container.bg-sunset { background: linear-gradient(#ff7043, #3f51b5); } /* 超難関: 夕方 */
         .container.bg-hell   { background: linear-gradient(#000, #b71c1c); } /* 鬼: 地獄 */
         .container.bg-heaven { background: radial-gradient(circle at 72% 18%, rgba(255, 249, 196, .98) 0 4%, rgba(255, 232, 134, .5) 9%, transparent 21%), radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.96) 0 25%, transparent 57%), linear-gradient(180deg, #63bcff 0%, #a8dcff 42%, #e4f6ff 70%, #fff9df 100%); } /* 神: 天界 */
+        .container.bg-heaven-plus { background:radial-gradient(circle at 72% 18%, rgba(255,249,196,.98) 0 4%, rgba(255,219,132,.55) 10%, transparent 23%), radial-gradient(ellipse at 18% 12%, rgba(220,180,255,.5), transparent 28%), radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.94) 0 24%, transparent 56%), linear-gradient(180deg, #7766b7 0%, #a8c5ee 43%, #eadfff 72%, #fff5cc 100%); } /* 神＋: 紫金の天界 */
         .container.bg-bw {
             background-color:#030000;
             background-image:
@@ -155,12 +158,15 @@
         } /* 未知: 黒地に赤ノイズ */
         @keyframes unknownRedNoise { 0% { background-position:0 0,0 0,0 0; } 100% { background-position:17px -13px,-11px 19px,0 0; } }
         .container.bg-aurora { background: #050510; } /* 新次元: オーロラ */
+        .container.bg-limit { background:radial-gradient(ellipse at 50% -8%, rgba(255,252,204,.96) 0 8%, rgba(255,234,132,.42) 18%, transparent 42%), linear-gradient(180deg, #e3efff 0%, #8aa3c9 29%, #281b2c 51%, #4b080b 74%, #130003 100%); } /* 極限: 天の光と地獄の境界 */
 
         /* 各背景でのレイヤー調整 */
         .container.bg-bw .clouds { display:none; }
         .container.bg-hell .clouds { display: none; }
         .container.bg-cloudy .clouds { filter: hue-rotate(45deg) saturate(1.35) brightness(.7); opacity: .72; }
         .container.bg-heaven .clouds { filter: brightness(1.35) sepia(.12); opacity: .92; }
+        .container.bg-heaven-plus .clouds { filter:brightness(1.2) hue-rotate(24deg) sepia(.24); opacity:.88; }
+        .container.bg-limit .clouds { opacity:.48; filter:brightness(.95) sepia(.4); }
 
         /* オーロラレイヤー */
         .aurora-layer {
@@ -1060,6 +1066,8 @@
         }
         #shop-overlay.daily-shop-room .daily-shop-sign { color:#ffe6a9 !important; font:700 3.4cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.1em; text-shadow:0 .18cqw 0 #35180e,0 0 1.2cqw rgba(255,185,85,.65) !important; }
         .daily-shop-subtitle { margin-top:.35cqh; color:#e5bf79; font-size:1cqw; letter-spacing:.15em; }
+        .shop-wallet { display:flex; align-items:center; justify-content:center; gap:1.2cqw; margin-top:.65cqh; color:#fff1be; font:700 1.05cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.06em; }
+        .shop-wallet span { padding:.34cqh .7cqw; border:.1cqw solid rgba(255,220,128,.55); border-radius:99px; background:rgba(65,36,22,.66); box-shadow:inset 0 0 .5cqw rgba(255,225,145,.1); }
         .daily-shop-interior { width:min(88cqw,1180px); height:70cqh; display:grid; grid-template-columns:minmax(16cqw,.36fr) minmax(0,1fr); grid-template-rows:auto 1fr; gap:1.2cqh 2cqw; padding:1.2cqw; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:linear-gradient(90deg,rgba(42,21,17,.96),rgba(82,42,24,.86) 48%,rgba(42,21,17,.96)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
         .daily-shop-counter { grid-row:1 / 3; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:56cqh; padding:1.2cqw; border:.18cqw solid #70411f; background:linear-gradient(180deg,rgba(34,21,23,.85),rgba(98,50,26,.8)); overflow:hidden; }
         .daily-shop-counter::before { content:''; position:absolute; inset:0; opacity:.35; background:repeating-linear-gradient(90deg,transparent 0 2.6cqw,rgba(255,205,116,.18) 2.7cqw 2.9cqw); pointer-events:none; }
@@ -1072,17 +1080,17 @@
         .daily-shop-speech::before { content:''; position:absolute; top:-.82cqh; left:50%; width:1.25cqw; height:1.25cqh; background:#fff8df; border-top:.14cqw solid #e5bf79; border-left:.14cqw solid #e5bf79; transform:translateX(-50%) rotate(45deg); }
         .daily-shop-speech:hover { transform:translateY(-.18cqh); filter:brightness(1.06); }
         .daily-shop-stock { grid-column:2; grid-row:1 / 3; min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-        .daily-shop-stock-head { display:flex; justify-content:space-between; align-items:end; gap:1cqw; padding:.55cqh .5cqw .9cqh; border-bottom:.16cqw solid #b77b40; color:#ffe4a7; }
+        .daily-shop-stock-head { display:flex; flex-direction:column; align-items:stretch; gap:.75cqh; padding:.55cqh .5cqw .9cqh; border-bottom:.16cqw solid #b77b40; color:#ffe4a7; }
         .daily-shop-stock-head b { font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
         #daily-shop-date { margin:0 !important; color:#e8be75 !important; font-size:.88cqw !important; text-align:right; }
         #shop-overlay .shop-tabs { position:absolute; top:2.6cqh; right:5cqw; z-index:2; margin:0; }
         #shop-overlay .shop-tabs { align-items:center; gap:.55cqw; }
         .shop-switch-tabs { display:flex; align-items:center; gap:.45cqw; }
-        .daily-shop-stock-head .stock-head-tools { display:flex; align-items:center; gap:.8cqw; }
+        .daily-shop-stock-head .stock-head-tools { display:flex; align-items:center; justify-content:space-between; gap:.8cqw; }
         #shop-overlay .shop-section-tab { color:#f6d59b; background:rgba(77,39,24,.88); }
         #shop-overlay .shop-section-tab.active { color:#281508; border-color:#ffe09b; background:linear-gradient(135deg,#ffd571,#e89b3e); box-shadow:0 0 .8cqw rgba(255,199,99,.48); }
         .event-shop-interior { width:min(88cqw,1180px); height:70cqh; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.3cqh; padding:1.2cqw; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:radial-gradient(circle at 50% 38%,rgba(255,197,84,.16),transparent 30%),linear-gradient(135deg,rgba(43,22,18,.98),rgba(92,43,26,.92),rgba(43,22,18,.98)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
-        .event-shop-header { width:min(56cqw,760px); display:flex; align-items:center; justify-content:space-between; gap:1cqw; color:#ffe4a7; font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
+        .event-shop-header { width:min(56cqw,760px); display:flex; flex-direction:column; align-items:center; gap:.8cqh; color:#ffe4a7; font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
         .event-shop-grid { width:min(39cqw,500px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1cqw; }
         #shop-overlay .event-shop-grid .shop-item { position:relative; min-height:24cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #d69b44; background:linear-gradient(180deg,rgba(101,45,33,.98),rgba(43,18,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
         #shop-overlay .event-shop-grid .shop-item::before { content:'EVENT'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,229,157,.68); font-size:.65cqw; letter-spacing:.12em; pointer-events:none; }
@@ -1091,6 +1099,13 @@
         #shop-overlay .event-shop-grid .daily-price-tag { width:100%; margin-top:.55cqh; border-color:#ffbd63; background:linear-gradient(135deg,#713116,#c65325); color:#fff0c1; }
         .event-shop-empty { min-width:min(60cqw,680px); box-sizing:border-box; padding:4cqh 3cqw; border:.18cqw dashed #e3ae56; color:#ffe7ad; font:700 2cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.12em; text-align:center; background:rgba(24,12,13,.48); text-shadow:0 0 .8cqw rgba(255,190,82,.6); }
         .event-shop-empty span { display:block; margin-top:1.3cqh; color:#e8c38b; font-size:1.05cqw; letter-spacing:.08em; }
+        .trade-shop-interior { width:min(88cqw,1180px); height:70cqh; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.8cqh; padding:2.2cqw; border:.26cqw solid #73e7ff; outline:.12cqw solid rgba(210,250,255,.42); background:radial-gradient(circle at 50% 28%,rgba(73,218,255,.2),transparent 34%),linear-gradient(135deg,rgba(8,30,56,.98),rgba(16,60,92,.92),rgba(10,22,48,.98)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(72,216,255,.22); }
+        .trade-rate-card { width:min(52cqw,700px); box-sizing:border-box; padding:2.1cqh 2cqw; text-align:center; border:.18cqw solid #8af2ff; background:linear-gradient(135deg,rgba(13,66,102,.88),rgba(17,28,74,.94)); box-shadow:inset 0 0 1.4cqw rgba(89,228,255,.14),0 0 1.1cqw rgba(69,213,255,.2); }
+        .trade-rate-label { color:#bdf6ff; font-size:1.05cqw; letter-spacing:.16em; }
+        .trade-rate-value { margin:.65cqh 0; color:#fff5bd; font:800 3.2cqw 'Roboto','Noto Sans JP',sans-serif; text-shadow:0 0 .8cqw rgba(255,221,104,.58); }
+        .trade-rate-note { color:#b9dbe8; font-size:.9cqw; line-height:1.6; }
+        .trade-actions { display:flex; gap:1.2cqw; }
+        .trade-actions .pixel-btn { min-width:18cqw; }
         .shop-event-notice { display:block; margin-top:.25cqh; color:#ffd25d; font-size:.72em; letter-spacing:.08em; text-shadow:0 0 .55cqw rgba(255,188,66,.76); }
         #shop-overlay .shop-grid { width:auto; min-height:0; max-height:none; flex:1; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1cqw; padding:1.2cqh .5cqh .6cqh; overflow-y:auto; overflow-x:hidden; align-content:start; }
         #shop-overlay .shop-item.daily-shelf-item { position:relative; min-width:0; min-height:19cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #9e6b39; background:linear-gradient(180deg,rgba(88,46,27,.96),rgba(40,22,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
@@ -1666,6 +1681,7 @@
         .difficulty-supergod { background:linear-gradient(135deg,#4d266f,#9b55d4,#f4c85a); border-color:#ffe69a; color:#fff9e8; box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 .7cqw rgba(216,156,255,.58); }
         .difficulty-unknown { background:linear-gradient(135deg,#1b1017,#4b1620); border-color:#ff4a5d; color:#ffd5da; }
         .difficulty-newdimension { background:linear-gradient(105deg,#096f91,#8142b3,#bd327f); border-color:#affcff; color:#fff; box-shadow:inset 0 1px 0 rgba(255,255,255,.48),0 0 .7cqw rgba(91,225,255,.65); }
+        .difficulty-limit { background:linear-gradient(135deg,#f6e7a8,#7b3745,#26030a); border-color:#fff0a3; color:#fffdf0; box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 .75cqw rgba(255,129,72,.46); }
         .stage-stats {
             font-size: 0.8cqw;
             color: #b8d7ed;
@@ -2278,7 +2294,7 @@
             <button id="menu-play" class="pixel-btn" data-i18n="home.play" onclick="openStageSelect()">プレイ</button>
             <button id="menu-create" class="pixel-btn" data-i18n="home.create" onclick="startEditor()">ステージ制作</button>
             <button id="menu-locker" class="pixel-btn" data-i18n="home.locker" onclick="openLocker()">ロッカー</button>
-            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice" data-i18n="home.eventNow">イベント開催中！</span></button>
+            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice" data-i18n="home.eventNow">トレード開始！</span></button>
             <button id="guild-btn" class="pixel-btn" data-i18n="home.guild" onclick="openGuild()">ギルド</button>
             </div>
 
@@ -2305,6 +2321,7 @@
         <div id="shop-overlay" class="screen daily-shop-room">
             <h2 class="daily-shop-sign" style="margin:0;">DAILY SHOP</h2>
             <div class="daily-shop-subtitle">本日の入荷品　—　毎日0:00（JST）更新</div>
+            <div id="shop-wallet" class="shop-wallet"><span>G: 0</span><span>AS: 0</span></div>
             <div class="shop-tabs">
                 <button class="pixel-btn small" onclick="closeShop()" style="background: #f44336; color: #fff;">戻る</button>
             </div>
@@ -2316,14 +2333,18 @@
                     <div id="shopkeeper-speech" class="daily-shop-speech" onclick="showNextShopkeeperLine()">「いらっしゃい。今日の掘り出し物を、ゆっくり見ていって。」</div>
                 </aside>
                 <section class="daily-shop-stock">
-                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div class="stock-head-tools"><div id="daily-shop-date"></div><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab active" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button></div></div></div>
+                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div class="stock-head-tools"><div id="daily-shop-date"></div><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab active" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div></div>
                     <div class="shop-grid" id="shop-container"></div>
                 </section>
             </div>
             <div id="event-shop-interior" class="event-shop-interior" style="display:none;">
                 <div class="event-shop-empty">OLYMPUS EVENT<span>オリンポス12神　第一弾</span></div>
-                <div class="event-shop-header"><span>イベント商品棚</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button></div></div>
+                <div class="event-shop-header"><span>イベント商品棚</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
                 <div id="event-shop-container" class="event-shop-grid"></div>
+            </div>
+            <div id="trade-shop-interior" class="trade-shop-interior" style="display:none;">
+                <div class="event-shop-header"><span>TRADE MARKET</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
+                <div id="trade-market-content" class="trade-rate-card">Loading...</div>
             </div>
         </div>
 
@@ -2705,7 +2726,7 @@
                         <option value="all">タイプ別1位</option>
                         <option value="normal">☀ クラシック</option>
                         <option value="water">🌊 ウォーター</option><option value="dark">🌑 ダーク</option><option value="mist">🌫 ミスト</option><option value="volcano">🌋 ボルケーノ</option><option value="submarine_volcano">🌊🌋 サブマリンボルケーノ</option><option value="moon">🌙 ムーン</option><option value="beach">🏖 ビーチ</option>
-                        <option value="timeattack">⌛ タイムアタック</option><option value="hard">⚔ ハード</option><option value="untouchable">☠ アンタッチャブル</option><option value="autorun">▶ オートラン</option><option value="freestyle">🧗 フリースタイル</option><option value="rai_alvaro">⚡ ライ・アルバロ</option>
+                        <option value="timeattack">⌛ タイムアタック</option><option value="hard">⚔ ハード</option><option value="untouchable">☠ アンタッチャブル</option><option value="autorun">▶ オートラン</option><option value="sky">☁ スカイ</option><option value="freestyle">🧗 フリースタイル</option><option value="rai_alvaro">⚡ ライ・アルバロ</option>
                     </select>
                     <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('gods')" style="min-width:12cqw;">Gods</button>
@@ -2800,6 +2821,7 @@
                         <option value="dark">🌑 ダーク</option>
                         <option value="timeattack">⌛ タイムアタック</option>
                         <option value="autorun">🏃 オートラン</option>
+                        <option id="stage-type-option-sky" value="sky" disabled hidden>☁️ スカイ</option>
                         <option id="stage-type-option-big" value="big" disabled hidden>⬛ ビッグ</option>
                         <option id="stage-type-option-hard" value="hard" disabled hidden>💀 ハード</option>
                         <option id="stage-type-option-untouchable" value="untouchable" disabled hidden>☠️ アンタッチャブル</option>
@@ -2856,6 +2878,7 @@
                     <div class="tool-btn rank-rare" id="btn-tool-d" onclick="setTool('d', this)" title="DOWNDRAFT" style="display:none;"><canvas id="icon-d" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-J" onclick="setTool('J', this)" title="R/B WIND" style="display:none;"><canvas id="icon-J" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-j" onclick="setTool('j', this)" title="JUMPER ENEMY" style="display:none;"><canvas id="icon-j" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-rare" id="btn-tool-IE" onclick="setTool('IE', this)" title="IRON ENEMY" style="display:none;"><canvas id="icon-IE" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-y" onclick="setTool('y', this)" title="YELLOW SPIKE" style="display:none;"><canvas id="icon-y" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-ug" onclick="setTool('ug', this)" title="UP GUN" style="display:none;"><canvas id="icon-ug" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-dg" onclick="setTool('dg', this)" title="DOWN GUN" style="display:none;"><canvas id="icon-dg" class="tool-canvas"></canvas></div>
@@ -2994,10 +3017,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwXzFn43r0VFWnlQg4kNhphw5qTFTQ5HAv-rbGVTfEo_GM1_WOq1a-AuIyoQSesktVa/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxKXgKPA4v3VqI-CSmCZs0WmwkhNtmSSdcH1WJcQ1anvBofCNFZTjFOHJKCFsswoFm1/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.8.1"
+            VERSION: "3.8.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3199,6 +3222,7 @@ function getPswcWinnerCount(username) {
             'KG': { title: 'キラーゴール', text: '紫の特殊ゴールです。すべてのチェックポイントを取り、ボスを含む敵を全滅させるまで開きません。' },
             'K': { title: 'スパイク', text: '触れるとプレイヤーがやられる危険なトゲです。' },
             'M': { title: '敵', text: '動く敵キャラクターです。ぶつかると死亡します。' },
+            'IE': { title: 'IRON ENEMY', text: '鉄の体を持つ無敵の敵です。横・下から当たると死亡しますが、上から踏むと倒れず、そのまま足場として乗れます。キラーゴールの対象にはなりません。' },
             'E': { title: '消しゴム', text: '配置したブロックやアイテムを消すツールです。' },
             'A': { title: '矢印発射装置', text: '左向きに矢を発射します。矢に触れると死亡します。' },
             'T': { title: 'トランポリン', text: '乗ると高く跳ね返る足場です。ジャンプ中継に使えます。' },
@@ -3273,6 +3297,7 @@ function getPswcWinnerCount(username) {
             { type: 'volcano', title: 'ボルケーノ', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
             { type: 'moon', title: 'ムーン', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: 'ビーチ', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
+            { type: 'sky', title: 'スカイ', text: '空中でも何度でもジャンプできます。空中ジャンプの高さは前回の60%になり、着地で戻ります。' },
             { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' }
         ];
         const BASE_GRID_W = 20, BASE_GRID_H = 10;
@@ -3325,7 +3350,7 @@ function getPswcWinnerCount(username) {
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
         const BASE_PLAYER_SIZE = 0.9;
-        let player = { x: 0, y: 0, w: BASE_PLAYER_SIZE, h: BASE_PLAYER_SIZE, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0 };
+        let player = { x: 0, y: 0, w: BASE_PLAYER_SIZE, h: BASE_PLAYER_SIZE, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0, skyJumpForce: -0.3 };
         let isSwitchOn = true;
         let keys = {};
         let pendingJumpPress = false;
@@ -4054,20 +4079,22 @@ function getPswcWinnerCount(username) {
             'custom3': { name: 'CUSTOM 3', price: 75000, sprite: null, isCustom: true },
             'spawner': { name: 'SPAWNER BLOCK', price: 75000, isBlockSet: true, sprite: null },
             'big_block': { name: 'IRON BLOCK', price: 10000, isBlockSet: true, sprite: null },
-            'lamp_block': { name: 'LAMP BLOCK', price: 15000, isBlockSet: true, sprite: null },
-            'wood_crate': { name: 'WOOD CRATE', price: 15000, isBlockSet: true, sprite: null },
+            'lamp_block': { name: 'LAMP BLOCK', price: 30000, isBlockSet: true, sprite: null },
+            'wood_crate': { name: 'WOOD CRATE', price: 55000, isBlockSet: true, sprite: null },
+            'iron_enemy': { name: 'IRON ENEMY', price: 30000, isBlockSet: true, sprite: null },
             'crack_block': { name: 'CRACK BLOCK', price: 50000, isBlockSet: true, sprite: null },
             'half_block': { name: 'HALF BLOCK', price: 3000, isBlockSet: true, sprite: null },
-            'side_trampoline_set': { name: 'SIDE TRAMPOLINE SET', price: 10000, isBlockSet: true, sprite: null },
-            'volcano_stage': { name: 'VOLCANO STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
-            'moon_stage': { name: 'MOON STAGE', price: 40000, isBlockSet: true, isStageType: true, sprite: null },
+            'side_trampoline_set': { name: 'SIDE TRAMPOLINE SET', price: 40000, isBlockSet: true, sprite: null },
+            'volcano_stage': { name: 'VOLCANO STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
+            'moon_stage': { name: 'MOON STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'beach_stage': { name: 'BEACH STAGE', price: 60000, isBlockSet: true, isStageType: true, sprite: null },
-            'hard_stage': { name: 'HARD STAGE', price: 20000, isBlockSet: true, isStageType: true, sprite: null },
+            'sky_stage': { name: 'SKY STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
+            'hard_stage': { name: 'HARD STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'untouchable_stage': { name: 'UNTOUCHABLE STAGE', price: 20000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
-            'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 30000, isBlockSet: true, sprite: null },
+            'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 35000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
-            'black_boss': { name: 'BLACK + CANDLE + GOLD BLOCK', price: 30000, isBlockSet: true, sprite: null },
+            'black_boss': { name: 'BLACK + CANDLE + GOLD BLOCK', price: 70000, isBlockSet: true, sprite: null },
             'hestia_boss': { name: 'HESTIA', price: 20, isES: true, isBlockSet: true, sprite: null },
             'hermes_boss': { name: 'HERMES', price: 20, isES: true, isBlockSet: true, sprite: null },
             'demeter_boss': { name: 'DEMETER', price: 25000, isBlockSet: true, sprite: null },
@@ -4870,22 +4897,36 @@ function getPswcWinnerCount(username) {
             openShop(false, section);
         }
 
+        function updateShopWallet() {
+            const wallet = document.getElementById('shop-wallet');
+            if (!wallet) return;
+            wallet.innerHTML = `<span>G: ${Math.max(0, Number(userGold) || 0).toLocaleString()}</span><span>AS: ${Math.max(0, Number(userAS) || 0).toLocaleString()}</span>`;
+        }
+
         async function openShop(preserveShopkeeperLine = false, section = activeShopSection) {
-            activeShopSection = section === 'event' ? 'event' : 'daily';
+            activeShopSection = ['daily', 'event', 'trade'].includes(section) ? section : 'daily';
             const isDaily = activeShopSection === 'daily';
+            const isEvent = activeShopSection === 'event';
+            const isTrade = activeShopSection === 'trade';
             const overlay = document.getElementById('shop-overlay');
             overlay.style.display = 'flex';
+            updateShopWallet();
             document.querySelector('.daily-shop-interior').style.display = isDaily ? 'grid' : 'none';
-            document.getElementById('event-shop-interior').style.display = isDaily ? 'none' : 'flex';
+            document.getElementById('event-shop-interior').style.display = isEvent ? 'flex' : 'none';
+            document.getElementById('trade-shop-interior').style.display = isTrade ? 'flex' : 'none';
             document.querySelectorAll('[data-shop-section]').forEach(button => {
                 button.classList.toggle('active', button.dataset.shopSection === activeShopSection);
             });
-            overlay.querySelector('.daily-shop-sign').innerText = isDaily ? 'DAILY SHOP' : 'EVENT SHOP';
+            overlay.querySelector('.daily-shop-sign').innerText = isDaily ? 'DAILY SHOP' : (isEvent ? 'EVENT SHOP' : 'TRADE MARKET');
             overlay.querySelector('.daily-shop-subtitle').innerText = isDaily
                 ? '本日の入荷品　—　毎日0:00（JST）更新'
-                : 'オリンポス12神　第一弾 開催中';
-            if (!isDaily) {
+                : (isEvent ? 'オリンポス12神　第一弾 開催中' : '全プレイヤー共通のAS相場');
+            if (isEvent) {
                 renderEventShop();
+                return;
+            }
+            if (isTrade) {
+                await renderTradeMarket();
                 return;
             }
             const container = document.getElementById('shop-container');
@@ -5008,6 +5049,51 @@ function getPswcWinnerCount(username) {
             });
         }
 
+        async function renderTradeMarket() {
+            const content = document.getElementById('trade-market-content');
+            if (!content) return;
+            content.textContent = 'Loading...';
+            try {
+                const res = await callApi('getTradeRate', {});
+                if (!res?.success) throw new Error(res?.message || '相場を取得できませんでした。');
+                const price = Math.max(1, Math.round(Number(res.price) || 200000));
+                content.innerHTML = `
+                    <div class="trade-rate-label">CURRENT AS PRICE</div>
+                    <div class="trade-rate-value">1 AS = ${price.toLocaleString()} G</div>
+                    <div class="trade-rate-note">購入すると次の価格は3%上昇します。<br>売却すると次の価格は100/103倍になります。</div>
+                    <div class="trade-actions" style="margin-top:2cqh; justify-content:center;">
+                        <button id="trade-buy-btn" class="pixel-btn" onclick="executeTrade('buy')">1 AS を購入</button>
+                        <button id="trade-sell-btn" class="pixel-btn" style="background:#a64b64;" onclick="executeTrade('sell')">1 AS を売却</button>
+                    </div>
+                    <div style="margin-top:1.5cqh; color:#d8f5ff; font-size:.9cqw;">所持：${Number(userGold || 0).toLocaleString()} G ／ ${Number(userAS || 0).toLocaleString()} AS</div>`;
+            } catch (_) {
+                content.innerHTML = '<div style="color:#ffb0b8;">相場を読み込めませんでした。<br><button class="pixel-btn small" style="margin-top:1cqh;" onclick="renderTradeMarket()">再読み込み</button></div>';
+            }
+        }
+
+        async function executeTrade(direction) {
+            const buyButton = document.getElementById('trade-buy-btn');
+            const sellButton = document.getElementById('trade-sell-btn');
+            [buyButton, sellButton].forEach(button => { if (button) { button.disabled = true; button.style.opacity = '.55'; } });
+            try {
+                const res = await callApi('executeTrade', { username: CONFIG.USERNAME, direction, amount: 1 });
+                if (!res?.success) {
+                    showQuickMsg(res?.message || 'トレードできませんでした。', 'var(--secondary-color)');
+                    return;
+                }
+                userGold = Number(res.gold) || 0;
+                userAS = Number(res.auroraStones) || 0;
+                updateGoldDisplay();
+                updateShopWallet();
+                showQuickMsg(direction === 'buy' ? 'ASを購入しました。相場が上昇しました。' : 'ASを売却しました。相場が下落しました。', 'var(--primary-color)');
+                await renderTradeMarket();
+            } catch (_) {
+                showQuickMsg('トレード通信に失敗しました。', 'var(--secondary-color)');
+            } finally {
+                [buyButton, sellButton].forEach(button => { if (button && button.isConnected) { button.disabled = false; button.style.opacity = '1'; } });
+            }
+        }
+
         function createShopItem(container, id, data, isPurchased, isEquipped, onBuy) {
             const item = document.createElement('div');
             item.className = 'shop-item';
@@ -5092,6 +5178,13 @@ function getPswcWinnerCount(username) {
                 ctx.fillStyle = '#fff4b3'; ctx.fillRect(0, 28, 64, 4);
                 ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1;
                 for (let x = 0; x < 64; x += 14) { ctx.beginPath(); ctx.arc(x + 7, 35, 6, Math.PI, Math.PI * 2); ctx.stroke(); }
+            } else if (data.isStageType && id === 'sky_stage') {
+                const sky = ctx.createLinearGradient(0, 0, 0, 64);
+                sky.addColorStop(0, '#2f8de8'); sky.addColorStop(1, '#bcecff');
+                ctx.fillStyle = sky; ctx.fillRect(0, 0, 64, 64);
+                ctx.fillStyle = 'rgba(255,255,255,.9)';
+                [[14,18,12],[43,29,15],[25,48,10]].forEach(([x,y,r]) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); });
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('SKY', 32, 59);
             } else if (data.isStageType && id === 'rai_alvaro_stage') {
                 ctx.fillStyle = '#101226'; ctx.fillRect(0, 0, 64, 64);
                 drawPlayer(ctx, 0, 0, 64, 64, 'rai_alvaro_stage_avatar');
@@ -5105,6 +5198,7 @@ function getPswcWinnerCount(username) {
                 if (id === 'big_block') previewType = 'BB';
                 if (id === 'lamp_block') previewType = 'LM';
                 if (id === 'wood_crate') previewType = 'WC';
+                if (id === 'iron_enemy') previewType = 'IE';
                 if (id === 'crack_block') previewType = 'CB';
                 if (id === 'half_block') previewType = 'HBK';
                 if (id === 'side_trampoline_set') previewType = 'TR';
@@ -5167,6 +5261,7 @@ function getPswcWinnerCount(username) {
             purchasedSkins.push(id);
 
             updateGoldDisplay();
+            updateShopWallet();
             const saveResult = await callApi('updateSkins', { 
                 username: CONFIG.USERNAME, 
                 gold: userGold, 
@@ -5185,7 +5280,7 @@ function getPswcWinnerCount(username) {
         };
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', '^N', 'C', 'q', 'k', 'r', 'b', '!'],
-            rare: ['Y', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
+            rare: ['Y', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'IE', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['hr', 'hb', 'e', '#'],
             legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
             aurora: ['IC', 'WH']
@@ -5202,7 +5297,7 @@ function getPswcWinnerCount(username) {
         // ブロック系 → 敵・トゲ・銃 → R/B系 → 特殊系
         const CREATOR_TOOL_CATEGORY_ORDER = [
             'T', 'TD', 'X', 'H', '>N', '<N', 'vN', '^N', 'Y', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
-            'k', 'q', 'y', 'j', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
+            'k', 'q', 'y', 'j', 'IE', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
             'r', 'b', '!', 'J', 'hr', 'hb',
             'W', 'L', 'U', 'd', 'P', 'C', 'KG', 'BH', 'WH', 'sp', 'EC'
         ];
@@ -5302,7 +5397,7 @@ function getPswcWinnerCount(username) {
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', hard: '#2a1018', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', rai_alvaro: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', hard: '#2a1018', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', sky: '#54bdf2', rai_alvaro: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach') {
@@ -8513,7 +8608,7 @@ function getPswcWinnerCount(username) {
             const stageTypeCrownKey = tab.startsWith('typeCrowns:') ? tab.slice('typeCrowns:'.length) : '';
             const stageTypeCrownNames = {
                 normal:'クラシック', freestyle:'フリースタイル', water:'ウォーター', dark:'ダーク', mist:'ミスト', autorun:'オートラン', big:'ビッグ',
-                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', rai_alvaro:'ライ・アルバロ'
+                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', sky:'スカイ', rai_alvaro:'ライ・アルバロ'
             };
             if (stageTypeCrownKey) {
                 const typeName = stageTypeCrownNames[stageTypeCrownKey] || stageTypeCrownKey;
@@ -9126,6 +9221,7 @@ function getPswcWinnerCount(username) {
             if (['o', 'D'].includes(key)) return purchasedSkins.includes('key_set');
             if (key === 'V') return purchasedSkins.includes('aurora_block');
             if (key === 'BH') return purchasedSkins.includes('black_hole');
+            if (key === 'IE') return purchasedSkins.includes('iron_enemy');
             if (key === '#') return purchasedSkins.includes('wire_mesh');
             if (key === 'sp') return purchasedSkins.includes('spawner');
             if (key === 'mg') return hasRoadReward(15);
@@ -9270,7 +9366,7 @@ function getPswcWinnerCount(username) {
             activeStage = [];
             // エディタ背景をリセット
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-clear-sky');
+            container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-heaven-plus', 'bg-bw', 'bg-aurora', 'bg-limit', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-clear-sky');
             container.classList.add('bg-sky');
 
             // プレイ画面同様、ホームの要素を非表示にする
@@ -9356,6 +9452,7 @@ function getPswcWinnerCount(username) {
             // オーロラブロック
             if(document.getElementById('btn-tool-V')) document.getElementById('btn-tool-V').style.display = purchasedSkins.includes('aurora_block') ? 'flex' : 'none';
             if(document.getElementById('btn-tool-BH')) document.getElementById('btn-tool-BH').style.display = purchasedSkins.includes('black_hole') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-IE')) document.getElementById('btn-tool-IE').style.display = hasCreatorToolOwnership('IE') ? 'flex' : 'none';
             if(document.getElementById('btn-tool-WH')) document.getElementById('btn-tool-WH').style.display = hasCreatorToolOwnership('WH') ? 'flex' : 'none';
 
             // 金網セット
@@ -9423,6 +9520,9 @@ function getPswcWinnerCount(username) {
             const beachOpt = document.getElementById('stage-type-option-beach');
             const hasBeachStage = purchasedSkins.includes('beach_stage');
             setStageTypeOptionAvailability(beachOpt, CONFIG.USERNAME === 'Runon' || hasBeachStage, '🏖️ ビーチ');
+            const skyOpt = document.getElementById('stage-type-option-sky');
+            const hasSkyStage = purchasedSkins.includes('sky_stage');
+            setStageTypeOptionAvailability(skyOpt, CONFIG.USERNAME === 'Runon' || hasSkyStage, '☁️ スカイ');
             const hardOpt = document.getElementById('stage-type-option-hard');
             const hasHardStage = purchasedSkins.includes('hard_stage');
             setStageTypeOptionAvailability(hardOpt, CONFIG.USERNAME === 'Runon' || hasHardStage, '💀 ハード');
@@ -9449,6 +9549,7 @@ function getPswcWinnerCount(username) {
                         : option.value === 'volcano' ? '🌋 ボルケーノ'
                         : option.value === 'moon' ? '🌙 ムーン'
                         : option.value === 'beach' ? '🏖️ ビーチ'
+                        : option.value === 'sky' ? '☁️ スカイ'
                         : option.value === 'rai_alvaro' ? '⚡ ライ・アルバロ'
                         : option.textContent;
                 });
@@ -9527,7 +9628,7 @@ function getPswcWinnerCount(username) {
                 {type:'B', id:'icon-B'}, {type:'CB', id:'icon-CB'}, {type:'HBK', id:'icon-HBK'}, {type:'TL', id:'icon-TL'}, {type:'TR', id:'icon-TR'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'WG', id:'icon-WG'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'RT', id:'icon-RT'}, {type:'BT', id:'icon-BT'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
-                {type:'M', id:'icon-M'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'}, {type:'WH', id:'icon-WH'},
+                {type:'M', id:'icon-M'}, {type:'IE', id:'icon-IE'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'}, {type:'WH', id:'icon-WH'},
                 {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'^N', id:'icon-uow'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
@@ -10327,6 +10428,19 @@ function getPswcWinnerCount(username) {
                 ctx.fillStyle = "#fff";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
+            } else if(type === 'IE') {
+                // IRON ENEMY: 倒せない鉄製の敵。暗い鉄板、継ぎ目、リベットで区別する。
+                ctx.fillStyle = '#4b5963';
+                ctx.fillRect(x*cw + cw*.1, y*ch + ch*.16, cw*.8, ch*.84);
+                ctx.fillStyle = '#9aa8b2';
+                ctx.fillRect(x*cw + cw*.14, y*ch + ch*.20, cw*.72, ch*.11);
+                ctx.fillStyle = '#263238';
+                ctx.fillRect(x*cw + cw*.46, y*ch + ch*.16, Math.max(1, cw*.06), ch*.84);
+                ctx.fillStyle = '#cfd8dc';
+                [[.20,.28],[.76,.28],[.20,.84],[.76,.84]].forEach(([px, py]) => ctx.fillRect(x*cw + cw*px, y*ch + ch*py, Math.max(2, cw*.09), Math.max(2, ch*.09)));
+                ctx.fillStyle = '#ffec8b';
+                ctx.fillRect(x*cw + cw*.23, y*ch + ch*.47, cw*.18, ch*.17);
+                ctx.fillRect(x*cw + cw*.59, y*ch + ch*.47, cw*.18, ch*.17);
             } else if(type === '>' || type === '>N') {
                 // 一方通行（右）
                 const rightOneWayInset = type === '>N' ? pad : 0;
@@ -10978,9 +11092,14 @@ function getPswcWinnerCount(username) {
         // --- プレイ・ゲームロジック ---
         function getStageDifficultyFilterKey(stage) {
             const attempts = Number(stage?.attempts) || 0;
-            const clearRate = attempts > 0 ? ((Number(stage?.clears) || 0) / attempts * 100) : 100;
+            const clears = Number(stage?.clears) || 0;
+            const clearRate = attempts > 0 ? (clears / attempts * 100) : 100;
             if (attempts < 5) return 'newwind';
-            if (clearRate <= 0.1) return attempts >= 500 ? 'newdimension' : 'unknown';
+            if (clearRate <= 0.1 && (clears > 0 || attempts >= 1000)) return 'newdimension';
+            if ((clears === 0 && attempts >= 500) || (clearRate > 0.1 && clearRate <= 0.2)) return 'limit';
+            if (clears === 0 && attempts >= 200) return 'godplus';
+            if (clears === 0 && attempts >= 100) return 'god';
+            if (clearRate <= 0.1) return 'unknown';
             if (clearRate <= 0.5) return 'godplus';
             if (clearRate <= 1) return 'god';
             if (clearRate <= 3) return 'oni';
@@ -11140,7 +11259,9 @@ function getPswcWinnerCount(username) {
                 let diffBadge = "";
                 let customFrameStyle = "";
                 const crNum = s.attempts > 0 ? Math.min(100, (s.clears || 0) / s.attempts * 100) : 100;
-                const isNewDimension = (s.attempts >= 500 && crNum <= 0.1);
+                const stageClears = Number(s.clears) || 0;
+                const isNewDimension = crNum <= 0.1 && (stageClears > 0 || s.attempts >= 1000);
+                const isLimit = !isNewDimension && ((stageClears === 0 && s.attempts >= 500) || (crNum > 0.1 && crNum <= 0.2));
 
                 if (s.attempts < 5) {
                     // 新風: プレイ数5以下
@@ -11151,16 +11272,22 @@ function getPswcWinnerCount(username) {
                     diffBadge = '<span class="difficulty-badge difficulty-easy">簡単</span>';
                     customFrameStyle = "background:linear-gradient(135deg, rgba(30,110,65,.48), rgba(100,220,135,.16)); border-color:#68d890; box-shadow:inset 0 0 10px rgba(117,245,157,.28);";
                 } else {
-                    if (crNum <= 0.1) {
-                        if (isNewDimension) {
-                            // 新次元
-                            diffBadge = '<span class="difficulty-badge difficulty-newdimension">新次元</span>';
-                            customFrameStyle = "background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3)); border-color: #00ffff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), inset 0 0 30px rgba(255, 0, 255, 0.5);";
-                        } else {
-                            // 未知
-                            diffBadge = '<span class="difficulty-badge difficulty-unknown">未知</span>';
-                            customFrameStyle = "background: #000; border-color: #ff0000; box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.4);";
-                        }
+                    if (isNewDimension) {
+                        diffBadge = '<span class="difficulty-badge difficulty-newdimension">新次元</span>';
+                        customFrameStyle = "background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3)); border-color: #00ffff; box-shadow: 0 0 20px rgba(0, 255, 255, 0.6), inset 0 0 30px rgba(255, 0, 255, 0.5);";
+                    } else if (isLimit) {
+                        diffBadge = '<span class="difficulty-badge difficulty-limit">極限</span>';
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(255,242,178,.32), rgba(115,24,34,.46), rgba(24,0,4,.8)); border-color:#ffe78a; box-shadow:inset 0 0 18px rgba(255,226,140,.2),0 0 14px rgba(229,63,52,.35);";
+                    } else if (stageClears === 0 && s.attempts >= 200) {
+                        diffBadge = '<span class="difficulty-badge difficulty-supergod">神＋</span>';
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(108,76,173,.55), rgba(245,217,129,.34)); border-color:#e8cfff; box-shadow:inset 0 0 18px rgba(230,204,255,.32),0 0 12px rgba(255,221,120,.25);";
+                    } else if (stageClears === 0 && s.attempts >= 100) {
+                        diffBadge = '<span class="difficulty-badge difficulty-god">神</span>';
+                        customFrameStyle = "background:linear-gradient(135deg, rgba(255,255,220,.45), rgba(255,215,0,.2)); border-color:#ffff00; box-shadow:inset 0 0 15px rgba(255,255,0,.4);";
+                    } else if (crNum <= 0.1) {
+                        // 未知
+                        diffBadge = '<span class="difficulty-badge difficulty-unknown">未知</span>';
+                        customFrameStyle = "background: #000; border-color: #ff0000; box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.4);";
                     } else if (crNum <= 0.5) {
                         // 神＋
                         diffBadge = '<span class="difficulty-badge difficulty-supergod">神＋</span>';
@@ -11206,7 +11333,7 @@ function getPswcWinnerCount(username) {
                 const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
                 const stageTypeNames = {
                     normal: 'クラシック', freestyle: 'フリースタイル', water: 'ウォーター', dark: 'ダーク', mist: 'ミスト', autorun: 'オートラン', big: 'ビッグ', timeattack: 'タイムアタック',
-                    hard: 'ハード', untouchable: 'アンタッチャブル', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
+                    hard: 'ハード', untouchable: 'アンタッチャブル', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', sky: 'スカイ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
                 };
                 const stageTypeSource = getStageTypeSource(s);
                 const frontType = getStageTypeForFace(stageTypeSource, 'front');
@@ -11280,7 +11407,7 @@ function getPswcWinnerCount(username) {
                         </div>
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span> 💰<span class="stat-val">${s._reward}G</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ''}${(s.attempts >= 5 && crNum <= 10) ? ' ES:<span class="stat-val">1</span>' : ''}
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ' 💰<span class="stat-val">${s._reward}G</span>'}${(s.attempts >= 5 && crNum <= 10) ? ' ES:<span class="stat-val">1</span>' : ''}
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
@@ -11394,7 +11521,7 @@ function getPswcWinnerCount(username) {
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'mist', 'submarine_volcano', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'volcano', 'moon', 'beach', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'mist', 'submarine_volcano', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'volcano', 'moon', 'beach', 'sky', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -11457,6 +11584,7 @@ function getPswcWinnerCount(username) {
         function isVolcanoStageType(type) { return type === 'volcano' || isSubmarineVolcanoStageType(type); }
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
         function isAutoRunStageType(type) { return type === 'autorun'; }
+        function isSkyStageType(type) { return type === 'sky'; }
         function isFreestyleStageType(type) { return type === 'freestyle'; }
         function isUntouchableStageType(type) { return type === 'untouchable'; }
         function getNormalEnemyMaxHp() { return currentStageType === 'hard' ? 30 : 10; }
@@ -11488,7 +11616,7 @@ function getPswcWinnerCount(username) {
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','CB','HBK','S','G','WG','KG','K','M','E','A','T','TD','RT','BT','TL','TR','X','W','L','U','P','H','AC',
+            'B','CB','HBK','S','G','WG','KG','K','M','IE','E','A','T','TD','RT','BT','TL','TR','X','W','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','^N','C','q','k','r','b','!','Y','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','WH','sp','mg','BB','BBN','LM','WC','WCN','IC',
             'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB'
@@ -11674,6 +11802,8 @@ function getPswcWinnerCount(username) {
                     ? 'SPECTATOR | GHOSTS: ON / OFF | '
                     : isRaiAlvaroStageType(currentStageType)
                     ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
+                    : isSkyStageType(currentStageType)
+                        ? 'ARROWS / A,D: MOVE | SPACE / W: SKY JUMP | '
                     : isAutoRunStageType(currentStageType)
                         ? 'AUTO RUN | SPACE / W: JUMP | '
                     : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
@@ -11686,7 +11816,7 @@ function getPswcWinnerCount(username) {
             
             // 背景の切り替え
             const container = document.querySelector('.container');
-            container.classList.remove('bg-city', 'bg-sky', 'bg-clear-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
+            container.classList.remove('bg-city', 'bg-sky', 'bg-clear-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-heaven-plus', 'bg-bw', 'bg-aurora', 'bg-limit', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
             
             // 大会はステージタイプにかかわらず新次元（オーロラ）背景を使う。
             // 物理・水面などのステージタイプ固有の挙動は currentStageType をそのまま利用する。
@@ -11706,9 +11836,12 @@ function getPswcWinnerCount(username) {
                 const att = stageObj.attempts;
                 const cr = (stageObj.clears || 0) / att * 100;
                 
-                if (att >= 500 && cr <= 0.1) container.classList.add('bg-aurora'); // 新次元
+                const clears = Number(stageObj.clears) || 0;
+                if (cr <= 0.1 && (clears > 0 || att >= 1000)) container.classList.add('bg-aurora'); // 新次元
+                else if ((clears === 0 && att >= 500) || (cr > 0.1 && cr <= 0.2)) container.classList.add('bg-limit'); // 極限
+                else if ((clears === 0 && att >= 200) || (cr > 0.2 && cr <= 0.5)) container.classList.add('bg-heaven-plus'); // 神＋
+                else if ((clears === 0 && att >= 100) || (cr > 0.5 && cr <= 1)) container.classList.add('bg-heaven'); // 神
                 else if (cr <= 0.1) container.classList.add('bg-bw'); // 未知
-                else if (cr <= 1) container.classList.add('bg-heaven'); // 神
                 else if (cr <= 3) container.classList.add('bg-hell'); // 鬼
                 else if (cr <= 10) container.classList.add('bg-sunset'); // 超難関
                 else if (cr <= 25) container.classList.add('bg-cloudy'); // 難関
@@ -11727,6 +11860,7 @@ function getPswcWinnerCount(username) {
             isCountingDown = true;
             startTime = 0;
             player.autoRunDirection = 1;
+            player.skyJumpForce = -0.3;
             activeCheckpoints.clear();
             spectatorLastSwitchKey = null;
             stageStartRespawn = null;
@@ -11764,6 +11898,10 @@ function getPswcWinnerCount(username) {
                     if(activeStage[y][x] === 'M') {
                         enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false});
                         activeStage[y][x] = null; // スポーン後はグリッドから削除
+                    }
+                    if(activeStage[y][x] === 'IE') {
+                        enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, isIronEnemy: true, hp: Infinity, maxHp: Infinity});
+                        activeStage[y][x] = null;
                     }
                     if(activeStage[y][x] === 'j') {
                         enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: true, sync: false});
@@ -11812,7 +11950,7 @@ function getPswcWinnerCount(username) {
             }
             // HARDでは通常敵もボスと同じく体力を持ち、踏みつけ3回で倒れる。
             enemies.forEach(en => {
-                if (!en.isBoss) {
+                if (!en.isBoss && !en.isIronEnemy) {
                     en.maxHp = getNormalEnemyMaxHp();
                     en.hp = en.maxHp;
                     en.hitCooldown = 0;
@@ -11951,14 +12089,24 @@ function getPswcWinnerCount(username) {
             let rewardGold = 100;
             let baseRewardGold = 100;
 
-            if (att >= 5 && crNum <= 0.1) {
-                // 未知 または 新次元 (クリア率 0.1% 以下)
-                if (att >= 500) {
-                    rewardGold = 5000; // 新次元
-                } else {
-                    // 未知: プレイ数 5 で 100G、500 で 2000G となるよう計算
-                    rewardGold = Math.round(100 + (att - 5) * (1900 / 495));
-                }
+            const isNewDimension = att >= 5 && crNum <= 0.1 && (clr > 0 || att >= 1000);
+            const isLimit = att >= 5 && !isNewDimension && ((clr === 0 && att >= 500) || (crNum > 0.1 && crNum <= 0.2));
+            const isGodPlus = att >= 5 && !isNewDimension && !isLimit &&
+                ((clr === 0 && att >= 200) || (crNum > 0.2 && crNum <= 0.5));
+            const isGod = att >= 5 && !isNewDimension && !isLimit && !isGodPlus &&
+                ((clr === 0 && att >= 100) || (crNum > 0.5 && crNum <= 1));
+            if (isNewDimension) {
+                // 新次元はGを付与せず、ASのみを報酬にする。
+                rewardGold = 0;
+            } else if (isLimit) {
+                rewardGold = 100000;
+            } else if (isGodPlus) {
+                rewardGold = 25000;
+            } else if (isGod) {
+                rewardGold = 150000;
+            } else if (att >= 5 && crNum <= 0.1) {
+                // 未知: プレイ数の30倍を報酬にする。
+                rewardGold = att * 30;
             } else if (att <= 5) {
                 rewardGold = 50;
             } else {
@@ -11966,8 +12114,8 @@ function getPswcWinnerCount(username) {
                 rewardGold = Math.round(1000 - (rate * 990)); // クリア率0%で1000G、100%で10G
             }
             
-            if (s.creator === username) rewardGold = Math.floor(rewardGold / 2);
-            return Math.max(10, rewardGold);
+            if (rewardGold > 0 && s.creator === username) rewardGold = Math.floor(rewardGold / 2);
+            return rewardGold > 0 ? Math.max(10, rewardGold) : 0;
         }
 
         function getCurrentGuildGoldMultiplier() {
@@ -12041,6 +12189,10 @@ function getPswcWinnerCount(username) {
             let rewardGold = 100;
             const stageId = currentStageData ? (currentStageData.id || currentStageData.name) : null;
             const isCupClear = isWeeklyCupMatch;
+            const rewardAttempts = Number(currentStageData?.attempts) || 0;
+            const rewardClears = Number(currentStageData?.clears) || 0;
+            const isNewDimensionReward = !isCupClear && rewardAttempts >= 5 && rewardAttempts > 0 &&
+                (rewardClears / rewardAttempts * 100) <= 0.1 && (rewardClears > 0 || rewardAttempts >= 1000);
 
             if (stageId && !isCupClear) {
                 baseRewardGold = calculateStageRewardValue(currentStageData, CONFIG.USERNAME);
@@ -12069,15 +12221,19 @@ function getPswcWinnerCount(username) {
             const rewardEsWrap = document.getElementById('reward-es-wrap');
             const rewardTotalGold = document.getElementById('reward-total-gold');
             if (rewardAmount) {
-                rewardAmount.style.display = guildMultiplier > 1 ? 'none' : 'inline';
+                rewardAmount.style.display = isNewDimensionReward || guildMultiplier > 1 ? 'none' : 'inline';
                 rewardAmount.innerText = isCupClear ? '大会タイムを記録' : `${rewardGold} G`;
             }
-            if (rewardGuildAmount) rewardGuildAmount.style.display = guildMultiplier > 1 ? 'inline' : 'none';
-            if (guildMultiplier > 1) {
+            if (rewardGuildAmount) rewardGuildAmount.style.display = !isNewDimensionReward && guildMultiplier > 1 ? 'inline' : 'none';
+            if (!isNewDimensionReward && guildMultiplier > 1) {
                 if (rewardGuildBase) rewardGuildBase.innerText = `${baseRewardGold} G`;
                 if (rewardGuildFinal) rewardGuildFinal.innerText = `${rewardGold} G (×${guildMultiplier})`;
             }
-            if (rewardAsWrap) rewardAsWrap.style.display = 'none';
+            if (rewardAsWrap) rewardAsWrap.style.display = isNewDimensionReward ? 'inline' : 'none';
+            if (isNewDimensionReward) {
+                const rewardAs = document.getElementById('reward-as');
+                if (rewardAs) rewardAs.innerText = '1';
+            }
             if (rewardEsWrap) rewardEsWrap.style.display = 'none';
             if (rewardTotalGold) rewardTotalGold.innerText = `${userGold}`;
             const rewardTimeDisplay = document.getElementById('reward-time-display');
@@ -12966,6 +13122,8 @@ function getPswcWinnerCount(username) {
                 if (keys['Space'] && (player.onGround || emergedFromBeachWater) && frameCount > 10) {
                     player.vy = jumpForce;
                     player.onGround = false;
+                    // スカイの連続ジャンプは、地面から跳んだ時に高さを元へ戻す。
+                    player.skyJumpForce = jumpForce;
                     // 自分がジャンプした時、ステージ上のすべてのジャンプする敵（j）を距離に関係なくジャンプさせる
                     enemies.forEach(en => {
                         if (!en.dead && en.jumper && en.onGround) {
@@ -12973,6 +13131,11 @@ function getPswcWinnerCount(username) {
                             en.onGround = false;
                         }
                     });
+                } else if (isSkyStageType(currentStageType) && justPressedJump && frameCount > 10) {
+                    // スカイ: 押した瞬間ごとに空中ジャンプ。高さは直前の60%へ減衰し、着地時にリセットされる。
+                    player.skyJumpForce *= 0.6;
+                    player.vy = player.skyJumpForce;
+                    player.onGround = false;
                 } else if (justPressedJump && wallKickInfo.direction && frameCount > 10) {
                     // 押した瞬間だけ壁キック。反対側へ一定の横速度を与える。
                     // フリースタイルの通常壁は上方向だけ半分にし、横方向は通常の壁キックと同速にする。
@@ -13511,10 +13674,10 @@ function getPswcWinnerCount(username) {
                 // ギミックによる敵の死亡判定 (黄色いトゲ)
                 const ex_check = Math.floor(en.x + enHalf), ey_check = Math.floor(en.y + enHalf);
                 const en_tile = activeStage[ey_check] ? activeStage[ey_check][ex_check] : null;
-                if (en_tile === 'y') en.dead = true;
+                if (!en.isIronEnemy && en_tile === 'y') en.dead = true;
 
                 // 火山ステージ: 溶岩に触れた敵は死亡（ボスは溶岩に触れても死亡しない）
-                if (!en.isBoss && isVolcanoStageType(currentStageType) && isTouchingLava(en.y, en.y + enSize)) en.dead = true;
+                if (!en.isBoss && !en.isIronEnemy && isVolcanoStageType(currentStageType) && isTouchingLava(en.y, en.y + enSize)) en.dead = true;
 
                 // 垂直方向の物理演算
                 if (isWater) {
@@ -13669,7 +13832,7 @@ function getPswcWinnerCount(username) {
                     return;
                 }
                 // 雷ダッシュ中は、ボス以外の敵を接触だけで倒せる。
-                if (isRaiDashContact && !en.isBoss) {
+                if (isRaiDashContact && !en.isBoss && !en.isIronEnemy) {
                     en.dead = true;
                     continue;
                 }
@@ -13691,6 +13854,12 @@ function getPswcWinnerCount(username) {
                         // 高速落下で敵の内部まで入り込んだ場合も、必ず敵の上面へ戻してから跳ねる。
                         // これにより次フレームで横・下から当たった扱いになるトンネル現象を防ぐ。
                         player.y = enemyTop - player.h;
+                        // IRON ENEMYは無敵。踏んでも倒さず、跳ねずに足場として乗れる。
+                        if (en.isIronEnemy) {
+                            player.onGround = true;
+                            player.vy = 0;
+                            continue;
+                        }
                         player.onGround = false;
                         player.vy = -0.3; // 踏んで跳ねる
                         if (en.isBoss) {
@@ -13984,7 +14153,7 @@ function getPswcWinnerCount(username) {
                 if (runtime) {
                     let count = 0;
                     for (let i = 0; i < runtime.enemies.length; i++) {
-                        if (!runtime.enemies[i].dead) count++;
+                        if (!runtime.enemies[i].dead && !runtime.enemies[i].isIronEnemy) count++;
                     }
                     return count;
                 }
@@ -14046,8 +14215,9 @@ function getPswcWinnerCount(username) {
                     if (tile === 'WCN') {
                         woodCrates.push({ x, y, vx: 0, vy: 0 });
                         activeStage[y][x] = null;
-                    } else if (tile === 'M' || tile === 'j' || tile === 'e') {
-                        enemies.push({ x, y, vx: tile === 'e' ? 0 : -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: tile === 'j', sync: tile === 'e', maxHp: getNormalEnemyMaxHp(), hp: getNormalEnemyMaxHp(), hitCooldown: 0 });
+                    } else if (tile === 'M' || tile === 'IE' || tile === 'j' || tile === 'e') {
+                        const isIronEnemy = tile === 'IE';
+                        enemies.push({ x, y, vx: tile === 'e' ? 0 : -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: tile === 'j', sync: tile === 'e', isIronEnemy, maxHp: isIronEnemy ? Infinity : getNormalEnemyMaxHp(), hp: isIronEnemy ? Infinity : getNormalEnemyMaxHp(), hitCooldown: 0 });
                         activeStage[y][x] = null;
                     } else if (tile === 'PB') {
                         enemies.push({ x, y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, dashVerticalDirection: 0, purpleBrokenBlocks: [], isAuroraPurple: false, hitCooldown: 0 });
@@ -14186,7 +14356,7 @@ function getPswcWinnerCount(username) {
             'stage-viewport-bg-bg-clear-sky', 'stage-viewport-bg-bg-water', 'stage-viewport-bg-bg-dark',
             'stage-viewport-bg-bg-volcano', 'stage-viewport-bg-bg-moon', 'stage-viewport-bg-bg-beach',
             'stage-viewport-bg-bg-cloudy', 'stage-viewport-bg-bg-sunset', 'stage-viewport-bg-bg-hell',
-            'stage-viewport-bg-bg-heaven', 'stage-viewport-bg-bg-bw', 'stage-viewport-bg-bg-aurora'
+            'stage-viewport-bg-bg-heaven', 'stage-viewport-bg-bg-heaven-plus', 'stage-viewport-bg-bg-bw', 'stage-viewport-bg-bg-aurora', 'stage-viewport-bg-bg-limit'
         ];
 
         function clearViewportStageBackground() {
@@ -14204,14 +14374,24 @@ function getPswcWinnerCount(username) {
         function applyWarpFaceBackground() {
             const container = document.querySelector('.container');
             if (!container) return;
-            container.classList.remove('bg-city', 'bg-sky', 'bg-clear-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-bw', 'bg-aurora', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
+            container.classList.remove('bg-city', 'bg-sky', 'bg-clear-sky', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-heaven-plus', 'bg-bw', 'bg-aurora', 'bg-limit', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-moon', 'bg-beach');
             if (isWeeklyCupMatch) container.classList.add('bg-aurora');
             else if (isWaterStageType(currentStageType)) container.classList.add('bg-water');
             else if (currentStageType === 'dark' || isMistStageType(currentStageType)) container.classList.add('bg-dark');
             else if (isVolcanoStageType(currentStageType)) container.classList.add('bg-volcano');
             else if (currentStageType === 'moon') container.classList.add('bg-moon');
             else if (currentStageType === 'beach') container.classList.add('bg-beach');
-            else container.classList.add('bg-clear-sky');
+            else {
+                const attempts = Number(currentStageData?.attempts) || 0;
+                const clears = Number(currentStageData?.clears) || 0;
+                const clearRate = attempts > 0 ? clears / attempts * 100 : 100;
+                if (attempts >= 5 && clearRate <= 0.1 && (clears > 0 || attempts >= 1000)) container.classList.add('bg-aurora');
+                else if (attempts >= 5 && ((clears === 0 && attempts >= 500) || (clearRate > 0.1 && clearRate <= 0.2))) container.classList.add('bg-limit');
+                else if (attempts >= 5 && ((clears === 0 && attempts >= 200) || (clearRate > 0.2 && clearRate <= 0.5))) container.classList.add('bg-heaven-plus');
+                else if (attempts >= 5 && ((clears === 0 && attempts >= 100) || (clearRate > 0.5 && clearRate <= 1))) container.classList.add('bg-heaven');
+                else if (attempts >= 5 && clearRate <= 0.1) container.classList.add('bg-bw');
+                else container.classList.add('bg-clear-sky');
+            }
             syncViewportStageBackground();
         }
 
@@ -14255,6 +14435,8 @@ function getPswcWinnerCount(username) {
             const controlsLabel = document.getElementById('game-controls-label');
             if (controlsLabel) controlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
                 ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
+                : isSkyStageType(currentStageType)
+                    ? 'ARROWS / A,D: MOVE | SPACE / W: SKY JUMP | '
                 : isAutoRunStageType(currentStageType)
                     ? 'AUTO RUN | SPACE / W: JUMP | '
                 : 'ARROWS / A,D: MOVE | SPACE / W: JUMP | ';
@@ -15021,6 +15203,19 @@ function getPswcWinnerCount(username) {
                         // 狼（ボスNo.2）: 指定のドット絵で描画。移動方向に応じて左右反転する
                         const facing = en.vx < 0 ? 'left' : 'right';
                         drawWolfBossSprite(cachedGameCtx, en.x * cw, en.y * ch, cw * enSize, ch * enSize, facing);
+                    } else if (en.isIronEnemy) {
+                        // 鉄板の継ぎ目とリベット。通常の敵と同じ移動・接触判定だが、踏みつけ時だけ足場になる。
+                        cachedGameCtx.fillStyle = '#4b5963';
+                        cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw * .9, ch * .9);
+                        cachedGameCtx.fillStyle = '#9aa8b2';
+                        cachedGameCtx.fillRect(en.x * cw + cw * .05, en.y * ch + ch * .06, cw * .8, ch * .11);
+                        cachedGameCtx.fillStyle = '#263238';
+                        cachedGameCtx.fillRect(en.x * cw + cw * .42, en.y * ch, cw * .055, ch * .9);
+                        cachedGameCtx.fillStyle = '#cfd8dc';
+                        [[.10,.15],[.72,.15],[.10,.72],[.72,.72]].forEach(([px, py]) => cachedGameCtx.fillRect(en.x * cw + cw * px, en.y * ch + ch * py, Math.max(2, cw * .08), Math.max(2, ch * .08)));
+                        cachedGameCtx.fillStyle = '#ffec8b';
+                        cachedGameCtx.fillRect(en.x * cw + cw * .18, en.y * ch + ch * .38, cw * .18, ch * .18);
+                        cachedGameCtx.fillRect(en.x * cw + cw * .55, en.y * ch + ch * .38, cw * .18, ch * .18);
                     } else {
                         if (en.sync) cachedGameCtx.fillStyle = "#ffeb3b"; // シンクロ敵は黄色
                         else if (en.blue) cachedGameCtx.fillStyle = "#00bcd4"; // 青スポナー由来は水色
