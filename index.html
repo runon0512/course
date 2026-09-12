@@ -3017,7 +3017,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxKXgKPA4v3VqI-CSmCZs0WmwkhNtmSSdcH1WJcQ1anvBofCNFZTjFOHJKCFsswoFm1/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbw4imnqrBQO_AZsbb2u8z9665d19xo7SyulPps25VcExeahNK7BYLkUvjulQ7O4Il0E/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "3.8.2"
@@ -11362,11 +11362,15 @@ function getPswcWinnerCount(username) {
                 }
                 
                 const preciseClearRate = s.attempts >= 5 && crNum > 0.1 && crNum <= 3;
-                const clearRate = s.attempts > 0 ? crNum.toFixed(isNewDimension ? 3 : (preciseClearRate ? 2 : 1)) : "0.0";
+                // 新次元と極限は僅差を見分けられるよう、小数第3位まで表示する。
+                const clearRate = s.attempts > 0 ? crNum.toFixed((isNewDimension || isLimit) ? 3 : (preciseClearRate ? 2 : 1)) : "0.0";
                 
                 const topTime = s._topTime;
                 const topPlayers = s._topPlayers;
                 const myRec = s._myRec;
+                // 一覧をキャッシュから復元した場合でも報酬欄が空にならないよう、描画直前に必ず再計算する。
+                const displayReward = calculateStageRewardValue(s, CONFIG.USERNAME);
+                s._reward = displayReward;
                 
                 let myRankDisp = "未クリア";
                 if (myRec) {
@@ -11407,7 +11411,7 @@ function getPswcWinnerCount(username) {
                         </div>
                     </div>
                     <div class="stage-stats" style="font-size:0.8cqw; color:#888;">
-                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ' 💰<span class="stat-val">${s._reward}G</span>'}${(s.attempts >= 5 && crNum <= 10) ? ' ES:<span class="stat-val">1</span>' : ''}
+                        Play:<span class="stat-val">${s.attempts || 0}</span> Clear:<span class="stat-val">${clearRate}%</span>${isNewDimension ? ' AS:<span class="stat-val">1</span>' : ' 💰<span class="stat-val">' + displayReward + 'G</span>'}${(s.attempts >= 5 && crNum <= 10) ? ' ES:<span class="stat-val">1</span>' : ''}
                     </div>
                     <div style="display:flex; flex-wrap:wrap; gap:1cqw; margin-top:0.2cqh;">
                         <button class="pixel-btn small" style="background:#00bcd4; color:#fff;" 
@@ -12082,8 +12086,9 @@ function getPswcWinnerCount(username) {
         // 報酬計算用ヘルパー関数（ソート、表示、報酬付与で共通利用）
         function calculateStageRewardValue(stageObj, username) {
             const s = stageObj;
-            const att = s.attempts || 0;
-            const clr = s.clears || 0;
+            // スプレッドシート由来の値が文字列でも、0クリアの難易度報酬を正しく判定する。
+            const att = Math.max(0, Number(s.attempts) || 0);
+            const clr = Math.max(0, Number(s.clears) || 0);
             const crNum = att > 0 ? (clr / att * 100) : 100;
 
             let rewardGold = 100;
@@ -12103,15 +12108,20 @@ function getPswcWinnerCount(username) {
             } else if (isGodPlus) {
                 rewardGold = 25000;
             } else if (isGod) {
-                rewardGold = 150000;
-            } else if (att >= 5 && crNum <= 0.1) {
-                // 未知: プレイ数の30倍を報酬にする。
-                rewardGold = att * 30;
-            } else if (att <= 5) {
+                rewardGold = 15000;
+            } else if (att >= 5 && clr === 0) {
+                // 未クリア（未知）: プレイ数ではなく難易度ごとの固定報酬にする。
+                rewardGold = 500;
+            } else if (att < 5) {
+                // 新風
                 rewardGold = 50;
             } else {
-                const rate = clr / att;
-                rewardGold = Math.round(1000 - (rate * 990)); // クリア率0%で1000G、100%で10G
+                // クリア済みステージも、クリア率の連続計算ではなく難易度ごとの固定報酬に統一する。
+                if (crNum <= 3) rewardGold = 2500;       // 鬼
+                else if (crNum <= 10) rewardGold = 1000; // 超難関
+                else if (crNum <= 25) rewardGold = 500;  // 難関
+                else if (crNum >= 90) rewardGold = 100;  // 簡単
+                else rewardGold = 200;                   // 普通
             }
             
             if (rewardGold > 0 && s.creator === username) rewardGold = Math.floor(rewardGold / 2);
