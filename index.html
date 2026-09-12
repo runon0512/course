@@ -5060,7 +5060,7 @@ function getPswcWinnerCount(username) {
                 content.innerHTML = `
                     <div class="trade-rate-label">CURRENT AS PRICE</div>
                     <div class="trade-rate-value">1 AS = ${price.toLocaleString()} G</div>
-                    <div class="trade-rate-note">購入すると次の価格は3%上昇します。<br>売却すると次の価格は100/103倍になります。</div>
+                    <div class="trade-rate-note">購入額：${price.toLocaleString()}G ／ 売却額：${Math.floor(price * .9).toLocaleString()}G（購入レートの90%）<br>購入すると次の価格は3%上昇します。売却すると次の価格は100/103倍になります。</div>
                     <div class="trade-actions" style="margin-top:2cqh; justify-content:center;">
                         <button id="trade-buy-btn" class="pixel-btn" onclick="executeTrade('buy')">1 AS を購入</button>
                         <button id="trade-sell-btn" class="pixel-btn" style="background:#a64b64;" onclick="executeTrade('sell')">1 AS を売却</button>
