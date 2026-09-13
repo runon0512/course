@@ -1241,8 +1241,6 @@
         #settings-overlay { overflow-y:auto; padding:4cqh 0; box-sizing:border-box; background:radial-gradient(circle at 13% 10%,rgba(87,220,255,.19),transparent 27%),radial-gradient(circle at 90% 85%,rgba(141,91,255,.18),transparent 33%),rgba(2,8,20,.9) !important; }
         #terms-overlay { overflow-y:auto; padding:3cqh 0; box-sizing:border-box; background:radial-gradient(circle at 12% 8%,rgba(92,225,255,.15),transparent 26%),radial-gradient(circle at 88% 90%,rgba(113,94,255,.16),transparent 31%),rgba(2,8,20,.94); }
         .terms-card { width:min(88%,68cqw); max-height:88cqh; overflow-y:auto; box-sizing:border-box; padding:2.3cqw; text-align:left; border:.16cqw solid #70e6ff; border-radius:.7cqw; background:linear-gradient(135deg,rgba(9,35,67,.98),rgba(23,17,53,.98)); box-shadow:0 0 2cqw rgba(65,203,255,.3),inset 0 0 1.2cqw rgba(111,226,255,.06); }
-        .terms-card h2 { margin:0 0:.45cqh; color:#d7faff; text-align:center; letter-spacing:.12em; }
-        .terms-updated { margin:0 0:1.5cqh; color:#99dff3; text-align:center; font-size:.9cqw; }
         .terms-card h3 { margin:1.35cqh 0 .45cqh; color:#8cefff; font-size:1.15cqw; }
         .terms-card p, .terms-card li { color:#e5f2ff; font-size:1.02cqw; line-height:1.75; }
         .terms-card ul { margin:.25cqh 0 0; padding-left:1.5em; }
@@ -1889,7 +1887,7 @@
         #password-settings-btn.has-password-warning::after { content:''; position:absolute; top:-.15cqw; right:-.35cqw; width:.8cqw; height:.8cqw; min-width:8px; min-height:8px; background:#ff304f; border:.12cqw solid #fff; border-radius:50%; box-shadow:0 0 .7cqw #ff304f; }
         #weekly-cup-btn { color:#ffe59b !important; text-shadow:0 0 .55cqw rgba(255,204,68,.5); }
         #weekly-cup-btn:hover { border:0 !important; background:linear-gradient(90deg,#fff7ba,#ffd54a,#c98700,#fff0a0) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent; color:#ffd54a !important; box-shadow:none !important; text-shadow:0 0 .45cqw rgba(255,235,129,.95), 0 0 1.1cqw rgba(255,190,35,.8), 0 0 1.7cqw rgba(191,120,0,.58); transform:translateX(.35cqw); letter-spacing:.1em; }
-        /* PSWCは通常ステージ一覧から参加するため、ホームの旧大会ボタンは表示しない。 */
+        /* 7日間のPSWCは専用の大会ホームから参加する。 */
         #weekly-cup-btn { display:none !important; }
         #user-info { border-color:var(--primary-color); background:rgba(0,0,0,.5); box-shadow:none; }
 
@@ -1999,6 +1997,10 @@
         #profile-overlay > h2, #profile-overlay > button, #profile-overlay > .profile-container { flex-shrink:0; }
         .profile-container { width:min(90%, 92cqw); height:auto; min-height:52cqh; margin:0 auto; justify-content:center; }
         #radar-chart { display:block; margin:0 auto; background:radial-gradient(circle, rgba(0,191,255,.09), rgba(5,12,30,.08) 65%, transparent 66%); border:.14cqw solid rgba(130,220,255,.4); }
+        .profile-radar-panel { width:min(42cqw, 470px); box-sizing:border-box; padding:1cqw; border:.16cqw solid rgba(104,225,255,.72); background:linear-gradient(145deg,rgba(5,29,56,.9),rgba(4,12,31,.94)); box-shadow:inset 0 0 1.3cqw rgba(63,205,255,.1); }
+        .profile-stat-readout { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.55cqw; margin-top:.65cqh; }
+        .profile-stat-readout > div { min-width:0; padding:.45cqh .65cqw; border-left:.16cqw solid #64e7ff; background:rgba(110,218,255,.09); color:#d5f9ff; font-size:.9cqw; display:flex; justify-content:space-between; gap:.5cqw; }
+        .profile-stat-readout b { color:#85ffcc; font-size:1.04em; }
 
         /* Season 3: Multiverse ── ホーム画面専用の中世ファンタジーUI */
         .container.bg-city {
@@ -2221,7 +2223,7 @@
         </div>
 
         <!-- 大会ボタン（プレイの左上） -->
-        <button id="weekly-cup-btn" class="pixel-btn small" onclick="openWeeklyCup()" style="position:absolute; top:25cqh; left:2cqw; z-index:15; display:none; background:linear-gradient(135deg,#9a6500,#ffd54a,#fff1a3); color:#322000; border-color:#fff4bd; box-shadow:0 0 1cqw rgba(255,198,45,.65); font-weight:bold;">🏆 大会</button>
+        <button id="weekly-cup-btn" class="pixel-btn small" onclick="openWeeklyCup()" style="position:absolute; top:31cqh; left:2cqw; z-index:15; display:none; background:linear-gradient(135deg,#9a6500,#ffd54a,#fff1a3); color:#322000; border-color:#fff4bd; box-shadow:0 0 1cqw rgba(255,198,45,.65); font-weight:bold;">🏆 大会</button>
 
         <!-- クリエイターズロードボタン -->
         <button id="creators-road-btn" class="pixel-btn small" onclick="openCreatorsRoad()" style="position: absolute; top: 13cqh; right: 2cqw; z-index: 15; display: none; background: linear-gradient(45deg, #ff00ff, #00ffff); color: #fff; border-color: #fff;">💎 Creator Road</button>
@@ -2454,8 +2456,9 @@
                     <button id="profile-dm-btn" class="pixel-btn small" style="display:none; margin-top:1cqh; font-size:1cqw;" onclick="openDirectMessageFromProfile()">💬 DMを送る</button>
                     <button id="profile-dm-inbox-btn" class="pixel-btn small" style="display:none; margin-top:1cqh; font-size:1cqw;" onclick="openDirectMessageInbox()">📨 DMを確認</button>
                 </div>
-                <div style="position: relative;">
-                    <canvas id="radar-chart" width="400" height="400" style="width: 35cqw; height: 35cqw;"></canvas>
+                <div class="profile-radar-panel">
+                    <canvas id="radar-chart" width="400" height="400" style="width:100%; aspect-ratio:1; height:auto;"></canvas>
+                    <div id="profile-stat-readout" class="profile-stat-readout" aria-label="ステータス詳細"></div>
                 </div>
             </div>
         </div>
@@ -2799,12 +2802,12 @@
                         <option value="timeattack">⌛ タイムアタック</option><option value="hard">⚔ ハード</option><option value="untouchable">☠ アンタッチャブル</option><option value="autorun">▶ オートラン</option><option value="sky">☁ スカイ</option><option value="freestyle">🧗 フリースタイル</option><option value="rai_alvaro">⚡ ライ・アルバロ</option>
                     </select>
                     <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
-                    <button class="pixel-btn small" onclick="showGlobalRanking('gods')" style="min-width:12cqw;">Gods</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('level')" style="min-width:12cqw;">Level</button>
                     <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
                     <button id="online-playtime-rank-tab" class="pixel-btn small" onclick="showGlobalRanking('onlinePlaytime')" style="display:none; min-width:12cqw;">プレイ時間</button>
                 </div>
+                <div id="global-ranking-status-note" style="display:none; width:100%; box-sizing:border-box; margin:0 0 .8cqh; padding:.65cqh .9cqw; border-left:.22cqw solid #65dfff; background:rgba(80,196,255,.1); color:#c9f5ff; font-size:1.02cqw; line-height:1.45;">注意：このランキングとOVR・ステータスは、公開日時が新しい750ステージのデータをもとに集計しています。</div>
                 <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 1.5cqw;">
                         <thead>
@@ -2827,15 +2830,21 @@
             <div class="auth-box" style="width:78%; max-height:88cqh; overflow-y:auto; box-sizing:border-box; text-align:center;">
                 <h2 style="font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive; font-style:italic; font-weight:bold; font-size:3.6cqw; color:#ffd54a; margin:0 0 .8cqh;">Pixel Stages Weekly Cup</h2>
                 <div id="weekly-cup-period" style="font-size:1.3cqw; color:#aeefff; margin-bottom:1.5cqh;">読み込み中...</div>
+                <div id="weekly-cup-day-tabs" style="display:flex; flex-wrap:wrap; justify-content:center; gap:.6cqw; margin:0 0 1.2cqh;"></div>
                 <div id="weekly-cup-content">
                     <div id="weekly-cup-stage" style="min-height:38cqh; padding:1.2cqw; border:.16cqw solid #ffd54a; background:rgba(255,180,0,.06);"></div>
                     <div id="weekly-cup-ranking-wrap" style="padding:1.2cqw; border:.16cqw solid rgba(255,213,74,.6); background:rgba(255,180,0,.035); display:none; box-sizing:border-box;">
-                        <h3 style="color:#ffd54a; font-size:1.7cqw; margin:.4cqh 0 1cqh;">期間内タイムランキング</h3>
+                        <div style="display:flex; align-items:center; justify-content:center; gap:1cqw; margin:.4cqh 0 1cqh;"><h3 id="weekly-cup-ranking-title" style="color:#ffd54a; font-size:1.7cqw; margin:0;">DAY RANKING</h3><button id="weekly-cup-ranking-reload-btn" class="pixel-btn small" onclick="refreshWeeklyCupRanking()" style="margin:0; padding:.35cqh .65cqw;">↻ 再読み込み</button></div>
                         <table style="width:100%; border-collapse:collapse; font-size:1.25cqw;">
-                            <thead><tr style="border-bottom:.15cqw solid #ffd54a;"><th style="padding:.8cqh; text-align:left;">RANK</th><th style="padding:.8cqh; text-align:left;">PLAYER</th><th style="padding:.8cqh; text-align:right;">TIME</th></tr></thead>
+                            <thead><tr style="border-bottom:.15cqw solid #ffd54a;"><th style="padding:.8cqh; text-align:left;">RANK</th><th style="padding:.8cqh; text-align:left;">PLAYER</th><th style="padding:.8cqh; text-align:right;">TIME</th><th style="padding:.8cqh; text-align:right;">PT</th></tr></thead>
                             <tbody id="weekly-cup-ranking"></tbody>
                         </table>
                     </div>
+                </div>
+                <div style="margin-top:1.4cqh; padding:1.1cqw; border:.16cqw solid rgba(255,213,74,.55); background:rgba(255,180,0,.04); text-align:left;">
+                    <h3 style="color:#fff0a3; font-size:1.6cqw; margin:.15cqh 0 .7cqh; text-align:center;">TOTAL STANDINGS</h3>
+                    <div style="color:#d8ecff; font-size:1cqw; text-align:center; margin-bottom:.7cqh;">日別1〜11位に 20 / 15 / 12 / 10 / 8 / 6 / 5 / 4 / 3 / 2 / 1 PT。総合優勝者は金ブロックを獲得。</div>
+                    <table style="width:100%; border-collapse:collapse; font-size:1.15cqw;"><thead><tr style="border-bottom:.12cqw solid rgba(255,213,74,.65);"><th style="padding:.6cqh; text-align:left;">RANK</th><th style="padding:.6cqh; text-align:left;">PLAYER</th><th style="padding:.6cqh; text-align:right;">POINTS</th></tr></thead><tbody id="weekly-cup-total-ranking"></tbody></table>
                 </div>
                 <button class="pixel-btn small" onclick="closeWeeklyCup()" style="margin-top:2cqh; width:100%; background:#546e7a;">戻る</button>
             </div>
@@ -2881,6 +2890,8 @@
                     <button class="pixel-btn small" style="margin-top:0; background:#f44336; color:#fff;" onclick="clearStage()">🗑️全消去</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
+                    <button class="pixel-btn small" style="margin-top:0; background:#275f9b;" onclick="openStageCodeDialog('save')">⌘コード保存</button>
+                    <button class="pixel-btn small" style="margin-top:0; background:#416f9b;" onclick="openStageCodeDialog('load')">⌘コード読込</button>
                     <button id="editor-switch-btn" class="pixel-btn small" style="margin-top:0; background:#ff5252; color:#fff;" onclick="toggleEditorSwitch()">R/B: ON</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
@@ -2986,6 +2997,18 @@
             </div>
         </div>
 
+        <div id="stage-code-overlay" class="screen" style="display:none; z-index:205; align-items:center; justify-content:center; background:rgba(2,8,20,.9);">
+            <div class="auth-box" style="width:min(78cqw,820px); max-height:82cqh; box-sizing:border-box; padding:2cqw;">
+                <h2 id="stage-code-title" style="margin:0; color:#aeefff; text-align:center;">ステージコード</h2>
+                <p id="stage-code-note" style="margin:0; color:#c9e9ff; font-size:1.05cqw; text-align:center;"></p>
+                <textarea id="stage-code-text" spellcheck="false" style="width:100%; min-height:38cqh; resize:vertical; box-sizing:border-box; background:#071a35; border:.15cqw solid #58dfff; color:#effaff; padding:1cqw; font:1cqw/1.45 monospace;"></textarea>
+                <div style="display:flex; gap:1cqw; justify-content:center;">
+                    <button id="stage-code-action-btn" class="pixel-btn small" style="background:#247eb5;" onclick="handleStageCodeDialog()">コピー</button>
+                    <button class="pixel-btn small" style="background:#546e7a;" onclick="closeStageCodeDialog()">閉じる</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ゲーム画面 -->
         <div id="game-screen" class="screen">
             <canvas id="game-canvas"></canvas>
@@ -3087,10 +3110,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyCpdnonTEWo463W45UJ9rgB3kB0wYV_dahWVIFZ_UbNdGLxgdC-OEfrLbyhlMjQfpn/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxC0ruPuVVebgLdh0SbAhu4mhXAOdd5eHfFl8iZ4YjKe4RaA8MPrnpjA1K3--TwLyNC/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.8.3R"
+            VERSION: "3.9.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3441,12 +3464,13 @@ function getPswcWinnerCount(username) {
         let warpGateLocked = false;
         let currentStageData = null; // 現在プレイ中のステージ情報
         let isWeeklyCupMatch = false; // 大会から開始したプレイ中だけ、専用の金色演出を使う
-        let weeklyCupStageCache = null;
+        const weeklyCupStageCache = new Map();
         let weeklyCupStageCacheWeek = null;
+        let weeklyCupPreloadPromise = null;
         let returnToWeeklyCupAfterGame = false;
         let cachedStages = null;    // ステージリストのキャッシュ
-        // OVRは全ステージのクリア・投稿情報を基に算出するため、ページ表示用の100件とは
-        // 別に全件を一度だけ取得する。
+        // OVR／グローバルランキングは、盤面を含まない最新750件の軽量データだけを使う。
+        let rankingStages = [];
         let allStagesForOvrLoaded = false;
         let allStagesForOvrPromise = null;
         function getCachedStagesArray() {
@@ -3455,33 +3479,81 @@ function getPswcWinnerCount(username) {
             return cachedStages;
         }
         async function ensureAllStagesForOvr() {
-            if (allStagesForOvrLoaded && Array.isArray(cachedStages)) return cachedStages;
+            if (allStagesForOvrLoaded && Array.isArray(rankingStages)) return rankingStages;
             if (allStagesForOvrPromise) return allStagesForOvrPromise;
-            // 全件データはステージ数により応答が大きくなるため、通常の短い通信時間では
-            // 中断しないよう、この読み込みだけ余裕を持たせる。
-            allStagesForOvrPromise = callApi('getPublished', {}, 60000)
+            allStagesForOvrPromise = callApi('getPublishedRankingData', {}, 30000)
                 .then(res => {
                     if (!res?.success || !Array.isArray(res.stages)) {
-                        throw new Error(apiMessageText(res?.message, '全ステージを取得できませんでした。'));
+                        throw new Error(apiMessageText(res?.message, 'ランキング用ステージを取得できませんでした。'));
                     }
-                    cachedStages = res.stages;
+                    rankingStages = res.stages;
                     allStagesForOvrLoaded = true;
                     _badgeOvrCache = {};
-                    _badgeOvrCacheRef = cachedStages;
-                    return cachedStages;
+                    _badgeOvrCacheRef = rankingStages;
+                    profileStatsCacheRef = null;
+                    profileStatsByUsername = Object.create(null);
+                    return rankingStages;
                 })
                 .finally(() => { allStagesForOvrPromise = null; });
             return allStagesForOvrPromise;
         }
         function preloadAllStagesInBackground(username) {
-            // ホームの初期ロード完了後、操作を妨げないタイミングで全ステージを先読みする。
+            // 互換用の名前を維持しつつ、実際にはランキング用の直近750件だけを先読みする。
             // 一覧を先に開いた場合も ensureAllStagesForOvr の Promise を共有するため二重通信しない。
             const start = () => {
                 if (!CONFIG.IS_LOGGED_IN || CONFIG.USERNAME !== username) return;
-                ensureAllStagesForOvr().catch(error => console.warn('全ステージのバックグラウンド読み込みに失敗:', error));
+                ensureAllStagesForOvr().catch(error => console.warn('ランキング用ステージのバックグラウンド読み込みに失敗:', error));
             };
             if ('requestIdleCallback' in window) window.requestIdleCallback(start, { timeout: 1500 });
             else setTimeout(start, 0);
+        }
+        function weeklyCupCacheKey(weekStart, day) {
+            return `${weekStart || ''}:${Number(day) || 0}`;
+        }
+        function cacheWeeklyCupResponse(res) {
+            if (!res?.success) return;
+            const days = Array.isArray(res.days) ? res.days : [];
+            days.forEach(dayInfo => {
+                const isSelectedDay = Number(dayInfo.day) === Number(res.day);
+                const stage = dayInfo.stage || (isSelectedDay ? res.stage : null);
+                // 選択Dayだけを再取得した応答では、他Dayのキャッシュを空データで上書きしない。
+                if (!stage && !isSelectedDay && weeklyCupStageCache.has(weeklyCupCacheKey(res.weekStart, dayInfo.day))) return;
+                const ranking = Array.isArray(dayInfo.ranking) ? dayInfo.ranking : (isSelectedDay ? res.ranking : []);
+                weeklyCupStageCache.set(weeklyCupCacheKey(res.weekStart, dayInfo.day), {
+                    ...res,
+                    day: dayInfo.day,
+                    stageNumber: dayInfo.stageNumber,
+                    stage,
+                    stageInfo: dayInfo.stageInfo || (stage ? { id: stage.id, name: stage.name, creator: stage.creator, stageType: stage.stageType } : null),
+                    ranking,
+                    attempts: dayInfo.attempts ?? (isSelectedDay ? res.attempts : 0)
+                });
+            });
+            weeklyCupStageCache.set(weeklyCupCacheKey(res.weekStart, res.day), { ...res });
+        }
+        function getCachedWeeklyCup(day) {
+            const keySuffix = `:${Number(day) || 0}`;
+            for (const [key, value] of weeklyCupStageCache.entries()) {
+                if (key.endsWith(keySuffix)) return value;
+            }
+            return null;
+        }
+        function preloadWeeklyCupInBackground(username) {
+            if (weeklyCupPreloadPromise) return weeklyCupPreloadPromise;
+            if (!CONFIG.IS_LOGGED_IN || CONFIG.USERNAME !== username) return Promise.resolve(null);
+            weeklyCupPreloadPromise = callApi('getWeeklyCup', { includeStage: true, includeAllDays: true })
+                .then(res => {
+                    if (res?.success) {
+                        cacheWeeklyCupResponse(res);
+                        weeklyCupStageCacheWeek = `${res.weekStart || ''}:${res.day || ''}`;
+                        if (res.active && selectedWeeklyCupDay === null) selectedWeeklyCupDay = Number(res.currentDay || res.day) || 1;
+                        return res;
+                    }
+                    return null;
+                })
+                .catch(error => { console.warn('大会情報の先読み失敗:', error); return null; })
+                .finally(() => { weeklyCupPreloadPromise = null; });
+            return weeklyCupPreloadPromise;
         }
         let userBadgeVisible = true; // 自分のバッジ表示設定（ログイン時に反映）
         let cachedBadgeSettings = null; // { disabled: [username, ...] } バッジを非表示に設定しているユーザー一覧
@@ -3500,6 +3572,9 @@ function getPswcWinnerCount(username) {
         // プロフィール／ランキング共通の集計結果。ステージ配列が変わるまで使い回す。
         let profileStatsByUsername = Object.create(null);
         let profileStatsCacheRef = null;
+        // OVRの4ステータスは、現在の活躍も反映できるよう新しい750ステージを対象に集計する。
+        // ステージ一覧の検索・並び替え対象は全件のまま維持する。
+        const PROFILE_STATUS_STAGE_LIMIT = 750;
         let currentSort = 'newest'; // デフォルトのソート順
         let filterMyStages = false;
         let filterUnplayed = false;
@@ -5062,6 +5137,7 @@ function getPswcWinnerCount(username) {
                 creatorSpecialSettings = { order: [], visible: {} };
                 // 全ステージの本体データは、必要になった画面でページ単位に取得する。
                 cachedStages = null;
+                rankingStages = [];
                 allStagesForOvrLoaded = false;
                 showLoggedInHome(res.username);
                 if (openTutorialAfterRegistration) {
@@ -5073,7 +5149,6 @@ function getPswcWinnerCount(username) {
                     .catch(error => console.error('初期データ同期エラー:', error))
                     .finally(() => {
                         finishHomeSyncUI();
-                        preloadAllStagesInBackground(res.username);
                     });
                 document.getElementById('sort-criteria').value = currentSort;
                 document.getElementById('filter-my-stages').checked = filterMyStages;
@@ -5564,8 +5639,8 @@ function getPswcWinnerCount(username) {
             if (gauge) gauge.style.width = '100%';
             setHomeSyncLocked(false);
             if (status) setTimeout(() => { status.style.display = 'none'; }, 180);
-            // ホームの初期同期完了後にだけ、OVR用の全ステージを裏で取得する。
-            // ここでは待機しないため、ホーム操作はすぐに可能なまま。
+            // 大会情報を先に裏読みし、完了後にOVR用の全ステージを取得する。
+            // どちらも待機しないため、ホーム操作はすぐに可能なまま。
             ensureAllStagesForOvr().catch(error => console.warn('OVR用ステージの先読み失敗:', error));
         }
 
@@ -5594,7 +5669,7 @@ function getPswcWinnerCount(username) {
             syncHomeLevelGaugeVisibility();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
-            document.getElementById('weekly-cup-btn').style.display = 'block';
+            document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('level-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
@@ -6966,7 +7041,7 @@ function getPswcWinnerCount(username) {
                 textInfo.style.marginTop = '0.5cqh';
                 textInfo.innerHTML = `
                     <div style="font-weight:bold; font-size:1.2cqw;">${g.name}</div>
-                    <div style="font-size:0.8cqw; color:#aaa;">Members: ${g.members.length}</div>
+                    <div style="font-size:0.8cqw; color:#aaa;">Members: ${g.members.length} / 5</div>
                     <div style="font-size:0.8cqw; color:${g.joinPolicy === 'private' ? '#ff9a9a' : '#8fffc1'};">${g.joinPolicy === 'private' ? 'Private' : 'Free'} / 最低OVR: ${Number(g.minOvr) || 0}</div>
                 `;
 
@@ -6991,13 +7066,14 @@ function getPswcWinnerCount(username) {
                     };
                 } else {
                     // どこにも所属していない場合は入会ボタンを表示
-                    const canJoinLocally = g.joinPolicy !== 'private' && myOvr >= (Number(g.minOvr) || 0);
+                    const isFull = (g.members || []).length >= 5;
+                    const canJoinLocally = !isFull && g.joinPolicy !== 'private' && myOvr >= (Number(g.minOvr) || 0);
                     if (!canJoinLocally) {
                         btn.innerText = '入会できませんでした。';
                         btn.disabled = true;
                         btn.style.opacity = '0.55';
                         div.style.borderColor = '#7c4650';
-                        div.title = g.joinPolicy === 'private' ? 'Privateギルドには入会できません。' : `最低OVR ${Number(g.minOvr) || 0} が必要です。`;
+                        div.title = isFull ? 'このギルドは満員です。' : (g.joinPolicy === 'private' ? 'Privateギルドには入会できません。' : `最低OVR ${Number(g.minOvr) || 0} が必要です。`);
                         div.appendChild(btn);
                         container.appendChild(div);
                         return;
@@ -7986,15 +8062,24 @@ function getPswcWinnerCount(username) {
 
         // ランキング向けのOVR集計。全ステージをプレイヤーごとに再走査せず、一度の集計で共有する。
         function calculateProfileStats(targetUser) {
-            const stages = getCachedStagesArray();
+            const allStages = Array.isArray(rankingStages) ? rankingStages : [];
+            // getPublishedStages() は新しい順で返す。元の全件配列を変更しないため、
+            // 古い人気・高難度ステージも一覧検索やステージ別ランキングからは消えない。
+            const stages = allStages.slice(0, PROFILE_STATUS_STAGE_LIMIT);
             const key = String(targetUser || '');
-            if (profileStatsCacheRef === stages && profileStatsByUsername[key]) return profileStatsByUsername[key];
+            if (profileStatsCacheRef === allStages && profileStatsByUsername[key]) return profileStatsByUsername[key];
+
+            // Pioneerはクリア済みの高難度ステージに応じたポイント合計で評価する。
+            const pioneerPointsByDifficulty = Object.freeze({
+                newdimension: 150, limit: 50, godplus: 30, god: 25,
+                oni: 15, superhard: 5, hard: 1
+            });
 
             const users = Object.create(null);
             const register = (name, skin = 'default', color = 'default', customSprite = null) => {
                 const username = String(name || '');
                 if (!username) return;
-                if (!users[username]) users[username] = { clears: 0, pioneerClears: 0, posts: 0, firsts: 0, totalPlays: 0, stagePlays: [], skin, color, customSprite };
+                if (!users[username]) users[username] = { clears: 0, pioneerPoints: 0, posts: 0, firsts: 0, totalPlays: 0, stagePlays: [], skin, color, customSprite };
                 else if (skin !== 'default') Object.assign(users[username], { skin, color, customSprite });
             };
             for (const stage of stages) {
@@ -8006,9 +8091,7 @@ function getPswcWinnerCount(username) {
                 owner.posts++;
                 owner.totalPlays += attempts;
                 owner.stagePlays.push(attempts);
-                // Pioneerは、5プレイ以上かつクリア率2%以下の高難度ステージのクリア数で評価する。
-                const clearRate = attempts > 0 ? (Number(stage.clears) || 0) / attempts * 100 : 100;
-                const isPioneerStage = attempts >= 5 && clearRate <= 2;
+                const pioneerPoints = pioneerPointsByDifficulty[getStageDifficultyFilterKey(stage)] || 0;
                 const leaderboard = Array.isArray(stage.leaderboard) ? stage.leaderboard : [];
                 const topTime = leaderboard.length ? leaderboard[0].time : null;
                 for (const record of leaderboard) {
@@ -8016,7 +8099,7 @@ function getPswcWinnerCount(username) {
                     const user = users[String(record?.name || '')];
                     if (!user) continue;
                     user.clears++;
-                    if (isPioneerStage) user.pioneerClears++;
+                    user.pioneerPoints += pioneerPoints;
                     if (record.time === topTime) user.firsts++;
                 }
             }
@@ -8034,8 +8117,8 @@ function getPswcWinnerCount(username) {
             const maxContribution = Math.max(...rows.map(user => user.clears + user.posts), 1);
             const maxTotalPlays = Math.max(...rows.map(user => user.totalPlays), 1);
             const averageCreatorPlays = rows.reduce((sum, user) => sum + user.totalPlays, 0) / Math.max(1, rows.length);
-            const maxPioneerClears = Math.max(...rows.map(user => user.pioneerClears), 1);
-            const averagePioneerClears = rows.reduce((sum, user) => sum + user.pioneerClears, 0) / Math.max(1, rows.length);
+            const maxPioneerPoints = Math.max(...rows.map(user => user.pioneerPoints), 1);
+            const averagePioneerPoints = rows.reduce((sum, user) => sum + user.pioneerPoints, 0) / Math.max(1, rows.length);
             const globalAvgPlays = stages.reduce((total, stage) => total + (Number(stage.attempts) || 0), 0) / totalStages;
             const top5Averages = new Map(rows.map(user => {
                 const top = user.stagePlays.slice().sort((a, b) => b - a).slice(0, 5);
@@ -8052,14 +8135,14 @@ function getPswcWinnerCount(username) {
                 const contribution = Math.round(Math.max(1, (user.clears + user.posts) / maxContribution * 100));
                 const creator = Math.round(Math.max(1, Math.min(100, user.totalPlays <= 0 ? 1 : user.totalPlays >= averageCreatorPlays ? 60 + (user.totalPlays - averageCreatorPlays) * 40 / Math.max(1, maxTotalPlays - averageCreatorPlays) : 1 + user.totalPlays / Math.max(1, averageCreatorPlays) * 59)));
                 const pioneer = Math.round(Math.max(1, Math.min(100,
-                    user.pioneerClears <= 0 ? 1
-                    : user.pioneerClears >= maxPioneerClears ? 100
-                    : user.pioneerClears >= averagePioneerClears ? 60 + (user.pioneerClears - averagePioneerClears) * 40 / Math.max(1, maxPioneerClears - averagePioneerClears)
-                    : 1 + user.pioneerClears / Math.max(1, averagePioneerClears) * 59
+                    user.pioneerPoints <= 0 ? 1
+                    : user.pioneerPoints >= maxPioneerPoints ? 100
+                    : user.pioneerPoints >= averagePioneerPoints ? 60 + (user.pioneerPoints - averagePioneerPoints) * 40 / Math.max(1, maxPioneerPoints - averagePioneerPoints)
+                    : 1 + user.pioneerPoints / Math.max(1, averagePioneerPoints) * 59
                 )));
                 results[username] = { timeAttacker, stageQuality, creator, pioneer, ovr: Math.round((timeAttacker + stageQuality + creator + pioneer) / 4), skin: user.skin || 'default', color: user.color || 'default', customSprite: user.customSprite || null };
             });
-            profileStatsCacheRef = stages;
+            profileStatsCacheRef = allStages;
             profileStatsByUsername = results;
             return results[key] || { timeAttacker: 1, stageQuality: 1, creator: 1, pioneer: 1, ovr: 1, skin: 'default', color: 'default', customSprite: null };
         }
@@ -8159,13 +8242,11 @@ function getPswcWinnerCount(username) {
             const guildIcon = guild
                 ? `<span class="guild-badge guild-rank-${Math.max(0, Math.min(GUILD_RANK_EXP.length - 1, Number(guild.rank) || 0))}" title="${guild.name} / RANK ${guild.rank}"><img src="${getGuildIconDataUrl(guild.icon)}" alt="${guild.name}"><b class="guild-badge-rank">${guild.rank}</b></span>`
                 : '<span class="guild-badge guild-badge-empty" title="ギルド未所属"></span>';
-            const wins = getPswcWinnerCount(username);
-            const winnerBadge = wins > 0 ? `<span class="weekly-cup-winner-badge" title="PSWC 優勝 ${wins} 回">🏆×${wins}</span>` : '';
             const epithet = PLAYER_EPITHETS[String(username)];
             const epithetBadge = epithet
                 ? `<span class="player-epithet" title="${epithet.title}" style="display:inline-flex; align-items:center; margin-left:.32em; padding:${size === 'small' ? '1px 5px' : '2px 7px'}; border:1px solid ${epithet.border}; border-radius:.2em; background:${epithet.bg}; color:${epithet.text}; font-size:${size === 'small' ? '.63cqw' : '.73cqw'}; font-weight:900; line-height:1.25; white-space:nowrap; text-shadow:0 1px #000; box-shadow:0 0 6px ${epithet.glow};">${epithet.title}</span>`
                 : '';
-            return `<span class="badge-chip${specialBadgeClass}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${epithetBadge}${guildIcon}${winnerBadge}`;
+            return `<span class="badge-chip${specialBadgeClass}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${epithetBadge}${guildIcon}`;
         }
 
         // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
@@ -8215,6 +8296,10 @@ function getPswcWinnerCount(username) {
             const labels = ["Time Attack", "Creator", "Quality", "Pioneer"];
             const values = [stats.timeAttacker, stats.creator, stats.stageQuality, stats.pioneer || 1];
             const axisCount = labels.length;
+            const readout = document.getElementById('profile-stat-readout');
+            if (readout) {
+                readout.innerHTML = labels.map((label, index) => `<div><span>${label}</span><b>${Math.round(Number(values[index]) || 0)}%</b></div>`).join('');
+            }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -8447,105 +8532,154 @@ function getPswcWinnerCount(username) {
         }
 
         // --- Pixel Stages Weekly Cup ---
-        async function openWeeklyCup() {
+        let selectedWeeklyCupDay = null;
+        async function openWeeklyCup(day = null, forceRefresh = false) {
+            if (day !== null) selectedWeeklyCupDay = Number(day);
             const overlay = document.getElementById('weekly-cup-overlay');
             const period = document.getElementById('weekly-cup-period');
             const stageBox = document.getElementById('weekly-cup-stage');
+            const tabs = document.getElementById('weekly-cup-day-tabs');
             const rankingWrap = document.getElementById('weekly-cup-ranking-wrap');
+            const rankingTitle = document.getElementById('weekly-cup-ranking-title');
             const rankingBody = document.getElementById('weekly-cup-ranking');
+            const totalBody = document.getElementById('weekly-cup-total-ranking');
             overlay.style.display = 'flex';
-            period.innerText = '読み込み中...';
-            if (!weeklyCupStageCache) stageBox.innerText = '公式ステージを確認しています...';
+            period.innerText = 'Loading...';
+            stageBox.innerText = '公式ステージを確認しています...';
             rankingWrap.style.display = 'none';
             rankingBody.innerHTML = '';
+            totalBody.innerHTML = '';
 
             await ensureAllStagesForOvr();
             const myOvr = getCachedOVR(CONFIG.USERNAME);
-            const canJoinCup = myOvr >= 16; // Silver 1 以上
-
-            let res = await callApi('getWeeklyCup', { includeStage: !weeklyCupStageCache });
-            if (res && res.success && !res.stage && weeklyCupStageCacheWeek !== res.weekStart) {
-                res = await callApi('getWeeklyCup', { includeStage: true });
-            }
+            const canJoinCup = myOvr >= 16;
+            const requestedDay = selectedWeeklyCupDay || undefined;
+            const cachedCup = requestedDay ? getCachedWeeklyCup(requestedDay) : null;
+            const res = (!forceRefresh && cachedCup)
+                ? cachedCup
+                : await callApi('getWeeklyCup', { day: requestedDay, includeStage: true });
             if (!res || !res.success) {
                 period.innerText = '大会情報を取得できませんでした。';
                 stageBox.innerText = '';
                 return;
             }
+            cacheWeeklyCupResponse(res);
+            weeklyCupStageCacheWeek = `${res.weekStart || ''}:${res.day || ''}`;
+            selectedWeeklyCupDay = res.day;
             const dateText = `${res.weekStart.replaceAll('-', '/')} 〜 ${res.weekEnd.replaceAll('-', '/')}`;
-            period.innerText = res.active ? `開催中　${dateText}` : `調整期間　次回 ${dateText}`;
+            period.innerText = res.active ? `開催中　${dateText}　DAY ${res.currentDay}` : `大会期間外　${dateText}`;
             period.style.color = res.active ? '#7dffcb' : '#ffd36b';
 
-            if (res.stage) {
-                weeklyCupStageCache = res.stage;
-                weeklyCupStageCacheWeek = res.weekStart;
-            }
-            const cupStage = res.stage || (weeklyCupStageCacheWeek === res.weekStart ? weeklyCupStageCache : null);
+            tabs.replaceChildren();
+            (res.days || []).forEach(dayInfo => {
+                const button = document.createElement('button');
+                button.className = 'pixel-btn small';
+                button.style.cssText = `margin:0; padding:.45cqh .65cqw; ${dayInfo.day === res.day ? 'background:#d59a16; color:#211300;' : ''}`;
+                button.innerText = `DAY ${dayInfo.day}`;
+                button.disabled = !dayInfo.stageInfo;
+                button.title = dayInfo.stageInfo ? `${dayInfo.date} / ${dayInfo.stageInfo.name}` : `${dayInfo.date} / ステージ準備中`;
+                button.onclick = () => openWeeklyCup(dayInfo.day);
+                tabs.appendChild(button);
+            });
+
+            const cupStage = res.stage;
+            stageBox.replaceChildren();
             if (!cupStage) {
-                stageBox.innerText = '公式ステージは調整中です。\nWeeklyCup シートに対象ステージの番号が設定されると表示されます。';
-                return;
-            }
-
-            // ステージ本体は初回だけ描画し、開き直し時はタイム順位表のみ更新する。
-            if (res.stage) {
-            stageBox.innerHTML = '';
-            const preview = document.createElement('canvas');
-            preview.width = 480; preview.height = 180;
-            preview.style.cssText = 'width:min(100%,58cqw); image-rendering:pixelated; border:.12cqw solid #fff; background:#111;';
-            renderPreview(preview, cupStage.data);
-            const title = document.createElement('div');
-            title.style.cssText = 'font-size:2cqw; color:#fff; margin-top:.8cqh; font-weight:bold;';
-            title.innerText = cupStage.name;
-            const creator = document.createElement('div');
-            creator.style.cssText = 'font-size:1.05cqw; color:#b5cde4; margin:.35cqh 0 1cqh;';
-            creator.innerHTML = `OFFICIAL STAGE / by <span class="${getUserNameClasses(cupStage.creator)}">${cupStage.creator}</span>`;
-            const playBtn = document.createElement('button');
-            playBtn.className = 'pixel-btn small';
-            let eligibilityNotice = null;
-            playBtn.innerText = !res.active ? 'ステージを確認' : (canJoinCup ? '大会に挑戦' : 'シルバーランク以上で参加可能');
-            if (!res.active) {
-                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(cupStage); };
-            } else if (canJoinCup) {
-                playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(cupStage); };
+                stageBox.innerText = `DAY ${res.day} の公式ステージは準備中です。\nWeeklyCupシートのDay ${res.day}列に、Publishedシートの行番号を設定してください。`;
             } else {
-                playBtn.disabled = true;
-                playBtn.style.opacity = '.55';
-                eligibilityNotice = document.createElement('div');
-                eligibilityNotice.style.cssText = 'margin-top:.8cqh; color:#ffcf70; font-size:1cqw;';
-                eligibilityNotice.innerText = `現在のランク: ${getBadgeTier(myOvr).label}（Silver 1 / OVR 16 以上が必要です）`;
-            }
-            stageBox.append(preview, title, creator, playBtn);
-            if (eligibilityNotice) stageBox.appendChild(eligibilityNotice);
+                const preview = document.createElement('canvas');
+                preview.width = 480; preview.height = 180;
+                preview.style.cssText = 'width:min(100%,58cqw); image-rendering:pixelated; border:.12cqw solid #fff; background:#111;';
+                renderPreview(preview, cupStage.data);
+                const title = document.createElement('div');
+                title.style.cssText = 'font-size:2cqw; color:#fff; margin-top:.8cqh; font-weight:bold;';
+                title.innerText = `DAY ${res.day}　${cupStage.name}`;
+                const creator = document.createElement('div');
+                creator.style.cssText = 'font-size:1.05cqw; color:#b5cde4; margin:.35cqh 0 1cqh;';
+                creator.innerHTML = `OFFICIAL STAGE / by <span class="${getUserNameClasses(cupStage.creator)}">${renderGuildAbbreviation(cupStage.creator)}${cupStage.creator}</span>`;
+                const attempts = document.createElement('div');
+                attempts.style.cssText = 'font-size:1cqw; color:#d8ecff; margin:-.6cqh 0 .9cqh;';
+                attempts.innerText = `PLAY COUNT: ${Number(res.attempts) || 0}`;
+                const playBtn = document.createElement('button');
+                playBtn.className = 'pixel-btn small';
+                const isTodayStage = res.day === res.currentDay;
+                if (!res.active) {
+                    playBtn.innerText = '大会期間外です';
+                    playBtn.disabled = true;
+                } else if (!isTodayStage) {
+                    playBtn.innerText = `DAY ${res.currentDay} のみ挑戦できます`;
+                    playBtn.disabled = true;
+                } else if (!canJoinCup) {
+                    playBtn.innerText = 'シルバーランク以上で参加可能';
+                    playBtn.disabled = true;
+                } else {
+                    playBtn.innerText = '大会に挑戦';
+                    playBtn.onclick = () => { closeWeeklyCup(); startWeeklyCupGame(cupStage); };
+                }
+                if (playBtn.disabled) playBtn.style.opacity = '.55';
+                stageBox.append(preview, title, creator, attempts, playBtn);
+                if (!canJoinCup) {
+                    const notice = document.createElement('div');
+                    notice.style.cssText = 'margin-top:.8cqh; color:#ffcf70; font-size:1cqw;';
+                    notice.innerText = `現在のランク: ${getBadgeTier(myOvr).label}（Silver 1 / OVR 16 以上が必要です）`;
+                    stageBox.appendChild(notice);
+                }
             }
 
-            if (!res.active) return;
             rankingWrap.style.display = 'block';
+            rankingTitle.innerText = `DAY ${res.day} RANKING`;
             const ranks = res.ranking || [];
             if (!ranks.length) {
-                rankingBody.innerHTML = '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">まだ記録がありません</td></tr>';
-                return;
+                rankingBody.innerHTML = '<tr><td colspan="4" style="padding:1.5cqh; color:#aaa;">まだ記録がありません</td></tr>';
+            } else {
+                ranks.forEach(record => {
+                    const tr = document.createElement('tr');
+                    if (String(record.name) === String(CONFIG.USERNAME)) tr.classList.add('ranking-self');
+                    tr.style.borderBottom = '.1cqw solid #444';
+                    const rank = document.createElement('td'); rank.style.padding = '1cqh'; rank.innerText = record.rank;
+                    const player = document.createElement('td'); player.style.padding = '1cqh';
+                    const playerName = document.createElement('span');
+                    playerName.className = getUserNameClasses(record.name);
+                    playerName.style.cssText = 'color:var(--primary-color); cursor:pointer; text-decoration:underline;';
+                    playerName.innerText = record.name;
+                    playerName.onclick = () => openProfile(record.name);
+                    playerName.insertAdjacentHTML('afterbegin', renderGuildAbbreviation(record.name));
+                    player.appendChild(playerName);
+                    player.insertAdjacentHTML('beforeend', ` ${renderBadgeChip(record.name, 'small')}`);
+                    const time = document.createElement('td'); time.style.cssText = 'padding:1cqh; text-align:right;'; time.innerText = `${Number(record.time).toFixed(3)}s`;
+                    const points = document.createElement('td'); points.style.cssText = 'padding:1cqh; text-align:right; color:#ffe276;'; points.innerText = `${record.points} PT`;
+                    tr.append(rank, player, time, points);
+                    rankingBody.appendChild(tr);
+                });
             }
-            let currentRank = 0;
-            let lastTime = null;
-            ranks.forEach((record, index) => {
-                if (record.time !== lastTime) { currentRank = index + 1; lastTime = record.time; }
-                const tr = document.createElement('tr');
-                if (String(record.name) === String(CONFIG.USERNAME)) tr.classList.add('ranking-self');
-                tr.style.borderBottom = '.1cqw solid #444';
-                const rank = document.createElement('td'); rank.style.padding = '1cqh'; rank.innerText = currentRank;
-                const player = document.createElement('td'); player.style.padding = '1cqh';
-                const playerName = document.createElement('span');
-                playerName.className = getUserNameClasses(record.name);
-                playerName.style.cssText = 'color:var(--primary-color); cursor:pointer; text-decoration:underline;';
-                playerName.innerText = record.name;
-                playerName.onclick = () => openProfile(record.name);
-                playerName.insertAdjacentHTML('afterbegin', renderGuildAbbreviation(record.name));
-                player.appendChild(playerName);
-                player.insertAdjacentHTML('beforeend', ` ${renderBadgeChip(record.name, 'small')}`);
-                const time = document.createElement('td'); time.style.cssText = 'padding:1cqh; text-align:right;'; time.innerText = `${Number(record.time).toFixed(3)}s`;
-                tr.append(rank, player, time);
-                rankingBody.appendChild(tr);
-            });
+
+            const totals = res.totalRanking || [];
+            if (!totals.length) {
+                totalBody.innerHTML = '<tr><td colspan="3" style="padding:1cqh; color:#aaa; text-align:center;">まだポイントがありません</td></tr>';
+            } else {
+                totals.forEach(entry => {
+                    const tr = document.createElement('tr');
+                    if (String(entry.name) === String(CONFIG.USERNAME)) tr.classList.add('ranking-self');
+                    tr.style.borderBottom = '.1cqw solid rgba(255,213,74,.26)';
+                    const rank = document.createElement('td'); rank.style.padding = '.65cqh'; rank.innerText = entry.rank;
+                    const player = document.createElement('td'); player.style.padding = '.65cqh';
+                    player.innerHTML = `<span class="${getUserNameClasses(entry.name)}" style="color:var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${entry.name}')">${renderGuildAbbreviation(entry.name)}${entry.name}</span>${renderBadgeChip(entry.name, 'small')}`;
+                    const points = document.createElement('td'); points.style.cssText = 'padding:.65cqh; text-align:right; color:#fff0a3; font-weight:bold;'; points.innerText = `${entry.points} PT`;
+                    tr.append(rank, player, points);
+                    totalBody.appendChild(tr);
+                });
+            }
+        }
+
+        async function refreshWeeklyCupRanking() {
+            const button = document.getElementById('weekly-cup-ranking-reload-btn');
+            if (button) { button.disabled = true; button.innerText = '再読み込み中...'; }
+            try {
+                await openWeeklyCup(selectedWeeklyCupDay, true);
+            } finally {
+                const currentButton = document.getElementById('weekly-cup-ranking-reload-btn');
+                if (currentButton) { currentButton.disabled = false; currentButton.innerText = '↻ 再読み込み'; }
+            }
         }
 
         function closeWeeklyCup() {
@@ -8566,12 +8700,14 @@ function getPswcWinnerCount(username) {
             const title = document.getElementById('lb-title');
             const body = document.getElementById('lb-body');
             const tabs = document.getElementById('lb-tabs');
+            const statusNote = document.getElementById('global-ranking-status-note');
             const stageTypeCrownSelect = document.getElementById('stage-type-crown-select');
             if (stageTypeCrownSelect) stageTypeCrownSelect.value = tab.startsWith('typeCrowns:') ? tab.slice('typeCrowns:'.length) : 'all';
 
             title.innerText = "LOADING...";
             body.innerHTML = "";
             tabs.style.display = 'flex';
+            if (statusNote) statusNote.style.display = 'block';
             const onlinePlaytimeTab = document.getElementById('online-playtime-rank-tab');
             if (onlinePlaytimeTab) onlinePlaytimeTab.style.display = CONFIG.USERNAME === 'Runon' ? 'inline-block' : 'none';
             overlay.style.display = 'flex';
@@ -8659,14 +8795,14 @@ function getPswcWinnerCount(username) {
 
             const createStats = () => ({ crowns: 0, gods: 0, plays: 0, typeCrowns: Object.create(null) });
             const stats = {}; // { username: { crowns, gods, plays, typeCrowns } }
-            cachedStages.forEach(s => {
+            rankingStages.forEach(s => {
                 const creator = s.creator;
                 if (!stats[creator]) stats[creator] = createStats();
                 // 表／裏面を持つステージは、使われている両方のタイプに首位を数える。
                 // 古い通常ステージはクラシック(normal)として扱う。
                 const typeSource = getStageTypeSource(s);
-                const stageFaces = getStageDataFaces(s.data);
-                const hasBackFace = (stageFaces.back || []).some(row => Array.isArray(row) && row.some(tile => tile != null));
+                const stageFaces = s.data ? getStageDataFaces(s.data) : null;
+                const hasBackFace = s.hasBackFace === true || ((stageFaces?.back || []).some(row => Array.isArray(row) && row.some(tile => tile != null)));
                 const stageTypes = [getFrontStageType(typeSource)];
                 if (hasBackFace) stageTypes.push(getStageTypeForFace(typeSource, 'back'));
                 const uniqueStageTypes = Array.from(new Set(stageTypes.filter(Boolean)));
@@ -8699,6 +8835,9 @@ function getPswcWinnerCount(username) {
                 ...Object.keys(stats),
                 ...(tab === 'level' ? Array.from(playerLevelsByUsername.keys()) : [])
             ]));
+            const rankedStageCount = Math.max(1, rankingStages.length);
+            const rankedTotalPlays = Math.max(1, rankingStages.reduce((sum, stage) => sum + (Number(stage?.attempts) || 0), 0));
+            const displayPercent = value => `${(Math.max(0, Number(value) || 0) * 100).toFixed(2)}%`;
             let sorted = [], headerHtml = "", rowFunc = null;
 
             const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${renderGuildAbbreviation(u)}${u}</span>${renderPlayerControlLogo(u)} ${renderBadgeChip(u, 'small')}</td>`;
@@ -8729,17 +8868,17 @@ function getPswcWinnerCount(username) {
                 title.innerText = "RANK: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${stats[u].crowns}</td>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${displayPercent(stats[u].crowns / rankedStageCount)}</td>`;
             } else if (tab === 'gods') {
                 title.innerText = "RANK: GODS";
                 sorted = users.filter(u => stats[u].gods > 0).sort((a, b) => stats[b].gods - stats[a].gods);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">GODS</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${stats[u].gods}</td>`;
             } else {
-                title.innerText = "RANK: TOTAL PLAYS";
+                title.innerText = "RANK: CREATOR";
                 sorted = users.filter(u => stats[u].plays > 0).sort((a, b) => stats[b].plays - stats[a].plays);
-                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">PLAYS</th>`;
-                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${stats[u].plays}</td>`;
+                headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">CREATOR</th>`;
+                rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${displayPercent(stats[u].plays / rankedTotalPlays)}</td>`;
             }
 
             const headerRow = body.parentElement.querySelector('thead tr');
@@ -8847,8 +8986,10 @@ function getPswcWinnerCount(username) {
             const title = document.getElementById('lb-title');
             const body = document.getElementById('lb-body');
             const tabs = document.getElementById('lb-tabs');
+            const statusNote = document.getElementById('global-ranking-status-note');
 
             tabs.style.display = 'none';
+            if (statusNote) statusNote.style.display = 'none';
             title.innerText = `TOP RACERS: ${stage.name}`;
             body.innerHTML = "";
             overlay.style.display = 'flex';
@@ -9318,6 +9459,7 @@ function getPswcWinnerCount(username) {
             if (key === 'y') return hasRoadReward(11);
             if (['o', 'D'].includes(key)) return purchasedSkins.includes('key_set');
             if (key === 'V') return purchasedSkins.includes('aurora_block');
+            if (key === 'GB') return purchasedSkins.includes('black_boss') || purchasedBlocks.includes('gold_block');
             if (key === 'BH') return purchasedSkins.includes('black_hole');
             if (key === 'IE') return purchasedSkins.includes('iron_enemy');
             if (key === '#') return purchasedSkins.includes('wire_mesh');
@@ -9583,7 +9725,7 @@ function getPswcWinnerCount(username) {
             const hasBlackBoss = purchasedSkins.includes('black_boss');
             if(document.getElementById('btn-tool-BL')) document.getElementById('btn-tool-BL').style.display = hasBlackBoss ? 'flex' : 'none';
             if(document.getElementById('btn-tool-CA')) document.getElementById('btn-tool-CA').style.display = hasBlackBoss ? 'flex' : 'none';
-            if(document.getElementById('btn-tool-GB')) document.getElementById('btn-tool-GB').style.display = hasBlackBoss ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-GB')) document.getElementById('btn-tool-GB').style.display = (hasBlackBoss || purchasedBlocks.includes('gold_block')) ? 'flex' : 'none';
 
             const hasHestiaBoss = purchasedSkins.includes('hestia_boss');
             if(document.getElementById('btn-tool-HS')) document.getElementById('btn-tool-HS').style.display = hasHestiaBoss ? 'flex' : 'none';
@@ -9689,7 +9831,7 @@ function getPswcWinnerCount(username) {
             startHomeBackgroundEffect();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
-            document.getElementById('weekly-cup-btn').style.display = 'block';
+            document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('level-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
@@ -11112,6 +11254,76 @@ function getPswcWinnerCount(username) {
             alert("あなた専用の枠に保存しました！");
         }
 
+        let stageCodeDialogMode = 'save';
+        function getEditorStageCode_() {
+            return JSON.stringify({
+                version: 1,
+                front: editorFrontGrid,
+                back: editorBackGrid,
+                stageTypes: { front: editorFrontStageType, back: editorBackStageType }
+            });
+        }
+
+        function openStageCodeDialog(mode) {
+            stageCodeDialogMode = mode === 'load' ? 'load' : 'save';
+            const overlay = document.getElementById('stage-code-overlay');
+            const title = document.getElementById('stage-code-title');
+            const note = document.getElementById('stage-code-note');
+            const text = document.getElementById('stage-code-text');
+            const action = document.getElementById('stage-code-action-btn');
+            if (!overlay || !title || !note || !text || !action) return;
+            const isSave = stageCodeDialogMode === 'save';
+            title.innerText = isSave ? 'ステージコードを保存' : 'ステージコードを読み込み';
+            note.innerText = isSave ? 'このコードをコピーして保管できます。表面・裏面・ステージタイプを含みます。' : 'ステージコードを貼り付けると、現在の制作内容を置き換えます。';
+            text.value = isSave ? getEditorStageCode_() : '';
+            text.readOnly = isSave;
+            action.innerText = isSave ? 'コピー' : '読み込む';
+            overlay.style.display = 'flex';
+            text.focus();
+            if (isSave) text.select();
+        }
+
+        function closeStageCodeDialog() {
+            const overlay = document.getElementById('stage-code-overlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        async function handleStageCodeDialog() {
+            const text = document.getElementById('stage-code-text');
+            if (!text) return;
+            if (stageCodeDialogMode === 'save') {
+                try {
+                    await navigator.clipboard.writeText(text.value);
+                } catch (_) {
+                    text.focus(); text.select();
+                    document.execCommand('copy');
+                }
+                showQuickMsg('ステージコードをコピーしました。', 'var(--primary-color)');
+                return;
+            }
+            try {
+                const data = JSON.parse(text.value.trim());
+                const front = data?.front || data;
+                if (!Array.isArray(front)) throw new Error('invalid-stage-code');
+                editorFrontGrid = normalizeGrid(front);
+                editorBackGrid = normalizeGrid(data?.back || []);
+                editorFrontStageType = data?.stageTypes?.front || 'normal';
+                editorBackStageType = data?.stageTypes?.back || 'normal';
+                editorFace = 'front';
+                editorGrid = editorFrontGrid;
+                const faceButton = document.getElementById('editor-face-btn');
+                if (faceButton) faceButton.innerText = '🪞 裏面へ';
+                const stageTypeSelect = document.getElementById('stage-type-select');
+                if (stageTypeSelect) { stageTypeSelect.value = editorFrontStageType; stageTypeSelect.dataset.prevValue = editorFrontStageType; }
+                resetClearCheck();
+                drawEditor();
+                closeStageCodeDialog();
+                showQuickMsg('ステージコードを読み込みました。投稿には再度クリアチェックが必要です。', 'var(--primary-color)');
+            } catch (_) {
+                showQuickMsg('ステージコードの形式が正しくありません。', 'var(--secondary-color)');
+            }
+        }
+
         async function loadSavedStage() {
             if (!confirm('本当にロードしますか？\n※ 現在の制作内容とクリアチェックは置き換えられます。')) return;
             const res = await callApi('load', { username: CONFIG.USERNAME, key: 'my_stage' });
@@ -11256,32 +11468,7 @@ function getPswcWinnerCount(username) {
                 stageListPageCache.set(pageCacheKey, res);
             }
             let pageStages = (res?.stages || []).filter(s => s && s.data);
-            // Pick up! は、ログイン後に裏で取得済みの全ステージキャッシュから流用する。
-            // 一覧ページ用の通信でPick up!のグリッドを重ねて取得しない。
-            if (stageListPage === 0) {
-                // 全ステージの裏読み込みが一時的に失敗しても、ゲーム終了後の一覧復帰を止めない。
-                // Pick up! の差し込みだけを省略し、取得済みの現在ページは必ず表示する。
-                let allStages = [];
-                try {
-                    allStages = await ensureAllStagesForOvr();
-                } catch (error) {
-                    console.warn('Pick up! 用の全ステージ読み込みに失敗しました:', error);
-                    allStages = Array.isArray(cachedStages) ? cachedStages : [];
-                }
-                if (renderVersion !== stageListRenderVersion) return;
-                const pickupStages = (Array.isArray(allStages) ? allStages : []).filter(stage => {
-                    if (!stage || !stage.data || !String(stage.name || '').startsWith('$')) return false;
-                    const creator = String(stage.creator || '');
-                    const name = String(stage.name || '');
-                    if (filterMyStages && creator !== CONFIG.USERNAME) return false;
-                    if (filterCreatorName && !creator.toLowerCase().includes(filterCreatorName)) return false;
-                    if (filterStageName && !name.toLowerCase().includes(filterStageName)) return false;
-                    if (filterUnplayed && (Array.isArray(stage.leaderboard) ? stage.leaderboard : []).some(r => String(r.name) === CONFIG.USERNAME)) return false;
-                    return true;
-                });
-                const receivedIds = new Set(pageStages.map(stage => String(stage.id || stage.name)));
-                pageStages = pickupStages.filter(stage => !receivedIds.has(String(stage.id || stage.name))).concat(pageStages);
-            }
+            // Pick up!／PSWCはサーバー側で先頭に差し込むため、ここで全ステージを読み込まない。
             stageListPageStages = pageStages;
             stageListPage = Number(res?.page) || 0;
             stageListTotal = Number(res?.total) || 0;
@@ -11336,8 +11523,8 @@ function getPswcWinnerCount(username) {
                 return 0; // newest はデフォルトの配列順（サーバー側が新着順と想定）
             });
 
-            // PSWC作成の大会ステージを最上部、その次に $ 始まりの Pick up! ステージを配置する。
-            const isPswcCreator = s => String(s.creator || '').trim().toUpperCase() === 'PSWC';
+            // Pick up!だけを一覧上部へ配置する。PSWC投稿も通常ステージとして扱う。
+            const isPswcCreator = () => false;
             const isPickUpStage = s => String(s.name || '').startsWith('$');
             const pswcStages = filtered.filter(isPswcCreator);
             const pickupStages = filtered.filter(s => !isPswcCreator(s) && isPickUpStage(s));
@@ -11349,9 +11536,11 @@ function getPswcWinnerCount(username) {
             sortedStages.forEach((s, idx) => {
                 const div = document.createElement('div');
                 div.className = 'stage-item';
+                div.style.position = 'relative';
                 const isPickUp = isPickUpStage(s);
                 const isPswcStage = isPswcCreator(s);
                 const escapedId = s._idStr.replace(/'/g, "\\'");
+                const publishedStageNumber = Number.isFinite(Number(s.id)) ? Number(s.id) + 1 : null;
             
                 // 難易度バッジと枠線スタイルの計算
                 let diffBadge = "";
@@ -11524,6 +11713,12 @@ function getPswcWinnerCount(username) {
                 
                 div.appendChild(previewWrap);
                 div.appendChild(info);
+                if (publishedStageNumber !== null) {
+                    const numberLabel = document.createElement('span');
+                    numberLabel.style.cssText = 'position:absolute; left:.7cqw; bottom:.45cqh; color:rgba(255,255,255,.7); font-size:.7cqw; font-weight:bold; letter-spacing:.04em; pointer-events:none;';
+                    numberLabel.innerText = `No. ${publishedStageNumber}`;
+                    div.appendChild(numberLabel);
+                }
                 div.onclick = () => startGame(s, launchMode);
                 container.appendChild(div);
 
@@ -11604,7 +11799,7 @@ function getPswcWinnerCount(username) {
             updateGoldDisplay();
             document.getElementById('global-rank-btn').style.display = 'block';
             document.getElementById('password-settings-btn').style.display = 'block';
-            document.getElementById('weekly-cup-btn').style.display = 'block';
+            document.getElementById('weekly-cup-btn').style.display = 'none';
             document.getElementById('creators-road-btn').style.display = 'block';
             document.getElementById('level-road-btn').style.display = 'block';
             document.getElementById('explanation-btn').style.display = 'block';
@@ -11779,11 +11974,6 @@ function getPswcWinnerCount(username) {
                     showIncompatibleMsg(incompatible);
                     return;
                 }
-                // 製作者PSWCのステージは常設大会。従来の大会と同じくシルバー以上で参加できる。
-                if (String(stageObj?.creator || '').trim().toUpperCase() === 'PSWC' && getCachedOVR(CONFIG.USERNAME) < 16) {
-                    alert('PSWCへの参加にはシルバーランク以上が必要です。');
-                    return;
-                }
             }
 
             // 「プレイ」を押してからゲーム画面を始めるまでの間に一度だけ変換する。
@@ -11800,8 +11990,19 @@ function getPswcWinnerCount(username) {
             gameMode = mode;
             isGhostSpectatorMode = mode === 'watch';
             currentStageData = stageObj;
-            // PSWC名義の通常ステージは、期間設定なしで常に大会ルールを適用する。
-            isWeeklyCupMatch = mode === 'play' && stageObj && (stageObj.isWeeklyCup === true || String(stageObj.creator || '').trim().toUpperCase() === 'PSWC');
+            isWeeklyCupMatch = false;
+            // 大会中は他プレイヤーのゴーストを読み込まず、表示もさせない。
+            const ghostToggle = document.getElementById('toggle-ghosts');
+            if (isWeeklyCupMatch) {
+                playbackGhosts = [];
+                showGhosts = false;
+                if (ghostToggle) {
+                    if (ghostToggle.parentElement) ghostToggle.parentElement.style.display = 'none';
+                }
+            } else if (ghostToggle?.parentElement) {
+                ghostToggle.parentElement.style.display = 'flex';
+                showGhosts = ghostToggle.checked;
+            }
             isSwitchOn = true;
             player.onSwitch = false;
             // spriteCache.clear(); // パフォーマンス向上のため全削除を廃止
@@ -12235,7 +12436,7 @@ function getPswcWinnerCount(username) {
 
         // 手動再読み込みまで、今回のクリアをローカルの一覧・計算に即時反映する。
         function reflectStageClearLocally(stageId, username, time, ghost) {
-            if (!stageId || isWeeklyCupMatch) return;
+            if (!stageId) return;
             const id = String(stageId);
             const stageCopies = [];
             const addCopy = s => {
