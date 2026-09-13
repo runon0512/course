@@ -1239,6 +1239,14 @@
             pointer-events:none;
         }
         #settings-overlay { overflow-y:auto; padding:4cqh 0; box-sizing:border-box; background:radial-gradient(circle at 13% 10%,rgba(87,220,255,.19),transparent 27%),radial-gradient(circle at 90% 85%,rgba(141,91,255,.18),transparent 33%),rgba(2,8,20,.9) !important; }
+        #terms-overlay { overflow-y:auto; padding:3cqh 0; box-sizing:border-box; background:radial-gradient(circle at 12% 8%,rgba(92,225,255,.15),transparent 26%),radial-gradient(circle at 88% 90%,rgba(113,94,255,.16),transparent 31%),rgba(2,8,20,.94); }
+        .terms-card { width:min(88%,68cqw); max-height:88cqh; overflow-y:auto; box-sizing:border-box; padding:2.3cqw; text-align:left; border:.16cqw solid #70e6ff; border-radius:.7cqw; background:linear-gradient(135deg,rgba(9,35,67,.98),rgba(23,17,53,.98)); box-shadow:0 0 2cqw rgba(65,203,255,.3),inset 0 0 1.2cqw rgba(111,226,255,.06); }
+        .terms-card h2 { margin:0 0:.45cqh; color:#d7faff; text-align:center; letter-spacing:.12em; }
+        .terms-updated { margin:0 0:1.5cqh; color:#99dff3; text-align:center; font-size:.9cqw; }
+        .terms-card h3 { margin:1.35cqh 0 .45cqh; color:#8cefff; font-size:1.15cqw; }
+        .terms-card p, .terms-card li { color:#e5f2ff; font-size:1.02cqw; line-height:1.75; }
+        .terms-card ul { margin:.25cqh 0 0; padding-left:1.5em; }
+        .terms-open-btn { color:#9eefff !important; text-decoration:underline; text-underline-offset:.18em; }
         .settings-card { width:min(86%,48cqw); max-height:82cqh; overflow-y:auto; box-sizing:border-box; padding:2cqw !important; text-align:left; border:.16cqw solid #75e8ff !important; border-radius:.7cqw; background:linear-gradient(135deg,rgba(13,43,77,.98),rgba(23,18,59,.98)) !important; box-shadow:0 0 2.2cqw rgba(76,204,255,.35),inset 0 0 1.5cqw rgba(100,220,255,.07) !important; }
         .settings-header { display:flex; align-items:center; justify-content:space-between; gap:1cqw; margin-bottom:1.5cqh; padding-bottom:1.1cqh; border-bottom:.1cqw solid rgba(132,225,255,.3); }
         .settings-heading { display:flex; align-items:center; gap:.9cqw; }
@@ -2255,7 +2263,54 @@
                     <button class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
                     <button class="pixel-btn small" onclick="handleAuth('register')">新規登録</button>
                 </div>
+                <button class="pixel-btn small terms-open-btn" style="background:transparent; border:0;" onclick="openTerms()">利用規約</button>
                 <div id="auth-msg" class="auth-msg"></div>
+            </div>
+        </div>
+
+        <div id="terms-overlay" class="screen" style="display:none; z-index:2201; align-items:center; justify-content:center;">
+            <div class="terms-card">
+                <h2>利用規約</h2>
+                <p class="terms-updated">Pixel Stages / 最終更新日：2026年9月13日</p>
+                <p>この利用規約（以下「本規約」）は、Pixel Stages（以下「本サービス」）の利用条件を定めるものです。本サービスを利用した時点で、本規約に同意したものとします。</p>
+
+                <h3>1. アカウント</h3>
+                <ul>
+                    <li>利用者は、登録情報を正確に管理し、パスワードを第三者へ共有しないでください。</li>
+                    <li>他人になりすます行為、他人のアカウントの利用、認証の回避は認められません。</li>
+                    <li>アカウント上で行われた操作は、原則として当該アカウントの利用者によるものとして扱います。</li>
+                </ul>
+
+                <h3>2. 投稿・コミュニケーション</h3>
+                <ul>
+                    <li>ステージ、コメント、チャット、DM、画像その他の投稿物について、利用者は必要な権利を持つ内容のみを投稿してください。</li>
+                    <li>本サービスの運営・表示・不具合調査に必要な範囲で、投稿物を保存・表示・複製できるものとします。</li>
+                    <li>個人情報、パスワード、他人の権利を侵害する情報、違法・脅迫・差別・過度に攻撃的な内容の投稿は禁止します。</li>
+                </ul>
+
+                <h3>3. 禁止行為</h3>
+                <ul>
+                    <li>不正ツール、改造、脆弱性の悪用、自動操作、ランキングや通貨・記録の不正な操作。</li>
+                    <li>サーバーや他の利用者に過度な負荷をかける行為、サービスの運営を妨げる行為。</li>
+                    <li>悪意あるデータ、ウイルス、権利侵害コンテンツの送信や、法令・公序良俗に反する行為。</li>
+                </ul>
+
+                <h3>4. ゲーム内データ</h3>
+                <p>ゲーム内のG、AS、スキン、ステージ、記録、ランキングなどは本サービス内でのみ利用でき、現金・金券その他の財産的価値との交換、譲渡、換金はできません。運営上必要な場合、不正に得られたデータの修正・削除を行うことがあります。</p>
+                <p>自分で投稿したステージをプレイすること（セルフプレイ）は認められます。ただし、ゴールドを稼ぐことだけを主な目的としたステージの投稿は禁止します。通常のステージを遊んだ結果としてゴールドを得やすくなることや、自作ステージをテスト・確認・繰り返しプレイすることは問題ありません。</p>
+
+                <h3>5. 運営上の対応</h3>
+                <p>本規約違反または安全な運営に支障があると判断した場合、予告なく投稿の削除、機能の制限、記録の無効化、アカウントの停止・削除などを行うことがあります。</p>
+
+                <h3>6. サービスの変更・停止</h3>
+                <p>本サービスは、機能の追加・変更、メンテナンス、障害対応または終了を行うことがあります。通信障害、端末・ブラウザ環境、保存処理の失敗などにより、記録やゲーム内データが失われないことを保証するものではありません。</p>
+
+                <h3>7. 免責</h3>
+                <p>本サービスは現状のまま提供されます。運営は、利用者間のやり取り、投稿内容、外部リンク、データの完全性や特定目的への適合性について保証しません。ただし、運営に故意または重大な過失がある場合を除きます。</p>
+
+                <h3>8. 規約の変更</h3>
+                <p>本規約は必要に応じて変更できます。変更後に本サービスを利用した場合、変更後の規約に同意したものとします。</p>
+                <button class="pixel-btn small" style="width:100%; margin-top:1.8cqh; background:#296a9d;" onclick="closeTerms()">閉じる</button>
             </div>
         </div>
 
@@ -2439,6 +2494,7 @@
                     <div class="settings-actions">
                     <button class="pixel-btn small" data-i18n="settings.changePassword" onclick="closeSettings(); openPasswordChange()">パスワードを変更</button>
                     <button class="pixel-btn small" data-i18n="settings.tutorial" style="background:#296a9d;" onclick="closeSettings(); openTutorial()">チュートリアルを見る</button>
+                    <button class="pixel-btn small" style="background:#245e99;" onclick="openTerms()">利用規約</button>
                     <button class="pixel-btn small" data-i18n="settings.logout" style="background:#b71c1c;" onclick="logoutUser()">ログアウト</button>
                     </div>
                 </section>
@@ -7573,6 +7629,16 @@ function getPswcWinnerCount(username) {
             if (!overlay) return;
             syncControlModeInputs();
             overlay.style.display = 'flex';
+        }
+
+        function openTerms() {
+            const overlay = document.getElementById('terms-overlay');
+            if (overlay) overlay.style.display = 'flex';
+        }
+
+        function closeTerms() {
+            const overlay = document.getElementById('terms-overlay');
+            if (overlay) overlay.style.display = 'none';
         }
 
         function closeSettings() {
