@@ -93,6 +93,17 @@
             color: #fff;
             box-shadow: 0 0 .5em rgba(239,61,75,.9);
         }
+        .guild-abbreviation {
+            display: inline-block;
+            margin-right: .25em;
+            color: #72f59b;
+            font-weight: 900;
+            text-decoration: underline;
+            text-decoration-color: #30de70;
+            text-decoration-thickness: .12em;
+            text-underline-offset: .16em;
+            text-shadow: 0 0 .45em rgba(48,222,112,.5);
+        }
         #level-up-effect {
             display:none; position:fixed; inset:0; z-index:250; pointer-events:none;
             align-items:center; justify-content:center; text-align:center;
@@ -2535,6 +2546,7 @@
 
             <div id="guild-create-view" style="width: 80%; flex-grow: 1; display: none; flex-direction: column; align-items: center; gap: 2cqh;">
                 <input type="text" id="guild-name-input" placeholder="ギルド名を入力 (最大10文字)" maxlength="10" style="width: 60%; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.5cqw;">
+                <input type="text" id="guild-abbreviation-input" placeholder="略称（英数字4文字まで・任意）" maxlength="4" pattern="[A-Za-z0-9]{0,4}" autocapitalize="off" spellcheck="false" style="width: 60%; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.25cqw;">
                 <div style="font-size: 1.2cqw;">アイコンを選択:</div>
                 <div id="guild-icon-selector" class="shop-grid" style="max-height: 20cqh; width: 60%; padding: 1cqw;"></div>
                 <div id="guild-selected-icon-preview" style="text-align: center;">
@@ -2593,6 +2605,8 @@
                     <button class="pixel-btn small" onclick="showGuildHome()">← ギルドホームへ戻る</button>
                     <div class="guild-settings-section">
                         <div style="font-size:1.5cqw; font-weight:bold;">参加条件</div>
+                        <label style="font-size:1.1cqw;">略称 <input id="guild-abbreviation-settings-input" type="text" maxlength="4" pattern="[A-Za-z0-9]{0,4}" autocapitalize="off" spellcheck="false" placeholder="例: PS" style="width:8cqw; background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"></label>
+                        <span style="font-size:.9cqw; color:#a9c8d9;">英数字4文字まで。メンバー名の前に表示されます。</span>
                         <label style="font-size:1.1cqw;">最低OVR <input id="guild-min-ovr-input" type="number" min="0" value="0" style="width:8cqw; background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"></label>
                         <label style="font-size:1.1cqw;">加入方法 <select id="guild-join-policy-select" style="background:#1a1a2e; border:0.2cqw solid #fff; color:#fff; padding:.5cqw;"><option value="free">自由加入</option><option value="private">Private</option></select></label>
                         <button class="pixel-btn small" style="background:#00a8a8;" onclick="saveGuildJoinSettings()">参加条件を保存</button>
@@ -3017,10 +3031,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbw4imnqrBQO_AZsbb2u8z9665d19xo7SyulPps25VcExeahNK7BYLkUvjulQ7O4Il0E/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyCpdnonTEWo463W45UJ9rgB3kB0wYV_dahWVIFZ_UbNdGLxgdC-OEfrLbyhlMjQfpn/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.8.3"
+            VERSION: "3.8.3R"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3076,9 +3090,15 @@ function getPswcWinnerCount(username) {
             guildBadgeByMember = Object.create(null);
             (guilds || []).forEach(guild => {
                 (guild.members || []).forEach(member => {
-                    guildBadgeByMember[member] = { name: guild.name, icon: guild.icon || 'default', rank: Number(guild.rank) || 0 };
+                    guildBadgeByMember[member] = { name: guild.name, icon: guild.icon || 'default', rank: Number(guild.rank) || 0, abbreviation: /^[A-Za-z0-9]{1,4}$/.test(String(guild.abbreviation || '')) ? String(guild.abbreviation) : '' };
                 });
             });
+        }
+
+        // ギルド所属者の名前の前に付ける短いタグ。未設定・未所属なら何も表示しない。
+        function renderGuildAbbreviation(username) {
+            const abbreviation = guildBadgeByMember[String(username)]?.abbreviation;
+            return abbreviation ? `<span class="guild-abbreviation" title="ギルド略称">[${abbreviation}]</span>` : '';
         }
 
         function getUserNameClasses(username) {
@@ -4512,7 +4532,7 @@ function getPswcWinnerCount(username) {
             onlineUsernames.forEach(username => {
                 const row = document.createElement('div');
                 row.style.cssText = 'padding:.35cqh 0; color:#e8fff5; cursor:pointer; border-bottom:1px solid rgba(125,255,203,.16);';
-                row.innerHTML = `● <span class="${getUserNameClasses(username)}">${username}</span>`;
+                row.innerHTML = `● <span class="${getUserNameClasses(username)}">${renderGuildAbbreviation(username)}${username}</span>`;
                 row.onclick = () => openProfile(username);
                 list.appendChild(row);
             });
@@ -5528,7 +5548,7 @@ function getPswcWinnerCount(username) {
             document.getElementById('patch-notes-btn').style.display = 'block';
             document.getElementById('dm-inbox-btn').style.display = 'block';
             document.getElementById('audio-btn').style.display = 'block';
-            document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(username)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${username}</span>`;
+                document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(username)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${renderGuildAbbreviation(username)}${username}</span>`;
             const versionEl = document.getElementById('current-version');
             if (versionEl) versionEl.textContent = `v${CONFIG.VERSION}`;
             updateGoldDisplay();
@@ -5553,7 +5573,7 @@ function getPswcWinnerCount(username) {
 
             if (verifiedUsersRes?.success) {
                 verifiedUsernames = new Map((verifiedUsersRes.users || []).map(user => [String(user.username), String(user.status)]));
-                document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(CONFIG.USERNAME)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${CONFIG.USERNAME}</span>`;
+                document.getElementById('current-user').innerHTML = `<span class="${getUserNameClasses(CONFIG.USERNAME)}" onclick="openProfile()" style="cursor:pointer; text-decoration:underline;">${renderGuildAbbreviation(CONFIG.USERNAME)}${CONFIG.USERNAME}</span>`;
             }
             if (playerLevelsRes?.success) {
                 playerLevelsByUsername = new Map(Object.entries(playerLevelsRes.levels || {}));
@@ -6394,7 +6414,7 @@ function getPswcWinnerCount(username) {
                 const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
                 const replyInfo = '';
                 content.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderPlayerControlLogo(m.username)}${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${renderGuildAbbreviation(m.username)}${m.username}</span>${renderPlayerControlLogo(m.username)}${renderBadgeChip(m.username, 'small')}</div>
                     ${replyInfo}
                     <div style="word-break: break-all;">${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
@@ -6834,7 +6854,9 @@ function getPswcWinnerCount(username) {
         async function createGuild() {
             if (hasCurrentGuild()) { alert("すでにギルドに所属しています。"); showMyGuild(); return; }
             const name = document.getElementById('guild-name-input').value.trim();
+            const abbreviation = document.getElementById('guild-abbreviation-input').value.trim();
             if (!name) { alert("ギルド名を入力してください。"); return; }
+            if (!/^[A-Za-z0-9]{0,4}$/.test(abbreviation)) { alert("略称は英数字4文字以内で入力してください。"); return; }
             if (userGold < 25000) { alert("作成には25000G必要です。"); return; }
             
             const nextGold = userGold - 25000;
@@ -6846,6 +6868,7 @@ function getPswcWinnerCount(username) {
                     username: CONFIG.USERNAME,
                     guildName: name,
                     icon: selectedGuildIcon,
+                    abbreviation,
                     gold: nextGold
                 });
                 if (res.success) {
@@ -7093,7 +7116,7 @@ function getPswcWinnerCount(username) {
                 const nameSpan = document.createElement('span');
                 nameSpan.style.cursor = 'pointer';
                 const contribution = Number(contributions[m]) || 0;
-                nameSpan.innerHTML = `<span style="color:var(--primary-color);">${m === currentGuildDetails.owner ? '👑' : '👤'}</span> <span class="${getUserNameClasses(m)}">${m}</span> ${renderBadgeChip(m, 'small')}<span style="display:block; color:#9fb4c9; font-size:.85em; margin-top:.2cqh;">OVR ${getCachedOVR(m)} ・ 貢献 ${contribution.toLocaleString()} EXP</span>`;
+                nameSpan.innerHTML = `<span style="color:var(--primary-color);">${m === currentGuildDetails.owner ? '👑' : '👤'}</span> <span class="${getUserNameClasses(m)}">${renderGuildAbbreviation(m)}${m}</span> ${renderBadgeChip(m, 'small')}<span style="display:block; color:#9fb4c9; font-size:.85em; margin-top:.2cqh;">OVR ${getCachedOVR(m)} ・ 貢献 ${contribution.toLocaleString()} EXP</span>`;
                 nameSpan.onclick = () => openProfile(m);
                 mDiv.appendChild(nameSpan);
 
@@ -7154,7 +7177,7 @@ function getPswcWinnerCount(username) {
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
                 contentDiv.innerHTML = `
-                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${m.username}</span>${renderPlayerControlLogo(m.username)}${renderBadgeChip(m.username, 'small')}</div>
+                    <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${renderGuildAbbreviation(m.username)}${m.username}</span>${renderPlayerControlLogo(m.username)}${renderBadgeChip(m.username, 'small')}</div>
                     <div>${linkifyMessage(m.message)}</div>
                     <div class="message-meta">${new Date(m.time).toLocaleString()}</div>
                 `;
@@ -7217,6 +7240,7 @@ function getPswcWinnerCount(username) {
             document.getElementById('guild-settings-tab').style.display = 'flex';
 
             openGuildIconChange(); // Initialize icon selector when settings tab is opened
+            document.getElementById('guild-abbreviation-settings-input').value = currentGuildDetails?.abbreviation || '';
             document.getElementById('guild-min-ovr-input').value = currentGuildDetails?.minOvr || 0;
             document.getElementById('guild-join-policy-select').value = currentGuildDetails?.joinPolicy || 'free';
             const transferSelect = document.getElementById('transfer-master-select');
@@ -7239,8 +7263,15 @@ function getPswcWinnerCount(username) {
         }
 
         async function saveGuildJoinSettings() {
-            const res = await callApi('updateGuildJoinSettings', { username: CONFIG.USERNAME, guildName: userGuild, minOvr: Number(document.getElementById('guild-min-ovr-input').value) || 0, joinPolicy: document.getElementById('guild-join-policy-select').value });
-            if (res.success) { currentGuildDetails.minOvr = Number(document.getElementById('guild-min-ovr-input').value) || 0; currentGuildDetails.joinPolicy = document.getElementById('guild-join-policy-select').value; }
+            const abbreviation = document.getElementById('guild-abbreviation-settings-input').value.trim();
+            if (!/^[A-Za-z0-9]{0,4}$/.test(abbreviation)) { alert('略称は英数字4文字以内で入力してください。'); return; }
+            const res = await callApi('updateGuildJoinSettings', { username: CONFIG.USERNAME, guildName: userGuild, minOvr: Number(document.getElementById('guild-min-ovr-input').value) || 0, joinPolicy: document.getElementById('guild-join-policy-select').value, abbreviation });
+            if (res.success) {
+                currentGuildDetails.minOvr = Number(document.getElementById('guild-min-ovr-input').value) || 0;
+                currentGuildDetails.joinPolicy = document.getElementById('guild-join-policy-select').value;
+                currentGuildDetails.abbreviation = res.abbreviation ?? abbreviation;
+                cacheGuildBadgeData([currentGuildDetails]);
+            }
             alert(res.message);
         }
 
@@ -8442,6 +8473,7 @@ function getPswcWinnerCount(username) {
                 playerName.style.cssText = 'color:var(--primary-color); cursor:pointer; text-decoration:underline;';
                 playerName.innerText = record.name;
                 playerName.onclick = () => openProfile(record.name);
+                playerName.insertAdjacentHTML('afterbegin', renderGuildAbbreviation(record.name));
                 player.appendChild(playerName);
                 player.insertAdjacentHTML('beforeend', ` ${renderBadgeChip(record.name, 'small')}`);
                 const time = document.createElement('td'); time.style.cssText = 'padding:1cqh; text-align:right;'; time.innerText = `${Number(record.time).toFixed(3)}s`;
@@ -8498,7 +8530,7 @@ function getPswcWinnerCount(username) {
                     return `${hours}時間${minutes}分`;
                 };
                 await ensurePlayerLevelsLoaded();
-                body.innerHTML = (res.ranking || []).map((entry, index) => `<tr class="${String(entry.username) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom:.1cqw solid #444;"><td style="padding:1.5cqh;">${index + 1}</td><td style="padding:1.5cqh;">${getPlayerLevelPrefix(entry.username)}<span class="${getUserNameClasses(entry.username)}">${entry.username}</span>${renderPlayerControlLogo(entry.username)}</td><td style="padding:1.5cqh; text-align:right; color:#ffe082;">${formatPlaytime(entry.seconds)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">データがありません。</td></tr>';
+                body.innerHTML = (res.ranking || []).map((entry, index) => `<tr class="${String(entry.username) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom:.1cqw solid #444;"><td style="padding:1.5cqh;">${index + 1}</td><td style="padding:1.5cqh;">${getPlayerLevelPrefix(entry.username)}<span class="${getUserNameClasses(entry.username)}">${renderGuildAbbreviation(entry.username)}${entry.username}</span>${renderPlayerControlLogo(entry.username)}</td><td style="padding:1.5cqh; text-align:right; color:#ffe082;">${formatPlaytime(entry.seconds)}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:1.5cqh; color:#aaa;">データがありません。</td></tr>';
                 return;
             }
 
@@ -8603,7 +8635,7 @@ function getPswcWinnerCount(username) {
             ]));
             let sorted = [], headerHtml = "", rowFunc = null;
 
-            const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${u}</span>${renderPlayerControlLogo(u)} ${renderBadgeChip(u, 'small')}</td>`;
+            const nameCell = (u) => `<td style="padding: 1.5cqh;">${getPlayerLevelPrefix(u)}<span class="${getUserNameClasses(u)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${u}')">${renderGuildAbbreviation(u)}${u}</span>${renderPlayerControlLogo(u)} ${renderBadgeChip(u, 'small')}</td>`;
 
             const stageTypeCrownKey = tab.startsWith('typeCrowns:') ? tab.slice('typeCrowns:'.length) : '';
             const stageTypeCrownNames = {
@@ -8700,7 +8732,7 @@ function getPswcWinnerCount(username) {
             } else {
                 top10.forEach((rec, idx) => {
                     const isMe = rec.name === CONFIG.USERNAME;
-                    lbHtml += `<div style="display:flex; justify-content:space-between; ${isMe ? 'color:#00ff41;' : ''}"><span>${idx+1}. <span class="${getUserNameClasses(rec.name)}">${rec.name}</span></span><span>${rec.time.toFixed(3)}s</span></div>`;
+                    lbHtml += `<div style="display:flex; justify-content:space-between; ${isMe ? 'color:#00ff41;' : ''}"><span>${idx+1}. <span class="${getUserNameClasses(rec.name)}">${renderGuildAbbreviation(rec.name)}${rec.name}</span></span><span>${rec.time.toFixed(3)}s</span></div>`;
                 });
             }
             lbHtml += `<div style="margin-top:0.5cqh; padding-top:0.5cqh; border-top:0.1cqw dashed #666; color:#00ff41; display:flex; justify-content:space-between;">`;
@@ -8778,7 +8810,7 @@ function getPswcWinnerCount(username) {
                 body.innerHTML += `
                     <tr class="${String(rec.name) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom: 0.1cqw solid #444;">
                         <td style="padding: 1.5cqh;">${rec._displayRank}</td>
-                        <td style="padding: 1.5cqh;">${getPlayerLevelPrefix(rec.name)}<span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${rec.name}</span>${renderPlayerControlLogo(rec.name)} ${renderBadgeChip(rec.name, 'small')}</td>
+                        <td style="padding: 1.5cqh;">${getPlayerLevelPrefix(rec.name)}<span class="${getUserNameClasses(rec.name)}" style="color: var(--primary-color); cursor:pointer; text-decoration:underline;" onclick="openProfile('${rec.name}')">${renderGuildAbbreviation(rec.name)}${rec.name}</span>${renderPlayerControlLogo(rec.name)} ${renderBadgeChip(rec.name, 'small')}</td>
                         <td style="padding: 1.5cqh; text-align: right;">${rec.time.toFixed(3)}s</td>
                         <td style="padding: 1.5cqh; text-align: right;"><button class="pixel-btn small" style="margin:0; padding:.45cqh .7cqw; ${Array.isArray(rec.ghost) && rec.ghost.length ? '' : 'opacity:.45;'}" ${Array.isArray(rec.ghost) && rec.ghost.length ? `onclick="watchLeaderboardGhost(${idx})"` : 'disabled'}>観る</button></td>
                     </tr>`;
@@ -12407,7 +12439,7 @@ function getPswcWinnerCount(username) {
                     if (!currentGuildDetails.contributions) currentGuildDetails.contributions = {};
                     if (res.guildContribution !== null && res.guildContribution !== undefined) currentGuildDetails.contributions[CONFIG.USERNAME] = Number(res.guildContribution) || 0;
                     (currentGuildDetails.members || []).forEach(member => {
-                        guildBadgeByMember[member] = { name: currentGuildDetails.name, icon: currentGuildDetails.icon || 'default', rank: currentGuildDetails.rank };
+                        guildBadgeByMember[member] = { name: currentGuildDetails.name, icon: currentGuildDetails.icon || 'default', rank: currentGuildDetails.rank, abbreviation: currentGuildDetails.abbreviation || '' };
                     });
                 }
                 if (!res || !res.success) {
