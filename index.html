@@ -11517,7 +11517,19 @@ function getPswcWinnerCount(username) {
 
             try {
                 const stageType = { front: editorFrontStageType, back: editorBackStageType };
-                const result = await callApi('publish', { username: CONFIG.USERNAME, stageName, data: { front: editorFrontGrid, back: editorBackGrid }, stageType });
+                // 投稿IDを同じまま再送できるようにし、応答途切れ時の二重投稿を防ぐ。
+                const publishRequestId = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+                const stageData = { front: editorFrontGrid, back: editorBackGrid };
+                let result = await callApi('publish', {
+                    username: CONFIG.USERNAME, stageName, data: stageData, stageType, publishRequestId
+                }, 60000);
+                // 通信だけが途切れた場合は、同じIDで一度だけ安全に問い合わせる。
+                // GAS側が保存済みならキャッシュから成功を返し、保存中ならロック解除後に確認できる。
+                if (!result || !result.success) {
+                    result = await callApi('publish', {
+                        username: CONFIG.USERNAME, stageName, data: stageData, stageType, publishRequestId
+                    }, 60000);
+                }
                 if (!result || !result.success) {
                     showQuickMsg(result?.message || '投稿に失敗しました。', 'var(--secondary-color)');
                     return;
