@@ -1550,6 +1550,11 @@
         .tool-canvas {
             width: 100%;
             height: 100%;
+            display: block;
+            min-width: 1px;
+            min-height: 1px;
+            /* Canvasの初回描画が遅れた端末でも、透明なボタンに見えないようにする。 */
+            background: #101a2a;
             image-rendering: pixelated;
         }
 
@@ -2893,7 +2898,7 @@
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
                     <button id="editor-code-save-btn" class="pixel-btn small" style="margin-top:0; background:#275f9b;" onclick="openStageCodeDialog('save')">⌘コード保存</button>
-                    <button class="pixel-btn small" style="margin-top:0; background:#416f9b;" onclick="openStageCodeDialog('load')">⌘コード読込</button>
+                    <button id="editor-code-load-btn" class="pixel-btn small" style="margin-top:0; background:#416f9b;" onclick="openStageCodeDialog('load')">⌘コード読込</button>
                     <button id="editor-switch-btn" class="pixel-btn small" style="margin-top:0; background:#ff5252; color:#fff;" onclick="toggleEditorSwitch()">R/B: ON</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
@@ -9691,6 +9696,8 @@ function getPswcWinnerCount(username) {
             document.getElementById('editor-screen').style.display = 'block';
             const codeSaveButton = document.getElementById('editor-code-save-btn');
             if (codeSaveButton) codeSaveButton.style.display = CONFIG.USERNAME === 'Runon' ? '' : 'none';
+            const codeLoadButton = document.getElementById('editor-code-load-btn');
+            if (codeLoadButton) codeLoadButton.style.display = CONFIG.USERNAME === 'Runon' ? '' : 'none';
             
             // ロード報酬のアンロック状況を反映
             // R/Bスイッチ系は常に表示 (デフォルトでアンロック)
@@ -9918,7 +9925,7 @@ function getPswcWinnerCount(username) {
             if (btn) btn.innerText = isEditorUIHidden ? "👁️UI表示" : "🙈UI非表示";
         }
 
-        function renderToolIcons() {
+        function renderToolIcons(deferred = false) {
             const toolList = [
                 {type:'B', id:'icon-B'}, {type:'CB', id:'icon-CB'}, {type:'HBK', id:'icon-HBK'}, {type:'TL', id:'icon-TL'}, {type:'TR', id:'icon-TR'}, {type:'S', id:'icon-S'}, {type:'G', id:'icon-G'}, {type:'WG', id:'icon-WG'}, {type:'KG', id:'icon-KG'}, {type:'K', id:'icon-K'}, 
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'RT', id:'icon-RT'}, {type:'BT', id:'icon-BT'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, 
@@ -9939,9 +9946,32 @@ function getPswcWinnerCount(username) {
                 canvas.width = 60;
                 canvas.height = 60;
                 const ctx = canvas.getContext('2d');
-                if (tool.type === 'E') drawEraserIcon(ctx, 60, 60);
-                else drawTile(ctx, 0, 0, 60, 60, tool.type);
+                // 非表示から復帰した直後や古い端末でも透明にならないよう、毎回描画状態を初期化する。
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.globalAlpha = 1;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = '#101a2a';
+                ctx.fillRect(0, 0, 60, 60);
+                try {
+                    if (tool.type === 'E') drawEraserIcon(ctx, 60, 60);
+                    // アイコンは制作中の面・ステージタイプに影響されない静的プレビューにする。
+                    else drawTile(ctx, 0, 0, 60, 60, tool.type, 0, 'normal');
+                } catch (error) {
+                    // 個別ブロックの描画エラーでバー全体が透明になることを防ぐ。
+                    ctx.fillStyle = '#39516c';
+                    ctx.fillRect(4, 4, 52, 52);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(String(tool.type).slice(0, 3), 30, 35);
+                } finally {
+                    ctx.restore();
+                }
             });
+            // display切替と同じフレームにCanvasを描くと、機種によって描画が破棄されることがある。
+            // 次フレームに一度だけ描き直して、下部バー・Basicバーの両方を安定させる。
+            if (!deferred) requestAnimationFrame(() => renderToolIcons(true));
         }
 
         function toggleEditorSwitch() {
@@ -11320,8 +11350,8 @@ function getPswcWinnerCount(username) {
         }
 
         function openStageCodeDialog(mode) {
-            if (mode === 'save' && CONFIG.USERNAME !== 'Runon') {
-                showQuickMsg('ステージコードの保存はRunonのみ利用できます。', 'var(--secondary-color)');
+            if (CONFIG.USERNAME !== 'Runon') {
+                showQuickMsg('ステージコードの保存・読み込みはRunonのみ利用できます。', 'var(--secondary-color)');
                 return;
             }
             stageCodeDialogMode = mode === 'load' ? 'load' : 'save';
@@ -11350,12 +11380,12 @@ function getPswcWinnerCount(username) {
         async function handleStageCodeDialog() {
             const text = document.getElementById('stage-code-text');
             if (!text) return;
+            if (CONFIG.USERNAME !== 'Runon') {
+                closeStageCodeDialog();
+                showQuickMsg('ステージコードの保存・読み込みはRunonのみ利用できます。', 'var(--secondary-color)');
+                return;
+            }
             if (stageCodeDialogMode === 'save') {
-                if (CONFIG.USERNAME !== 'Runon') {
-                    closeStageCodeDialog();
-                    showQuickMsg('ステージコードの保存はRunonのみ利用できます。', 'var(--secondary-color)');
-                    return;
-                }
                 try {
                     await navigator.clipboard.writeText(text.value);
                 } catch (_) {
