@@ -2735,6 +2735,8 @@
                     <div id="guild-icon-current-pen" style="width:6cqw; height:6cqw; border:.3cqw solid #fff; margin-bottom:2cqh;"></div>
                     <div class="palette-grid" id="guild-icon-editor-palette"></div>
                     <div style="margin-top:4cqh; display:flex; flex-direction:column; gap:2cqh; width:100%;">
+                        <textarea id="guild-icon-code-input" rows="3" spellcheck="false" placeholder="キャラクターコードを貼り付け" style="box-sizing:border-box; width:100%; resize:vertical; background:#111; color:#fff; border:.15cqw solid #fff; padding:.6cqw; font-family:monospace; font-size:.85cqw;"></textarea>
+                        <button class="pixel-btn small" style="background:#5c6bc0;" onclick="loadGuildIconFromCharacterCode()">📥 キャラコードを読み込み</button>
                         <button class="pixel-btn small" onclick="saveGuildCustomIcon()">💾 アイコンに使用</button>
                         <button class="pixel-btn small" style="background:#f44336;" onclick="closeGuildIconEditor()">戻る</button>
                     </div>
@@ -2890,7 +2892,7 @@
                     <button class="pixel-btn small" style="margin-top:0; background:#f44336; color:#fff;" onclick="clearStage()">🗑️全消去</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="saveStage()">💾保存</button>
                     <button class="pixel-btn small" style="margin-top:0" onclick="loadSavedStage()">📂読込</button>
-                    <button class="pixel-btn small" style="margin-top:0; background:#275f9b;" onclick="openStageCodeDialog('save')">⌘コード保存</button>
+                    <button id="editor-code-save-btn" class="pixel-btn small" style="margin-top:0; background:#275f9b;" onclick="openStageCodeDialog('save')">⌘コード保存</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#416f9b;" onclick="openStageCodeDialog('load')">⌘コード読込</button>
                     <button id="editor-switch-btn" class="pixel-btn small" style="margin-top:0; background:#ff5252; color:#fff;" onclick="toggleEditorSwitch()">R/B: ON</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
@@ -3110,7 +3112,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxC0ruPuVVebgLdh0SbAhu4mhXAOdd5eHfFl8iZ4YjKe4RaA8MPrnpjA1K3--TwLyNC/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzn5QFzrm-XbhYJX7-OZ3nV8W35tH6OxsvgNXw2HAbhO0MUMr51uBiDAkAx5RGHzgbU/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "3.9.1"
@@ -3138,6 +3140,9 @@
         let chatRefreshId = null;
         let dmRefreshId = null;
         let currentDmPartner = null;
+        // 一度開いたDMは、この画面を閉じるまで端末側にも保持する。
+        // 受信箱から戻った際に「読み込み中」を挟まず、まず前回表示を即座に描画するためのキャッシュ。
+        const dmMessagesByPartner = Object.create(null);
         let guildBulletinRefreshId = null;
         let currentGuildDetails = null; 
         let guildBadgeByMember = Object.create(null);
@@ -4680,9 +4685,19 @@ function getPswcWinnerCount(username) {
         }
 
         function startOnlineCountUpdates() {
-            if (window.onlineCountTimer) clearInterval(window.onlineCountTimer);
-            refreshOnlineCount();
-            window.onlineCountTimer = setInterval(refreshOnlineCount, 15000);
+            if (window.onlineCountTimer) clearTimeout(window.onlineCountTimer);
+            // 一斉ログインや画面復帰時に全員が同じ秒へ通信しないよう、最初の時刻だけ端末ごとにずらす。
+            // 以後は各端末の位相を保ったまま、厳密に60秒ごとに更新する。
+            const scheduleNext = (initial = false) => {
+                const delay = initial
+                    ? 1000 + Math.floor(Math.random() * 59000) // 初回: 1〜60秒後（端末ごとにランダム）
+                    : 60000;
+                window.onlineCountTimer = setTimeout(async () => {
+                    await refreshOnlineCount();
+                    scheduleNext(false);
+                }, delay);
+            };
+            scheduleNext(true);
         }
 
         const AUTH_SESSION_COOKIE = 'pixel_stages_session';
@@ -6264,13 +6279,13 @@ function getPswcWinnerCount(username) {
                 item.className = 'chat-msg-item';
                 item.style.cssText = 'width:100%; box-sizing:border-box; cursor:pointer; color:#fff; text-align:left; font:inherit; display:block;';
                 item.innerHTML = `<div style="display:flex; justify-content:space-between; gap:1cqw;"><strong style="color:var(--primary-color);">${getPlayerLevelPrefix(conversation.from)}${conversation.from}${renderPlayerControlLogo(conversation.from)}</strong><span class="message-meta">${new Date(conversation.time).toLocaleString()}</span></div><div style="color:#d8e9ff; margin-top:.4cqh; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${linkifyMessage(conversation.message || '')}</div>`;
-                item.onclick = () => openDirectMessage(conversation.from);
+                item.onclick = () => openDirectMessage(conversation.from, true);
                 container.appendChild(item);
             });
             refreshDirectMessageNotifications();
         }
 
-        async function openDirectMessage(partner) {
+        async function openDirectMessage(partner, fromInbox = false) {
             if (!partner || partner === CONFIG.USERNAME) return;
             currentDmPartner = partner;
             // DMを開く時は、背後に別画面が残らないよう全画面を閉じる。
@@ -6283,8 +6298,16 @@ function getPswcWinnerCount(username) {
             document.getElementById('dm-composer').style.display = 'flex';
             document.getElementById('dm-attachment-actions').style.display = 'flex';
             closeDirectGiftPanel();
-            document.getElementById('dm-list').innerHTML = '<div style="color:#fff; font-size:1.5cqw; text-align:center; padding:5cqh;">読み込み中...</div>';
-            await refreshDirectMessages();
+            // 受信箱からはローディング表示を出さない。既読の会話はキャッシュを即表示し、
+            // 新着だけは表示後に裏で同期する。
+            document.getElementById('dm-list').innerHTML = '';
+            const hasCachedMessages = Object.prototype.hasOwnProperty.call(dmMessagesByPartner, partner);
+            if (fromInbox && hasCachedMessages) {
+                await refreshDirectMessages(true);
+                void refreshDirectMessages();
+            } else {
+                void refreshDirectMessages();
+            }
             document.getElementById('dm-input').focus();
         }
 
@@ -6295,10 +6318,16 @@ function getPswcWinnerCount(username) {
             refreshDirectMessageNotifications();
         }
 
-        async function refreshDirectMessages() {
+        async function refreshDirectMessages(useCachedMessages = false) {
             if (!currentDmPartner) return;
             const partner = currentDmPartner;
-            const res = await callApi('getDirectMessages', { username: CONFIG.USERNAME, partner });
+            let res = null;
+            if (useCachedMessages && Object.prototype.hasOwnProperty.call(dmMessagesByPartner, partner)) {
+                res = { success: true, messages: dmMessagesByPartner[partner] };
+            } else {
+                res = await callApi('getDirectMessages', { username: CONFIG.USERNAME, partner });
+                if (res && res.success) dmMessagesByPartner[partner] = res.messages || [];
+            }
             if (!res || !res.success || partner !== currentDmPartner) return;
             await ensurePlayerLevelsLoaded();
             const container = document.getElementById('dm-list');
@@ -7496,6 +7525,8 @@ function getPswcWinnerCount(username) {
             document.getElementById('guild-icon-editor-overlay').style.display = 'flex';
             renderGuildIconEditorPalette();
             drawGuildIconEditor();
+            const codeInput = document.getElementById('guild-icon-code-input');
+            if (codeInput) codeInput.value = '';
         }
 
         function renderGuildIconEditorPalette() {
@@ -7548,6 +7579,28 @@ function getPswcWinnerCount(username) {
         window.addEventListener('mouseup', () => { isGuildIconDrawing = false; });
 
         function closeGuildIconEditor() { document.getElementById('guild-icon-editor-overlay').style.display = 'none'; }
+
+        function loadGuildIconFromCharacterCode() {
+            const input = document.getElementById('guild-icon-code-input');
+            const raw = input?.value.trim();
+            if (!raw) {
+                showQuickMsg('キャラクターコードを貼り付けてください。', 'var(--secondary-color)');
+                return;
+            }
+            try {
+                // スキンエディタの「コードをコピー」と同じ16×16形式をそのまま使う。
+                const sprite = JSON.parse(raw);
+                const isValid = Array.isArray(sprite) && sprite.length === 16 && sprite.every(row =>
+                    Array.isArray(row) && row.length === 16 && row.every(color => color === null || typeof color === 'string')
+                );
+                if (!isValid) throw new Error('invalid-sprite');
+                guildIconEditingSprite = sprite.map(row => row.slice());
+                drawGuildIconEditor();
+                showQuickMsg('キャラクターコードを読み込みました。アイコンに使用で反映できます。', 'var(--primary-color)');
+            } catch (_) {
+                showQuickMsg('16×16形式のキャラクターコードを入力してください。', 'var(--secondary-color)');
+            }
+        }
 
         function saveGuildCustomIcon() {
             const icon = 'guild-custom:' + JSON.stringify(guildIconEditingSprite);
@@ -9636,6 +9689,8 @@ function getPswcWinnerCount(username) {
             document.getElementById('audio-btn').style.display = 'none';
 
             document.getElementById('editor-screen').style.display = 'block';
+            const codeSaveButton = document.getElementById('editor-code-save-btn');
+            if (codeSaveButton) codeSaveButton.style.display = CONFIG.USERNAME === 'Runon' ? '' : 'none';
             
             // ロード報酬のアンロック状況を反映
             // R/Bスイッチ系は常に表示 (デフォルトでアンロック)
@@ -11265,6 +11320,10 @@ function getPswcWinnerCount(username) {
         }
 
         function openStageCodeDialog(mode) {
+            if (mode === 'save' && CONFIG.USERNAME !== 'Runon') {
+                showQuickMsg('ステージコードの保存はRunonのみ利用できます。', 'var(--secondary-color)');
+                return;
+            }
             stageCodeDialogMode = mode === 'load' ? 'load' : 'save';
             const overlay = document.getElementById('stage-code-overlay');
             const title = document.getElementById('stage-code-title');
@@ -11292,6 +11351,11 @@ function getPswcWinnerCount(username) {
             const text = document.getElementById('stage-code-text');
             if (!text) return;
             if (stageCodeDialogMode === 'save') {
+                if (CONFIG.USERNAME !== 'Runon') {
+                    closeStageCodeDialog();
+                    showQuickMsg('ステージコードの保存はRunonのみ利用できます。', 'var(--secondary-color)');
+                    return;
+                }
                 try {
                     await navigator.clipboard.writeText(text.value);
                 } catch (_) {
