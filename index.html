@@ -5234,7 +5234,8 @@ function getPswcWinnerCount(username) {
             ['hestia_boss', 'hermes_boss', 'demeter_boss'].forEach(id => {
                 const item = SKINS[id];
                 if (!item) return;
-                createShopItem(container, id, item, purchasedSkins.includes(id), false,
+                const toolKey = id === 'hestia_boss' ? 'HS' : id === 'hermes_boss' ? 'HM' : 'DM';
+                createShopItem(container, id, item, hasEventBossOwnership(toolKey), false,
                     event => buyItem(id, item.price, event.target, item.isES ? 'ES' : 'gold'));
             });
         }
@@ -5444,25 +5445,49 @@ function getPswcWinnerCount(username) {
             btn.innerText = "通信中...";
             btn.disabled = true;
 
-            if (currency === 'AS') userAS -= price;
-            else if (currency === 'ES') userES -= price;
-            else userGold -= price;
+            // 通信に失敗した購入を端末側だけで「所持済み」にしない。
+            // これにより、再ログイン後にイベントボスが消える不整合を防ぐ。
+            const previousGold = userGold;
+            const previousAS = userAS;
+            const previousES = userES;
+            const nextGold = currency === 'gold' ? userGold - price : userGold;
+            const nextAS = currency === 'AS' ? userAS - price : userAS;
+            const nextES = currency === 'ES' ? userES - price : userES;
+            const nextPurchasedSkins = [...new Set([...(Array.isArray(purchasedSkins) ? purchasedSkins : []), id])];
 
-            purchasedSkins.push(id);
+            try {
+                const saveResult = await callApi('updateSkins', { 
+                    username: CONFIG.USERNAME,
+                    gold: nextGold,
+                    auroraStones: nextAS,
+                    eventStones: nextES,
+                    purchasedSkins: nextPurchasedSkins,
+                    equippedSkin: equippedSkin,
+                    equippedColor: equippedColor,
+                });
+                if (!saveResult?.success) throw new Error(saveResult?.message || '購入データを保存できませんでした。');
 
-            updateGoldDisplay();
-            updateShopWallet();
-            const saveResult = await callApi('updateSkins', { 
-                username: CONFIG.USERNAME, 
-                gold: userGold, 
-                auroraStones: userAS,
-                eventStones: userES,
-                purchasedSkins: purchasedSkins,
-                equippedSkin: equippedSkin,
-                equippedColor: equippedColor,
-            });
-            if (saveResult?.success) showNextShopkeeperLine('purchase');
-            openShop(true);
+                userGold = nextGold;
+                userAS = nextAS;
+                userES = nextES;
+                purchasedSkins = nextPurchasedSkins;
+                updateGoldDisplay();
+                updateShopWallet();
+                showNextShopkeeperLine('purchase');
+                openShop(true);
+            } catch (error) {
+                userGold = previousGold;
+                userAS = previousAS;
+                userES = previousES;
+                updateGoldDisplay();
+                updateShopWallet();
+                alert(error?.message || '購入を保存できませんでした。所持金は減っていません。');
+            } finally {
+                if (btn?.isConnected) {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            }
         }
 
         const TOOL_CATEGORIES = {
@@ -9510,6 +9535,20 @@ function getPswcWinnerCount(username) {
 
         const WHITE_HOLE_ALLOWED_USERS = new Set(['AKY_016', 'Kirby', 'Runon']);
 
+        // イベントボスは過去の保存データでブロックID（HS/HM/DM）や短縮名として
+        // 保存されている場合がある。制作画面・ショップで同じ所持判定を使う。
+        const EVENT_BOSS_PURCHASE_IDS = {
+            HS: ['hestia_boss', 'hestia', 'HS'],
+            HM: ['hermes_boss', 'hermes', 'HM'],
+            DM: ['demeter_boss', 'demeter', 'DM']
+        };
+
+        function hasEventBossOwnership(toolKey) {
+            const ids = EVENT_BOSS_PURCHASE_IDS[toolKey] || [];
+            const owned = Array.isArray(purchasedSkins) ? purchasedSkins : [];
+            return ids.some(id => owned.includes(id));
+        }
+
         function hasCreatorToolOwnership(key) {
             if (key === 'WH') return WHITE_HOLE_ALLOWED_USERS.has(CONFIG.USERNAME);
             // IRON CRATEは配布対象者のみ使用可能（Runonを含む全権限の例外を適用しない）。
@@ -9548,9 +9587,7 @@ function getPswcWinnerCount(username) {
             if (['PB', 'SM'].includes(key)) return purchasedSkins.includes('purple_boss');
             if (['WB', 'FL'].includes(key)) return purchasedSkins.includes('wolf_boss');
             if (['BL', 'CA', 'GB'].includes(key)) return purchasedSkins.includes('black_boss');
-            if (key === 'HS') return purchasedSkins.includes('hestia_boss');
-            if (key === 'HM') return purchasedSkins.includes('hermes_boss');
-            if (key === 'DM') return purchasedSkins.includes('demeter_boss');
+            if (['HS', 'HM', 'DM'].includes(key)) return hasEventBossOwnership(key);
             return true; // 基本ブロック
         }
 
@@ -9808,10 +9845,10 @@ function getPswcWinnerCount(username) {
             if(document.getElementById('btn-tool-CA')) document.getElementById('btn-tool-CA').style.display = hasBlackBoss ? 'flex' : 'none';
             if(document.getElementById('btn-tool-GB')) document.getElementById('btn-tool-GB').style.display = (hasBlackBoss || purchasedBlocks.includes('gold_block')) ? 'flex' : 'none';
 
-            const hasHestiaBoss = purchasedSkins.includes('hestia_boss');
+            const hasHestiaBoss = hasEventBossOwnership('HS');
             if(document.getElementById('btn-tool-HS')) document.getElementById('btn-tool-HS').style.display = hasHestiaBoss ? 'flex' : 'none';
-            if(document.getElementById('btn-tool-HM')) document.getElementById('btn-tool-HM').style.display = purchasedSkins.includes('hermes_boss') ? 'flex' : 'none';
-            if(document.getElementById('btn-tool-DM')) document.getElementById('btn-tool-DM').style.display = purchasedSkins.includes('demeter_boss') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-HM')) document.getElementById('btn-tool-HM').style.display = hasEventBossOwnership('HM') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-DM')) document.getElementById('btn-tool-DM').style.display = hasEventBossOwnership('DM') ? 'flex' : 'none';
 
             // 噴火制御機（購入済み、かつ火山・海辺ステージ選択中のみ表示）
             updateEruptionControlToolVisibility();
@@ -10124,8 +10161,11 @@ function getPswcWinnerCount(username) {
                 c.style.position = 'absolute';
                 c.style.width = `${Math.round(width)}px`;
                 c.style.height = `${Math.round(height)}px`;
-                c.style.left = `${Math.round((availableWidth - width) / 2)}px`;
-                c.style.top = `${Math.round((availableHeight - height) / 2)}px`;
+                // 親要素の左上からの差分ではなく、常に画面中央を基準に配置する。
+                // 表示領域の再計算が遅れる端末でも、コースが左上へ寄らない。
+                c.style.left = '50%';
+                c.style.top = '50%';
+                c.style.transform = 'translate(-50%, -50%)';
                 c.style.right = 'auto';
                 c.style.bottom = 'auto';
                 c.width = Math.round(width);
