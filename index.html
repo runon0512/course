@@ -3136,10 +3136,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzn5QFzrm-XbhYJX7-OZ3nV8W35tH6OxsvgNXw2HAbhO0MUMr51uBiDAkAx5RGHzgbU/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyNpdQrfNH4iv1r85AvLIVZL7BT-OVpd6SALG4ybnyBzLkVUr6fRPnpkDvHrNS7ghw/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.9.1"
+            VERSION: "3.9.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -11560,15 +11560,29 @@ function getPswcWinnerCount(username) {
                 // 投稿IDを同じまま再送できるようにし、応答途切れ時の二重投稿を防ぐ。
                 const publishRequestId = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
                 const stageData = { front: editorFrontGrid, back: editorBackGrid };
-                let result = await callApi('publish', {
+                const publishPayload = {
                     username: CONFIG.USERNAME, stageName, data: stageData, stageType, publishRequestId
-                }, 60000);
-                // 通信だけが途切れた場合は、同じIDで一度だけ安全に問い合わせる。
-                // GAS側が保存済みならキャッシュから成功を返し、保存中ならロック解除後に確認できる。
+                };
+                // GASのロック待ちを含めても応答を受け取れるよう、投稿だけは少し長く待つ。
+                let result = await callApi('publish', publishPayload, 90000);
+                // 応答だけが途切れた場合は、まず保存済みかを軽量に照会する。
+                // これで保存済みの投稿を再送・エラー表示することを防ぐ。
                 if (!result || !result.success) {
-                    result = await callApi('publish', {
-                        username: CONFIG.USERNAME, stageName, data: stageData, stageType, publishRequestId
-                    }, 60000);
+                    await new Promise(resolve => setTimeout(resolve, 700));
+                    const status = await callApi('getPublishStatus', {
+                        username: CONFIG.USERNAME, publishRequestId
+                    }, 12000);
+                    if (status?.success) result = status;
+                }
+                // サーバーに届いていなかった場合だけ、同じ投稿IDで一度だけ再送する。
+                if (!result || !result.success) {
+                    result = await callApi('publish', publishPayload, 90000);
+                    if (!result?.success) {
+                        const status = await callApi('getPublishStatus', {
+                            username: CONFIG.USERNAME, publishRequestId
+                        }, 12000);
+                        if (status?.success) result = status;
+                    }
                 }
                 if (!result || !result.success) {
                     showQuickMsg(result?.message || '投稿に失敗しました。', 'var(--secondary-color)');
