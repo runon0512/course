@@ -3136,10 +3136,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyNpdQrfNH4iv1r85AvLIVZL7BT-OVpd6SALG4ybnyBzLkVUr6fRPnpkDvHrNS7ghw/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbykwZMVSh1-nbj9-ZcnZQGTE4UX11Ifk87QzYBLyCRdVmXKztefe_ceW5YaoYonNbNt/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.9.2"
+            VERSION: "3.9.3"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -4495,13 +4495,21 @@ function getPswcWinnerCount(username) {
          * GAS APIへの通信を共通化
          */
         // 読み取り専用で、何度実行しても副作用がない（＝再試行しても安全な）アクションかどうか判定
-        // 書き込み系アクション（記録の送信・購入・投稿など）は二重処理を防ぐため絶対に再試行しない
+        // 書き込み系はネットワーク切断時に再送すると二重処理になり得るため、
+        // サーバーが「ロックを取得できず未処理」と明示した場合だけ再試行する。
         function isRetryableReadAction(action) {
             return action === 'login' || action === 'load' || action === 'refreshOnlineUsers' || action.indexOf('get') === 0;
         }
 
-        async function callApi(action, payload, timeoutMs = 20000) {
-            const maxAttempts = action === 'getChat' ? 3 : (isRetryableReadAction(action) ? 2 : 1);
+        function isServerBusyResponse(result) {
+            if (!result || result.success !== false) return false;
+            const message = String(result.message || '');
+            return /混雑|ロック|統計更新エラー|クリア記録エラー|投稿処理/.test(message);
+        }
+
+        async function callApi(action, payload, timeoutMs = 30000) {
+            const retryableRead = isRetryableReadAction(action);
+            const maxAttempts = action === 'getChat' ? 3 : (retryableRead ? 3 : 2);
             let lastError = null;
             for (let i = 0; i < maxAttempts; i++) {
                 // 古いiPad Safariには AbortController がない場合がある。
@@ -4528,13 +4536,27 @@ function getPswcWinnerCount(username) {
                     if (timeoutId) clearTimeout(timeoutId);
 
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    return await response.json();
+                    const result = await response.json();
+                    // ロック取得失敗はサーバー側で書き込みが行われていないため、
+                    // 書き込みアクションでも同じリクエストを安全にやり直せる。
+                    if (isServerBusyResponse(result) && i + 1 < maxAttempts) {
+                        lastError = new Error(result.message || 'サーバーが混雑しています。');
+                        const delay = 550 * (i + 1) + Math.floor(Math.random() * 450);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    return result;
                 } catch (error) {
                     if (timeoutId) clearTimeout(timeoutId);
                     lastError = error;
                     console.warn(`API attempt ${i + 1}/${maxAttempts} failed (${action}):`, error);
-                    // GASの一時的な混雑時に即時連打しないよう、読み取り再試行には短い待機を入れる。
-                    if (i + 1 < maxAttempts) await new Promise(resolve => setTimeout(resolve, 350 * (i + 1)));
+                    // 応答が届かない場合の自動再送は、二重書き込みを避けるため読み取りだけに限定する。
+                    if (retryableRead && i + 1 < maxAttempts) {
+                        const delay = 550 * (i + 1) + Math.floor(Math.random() * 450);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else if (!retryableRead) {
+                        break;
+                    }
                 }
             }
             console.error(`API call failed (${action}):`, lastError);
@@ -4773,7 +4795,8 @@ function getPswcWinnerCount(username) {
             msg.innerText = "通信中...";
 
             // google.script.run ではなく、定義済みの callApi を使用します
-            callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember: type === 'login' && remember })
+            // ログイン／新規登録はGASの起動待ちも考慮し、通常通信（30秒）の2倍まで待機する。
+            callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember: type === 'login' && remember }, 60000)
                 .then((res) => {
                     msg.innerText = apiMessageText(res.message, res.success ? '完了しました。' : '処理に失敗しました。');
                     if (res.success) {
