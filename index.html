@@ -2227,8 +2227,8 @@
             <div id="online-users-list" style="font-size:1cqw;"></div>
         </div>
 
-        <!-- グローバルランキングボタン -->
-        <button id="global-rank-btn" class="pixel-btn small" data-i18n="home.ranking" onclick="showGlobalRanking()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none;">🏆 ランキング</button>
+        <!-- リアルタイムランキングボタン -->
+        <button id="global-rank-btn" class="pixel-btn small" onclick="showGlobalRanking()" style="position: absolute; top: 7cqh; right: 2cqw; z-index: 15; display: none;">🏆 リアルタイムランキング</button>
         <button id="password-settings-btn" class="pixel-btn small" data-i18n="home.settings" onclick="openSettings()" style="position:absolute; top:7cqh; left:2cqw; z-index:15; display:none;">⚙ 設定</button>
         <button id="patch-notes-btn" class="pixel-btn small" data-i18n="home.patchNotes" onclick="openPatchNotes()" style="position:absolute; top:13cqh; left:2cqw; z-index:15; display:none;">パッチノート</button>
         <button id="dm-inbox-btn" class="pixel-btn small" data-i18n="home.dm" onclick="openDirectMessageInbox()" style="position:absolute; top:19cqh; left:2cqw; z-index:15; display:none;">✉ DMを確認</button>
@@ -2814,7 +2814,7 @@
         <!-- 順位表オーバーレイ -->
         <div id="leaderboard-overlay" class="screen" style="z-index: 150; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; display: none;">
             <div class="auth-box" style="width: 70%; max-height: 80cqh;">
-                <h2 id="lb-title" style="font-size: 2.5cqw; color: #ffc107; margin-bottom: 2cqh;">LEADERBOARD</h2>
+                <h2 id="lb-title" style="font-size: 2.5cqw; color: #ffc107; margin-bottom: 2cqh;">REALTIME RANKING</h2>
                 <div style="display:flex; gap:1cqw; margin-bottom:2cqh; width:100%;">
                     <button id="lb-reload-btn" class="pixel-btn small" onclick="refreshLeaderboard()" style="margin:0; flex:1;">再読み込み</button>
                     <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin:0; flex:1;">閉じる</button>
@@ -2833,6 +2833,7 @@
                     <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
                     <button id="online-playtime-rank-tab" class="pixel-btn small" onclick="showGlobalRanking('onlinePlaytime')" style="display:none; min-width:12cqw;">プレイ時間</button>
                 </div>
+                <a id="overall-ranking-external-link" class="pixel-btn small" href="https://script.google.com/macros/s/AKfycbzxxbL37lbSmAFCbnFWjgWPgZdv7juDdra3ziMKfMCkVguSsPux752iF3LTPXbrrMhG/exec" target="_blank" rel="noopener noreferrer" style="display:inline-block; box-sizing:border-box; width:100%; margin:0 0 1.2cqh; text-align:center; text-decoration:none;">総合ランク（別リンク） ↗</a>
                 <div id="global-ranking-status-note" style="display:none; width:100%; box-sizing:border-box; margin:0 0 .8cqh; padding:.65cqh .9cqw; border-left:.22cqw solid #65dfff; background:rgba(80,196,255,.1); color:#c9f5ff; font-size:1.02cqw; line-height:1.45;">注意：このランキングとOVR・ステータスは、公開日時が新しい750ステージのデータをもとに集計しています。</div>
                 <div style="overflow-y: auto; width: 100%; flex-grow: 1;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 1.5cqw;">
@@ -3136,7 +3137,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbykwZMVSh1-nbj9-ZcnZQGTE4UX11Ifk87QzYBLyCRdVmXKztefe_ceW5YaoYonNbNt/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxEtogIvqRk1wceDjtLK2YCTru0gQ-7MTCXTfrk27Gf0vZNUluhi8wVVoF6aou_C_Jr/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "3.9.3"
@@ -8842,7 +8843,7 @@ function getPswcWinnerCount(username) {
                     overlay.style.display = 'none';
                     return;
                 }
-                title.innerText = 'RANK: ONLINE PLAYTIME';
+                title.innerText = 'REALTIME RANKING: ONLINE PLAYTIME';
                 const headerRow = body.parentElement.querySelector('thead tr');
                 if (headerRow) headerRow.innerHTML = '<th style="padding:1cqh; text-align:left;">RANK</th><th style="padding:1cqh; text-align:left;">PLAYER</th><th style="padding:1cqh; text-align:right;">PLAYTIME</th>';
                 const res = await callApi('getOnlinePlaytimeRanking', { username: CONFIG.USERNAME });
@@ -8870,7 +8871,7 @@ function getPswcWinnerCount(username) {
                     if (leaderboardView?.type === 'global' && leaderboardView.tab === tab && overlay.style.display !== 'none') showGlobalRanking(tab);
                 }).catch(error => console.warn('ランキング用ステージ同期に失敗:', error));
                 if (!Array.isArray(cachedStages) || cachedStages.length === 0) {
-                    title.innerText = 'RANKING';
+                    title.innerText = 'REALTIME RANKING';
                     body.innerHTML = '<tr><td colspan="3" style="padding:1.5cqh; color:#bdeaff;">ステージ情報を同期中です。完了すると自動で表示します。</td></tr>';
                     return;
                 }
@@ -8886,7 +8887,7 @@ function getPswcWinnerCount(username) {
             }
 
         if (tab === 'guild') {
-            title.innerText = "RANK: GUILD EXP";
+            title.innerText = "REALTIME RANKING: GUILD EXP";
             const guildRes = await callApi('getGuilds', {});
             const guilds = guildRes.guilds || [];
             const sortedGuilds = guilds.sort((a, b) => (Number(b.exp) || 0) - (Number(a.exp) || 0));
@@ -8974,33 +8975,33 @@ function getPswcWinnerCount(username) {
             };
             if (stageTypeCrownKey) {
                 const typeName = stageTypeCrownNames[stageTypeCrownKey] || stageTypeCrownKey;
-                title.innerText = `RANK: ${typeName.toUpperCase()} CROWNS`;
+                title.innerText = `REALTIME RANKING: ${typeName.toUpperCase()} CROWNS`;
                 sorted = users.filter(u => (stats[u].typeCrowns[stageTypeCrownKey] || 0) > 0)
                     .sort((a, b) => (stats[b].typeCrowns[stageTypeCrownKey] || 0) - (stats[a].typeCrowns[stageTypeCrownKey] || 0) || String(a).localeCompare(String(b)));
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">${typeName.toUpperCase()} 1ST</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#ffe26a;">${stats[u].typeCrowns[stageTypeCrownKey] || 0}</td>`;
             } else if (tab === 'ovr') {
-                title.innerText = "RANK: OVR";
+                title.innerText = "REALTIME RANKING: OVR";
                 sorted = users.slice().sort((a, b) => getCachedOVR(b) - getCachedOVR(a) || String(a).localeCompare(String(b)));
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">OVR</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color:#fff36b;">${getCachedOVR(u)}</td>`;
             } else if (tab === 'level') {
-                title.innerText = "RANK: LEVEL";
+                title.innerText = "REALTIME RANKING: LEVEL";
                 sorted = users.slice().sort((a, b) => (Number(playerLevelsByUsername.get(b)) || 1) - (Number(playerLevelsByUsername.get(a)) || 1) || String(a).localeCompare(String(b)));
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">LEVEL</th>`;
                 rowFunc = (u, i) => { const level = Number(playerLevelsByUsername.get(u)) || 1; return `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;"><span class="level-flame ${getPlayerLevelFlameClass(level)}">Lv.${level}</span></td>`; };
             } else if (tab === 'player') {
-                title.innerText = "RANK: CROWNS";
+                title.innerText = "REALTIME RANKING: CROWNS";
                 sorted = users.filter(u => stats[u].crowns > 0).sort((a, b) => stats[b].crowns - stats[a].crowns);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">PLAYER</th><th style="padding: 1cqh; text-align: right;">CROWNS</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${displayPercent(stats[u].crowns / rankedStageCount)}</td>`;
             } else if (tab === 'gods') {
-                title.innerText = "RANK: GODS";
+                title.innerText = "REALTIME RANKING: GODS";
                 sorted = users.filter(u => stats[u].gods > 0).sort((a, b) => stats[b].gods - stats[a].gods);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">GODS</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right; color: #ffff00;">${stats[u].gods}</td>`;
             } else {
-                title.innerText = "RANK: CREATOR";
+                title.innerText = "REALTIME RANKING: CREATOR";
                 sorted = users.filter(u => stats[u].plays > 0).sort((a, b) => stats[b].plays - stats[a].plays);
                 headerHtml = `<th style="padding: 1cqh; text-align: left;">RANK</th><th style="padding: 1cqh; text-align: left;">CREATOR</th><th style="padding: 1cqh; text-align: right;">CREATOR</th>`;
                 rowFunc = (u, i) => `<td style="padding: 1.5cqh;">${i+1}</td>${nameCell(u)}<td style="padding: 1.5cqh; text-align: right;">${displayPercent(stats[u].plays / rankedTotalPlays)}</td>`;
