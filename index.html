@@ -2790,6 +2790,7 @@
                             <button class="pixel-btn small" style="flex:1; min-width:0; background:#5c6bc0;" onclick="loadCustomSkinCode()">📥 コードを読み込み</button>
                         </div>
                         <button class="pixel-btn small" style="background:#1685bc;" onclick="saveCustomSkin()">💾 保存する</button>
+                        <button class="pixel-btn small" style="background:#a9253d;" onclick="clearCustomSkinEditor()">🗑 全消去</button>
                         <button class="pixel-btn small" style="background:#f44336;" onclick="closeCustomEditor()">← 戻る</button>
                     </div>
                 </div>
@@ -9496,6 +9497,15 @@ function getPswcWinnerCount(username) {
         }
 
         function closeCustomEditor() { document.getElementById('custom-editor-overlay').style.display = 'none'; updateLockerPreview(); }
+        function clearCustomSkinEditor() {
+            if (!currentEditingSprite) return;
+            if (!confirm('編集中のスキンをすべて消去しますか？\n\n保存するまで、現在装備中のスキンには反映されません。')) return;
+            currentEditingSprite = Array.from({ length: 16 }, () => Array(16).fill(null));
+            const codeInput = document.getElementById('custom-skin-code-input');
+            if (codeInput) codeInput.value = '';
+            drawCustomEditor();
+            showQuickMsg('編集中のスキンを全消去しました。保存すると反映されます。', 'var(--primary-color)');
+        }
         async function copyCustomSkinCode() {
             if (!currentEditingSprite) return;
             const code = JSON.stringify(currentEditingSprite);
