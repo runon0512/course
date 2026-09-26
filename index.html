@@ -3146,10 +3146,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxEtogIvqRk1wceDjtLK2YCTru0gQ-7MTCXTfrk27Gf0vZNUluhi8wVVoF6aou_C_Jr/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzDoHroGfHhE_QAFGyJ3zy33zfc19lBh0PTrusCvH0FqrvtHuYeaOnazDIo_L6vObYP/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.9.3"
+            VERSION: "3.9.4"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3164,6 +3164,9 @@
         let userES = 0; // ES（イベントストーン）: 超難関以上のステージクリアで獲得できるコラボ用の通貨
         let passwordIsHashed = true;
         let purchasedSkins = ['default', 'girl'];
+        // 旧データではブロック購入が別列に保存されている。ログイン時にスキン側へも統合して、
+        // 新旧どちらの購入形式でも制作画面の所持判定が途切れないようにする。
+        let purchasedBlocks = [];
         let userGuild = null;
         let equippedSkin = 'default';
         let equippedColor = 'default';
@@ -5188,7 +5191,11 @@ function getPswcWinnerCount(username) {
                 userPlayerLevelNextExp = Number(res.playerLevelNextExp) || 400;
                 userAS = res.auroraStones || 0;
                 userES = res.eventStones || 0;
-                purchasedSkins = res.purchasedSkins || ['default', 'girl'];
+                const savedSkins = Array.isArray(res.purchasedSkins) ? res.purchasedSkins : ['default', 'girl'];
+                purchasedBlocks = Array.isArray(res.purchasedBlocks) ? res.purchasedBlocks : [];
+                // 過去に purchasedBlocks 列へ記録されたアイテムも、すべて現在の所持品として扱う。
+                // 次回の購入・保存時には purchasedSkins 列へ統合された状態で保存される。
+                purchasedSkins = [...new Set([...savedSkins, ...purchasedBlocks, 'default', 'girl'])];
                 equippedSkin = res.equippedSkin || 'default';
                 equippedColor = res.equippedColor || 'default';
                 // 新規登録時を含め、サーバーに保存された操作方法をログイン直後から反映する。
