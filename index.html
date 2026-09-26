@@ -789,6 +789,11 @@
             background-size: 300% 300% !important;
             animation: badgeAuroraShift 3s ease infinite;
         }
+        /* Developer: 運営用の水色／紫ランク。通常のOVRランクより優先して表示する。 */
+        .badge-chip.badge-developer {
+            background-size:260% 260% !important;
+            animation:developerBadgeShift 2.8s ease-in-out infinite;
+        }
         .guild-badge {
             position: relative;
             display: inline-flex;
@@ -891,10 +896,13 @@
         .badge-chip .rank-suprememaster { background:linear-gradient(145deg,#42155c,#fff2ff,#8b4dce); clip-path:polygon(50% 0,64% 29%,97% 32%,70% 55%,80% 94%,50% 72%,20% 94%,30% 55%,3% 32%,36% 29%); }
         .badge-chip .rank-aurora { background:conic-gradient(#00ff9d,#00d9ff,#9b5cff,#ff5cd6,#00ff9d); clip-path:polygon(50% 0,61% 34%,97% 32%,68% 54%,79% 91%,50% 69%,21% 91%,32% 54%,3% 32%,39% 34%); animation:rankAuroraSpin 4s linear infinite; }
         .badge-chip .rank-legend { background:linear-gradient(145deg,#090704,#d59a19,#fff6bc,#9b6500,#080604); clip-path:polygon(50% 0,61% 26%,89% 14%,82% 43%,100% 62%,70% 67%,58% 100%,42% 100%,30% 67%,0 62%,18% 43%,11% 14%,39% 26%); color:#fff9d8; }
+        .badge-chip .rank-developer { background:linear-gradient(135deg,#4dfff1,#4d9dff 42%,#a957ff 70%,#f0b4ff); clip-path:polygon(50% 0,79% 14%,100% 50%,79% 86%,50% 100%,21% 86%,0 50%,21% 14%); color:#07132e; text-shadow:none; animation:developerRankGlow 2.8s ease-in-out infinite; }
         .badge-chip .rank-blackdiamond, .badge-chip .rank-grandmaster, .badge-chip .rank-ultimatemaster, .badge-chip .rank-suprememaster { font-size:.58em; }
         .badge-chip.badge-legend { background-size:280% 280% !important; animation:badgeLegendShift 2.4s linear infinite; }
         @keyframes badgeLegendShift { to { background-position:220% 50%; } }
         @keyframes rankAuroraSpin { to { filter: hue-rotate(360deg); } }
+        @keyframes developerBadgeShift { 0%,100% { background-position:0% 50%; } 50% { background-position:100% 50%; } }
+        @keyframes developerRankGlow { 0%,100% { filter:brightness(1) drop-shadow(0 0 .2em #58fff0); } 50% { filter:brightness(1.28) drop-shadow(0 0 .45em #b46cff); } }
         @keyframes badgeAuroraShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -8306,6 +8314,11 @@ function getPswcWinnerCount(username) {
             aurora:         { bg: 'linear-gradient(90deg,#00ff9d,#00bfff,#a020f0,#ff56c9,#00ff9d)', text: '#fff', border: '#fff', glow: 'rgba(120,245,255,.9)' },
             legend:         { bg: 'linear-gradient(135deg,#080603,#6c4800,#fff0a1,#6c4800,#080603)', text: '#fff9dc', border: '#fff1a8', glow: 'rgba(255,210,71,.95)' }
         };
+        const DEVELOPER_BADGE_TIER = Object.freeze({ label: 'Developer', group: 'developer', mark: 'DEV' });
+        const DEVELOPER_BADGE_STYLE = Object.freeze({
+            bg: 'linear-gradient(100deg,#2ef7e4,#579cff 39%,#9d5bff 67%,#e7a3ff,#2ef7e4)',
+            text: '#07132e', border: '#ddffff', glow: 'rgba(119,191,255,.95)'
+        });
         // 公式異名。ランクバッジの直後に表示し、特別な実績をひと目で分かるようにする。
         const PLAYER_EPITHETS = Object.freeze({
             'Test001':       { title: 'The Apex',          bg: 'linear-gradient(135deg,#050505,#211700 48%,#050505)', text: '#ffe68a', border: '#ffd54a', glow: 'rgba(255,197,42,.85)' },
@@ -8359,11 +8372,12 @@ function getPswcWinnerCount(username) {
         function renderBadgeChip(username, size = 'normal') {
             if (!isBadgeVisibleForUser(username)) return '';
             const ovr = getCachedOVR(username);
-            const tier = getBadgeTier(ovr);
-            const style = BADGE_GROUP_STYLE[tier.group];
+            const isDeveloper = String(username) === 'Runon';
+            const tier = isDeveloper ? DEVELOPER_BADGE_TIER : getBadgeTier(ovr);
+            const style = isDeveloper ? DEVELOPER_BADGE_STYLE : BADGE_GROUP_STYLE[tier.group];
             const fontSize = size === 'small' ? '0.65cqw' : '0.75cqw';
             const padding = size === 'small' ? '1px 5px' : '2px 7px';
-            const specialBadgeClass = tier.group === 'aurora' ? ' badge-aurora' : (tier.group === 'legend' ? ' badge-legend' : '');
+            const specialBadgeClass = isDeveloper ? ' badge-developer' : (tier.group === 'aurora' ? ' badge-aurora' : (tier.group === 'legend' ? ' badge-legend' : ''));
             const rankMark = tier.mark || tier.label.charAt(0);
             const guild = guildBadgeByMember[username];
             const guildIcon = guild
