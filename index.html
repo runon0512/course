@@ -2828,19 +2828,26 @@
                     <button id="lb-reload-btn" class="pixel-btn small" onclick="refreshLeaderboard()" style="margin:0; flex:1;">再読み込み</button>
                     <button class="pixel-btn small" onclick="document.getElementById('leaderboard-overlay').style.display='none'" style="margin:0; flex:1;">閉じる</button>
                 </div>
-                <div id="lb-tabs" style="display:none; gap:1cqw; margin-bottom:2cqh; justify-content:center; flex-wrap:wrap;">
-                    <button class="pixel-btn small" onclick="showGlobalRanking('player')" style="min-width:12cqw;">総合1位</button>
-                    <select id="stage-type-crown-select" onchange="showGlobalRanking(this.value === 'all' ? 'player' : 'typeCrowns:' + this.value)" style="min-width:15cqw; padding:.55cqh .7cqw; color:#effbff; background:#142e50; border:.12cqw solid #75e8ff; border-radius:.3cqw; font:inherit; cursor:pointer;">
-                        <option value="all">タイプ別1位</option>
-                        <option value="normal">☀ クラシック</option>
-                        <option value="water">🌊 ウォーター</option><option value="dark">🌑 ダーク</option><option value="mist">🌫 ミスト</option><option value="volcano">🌋 ボルケーノ</option><option value="submarine_volcano">🌊🌋 サブマリンボルケーノ</option><option value="moon">🌙 ムーン</option><option value="beach">🏖 ビーチ</option>
-                        <option value="timeattack">⌛ タイムアタック</option><option value="hard">⚔ ハード</option><option value="untouchable">☠ アンタッチャブル</option><option value="autorun">▶ オートラン</option><option value="sky">☁ スカイ</option><option value="freestyle">🧗 フリースタイル</option><option value="rai_alvaro">⚡ ライ・アルバロ</option>
-                    </select>
-                    <button class="pixel-btn small" onclick="showGlobalRanking('ovr')" style="min-width:12cqw;">OVR</button>
-                    <button class="pixel-btn small" onclick="showGlobalRanking('creator')" style="min-width:12cqw;">Creator</button>
-                    <button class="pixel-btn small" onclick="showGlobalRanking('level')" style="min-width:12cqw;">Level</button>
-                    <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
-                    <button id="online-playtime-rank-tab" class="pixel-btn small" onclick="showGlobalRanking('onlinePlaytime')" style="display:none; min-width:12cqw;">プレイ時間</button>
+                <div id="lb-tabs" style="display:none; flex-direction:column; gap:1cqh; margin-bottom:2cqh; width:100%;">
+                    <div style="display:flex; gap:1cqw; justify-content:center; flex-wrap:wrap;">
+                        <select id="leaderboard-act-select" onchange="showSelectedActRanking('ovr')" style="min-width:16cqw; padding:.55cqh .7cqw; color:#effbff; background:#142e50; border:.12cqw solid #75e8ff; border-radius:.3cqw; font:inherit; cursor:pointer;">
+                            <option value="act1">Act 1 · #1〜500</option>
+                            <option value="act2">Act 2 · #501〜1000</option>
+                            <option value="act3">Act 3 · #1001〜1500</option>
+                            <option value="act4">Act 4 · #1501〜2000</option>
+                            <option value="act5">Act 5 · #2001〜2500</option>
+                            <option value="act6">Act 6 · #2501〜3000</option>
+                            <option value="act7">Act 7 · #3001〜3500</option>
+                            <option value="act8">Act 8 · #3501〜</option>
+                        </select>
+                        <button class="pixel-btn small" onclick="showSelectedActRanking('ovr')" style="min-width:12cqw;">OVR</button>
+                        <button class="pixel-btn small" onclick="showSelectedActRanking('timeattack')" style="min-width:14cqw;">Time Attack</button>
+                    </div>
+                    <div style="display:flex; gap:1cqw; justify-content:center; flex-wrap:wrap;">
+                        <button class="pixel-btn small" onclick="showGlobalRanking('guild')" style="min-width:12cqw;">Guild</button>
+                        <button class="pixel-btn small" onclick="showGlobalRanking('level')" style="min-width:12cqw;">Level</button>
+                        <button id="online-playtime-rank-tab" class="pixel-btn small" onclick="showGlobalRanking('onlinePlaytime')" style="display:none; min-width:12cqw;">プレイ時間</button>
+                    </div>
                 </div>
                 <a id="overall-ranking-external-link" class="pixel-btn small" href="https://script.google.com/macros/s/AKfycbzxxbL37lbSmAFCbnFWjgWPgZdv7juDdra3ziMKfMCkVguSsPux752iF3LTPXbrrMhG/exec" target="_blank" rel="noopener noreferrer" style="display:inline-block; box-sizing:border-box; width:100%; margin:0 0 1.2cqh; text-align:center; text-decoration:none;">総合ランク（別リンク） ↗</a>
                 <div id="global-ranking-status-note" style="display:none; width:100%; box-sizing:border-box; margin:0 0 .8cqh; padding:.65cqh .9cqw; border-left:.22cqw solid #65dfff; background:rgba(80,196,255,.1); color:#c9f5ff; font-size:1.02cqw; line-height:1.45;">注意：このランキングとOVR・ステータスは、公開日時が新しい750ステージのデータをもとに集計しています。</div>
@@ -3146,10 +3153,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbzDoHroGfHhE_QAFGyJ3zy33zfc19lBh0PTrusCvH0FqrvtHuYeaOnazDIo_L6vObYP/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxz9qH_9ah1VDhmt0EE8w7G80m_itSYmU5lVeacZi5IyJsrMKq8PYY59FFA7XaSLcXL/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.9.4"
+            VERSION: "3.9.5"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3694,6 +3701,107 @@ function getPswcWinnerCount(username) {
         let spectatorLastSwitchKey = null;
         // 再読み込み時に、グローバルランキングかステージ別ランキングかを復元する。
         let leaderboardView = null;
+        // Act 1（#1〜500）の確定ランキング。サーバー通信に左右されないアーカイブとして保持する。
+        const ACT1_RANKING_GZIP = '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';
+        const ACT2_RANKING_GZIP = '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';
+        const ACT3_RANKING_GZIP = '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';
+        const ACT4_RANKING_GZIP = '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';
+        const ACT5_RANKING_GZIP = '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';
+        const ACT6_RANKING_GZIP = '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';
+        const ACT7_RANKING_RAW = "RANK\tPLAYER\tCURRENT OVR\tFIRST PLACES\r\n1\tOu\r\nTA 66 · CR 100 · QL 68 · PN 68\r\n76 · Ultimate Master\t43\r\n1\trauninkatawa\r\nTA 75 · CR 65 · QL 64 · PN 100\r\n76 · Ultimate Master\t103\r\n3\tてるてる1256\r\nTA 66 · CR 62 · QL 60 · PN 83\r\n68 · Master\t45\r\n4\teiei\r\nTA 65 · CR 72 · QL 67 · PN 62\r\n67 · Master\t37\r\n4\tりょくちゃくん\r\nTA 64 · CR 65 · QL 62 · PN 76\r\n67 · Master\t32\r\n6\tTAS乗り男\r\nTA 62 · CR 69 · QL 66 · PN 63\r\n65 · Black Diamond\t17\r\n6\tひすいゲームズ\r\nTA 65 · CR 64 · QL 63 · PN 68\r\n65 · Black Diamond\t36\r\n8\ttuuteru-123\r\nTA 61 · CR 61 · QL 61 · PN 71\r\n64 · Black Diamond\t16\r\n8\tパラル\r\nTA 62 · CR 70 · QL 63 · PN 62\r\n64 · Black Diamond\t18\r\n10\t99999\r\nTA 64 · CR 64 · QL 63 · PN 60\r\n63 · Black Diamond\t33\r\n11\t23/24/\r\nTA 61 · CR 61 · QL 63 · PN 61\r\n62 · Black Diamond\t11\r\n11\tTest001\r\nTA 100 · CR 21 · QL 33 · PN 94\r\n62 · Black Diamond\t266\r\n11\tざっこでーすす\r\nTA 70 · CR 64 · QL 61 · PN 53\r\n62 · Black Diamond\t71\r\n14\tpasokon00\r\nTA 63 · CR 64 · QL 61 · PN 47\r\n59 · Diamond\t26\r\n15\tKEVIN\r\nTA 63 · CR 45 · QL 59 · PN 60\r\n57 · Diamond\t26\r\n15\tサクサクゆう\r\nTA 61 · CR 69 · QL 63 · PN 35\r\n57 · Diamond\t10\r\n17\tkoutya9999\r\nTA 62 · CR 38 · QL 45 · PN 73\r\n55 · Diamond\t17\r\n17\tエルノ　ナイツ\r\nTA 60 · CR 58 · QL 60 · PN 41\r\n55 · Diamond\t8\r\n19\tredbeko\r\nTA 62 · CR 51 · QL 64 · PN 35\r\n53 · Diamond\t17\r\n19\tなご\r\nTA 62 · CR 67 · QL 64 · PN 20\r\n53 · Diamond\t19\r\n21\t星のカビ\r\nTA 65 · CR 60 · QL 56 · PN 28\r\n52 · Diamond\t39\r\n22\tああああああ\r\nTA 60 · CR 42 · QL 51 · PN 41\r\n49 · Gold\t9\r\n23\tmasakun07\r\nTA 60 · CR 27 · QL 57 · PN 42\r\n47 · Gold\t7\r\n24\tキービィ\r\nTA 61 · CR 34 · QL 62 · PN 28\r\n46 · Gold\t13\r\n24\tこひょしの\r\nTA 62 · CR 30 · QL 61 · PN 31\r\n46 · Gold\t21\r\n26\tkos77\r\nTA 62 · CR 67 · QL 47 · PN 2\r\n45 · Gold\t19\r\n27\tannkooisii\r\nTA 19 · CR 61 · QL 67 · PN 29\r\n44 · Gold\t2\r\n27\tうじまっちゃ\r\nTA 9 · CR 66 · QL 100 · PN 1\r\n44 · Gold\t1\r\n29\tNitoLine\r\nTA 61 · CR 43 · QL 55 · PN 8\r\n42 · Gold\t10\r\n29\tTuTe\r\nTA 63 · CR 34 · QL 44 · PN 26\r\n42 · Gold\t23\r\n31\tKirby\r\nTA 63 · CR 34 · QL 66 · PN 1\r\n41 · Gold\t29\r\n32\t37564\r\nTA 19 · CR 63 · QL 62 · PN 14\r\n40 · Silver\t2\r\n33\tkaki123\r\nTA 60 · CR 32 · QL 38 · PN 21\r\n38 · Silver\t8\r\n33\tKeim\r\nTA 65 · CR 4 · QL 20 · PN 63\r\n38 · Silver\t41\r\n33\tYou\r\nTA 61 · CR 26 · QL 54 · PN 11\r\n38 · Silver\t10\r\n36\tHARU\r\nTA 65 · CR 16 · QL 49 · PN 13\r\n36 · Silver\t37\r\n36\tキノコ2\r\nTA 28 · CR 24 · QL 61 · PN 31\r\n36 · Silver\t3\r\n38\t三田レンジ\r\nTA 64 · CR 21 · QL 27 · PN 10\r\n31 · Silver\t31\r\n39\tアルミ缶の上にあるみかん\r\nTA 9 · CR 5 · QL 30 · PN 60\r\n26 · Bronze\t1\r\n40\ts180574\\@fjed\r\nTA 60 · CR 1 · QL 1 · PN 24\r\n22 · Bronze\t9\r\n41\thima\r\nTA 56 · CR 1 · QL 1 · PN 26\r\n21 · Bronze\t6\r\n41\tRunon\r\nTA 61 · CR 1 · QL 1 · PN 22\r\n21 · Developer\t12\r\n43\tGOD\\_koutan\r\nTA 1 · CR 19 · QL 59 · PN 1\r\n20 · Iron\t0\r\n43\t目玉焼き\r\nTA 1 · CR 12 · QL 60 · PN 5\r\n20 · Iron\t0\r\n45\tらうにの裏垢\r\nTA 37 · CR 5 · QL 26 · PN 5\r\n18 · Iron\t4\r\n46\tあさい\r\nTA 61 · CR 1 · QL 1 · PN 2\r\n16 · Iron\t11\r\n46\t小熊様\r\nTA 60 · CR 1 · QL 1 · PN 1\r\n16 · Iron\t8\r\n48\tyou chinese\r\nTA 28 · CR 4 · QL 21 · PN 1\r\n14 · Iron\t3\r\n49\tPoopsCX\r\nTA 46 · CR 1 · QL 1 · PN 3\r\n13 · Iron\t5\r\n49\tねこねこくん\r\nTA 46 · CR 1 · QL 1 · PN 4\r\n13 · Iron\t5\r\n51\t/\r\nTA 46 · CR 1 · QL 1 · PN 1\r\n12 · Iron\t5\r\n52\t星⭐️\r\nTA 9 · CR 1 · QL 1 · PN 23\r\n9 · Rookie\t1\r\n53\t0909\r\nTA 1 · CR 4 · QL 22 · PN 1\r\n7 · Rookie\t0\r\n53\tりょくちゃくん第二号\r\nTA 1 · CR 1 · QL 1 · PN 23\r\n7 · Rookie\t0\r\n55\takasakafan\r\nTA 19 · CR 1 · QL 1 · PN 1\r\n6 · Rookie\t2\r\n55\ttayajs\r\nTA 1 · CR 3 · QL 17 · PN 1\r\n6 · Rookie\t0\r\n55\tヒカキッズ\r\nTA 19 · CR 1 · QL 1 · PN 1\r\n6 · Rookie\t2\r\n55\tふぉりむ\r\nTA 19 · CR 1 · QL 1 · PN 2\r\n6 · Rookie\t2\r\n55\t近況報告係\r\nTA 9 · CR 1 · QL 1 · PN 12\r\n6 · Rookie\t1\r\n60\tTest001キラー\r\nTA 9 · CR 1 · QL 1 · PN 8\r\n5 · Rookie\t1\r\n61\tT\\@S\\_MAN\r\nTA 1 · CR 1 · QL 1 · PN 13\r\n4 · Rookie\t0\r\n62\tkinako\\_moti\r\nTA 9 · CR 1 · QL 1 · PN 1\r\n3 · Rookie\t1\r\n62\ttikinra-men\r\nTA 9 · CR 1 · QL 1 · PN 1\r\n3 · Rookie\t1\r\n62\tホゲータ\r\nTA 9 · CR 1 · QL 1 · PN 2\r\n3 · Rookie\t1\r\n62\tヤリラフィー\r\nTA 9 · CR 1 · QL 1 · PN 1\r\n3 · Rookie\t1\r\n66\tsharkgod\r\nTA 1 · CR 1 · QL 1 · PN 5\r\n2 · Rookie\t0\r\n66\tyuu\r\nTA 1 · CR 1 · QL 1 · PN 5\r\n2 · Rookie\t0\r\n66\t理なう\r\nTA 1 · CR 1 · QL 1 · PN 4\r\n2 · Rookie\t0\r\n69\tAKY\\_016\r\nTA 1 · CR 1 · QL 1 · PN 1\r\n1 · Rookie\t0\r\n69\tHaruma\r\nTA 1 · CR 1 · QL 1 · PN 1\r\n1 · Rookie\t0\r\n69\tiropiku\r\nTA 1 · CR 1 · QL 1 · PN 1\r\n1 · Rookie\t0\r\n69\tsirosuke04\r\nTA 1 · CR 1 · QL 1 · PN 1\r\n1 · Rookie\t0\r\n69\tグリコ\r\nTA 1 · CR 1 · QL 1 · PN 1\r\n1 · Rookie\t0\r\n69\tゆうゆう\r\nTA 1 · CR 1 · QL 1 · PN 1\r\n1 · Rookie\t0\r\n69\tレンツガRPG\r\nTA 1 · CR 1 · QL 1 · PN 2\r\n1 · Rookie\t0\r\n69\t老カリ\r\nTA 1 · CR 1 · QL 1 · PN 1\r\n1 · Rookie\t0";
+        let act1RankingEntries = null;
+        async function getAct1RankingEntries() {
+            if (act1RankingEntries) return act1RankingEntries;
+            if (typeof DecompressionStream !== 'function') throw new Error('このブラウザはAct 1ランキングの読み込みに対応していません。');
+            const bytes = Uint8Array.from(atob(ACT1_RANKING_GZIP), char => char.charCodeAt(0));
+            const text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+            const lines = text.replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean).slice(1);
+            const entries = [];
+            for (let i = 0; i + 2 < lines.length; i += 3) {
+                const [rankText, name] = lines[i].split('\t');
+                const scoreLine = lines[i + 2].match(/^(\d+)\s*·\s*(.+?)\s+(\d+)$/);
+                if (!name || !scoreLine) continue;
+                const stats = Object.fromEntries([...lines[i + 1].matchAll(/(TA|CR|QL|PN)\s+(\d+)/g)].map(match => [match[1], Number(match[2])]));
+                entries.push({ rank:Number(rankText), name, score:Number(scoreLine[1]), badge:scoreLine[2], firsts:Number(scoreLine[3]), stats });
+            }
+            act1RankingEntries = entries;
+            return entries;
+        }
+        let act2RankingEntries = null;
+        async function getAct2RankingEntries() {
+            if (act2RankingEntries) return act2RankingEntries;
+            if (typeof DecompressionStream !== 'function') throw new Error('このブラウザはAct 2ランキングの読み込みに対応していません。');
+            const bytes = Uint8Array.from(atob(ACT2_RANKING_GZIP), char => char.charCodeAt(0));
+            const text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+            const lines = text.replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean).slice(1);
+            const entries = [];
+            for (let i = 0; i + 2 < lines.length; i += 3) {
+                const [rankText, name] = lines[i].split('\t');
+                const scoreLine = lines[i + 2].match(/^(\d+)\s*·\s*(.+?)\s+(\d+)$/);
+                if (!name || !scoreLine) continue;
+                const stats = Object.fromEntries([...lines[i + 1].matchAll(/(TA|CR|QL|PN)\s+(\d+)/g)].map(match => [match[1], Number(match[2])]));
+                entries.push({ rank:Number(rankText), name, score:Number(scoreLine[1]), badge:scoreLine[2], firsts:Number(scoreLine[3]), stats });
+            }
+            act2RankingEntries = entries;
+            return entries;
+        }
+        const archivedActRankingCache = new Map();
+        async function getArchivedActRankingEntries(actNumber) {
+            if (archivedActRankingCache.has(actNumber)) return archivedActRankingCache.get(actNumber);
+            const sources = { 3:ACT3_RANKING_GZIP, 4:ACT4_RANKING_GZIP, 5:ACT5_RANKING_GZIP, 6:ACT6_RANKING_GZIP };
+            let text = '';
+            if (actNumber === 7) {
+                text = ACT7_RANKING_RAW;
+            } else {
+                const source = sources[actNumber];
+                if (!source) throw new Error(`Act ${actNumber}の確定データがありません。`);
+                if (typeof DecompressionStream !== 'function') throw new Error(`このブラウザはAct ${actNumber}ランキングの読み込みに対応していません。`);
+                const bytes = Uint8Array.from(atob(source), char => char.charCodeAt(0));
+                text = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+            }
+            const lines = text.replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean);
+            if (/^RANK\s+PLAYER/i.test(lines[0] || '')) lines.shift();
+            const entries = [];
+            for (let i = 0; i + 2 < lines.length; i += 3) {
+                const [rankText, name] = lines[i].split('\t');
+                const scoreLine = lines[i + 2].match(/^(\d+)\s*·\s*(.+?)\s+(\d+)$/);
+                if (!name || !scoreLine) continue;
+                const stats = Object.fromEntries([...lines[i + 1].matchAll(/(TA|CR|QL|PN)\s+(\d+)/g)].map(match => [match[1], Number(match[2])]));
+                const normalizedName = name.replace(/\\([_@])/g, '$1');
+                entries.push({ rank:Number(rankText), name:normalizedName, score:Number(scoreLine[1]), badge:scoreLine[2], firsts:Number(scoreLine[3]), stats });
+            }
+            archivedActRankingCache.set(actNumber, entries);
+            return entries;
+        }
+        async function getLiveActRankingEntries(actNumber) {
+            if (actNumber !== 8) throw new Error(`Act ${actNumber}は確定ランキングを使用します。`);
+            // Act 8だけを、ステージ番号3501以降のGASデータからリアルタイム集計する。
+            const res = await callApi('getPixelRankingData', { minStageId:3501 });
+            if (!res?.success || !Array.isArray(res.playerStats) || !Array.isArray(res.stages)) throw new Error(res?.message || `Act ${actNumber}のランキングデータを取得できませんでした。`);
+            const users = res.playerStats.filter(user => user?.name);
+            const totalStages = Math.max(1, res.stages.length);
+            const baseline = totalStages / Math.max(1, users.length);
+            const averageCreator = users.reduce((sum, user) => sum + (Number(user.totalPlays) || 0), 0) / Math.max(1, users.length);
+            const maxCreator = Math.max(...users.map(user => Number(user.totalPlays) || 0), 1);
+            const averagePioneer = users.reduce((sum, user) => sum + (Number(user.pioneerPoints) || 0), 0) / Math.max(1, users.length);
+            const maxPioneer = Math.max(...users.map(user => Number(user.pioneerPoints) || 0), 1);
+            const maxFirsts = Math.max(...users.map(user => Number(user.firsts) || 0), 1);
+            const averageStagePlays = res.stages.reduce((sum, stage) => sum + (Number(stage.attempts) || 0), 0) / totalStages;
+            const topAverage = user => { const plays = Array.isArray(user.stagePlays) ? user.stagePlays : []; return plays.length ? plays.reduce((sum, value) => sum + (Number(value) || 0), 0) / plays.length : 0; };
+            const maxTopAverage = Math.max(...users.map(topAverage), 1);
+            return users.map(user => {
+                const firsts = Number(user.firsts) || 0;
+                const ta = Math.round(Math.max(1, firsts >= maxFirsts ? 100 : firsts > baseline ? 60 + (firsts - baseline) * 40 / Math.max(1, maxFirsts - baseline) : firsts / Math.max(1, baseline) * 60));
+                const average = topAverage(user);
+                const ql = Math.round(Math.max(1, Math.min(100, average >= averageStagePlays ? 60 + (average - averageStagePlays) * 40 / Math.max(1, maxTopAverage - averageStagePlays) : 1 + (averageStagePlays > 0 ? average / averageStagePlays * 59 : 0))));
+                const plays = Number(user.totalPlays) || 0;
+                const cr = Math.round(Math.max(1, Math.min(100, plays <= 0 ? 1 : plays >= averageCreator ? 60 + (plays - averageCreator) * 40 / Math.max(1, maxCreator - averageCreator) : 1 + plays / Math.max(1, averageCreator) * 59)));
+                const points = Number(user.pioneerPoints) || 0;
+                const pn = Math.round(Math.max(1, Math.min(100, points <= 0 ? 1 : points >= maxPioneer ? 100 : points >= averagePioneer ? 60 + (points - averagePioneer) * 40 / Math.max(1, maxPioneer - averagePioneer) : 1 + points / Math.max(1, averagePioneer) * 59)));
+                const score = Math.round((ta + ql + cr + pn) / 4);
+                return { name:String(user.name), score, firsts, stats:{ TA:ta, QL:ql, CR:cr, PN:pn } };
+            }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'ja'));
+        }
         // ステージごとに準備済みのゴーストを保持する。
         // Retry はこのデータを再利用し、再変換を発生させない。
         const preloadedGhostCache = new WeakMap();
@@ -8397,6 +8505,17 @@ function getPswcWinnerCount(username) {
             return `<span class="badge-chip${specialBadgeClass}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${rankMark}</span><span>${tier.label}</span></span>${epithetBadge}${guildIcon}`;
         }
 
+        // 固定Actランキングでは、現在のプロフィール値ではなく記録当時のOVRからランクバッジを描画する。
+        function renderArchivedRankBadge(username, score, size = 'small') {
+            const isDeveloper = String(username) === 'Runon';
+            const tier = isDeveloper ? DEVELOPER_BADGE_TIER : getBadgeTier(score);
+            const style = isDeveloper ? DEVELOPER_BADGE_STYLE : BADGE_GROUP_STYLE[tier.group];
+            const fontSize = size === 'small' ? '0.65cqw' : '0.75cqw';
+            const padding = size === 'small' ? '1px 5px' : '2px 7px';
+            const special = isDeveloper ? ' badge-developer' : (tier.group === 'aurora' ? ' badge-aurora' : (tier.group === 'legend' ? ' badge-legend' : ''));
+            return `<span class="badge-chip${special}" style="background:${style.bg}; color:${style.text}; font-size:${fontSize}; padding:${padding}; border:1px solid ${style.border}; box-shadow:0 0 6px ${style.glow};"><span class="rank-logo rank-${tier.group}">${tier.mark || tier.label.charAt(0)}</span><span>${tier.label}</span></span>`;
+        }
+
         // 自分のバッジ表示/非表示を切り替える（プロフィールから変更可能）
         async function toggleMyBadgeVisibility() {
             const btn = document.getElementById('badge-toggle-btn');
@@ -8842,7 +8961,12 @@ function getPswcWinnerCount(username) {
         }
 
         // --- グローバルランキング（1位獲得数） ---
-        async function showGlobalRanking(tab = 'player') {
+        function showSelectedActRanking(metric = 'ovr') {
+            const act = document.getElementById('leaderboard-act-select')?.value || 'act1';
+            showGlobalRanking(metric === 'timeattack' ? `${act}TimeAttack` : act);
+        }
+
+        async function showGlobalRanking(tab = 'act1') {
             leaderboardView = { type: 'global', tab };
             const overlay = document.getElementById('leaderboard-overlay');
             const title = document.getElementById('lb-title');
@@ -8859,6 +8983,46 @@ function getPswcWinnerCount(username) {
             const onlinePlaytimeTab = document.getElementById('online-playtime-rank-tab');
             if (onlinePlaytimeTab) onlinePlaytimeTab.style.display = CONFIG.USERNAME === 'Runon' ? 'inline-block' : 'none';
             overlay.style.display = 'flex';
+
+            if (/^act[1-8](TimeAttack)?$/.test(tab)) {
+                const actNumber = Number((tab.match(/^act(\d+)/) || [])[1]) || 1;
+                const isTimeAttack = tab.endsWith('TimeAttack');
+                const actFirstStage = (actNumber - 1) * 500 + 1;
+                const actLastStage = actNumber === 8 ? '最新' : actNumber * 500;
+                title.innerText = isTimeAttack ? `ACT ${actNumber} RANKING: FIRST PLACES · #${actFirstStage}〜${actLastStage}` : `ACT ${actNumber} RANKING: OVR · #${actFirstStage}〜${actLastStage}`;
+                const headerRow = body.parentElement.querySelector('thead tr');
+                if (headerRow) headerRow.innerHTML = isTimeAttack
+                    ? '<th style="padding:1cqh; text-align:left;">RANK</th><th style="padding:1cqh; text-align:left;">PLAYER</th><th style="padding:1cqh; text-align:right;">FIRST PLACES</th><th style="padding:1cqh; text-align:right;">CURRENT OVR</th>'
+                    : '<th style="padding:1cqh; text-align:left;">RANK</th><th style="padding:1cqh; text-align:left;">PLAYER</th><th style="padding:1cqh; text-align:right;">CURRENT OVR</th><th style="padding:1cqh; text-align:right;">FIRST PLACES</th>';
+                try {
+                    const loader = actNumber === 1
+                        ? getAct1RankingEntries
+                        : actNumber === 2
+                            ? getAct2RankingEntries
+                            : actNumber >= 3 && actNumber <= 7
+                                ? () => getArchivedActRankingEntries(actNumber)
+                                : () => getLiveActRankingEntries(actNumber);
+                    const entries = (await loader()).slice().sort((a, b) => isTimeAttack ? (b.firsts - a.firsts || b.score - a.score || a.name.localeCompare(b.name, 'ja')) : (a.rank ? a.rank - b.rank : b.score - a.score || a.name.localeCompare(b.name, 'ja')));
+                    const safe = value => String(value || '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[char]);
+                    let lastValue = null, displayRank = 0;
+                    body.innerHTML = entries.map((entry, index) => {
+                        const rankValue = isTimeAttack ? entry.firsts : entry.score;
+                        if (rankValue !== lastValue) displayRank = index + 1;
+                        lastValue = rankValue;
+                        return `
+                        <tr class="${String(entry.name) === String(CONFIG.USERNAME) ? 'ranking-self' : ''}" style="border-bottom:.1cqw solid #444;">
+                            <td style="padding:1.5cqh;">${displayRank}</td>
+                            <td style="padding:1.5cqh;"><span class="${getUserNameClasses(entry.name)}" style="color:var(--primary-color);">${safe(entry.name)}</span><small style="display:block; margin-top:.35cqh; color:#bfeeff; font-size:.78em;">TA ${entry.stats.TA} · CR ${entry.stats.CR} · QL ${entry.stats.QL} · PN ${entry.stats.PN}</small></td>
+                            ${isTimeAttack ? `<td style="padding:1.5cqh; text-align:right; color:#9dfff1;">${entry.firsts}</td>` : ''}
+                            <td style="padding:1.5cqh; text-align:right; color:#fff36b;">${entry.score} ${renderArchivedRankBadge(entry.name, entry.score, 'small')}</td>
+                            ${isTimeAttack ? '' : `<td style="padding:1.5cqh; text-align:right; color:#ffe082;">${entry.firsts}</td>`}
+                        </tr>`;
+                    }).join('');
+                } catch (error) {
+                    body.innerHTML = `<tr><td colspan="5" style="padding:1.5cqh; color:#ff8a80;">Act ${actNumber}ランキングを読み込めませんでした。${String(error.message || '')}</td></tr>`;
+                }
+                return;
+            }
 
             if (tab === 'onlinePlaytime') {
                 if (CONFIG.USERNAME !== 'Runon') {
