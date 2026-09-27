@@ -2838,7 +2838,7 @@
                             <option value="act5">Act 5 · #2001〜2500</option>
                             <option value="act6">Act 6 · #2501〜3000</option>
                             <option value="act7">Act 7 · #3001〜3500</option>
-                            <option value="act8">Act 8 · #3501〜</option>
+                            <option value="act8" selected>Act 8 · #3501〜</option>
                         </select>
                         <button class="pixel-btn small" onclick="showSelectedActRanking('ovr')" style="min-width:12cqw;">OVR</button>
                         <button class="pixel-btn small" onclick="showSelectedActRanking('timeattack')" style="min-width:14cqw;">Time Attack</button>
@@ -3773,34 +3773,46 @@ function getPswcWinnerCount(username) {
             archivedActRankingCache.set(actNumber, entries);
             return entries;
         }
+        let act8RankingEntries = null;
+        let act8RankingPromise = null;
         async function getLiveActRankingEntries(actNumber) {
             if (actNumber !== 8) throw new Error(`Act ${actNumber}は確定ランキングを使用します。`);
-            // Act 8だけを、ステージ番号3501以降のGASデータからリアルタイム集計する。
-            const res = await callApi('getPixelRankingData', { minStageId:3501 });
-            if (!res?.success || !Array.isArray(res.playerStats) || !Array.isArray(res.stages)) throw new Error(res?.message || `Act ${actNumber}のランキングデータを取得できませんでした。`);
-            const users = res.playerStats.filter(user => user?.name);
-            const totalStages = Math.max(1, res.stages.length);
-            const baseline = totalStages / Math.max(1, users.length);
-            const averageCreator = users.reduce((sum, user) => sum + (Number(user.totalPlays) || 0), 0) / Math.max(1, users.length);
-            const maxCreator = Math.max(...users.map(user => Number(user.totalPlays) || 0), 1);
-            const averagePioneer = users.reduce((sum, user) => sum + (Number(user.pioneerPoints) || 0), 0) / Math.max(1, users.length);
-            const maxPioneer = Math.max(...users.map(user => Number(user.pioneerPoints) || 0), 1);
-            const maxFirsts = Math.max(...users.map(user => Number(user.firsts) || 0), 1);
-            const averageStagePlays = res.stages.reduce((sum, stage) => sum + (Number(stage.attempts) || 0), 0) / totalStages;
-            const topAverage = user => { const plays = Array.isArray(user.stagePlays) ? user.stagePlays : []; return plays.length ? plays.reduce((sum, value) => sum + (Number(value) || 0), 0) / plays.length : 0; };
-            const maxTopAverage = Math.max(...users.map(topAverage), 1);
-            return users.map(user => {
-                const firsts = Number(user.firsts) || 0;
-                const ta = Math.round(Math.max(1, firsts >= maxFirsts ? 100 : firsts > baseline ? 60 + (firsts - baseline) * 40 / Math.max(1, maxFirsts - baseline) : firsts / Math.max(1, baseline) * 60));
-                const average = topAverage(user);
-                const ql = Math.round(Math.max(1, Math.min(100, average >= averageStagePlays ? 60 + (average - averageStagePlays) * 40 / Math.max(1, maxTopAverage - averageStagePlays) : 1 + (averageStagePlays > 0 ? average / averageStagePlays * 59 : 0))));
-                const plays = Number(user.totalPlays) || 0;
-                const cr = Math.round(Math.max(1, Math.min(100, plays <= 0 ? 1 : plays >= averageCreator ? 60 + (plays - averageCreator) * 40 / Math.max(1, maxCreator - averageCreator) : 1 + plays / Math.max(1, averageCreator) * 59)));
-                const points = Number(user.pioneerPoints) || 0;
-                const pn = Math.round(Math.max(1, Math.min(100, points <= 0 ? 1 : points >= maxPioneer ? 100 : points >= averagePioneer ? 60 + (points - averagePioneer) * 40 / Math.max(1, maxPioneer - averagePioneer) : 1 + points / Math.max(1, averagePioneer) * 59)));
-                const score = Math.round((ta + ql + cr + pn) / 4);
-                return { name:String(user.name), score, firsts, stats:{ TA:ta, QL:ql, CR:cr, PN:pn } };
-            }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'ja'));
+            if (act8RankingEntries) return act8RankingEntries;
+            if (act8RankingPromise) return act8RankingPromise;
+            // Act 8だけを、ステージ番号3501以降のGASデータから一度だけ取得して保持する。
+            act8RankingPromise = (async () => {
+                const res = await callApi('getPixelRankingData', { minStageId:3501 });
+                if (!res?.success || !Array.isArray(res.playerStats) || !Array.isArray(res.stages)) throw new Error(res?.message || 'Act 8のランキングデータを取得できませんでした。');
+                const users = res.playerStats.filter(user => user?.name);
+                const totalStages = Math.max(1, res.stages.length);
+                const baseline = totalStages / Math.max(1, users.length);
+                const averageCreator = users.reduce((sum, user) => sum + (Number(user.totalPlays) || 0), 0) / Math.max(1, users.length);
+                const maxCreator = Math.max(...users.map(user => Number(user.totalPlays) || 0), 1);
+                const averagePioneer = users.reduce((sum, user) => sum + (Number(user.pioneerPoints) || 0), 0) / Math.max(1, users.length);
+                const maxPioneer = Math.max(...users.map(user => Number(user.pioneerPoints) || 0), 1);
+                const maxFirsts = Math.max(...users.map(user => Number(user.firsts) || 0), 1);
+                const averageStagePlays = res.stages.reduce((sum, stage) => sum + (Number(stage.attempts) || 0), 0) / totalStages;
+                const topAverage = user => { const plays = Array.isArray(user.stagePlays) ? user.stagePlays : []; return plays.length ? plays.reduce((sum, value) => sum + (Number(value) || 0), 0) / plays.length : 0; };
+                const maxTopAverage = Math.max(...users.map(topAverage), 1);
+                act8RankingEntries = users.map(user => {
+                    const firsts = Number(user.firsts) || 0;
+                    const ta = Math.round(Math.max(1, firsts >= maxFirsts ? 100 : firsts > baseline ? 60 + (firsts - baseline) * 40 / Math.max(1, maxFirsts - baseline) : firsts / Math.max(1, baseline) * 60));
+                    const average = topAverage(user);
+                    const ql = Math.round(Math.max(1, Math.min(100, average >= averageStagePlays ? 60 + (average - averageStagePlays) * 40 / Math.max(1, maxTopAverage - averageStagePlays) : 1 + (averageStagePlays > 0 ? average / averageStagePlays * 59 : 0))));
+                    const plays = Number(user.totalPlays) || 0;
+                    const cr = Math.round(Math.max(1, Math.min(100, plays <= 0 ? 1 : plays >= averageCreator ? 60 + (plays - averageCreator) * 40 / Math.max(1, maxCreator - averageCreator) : 1 + plays / Math.max(1, averageCreator) * 59)));
+                    const points = Number(user.pioneerPoints) || 0;
+                    const pn = Math.round(Math.max(1, Math.min(100, points <= 0 ? 1 : points >= maxPioneer ? 100 : points >= averagePioneer ? 60 + (points - averagePioneer) * 40 / Math.max(1, maxPioneer - averagePioneer) : 1 + points / Math.max(1, averagePioneer) * 59)));
+                    const score = Math.round((ta + ql + cr + pn) / 4);
+                    return { name:String(user.name), score, firsts, stats:{ TA:ta, QL:ql, CR:cr, PN:pn } };
+                }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'ja'));
+                return act8RankingEntries;
+            })();
+            try {
+                return await act8RankingPromise;
+            } finally {
+                act8RankingPromise = null;
+            }
         }
         // ステージごとに準備済みのゴーストを保持する。
         // Retry はこのデータを再利用し、再変換を発生させない。
@@ -5851,8 +5863,9 @@ function getPswcWinnerCount(username) {
             if (gauge) gauge.style.width = '100%';
             setHomeSyncLocked(false);
             if (status) setTimeout(() => { status.style.display = 'none'; }, 180);
-            // 大会情報を先に裏読みし、完了後にOVR用の全ステージを取得する。
-            // どちらも待機しないため、ホーム操作はすぐに可能なまま。
+            // 初期ロード完了後にAct 8を一度だけ裏読みし、以後は同じ取得結果を使い続ける。
+            // 待機しないため、ホーム操作はすぐに可能なまま。
+            getLiveActRankingEntries(8).catch(error => console.warn('Act 8ランキングの先読み失敗:', error));
             ensureAllStagesForOvr().catch(error => console.warn('OVR用ステージの先読み失敗:', error));
         }
 
@@ -8962,11 +8975,11 @@ function getPswcWinnerCount(username) {
 
         // --- グローバルランキング（1位獲得数） ---
         function showSelectedActRanking(metric = 'ovr') {
-            const act = document.getElementById('leaderboard-act-select')?.value || 'act1';
+            const act = document.getElementById('leaderboard-act-select')?.value || 'act8';
             showGlobalRanking(metric === 'timeattack' ? `${act}TimeAttack` : act);
         }
 
-        async function showGlobalRanking(tab = 'act1') {
+        async function showGlobalRanking(tab = 'act8') {
             leaderboardView = { type: 'global', tab };
             const overlay = document.getElementById('leaderboard-overlay');
             const title = document.getElementById('lb-title');
@@ -8986,6 +8999,8 @@ function getPswcWinnerCount(username) {
 
             if (/^act[1-8](TimeAttack)?$/.test(tab)) {
                 const actNumber = Number((tab.match(/^act(\d+)/) || [])[1]) || 1;
+                const actSelect = document.getElementById('leaderboard-act-select');
+                if (actSelect) actSelect.value = `act${actNumber}`;
                 const isTimeAttack = tab.endsWith('TimeAttack');
                 const actFirstStage = (actNumber - 1) * 500 + 1;
                 const actLastStage = actNumber === 8 ? '最新' : actNumber * 500;
