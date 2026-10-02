@@ -2949,6 +2949,7 @@
                         <option id="stage-type-option-big" value="big" disabled hidden>⬛ ビッグ</option>
                         <option id="stage-type-option-hard" value="hard" disabled hidden>💀 ハード</option>
                         <option id="stage-type-option-untouchable" value="untouchable" disabled hidden>☠️ アンタッチャブル</option>
+                        <option id="stage-type-option-solitude" value="solitude" disabled hidden>🌌 ソリチュード</option>
                         <option id="stage-type-option-volcano" value="volcano" disabled hidden>🌋 ボルケーノ</option>
                         <option id="stage-type-option-moon" value="moon" disabled hidden>🌙 ムーン</option>
                         <option id="stage-type-option-beach" value="beach" disabled hidden>🏖️ ビーチ</option>
@@ -3156,7 +3157,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxz9qH_9ah1VDhmt0EE8w7G80m_itSYmU5lVeacZi5IyJsrMKq8PYY59FFA7XaSLcXL/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.9.5"
+            VERSION: "3.9.6"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3442,6 +3443,7 @@ function getPswcWinnerCount(username) {
             { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。' },
             { type: 'hard', title: 'ハード', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
             { type: 'untouchable', title: 'アンタッチャブル', text: '敵には上からでも触れられません。接触すると即座にミスになります。' },
+            { type: 'solitude', title: 'ソリチュード', text: 'この面を通常プレイしている間は、ほかのプレイヤーのゴーストが表示されません。ランキングからの観戦はできます。' },
             { type: 'volcano', title: 'ボルケーノ', text: '下から溶岩が迫る危険なステージです。噴火制御機で高さを調整できます。' },
             { type: 'moon', title: 'ムーン', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: 'ビーチ', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
@@ -4404,6 +4406,7 @@ function getPswcWinnerCount(username) {
             'sky_stage': { name: 'SKY STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'hard_stage': { name: 'HARD STAGE', price: 50000, isBlockSet: true, isStageType: true, sprite: null },
             'untouchable_stage': { name: 'UNTOUCHABLE STAGE', price: 20000, isBlockSet: true, isStageType: true, sprite: null },
+            'solitude_stage': { name: 'SOLITUDE STAGE', price: 75000, isBlockSet: true, isStageType: true, sprite: null },
             'eruption_control': { name: 'ERUPTION CONTROL', price: 40000, isBlockSet: true, sprite: null },
             'purple_boss': { name: 'PURPLE & SLIME BLOCK', price: 35000, isBlockSet: true, sprite: null },
             'wolf_boss': { name: 'WOLF (BOSS No.2)', price: 20, isBlockSet: true, isCollab: true, isES: true, sprite: null },
@@ -5473,6 +5476,17 @@ function getPswcWinnerCount(username) {
                 ctx.beginPath(); ctx.arc(20, 40, 3, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(40, 50, 2, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(48, 36, 2.5, 0, Math.PI * 2); ctx.fill();
+            } else if (data.isStageType && id === 'solitude_stage') {
+                // ソリチュード: 誰もいない夜空と、一人だけのプレイヤーを表すアイコン。
+                const solitudeBg = ctx.createRadialGradient(32, 30, 3, 32, 32, 48);
+                solitudeBg.addColorStop(0, '#28355a'); solitudeBg.addColorStop(1, '#080b17');
+                ctx.fillStyle = solitudeBg; ctx.fillRect(0, 0, 64, 64);
+                ctx.fillStyle = 'rgba(190,220,255,.7)';
+                [[10,13],[51,11],[45,29],[17,35],[55,48]].forEach(([x,y]) => ctx.fillRect(x,y,2,2));
+                ctx.fillStyle = '#d9e7ff'; ctx.beginPath(); ctx.arc(32, 29, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#7f91bd'; ctx.fillRect(26, 37, 12, 15);
+                ctx.strokeStyle = '#8cc8ff'; ctx.lineWidth = 2; ctx.strokeRect(3, 3, 58, 58);
+                ctx.fillStyle = '#e7f2ff'; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('SOLITUDE', 32, 61);
             } else if (data.isStageType && id === 'untouchable_stage') {
                 // アンタッチャブル: 接触禁止を黄色い警告と赤い斜線で表したアイコン。
                 const dangerBg = ctx.createRadialGradient(32, 30, 4, 32, 32, 48);
@@ -5772,7 +5786,7 @@ function getPswcWinnerCount(username) {
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', hard: '#2a1018', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', sky: '#54bdf2', rai_alvaro: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', hard: '#2a1018', untouchable: '#2a1018', solitude: '#10162b', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', sky: '#54bdf2', rai_alvaro: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach') {
@@ -5794,6 +5808,11 @@ function getPswcWinnerCount(username) {
                 ctx.strokeStyle = '#d7fff0'; ctx.lineWidth = 5; ctx.lineCap = 'round';
                 ctx.beginPath(); ctx.moveTo(19, 9); ctx.lineTo(19, 51); ctx.moveTo(41, 9); ctx.lineTo(41, 51); ctx.stroke();
                 ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(30, 30, 5, 0, Math.PI * 2); ctx.fill();
+            } else if (type === 'solitude') {
+                ctx.fillStyle = 'rgba(210,230,255,.8)';
+                [[9,10],[48,13],[42,39],[15,46]].forEach(([x,y]) => ctx.fillRect(x,y,2,2));
+                ctx.fillStyle = '#e7f2ff'; ctx.beginPath(); ctx.arc(30, 27, 7, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#8295bd'; ctx.fillRect(24, 35, 12, 16);
             } else if (type === 'rai_alvaro') {
                 ctx.strokeStyle = '#fff36b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(10, 48); ctx.lineTo(28, 28); ctx.lineTo(34, 37); ctx.lineTo(51, 10); ctx.stroke();
             }
@@ -9172,7 +9191,7 @@ function getPswcWinnerCount(username) {
             const stageTypeCrownKey = tab.startsWith('typeCrowns:') ? tab.slice('typeCrowns:'.length) : '';
             const stageTypeCrownNames = {
                 normal:'クラシック', freestyle:'フリースタイル', water:'ウォーター', dark:'ダーク', mist:'ミスト', autorun:'オートラン', big:'ビッグ',
-                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', sky:'スカイ', rai_alvaro:'ライ・アルバロ'
+                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', solitude:'ソリチュード', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', sky:'スカイ', rai_alvaro:'ライ・アルバロ'
             };
             if (stageTypeCrownKey) {
                 const typeName = stageTypeCrownNames[stageTypeCrownKey] || stageTypeCrownKey;
@@ -10121,6 +10140,9 @@ function getPswcWinnerCount(username) {
             const untouchableOpt = document.getElementById('stage-type-option-untouchable');
             const hasUntouchableStage = purchasedSkins.includes('untouchable_stage');
             setStageTypeOptionAvailability(untouchableOpt, CONFIG.USERNAME === 'Runon' || hasUntouchableStage, '☠️ アンタッチャブル');
+            const solitudeOpt = document.getElementById('stage-type-option-solitude');
+            const hasSolitudeStage = purchasedSkins.includes('solitude_stage');
+            setStageTypeOptionAvailability(solitudeOpt, CONFIG.USERNAME === 'Runon' || hasSolitudeStage, '🌌 ソリチュード');
             const raiAlvaroOpt = document.getElementById('stage-type-option-rai-alvaro');
             const hasRaiAlvaroStage = purchasedSkins.includes('rai_alvaro_stage') || purchasedSkins.includes('rai_alvaro');
             setStageTypeOptionAvailability(raiAlvaroOpt, CONFIG.USERNAME === 'Runon' || hasRaiAlvaroStage, '⚡ ライ・アルバロ');
@@ -10138,6 +10160,7 @@ function getPswcWinnerCount(username) {
                     option.style.display = '';
                     option.textContent = option.value === 'hard' ? '💀 ハード'
                         : option.value === 'untouchable' ? '☠️ アンタッチャブル'
+                        : option.value === 'solitude' ? '🌌 ソリチュード'
                         : option.value === 'volcano' ? '🌋 ボルケーノ'
                         : option.value === 'moon' ? '🌙 ムーン'
                         : option.value === 'beach' ? '🏖️ ビーチ'
@@ -12056,7 +12079,7 @@ function getPswcWinnerCount(username) {
                 const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
                 const stageTypeNames = {
                     normal: 'クラシック', freestyle: 'フリースタイル', water: 'ウォーター', dark: 'ダーク', mist: 'ミスト', autorun: 'オートラン', big: 'ビッグ', timeattack: 'タイムアタック',
-                    hard: 'ハード', untouchable: 'アンタッチャブル', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', sky: 'スカイ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
+                    hard: 'ハード', untouchable: 'アンタッチャブル', solitude: 'ソリチュード', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', sky: 'スカイ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
                 };
                 const stageTypeSource = getStageTypeSource(s);
                 const frontType = getStageTypeForFace(stageTypeSource, 'front');
@@ -12254,7 +12277,7 @@ function getPswcWinnerCount(username) {
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'mist', 'submarine_volcano', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'volcano', 'moon', 'beach', 'sky', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'mist', 'submarine_volcano', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'solitude', 'volcano', 'moon', 'beach', 'sky', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -12320,6 +12343,7 @@ function getPswcWinnerCount(username) {
         function isSkyStageType(type) { return type === 'sky'; }
         function isFreestyleStageType(type) { return type === 'freestyle'; }
         function isUntouchableStageType(type) { return type === 'untouchable'; }
+        function isSolitudeStageType(type) { return type === 'solitude'; }
         function getNormalEnemyMaxHp() { return currentStageType === 'hard' ? 30 : 10; }
         // ボスの行動周期はすべてフレーム（F）基準で管理する。
         const BOSS_TURN_WARNING_FRAMES = 60;
@@ -15177,6 +15201,11 @@ function getPswcWinnerCount(username) {
 
             const faceIndicator = document.getElementById('stage-face-indicator');
             if (faceIndicator) faceIndicator.innerText = isUsingBackFace ? '2' : '1';
+            const ghostToggle = document.getElementById('toggle-ghosts');
+            // ソリチュード面では通常プレイのゴースト操作も隠す。観戦では従来どおり利用できる。
+            if (ghostToggle?.parentElement && !isWeeklyCupMatch) {
+                ghostToggle.parentElement.style.display = !isGhostSpectatorMode && isSolitudeStageType(currentStageType) ? 'none' : 'flex';
+            }
             const controlsLabel = document.getElementById('game-controls-label');
             if (controlsLabel) controlsLabel.innerText = isRaiAlvaroStageType(currentStageType)
                 ? 'ARROWS / A,D: MOVE | SPACE / W: JUMP | DOWN / S: SPECIAL | '
@@ -16070,7 +16099,7 @@ function getPswcWinnerCount(username) {
             }
 
             // ゴーストの描画。観戦中は選択した1人だけを通常色で描画する。
-            if (!isGhostSpectatorMode && !isCountingDown && showGhosts && playbackGhosts.length > 0) {
+            if (!isGhostSpectatorMode && !isCountingDown && !isSolitudeStageType(currentStageType) && showGhosts && playbackGhosts.length > 0) {
                 cachedGameCtx.save();
                 cachedGameCtx.globalAlpha = isGhostSpectatorMode ? 1 : 0.5;
                 cachedGameCtx.font = `${ch * 0.3}px sans-serif`; // フォント設定をループの外へ
