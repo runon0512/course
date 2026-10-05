@@ -51,6 +51,21 @@
         body.stage-viewport-bg-bg-bw { background-repeat:repeat, repeat, no-repeat; background-attachment:fixed; }
         .inline-loading-spinner { display:inline-block; width:1.05em; height:1.05em; box-sizing:border-box; margin-left:.45em; vertical-align:-.13em; border:.16em solid currentColor; border-right-color:transparent; border-radius:50%; opacity:.9; animation:apiLoadingSpin .72s linear infinite; }
         @keyframes apiLoadingSpin { to { transform:rotate(360deg); } }
+        #attached-stage-loading-overlay {
+            position:fixed; inset:0; z-index:10000; display:none; align-items:center; justify-content:center;
+            background:rgba(0,5,16,.94); color:#d8f8ff; pointer-events:auto; touch-action:none;
+        }
+        #attached-stage-loading-overlay.active { display:flex; }
+        #attached-stage-loading-overlay .attached-stage-loading-box {
+            min-width:18em; padding:2em 2.5em; text-align:center; border:2px solid #71e9ff;
+            background:rgba(7,23,45,.98); box-shadow:0 0 1.5em rgba(60,220,255,.35);
+            font-size:clamp(18px,2cqw,30px); font-weight:700; letter-spacing:.08em;
+        }
+        #attached-stage-loading-overlay .attached-stage-loading-label::before { content:'読み込み中…'; }
+        #attached-stage-loading-overlay .attached-stage-loading-spinner {
+            display:block; width:1.7em; height:1.7em; margin:0 auto 1em; border:.18em solid rgba(150,238,255,.28);
+            border-top-color:#8ff2ff; border-radius:50%; animation:apiLoadingSpin .72s linear infinite;
+        }
         /* スマートフォンでプレイ中は、スワイプ・引っ張り更新・ピンチ操作で画面を動かさない。 */
         html.mobile-game-lock,
         html.mobile-game-lock body,
@@ -2213,6 +2228,14 @@
             </div>
         </div>
 
+        <!-- 添付ステージの取得・準備中は、誤操作を防ぐため画面全体をロックする。 -->
+        <div id="attached-stage-loading-overlay" role="status" aria-live="polite" aria-busy="true">
+            <div class="attached-stage-loading-box">
+                <span class="attached-stage-loading-spinner" aria-hidden="true"></span>
+                <span class="attached-stage-loading-label"></span>
+            </div>
+        </div>
+
         <!-- 画像拡大表示用ライトボックス -->
         <div id="image-lightbox" onclick="closeImageLightbox()">
             <img id="image-lightbox-img" src="" onclick="event.stopPropagation()">
@@ -3157,10 +3180,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbxz9qH_9ah1VDhmt0EE8w7G80m_itSYmU5lVeacZi5IyJsrMKq8PYY59FFA7XaSLcXL/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycby9iJPyZMGBmctEKup7a4wWpUM55-t8Zu0eTDsTzYGn5pXa6BGB0tgAUQCQbhNnd1BT/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.9.6"
+            VERSION: "3.9.8"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -4645,7 +4668,7 @@ function getPswcWinnerCount(username) {
         // 書き込み系はネットワーク切断時に再送すると二重処理になり得るため、
         // サーバーが「ロックを取得できず未処理」と明示した場合だけ再試行する。
         function isRetryableReadAction(action) {
-            return action === 'login' || action === 'load' || action === 'refreshOnlineUsers' || action.indexOf('get') === 0;
+            return action === 'login' || action === 'load' || action === 'refreshOnlineUsers' || action === 'searchPublishedStages' || action.indexOf('get') === 0;
         }
 
         function isServerBusyResponse(result) {
@@ -6653,6 +6676,65 @@ function getPswcWinnerCount(username) {
         let dmAttachedStageId = null;
         let dmAttachedStageName = null;
         let dmAttachedImageData = null;
+        const attachmentStageSearchState = {
+            chat: { timer: null, version: 0 },
+            dm: { timer: null, version: 0 }
+        };
+
+        function scheduleAttachmentStageSearch(kind) {
+            const isDm = kind === 'dm';
+            const input = document.getElementById(isDm ? 'dm-stage-input' : 'chat-stage-input');
+            const results = document.getElementById(isDm ? 'dm-stage-results' : 'chat-stage-results');
+            if (!input || !results) return;
+            const query = input.value.trim().toLowerCase();
+            const state = attachmentStageSearchState[kind];
+            const version = ++state.version;
+            clearTimeout(state.timer);
+            results.innerHTML = '<div style="padding:.7cqw;color:#bdefff;text-align:center;">読み込み中…</div>';
+            state.timer = setTimeout(() => loadAttachmentStageSearch(kind, query, version), query ? 180 : 0);
+        }
+
+        async function loadAttachmentStageSearch(kind, query, version) {
+            const isDm = kind === 'dm';
+            const results = document.getElementById(isDm ? 'dm-stage-results' : 'chat-stage-results');
+            const state = attachmentStageSearchState[kind];
+            // 添付画面を開くたびに再検索し、投稿直後のステージも候補へ反映する。
+            const res = await callApi('searchPublishedStages', { query, limit: 10 }, 20000);
+            if (version !== state.version) return;
+            if (!res?.success || !Array.isArray(res.stages)) {
+                results.innerHTML = '<div style="padding:.7cqw;color:#ff8a80;text-align:center;">ステージを検索できませんでした。</div>';
+                return;
+            }
+            const stages = res.stages;
+            if (version !== state.version) return;
+            results.innerHTML = '';
+            if (!stages.length) {
+                results.innerHTML = '<div style="padding:.7cqw;color:#aaa;text-align:center;">該当するステージはありません。</div>';
+                return;
+            }
+            stages.forEach(stage => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.style.cssText = 'display:block;width:100%;background:#222;border:.1cqw solid #fff;padding:.5cqw;cursor:pointer;font-size:1.2cqw;color:var(--primary-color);text-align:left;';
+                button.innerText = `${stage.name} (by ${stage.creator})`;
+                button.onclick = () => {
+                    if (isDm) {
+                        dmAttachedStageId = stage.id;
+                        dmAttachedStageName = stage.name;
+                        document.getElementById('dm-attached-name').innerText = stage.name;
+                        document.getElementById('dm-selected-stage-info').style.display = 'flex';
+                        document.getElementById('dm-stage-search').style.display = 'none';
+                    } else {
+                        attachedStageId = stage.id;
+                        attachedStageName = stage.name;
+                        document.getElementById('attached-name').innerText = stage.name;
+                        document.getElementById('selected-stage-info').style.display = 'flex';
+                        document.getElementById('chat-stage-search').style.display = 'none';
+                    }
+                };
+                results.appendChild(button);
+            });
+        }
 
         function toggleDmStageSearch() {
             const search = document.getElementById('dm-stage-search');
@@ -6664,28 +6746,8 @@ function getPswcWinnerCount(username) {
             }
         }
 
-        async function searchStagesForDm() {
-            if (!cachedStages) {
-                const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
-            }
-            const query = document.getElementById('dm-stage-input').value.toLowerCase();
-            const results = document.getElementById('dm-stage-results');
-            results.innerHTML = '';
-            cachedStages.filter(stage => stage.name.toLowerCase().includes(query)).slice(0, 10).forEach(stage => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.style.cssText = 'display:block;width:100%;background:#222;border:.1cqw solid #fff;padding:.5cqw;cursor:pointer;font-size:1.2cqw;color:var(--primary-color);text-align:left;';
-                button.innerText = `${stage.name} (by ${stage.creator})`;
-                button.onclick = () => {
-                    dmAttachedStageId = stage.id || stage.name;
-                    dmAttachedStageName = stage.name;
-                    document.getElementById('dm-attached-name').innerText = stage.name;
-                    document.getElementById('dm-selected-stage-info').style.display = 'flex';
-                    document.getElementById('dm-stage-search').style.display = 'none';
-                };
-                results.appendChild(button);
-            });
+        function searchStagesForDm() {
+            scheduleAttachmentStageSearch('dm');
         }
 
         function clearDmAttachedStage() {
@@ -7130,30 +7192,8 @@ function getPswcWinnerCount(username) {
             }
         }
 
-        async function searchStagesForChat() {
-            const query = document.getElementById('chat-stage-input').value.toLowerCase();
-            const resultsDiv = document.getElementById('chat-stage-results');
-            resultsDiv.innerHTML = "";
-
-            if (!cachedStages) {
-                const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
-            }
-
-            const filtered = cachedStages.filter(s => s.name.toLowerCase().includes(query)).slice(0, 10);
-            filtered.forEach(s => {
-                const btn = document.createElement('div');
-                btn.style.cssText = "background:#222; border:0.1cqw solid #fff; padding:0.5cqw; cursor:pointer; font-size:1.2cqw; color:var(--primary-color);";
-                btn.innerText = `${s.name} (by ${s.creator})`;
-                btn.onclick = () => {
-                    attachedStageId = s.id || s.name;
-                    attachedStageName = s.name;
-                    document.getElementById('attached-name').innerText = s.name;
-                    document.getElementById('selected-stage-info').style.display = 'flex';
-                    toggleStageSearch();
-                };
-                resultsDiv.appendChild(btn);
-            });
+        function searchStagesForChat() {
+            scheduleAttachmentStageSearch('chat');
         }
 
         function clearAttachedStage() {
@@ -7168,24 +7208,60 @@ function getPswcWinnerCount(username) {
             if (document.getElementById('dm-overlay').style.display === 'flex') closeDirectMessage();
         }
 
-        async function playAttachedStage(stageId) {
-            if (!cachedStages) {
-                const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
+        let attachedStagePlayInFlight = false;
+        let attachedStageInputLocked = false;
+        function blockInputWhileAttachedStageLoads(event) {
+            if (!attachedStageInputLocked) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+        window.addEventListener('keydown', blockInputWhileAttachedStageLoads, true);
+        window.addEventListener('keyup', blockInputWhileAttachedStageLoads, true);
+
+        function setAttachedStageLoading(active) {
+            const overlay = document.getElementById('attached-stage-loading-overlay');
+            if (!overlay) return;
+            attachedStageInputLocked = !!active;
+            if (active) {
+                keys = {};
+                pendingJumpPress = false;
+                pendingSpecialPress = false;
             }
-            const stage = cachedStages.find(s => String(s.id || s.name) === String(stageId));
-            if (stage) {
+            overlay.classList.toggle('active', !!active);
+            overlay.setAttribute('aria-busy', active ? 'true' : 'false');
+        }
+
+        async function playAttachedStage(stageId) {
+            if (attachedStagePlayInFlight) return;
+            attachedStagePlayInFlight = true;
+            setAttachedStageLoading(true);
+            // 先にオーバーレイを描画し、通信中の連打や背後の操作を確実に防ぐ。
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            let gameStarted = false;
+            try {
+                const localSources = [stageListPageStages, cachedStages];
+                let stage = null;
+                for (const source of localSources) {
+                    if (!Array.isArray(source)) continue;
+                    stage = source.find(item => item?.data && String(item.id || item.name) === String(stageId));
+                    if (stage) break;
+                }
+                if (!stage) {
+                    const res = await callApi('getPublishedStage', { stageId }, 30000);
+                    if (!res?.success || !res.stage?.data) throw new Error(apiMessageText(res?.message, 'ステージが見つかりませんでした。'));
+                    stage = res.stage;
+                }
                 closeAttachedStageSource();
                 startGame(stage, 'play');
-            } else {
-                alert("ステージが見つかりませんでした。再読み込みします。");
-                const res = await callApi('getPublished', {});
-                cachedStages = res.stages || [];
-                const stageRetry = cachedStages.find(s => String(s.id || s.name) === String(stageId));
-                if (stageRetry) {
-                    closeAttachedStageSource();
-                    startGame(stageRetry, 'play');
-                }
+                gameStarted = true;
+                // ゲーム画面の初回描画まで操作ロックを維持する。
+                requestAnimationFrame(() => requestAnimationFrame(() => setAttachedStageLoading(false)));
+            } catch (error) {
+                console.warn('添付ステージの読み込みに失敗:', error);
+                alert(error?.message || '添付ステージを読み込めませんでした。');
+            } finally {
+                attachedStagePlayInFlight = false;
+                if (!gameStarted) setAttachedStageLoading(false);
             }
         }
 
