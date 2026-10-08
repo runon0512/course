@@ -2175,6 +2175,9 @@
         .tutorial-progress-dot { height:.45cqh; flex:1; background:rgba(170,224,255,.2); transition:background .2s ease, box-shadow .2s ease; }
         .tutorial-progress-dot.done { background:#66dfff; } .tutorial-progress-dot.active { background:#fff0a2; box-shadow:0 0 .6cqw rgba(255,231,124,.75); }
         #tutorial-text { min-height:17cqh !important; padding:1.4cqw !important; border:.12cqw solid rgba(122,224,255,.42); border-radius:.35cqw; background:linear-gradient(135deg,rgba(0,0,0,.31),rgba(4,35,69,.36)); color:#e9f8ff; font-size:1.35cqw; line-height:1.85; }
+        #tutorial-action-area { display:none; grid-template-columns:repeat(3,1fr); gap:.7cqw; margin-top:.9cqh; }
+        .tutorial-control-choice { margin:0 !important; min-width:0 !important; padding:.8cqw .45cqw !important; font-size:1.02cqw !important; background:rgba(17,49,82,.92) !important; color:#e8f8ff !important; border-color:#5dbfe5 !important; }
+        .tutorial-control-choice.selected { color:#07172c !important; background:#8cefff !important; border-color:#fff2a5 !important; box-shadow:0 0 .9cqw rgba(118,231,255,.6) !important; }
         #tutorial-tip { min-height:2.4cqh; margin-top:.8cqh; padding:.65cqh .8cqw; border-left:.2cqw solid #8feaff; background:rgba(79,186,255,.08); color:#c5f2ff; font-size:1.05cqw; line-height:1.45; }
         #tutorial-tip::before { content:'TIP'; display:inline-block; margin-right:.55cqw; padding:.1cqh .4cqw; color:#072137; background:#8feaff; font-size:.82em; font-weight:bold; }
         #tutorial-controls { display:flex; gap:.8cqw; justify-content:space-between; margin-top:1.25cqh; padding-top:1cqh; border-top:.1cqw solid rgba(132,225,255,.2); }
@@ -2317,8 +2320,8 @@
                     <span>クイック送信（送信を待たずにOK）</span>
                 </label>
                 <div style="display: flex; gap: 2cqw; justify-content: center;">
-                    <button class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
-                    <button class="pixel-btn small" onclick="handleAuth('register')">新規登録</button>
+                    <button id="auth-login-btn" class="pixel-btn small" onclick="handleAuth('login')">ログイン</button>
+                    <button id="auth-register-btn" class="pixel-btn small" onclick="handleAuth('register')">新規登録</button>
                 </div>
                 <button class="pixel-btn small terms-open-btn" style="background:transparent; border:0;" onclick="openTerms()">利用規約</button>
                 <div id="auth-msg" class="auth-msg"></div>
@@ -2566,11 +2569,12 @@
                 <div class="tutorial-heading"><div id="tutorial-icon" aria-hidden="true">✦</div><div><div id="tutorial-step-label"></div><h2 id="tutorial-title"></h2></div></div>
                 <div id="tutorial-progress" aria-label="チュートリアルの進捗"></div>
                 <div id="tutorial-text" style="flex:1; white-space:pre-line;"></div>
+                <div id="tutorial-action-area"></div>
                 <div id="tutorial-tip"></div>
                 <div id="tutorial-controls">
                     <button id="tutorial-prev-btn" class="pixel-btn small" onclick="changeTutorialStep(-1)">戻る</button>
                     <button id="tutorial-next-btn" class="pixel-btn small" style="background:#1685bc;" onclick="changeTutorialStep(1)">次へ</button>
-                    <button class="pixel-btn small" style="background:#546e7a;" onclick="closeTutorial()">✕</button>
+                    <button id="tutorial-close-btn" class="pixel-btn small" style="background:#546e7a;" onclick="closeTutorial()">✕</button>
                 </div>
             </div>
         </div>
@@ -3180,7 +3184,7 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycby9iJPyZMGBmctEKup7a4wWpUM55-t8Zu0eTDsTzYGn5pXa6BGB0tgAUQCQbhNnd1BT/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyEklzPOL39grfkWxtC_6LKE_8aD2C_Ecj_t9MbOSFwOvlcJhG1LpP2beY3BKd79Jyv/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
             VERSION: "3.9.8"
@@ -4920,6 +4924,7 @@ function getPswcWinnerCount(username) {
         const AUTH_SESSION_STORAGE_KEY = 'pixel_stages_session_token';
         let activeSessionToken = '';
         let openTutorialAfterRegistration = false;
+        let authRequestInFlight = false;
 
         function setAuthSessionCookie(token) {
             const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
@@ -4952,7 +4957,28 @@ function getPswcWinnerCount(username) {
             });
         }
 
-        function handleAuth(type) {
+        function setAuthRequestBusy(busy) {
+            authRequestInFlight = !!busy;
+            ['username', 'password', 'remember-me', 'auth-login-btn', 'auth-register-btn'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.disabled = !!busy;
+            });
+        }
+
+        function acceptAuthLoginResult(res, remember, fromRegistration) {
+            activeSessionToken = res.sessionToken || '';
+            if (remember && activeSessionToken) setAuthSessionCookie(activeSessionToken);
+            else clearAuthSessionCookie();
+            // 旧バージョンが保存した認証情報を消去する。
+            localStorage.removeItem('pixel_stages_user');
+            localStorage.removeItem('pixel_stages_pass');
+            localStorage.removeItem('pixel_stages_remember');
+            if (fromRegistration) openTutorialAfterRegistration = true;
+            completeLogin(res, 0);
+        }
+
+        async function handleAuth(type) {
+            if (authRequestInFlight) return;
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
             const msg = document.getElementById('auth-msg');
@@ -4962,41 +4988,56 @@ function getPswcWinnerCount(username) {
                 return;
             }
             msg.style.color = "#fff";
-            msg.innerText = "通信中...";
+            msg.innerText = type === 'register' ? "登録中..." : "ログイン中...";
+            setAuthRequestBusy(true);
+            let loginAccepted = false;
+            try {
+                // GASの起動待ちも考慮し、認証通信は最大60秒待つ。
+                let res = await callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember }, 60000);
 
-            // google.script.run ではなく、定義済みの callApi を使用します
-            // ログイン／新規登録はGASの起動待ちも考慮し、通常通信（30秒）の2倍まで待機する。
-            callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember: type === 'login' && remember }, 60000)
-                .then((res) => {
-                    msg.innerText = apiMessageText(res.message, res.success ? '完了しました。' : '処理に失敗しました。');
-                    if (res.success) {
-                        msg.style.color = "var(--primary-color)";
-                        if (type === 'register') {
-                            // 登録直後は同じ認証情報でそのままログインへ進む。
-                            msg.innerText = '登録完了。ログインしています...';
-                            openTutorialAfterRegistration = true;
-                            handleAuth('login');
-                            return;
-                        }
-                        if (type === 'login') {
-                            activeSessionToken = res.sessionToken || '';
-                            if (remember) {
-                                // パスワードではなく、期限付きのセッショントークンだけをCookieへ保存する。
-                                if (res.sessionToken) setAuthSessionCookie(res.sessionToken);
-                            } else {
-                                clearAuthSessionCookie();
-                            }
-                            // 旧バージョンが保存した認証情報を消去する。
-                            localStorage.removeItem('pixel_stages_user');
-                            localStorage.removeItem('pixel_stages_pass');
-                            localStorage.removeItem('pixel_stages_remember');
-
-                            completeLogin(res);
-                        }
-                    } else {
-                        msg.style.color = "var(--secondary-color)";
+                if (type === 'register' && res?.success) {
+                    msg.style.color = "var(--primary-color)";
+                    msg.innerText = '登録完了。ゲームを開始しています...';
+                    // 新サーバーは登録応答だけでログイン完了。旧デプロイ互換として、トークンが無い時だけ1回ログインする。
+                    if (!res.sessionToken) {
+                        const loginRes = await callApi('login', { username: user, password: pass, version: CONFIG.VERSION, remember }, 60000);
+                        if (!loginRes?.success) throw new Error(apiMessageText(loginRes?.message, '登録後のログインに失敗しました。'));
+                        res = loginRes;
                     }
-                });
+                    loginAccepted = true;
+                    acceptAuthLoginResult(res, remember, true);
+                    return;
+                }
+
+                if (type === 'register' && !res?.success && /通信|混雑|既に使用|タイムアウト/i.test(apiMessageText(res?.message, ''))) {
+                    // 登録保存後に応答だけ失われた可能性を確認する。成功していれば重複登録せずそのままログインできる。
+                    msg.innerText = '登録状態を確認しています...';
+                    const loginRes = await callApi('login', { username: user, password: pass, version: CONFIG.VERSION, remember }, 60000);
+                    if (loginRes?.success) {
+                        loginAccepted = true;
+                        msg.style.color = "var(--primary-color)";
+                        msg.innerText = '登録を確認しました。ゲームを開始しています...';
+                        acceptAuthLoginResult(loginRes, remember, true);
+                        return;
+                    }
+                }
+
+                if (type === 'login' && res?.success) {
+                    loginAccepted = true;
+                    msg.style.color = "var(--primary-color)";
+                    msg.innerText = apiMessageText(res.message, 'ログインしました。');
+                    acceptAuthLoginResult(res, remember, false);
+                    return;
+                }
+
+                msg.style.color = "var(--secondary-color)";
+                msg.innerText = apiMessageText(res?.message, '処理に失敗しました。');
+            } catch (error) {
+                msg.style.color = "var(--secondary-color)";
+                msg.innerText = apiMessageText(error?.message, '認証通信に失敗しました。');
+            } finally {
+                if (!loginAccepted) setAuthRequestBusy(false);
+            }
         }
 
         // --- ショップ関連 ---
@@ -5378,7 +5419,7 @@ function getPswcWinnerCount(username) {
                 showLoggedInHome(res.username);
                 if (openTutorialAfterRegistration) {
                     openTutorialAfterRegistration = false;
-                    setTimeout(openTutorial, 180);
+                    setTimeout(() => openTutorial(true), 180);
                 }
                 startHomeSyncUI();
                 preloadAllData(res.username, res.loginBonusHistory)
@@ -8197,16 +8238,35 @@ function getPswcWinnerCount(username) {
             { icon:'✎', title:'自分のコースを作ろう', text:'「ステージ制作」では、ブロックや敵を自由に配置できます。\n\nテストプレイでゴールまで到達してクリアチェックを完了すると、投稿できます。', tip:'最初はBasicブロックだけで短いコースを作るのがおすすめです。' },
             { icon:'♜', title:'装備と交流を楽しもう', text:'ショップでは毎日商品が入れ替わります。ロッカーでスキンを装備し、プロフィール・チャット・ギルドも活用しましょう。\n\n準備ができたら、あなただけの記録を作りに行きましょう！', tip:'チュートリアルと操作方法は、ホームの「設定」からいつでも開けます。' }
         ];
+        const REGISTRATION_TUTORIAL_STEPS = [
+            { icon:'🎮', title:'操作方法を選ぼう', text:'最初に、使いたい操作方法を選んでください。\n\n選んだ操作方法はすぐに保存され、あとから「設定」でいつでも変更できます。', tip:'下の3つから1つを選ぶと、次へ進めます。', action:'control' },
+            { icon:'▶', title:'練習ステージへ', text:'選んだ操作方法で、実際にゴールまで走ってみましょう。\n\nミスしても何度でもリトライできます。「ステージへ」を押すと練習が始まります。', tip:'この練習はプレイ数・報酬・ランキングには記録されません。', action:'practice' }
+        ];
+        const NEW_PLAYER_TUTORIAL_STAGE = {
+            name: '操作チュートリアル', creator: 'SYSTEM', attempts: 0, clears: 0, leaderboard: [], deaths: [],
+            stageType: { front:'normal', back:'normal' },
+            data: {"version":1,"front":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,"K","K",null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,"B","B","B","B",null,null,null],[null,null,null,null,"K",null,null,null,null,null,null,null,null,"B","B","B","B",null,null,null],[null,null,null,"B","B","B",null,null,"K",null,null,"B","B","B","B","B","B",null,null,null],[null,"S",null,"B","B","B",null,"B","B","B",null,"B","B","B","B","B","B",null,"G",null],["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B"],["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B"],["B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B","B"]],"back":[[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]],"stageTypes":{"front":"normal","back":"normal"}}
+        };
         let tutorialStep = 0;
+        let isRegistrationTutorial = false;
+        let tutorialControlChosen = false;
 
-        function openTutorial() {
+        function getActiveTutorialSteps() {
+            return isRegistrationTutorial ? REGISTRATION_TUTORIAL_STEPS : TUTORIAL_STEPS;
+        }
+
+        function openTutorial(registrationFlow = false) {
+            isRegistrationTutorial = !!registrationFlow;
+            tutorialControlChosen = !isRegistrationTutorial;
             tutorialStep = 0;
             const overlay = document.getElementById('tutorial-overlay');
             if (overlay) overlay.style.display = 'flex';
             renderTutorialStep();
         }
 
-        function closeTutorial() {
+        function closeTutorial(force = false) {
+            // 新規登録直後は、操作方法を選んで練習へ進むまでチュートリアルを閉じない。
+            if (isRegistrationTutorial && !force) return;
             const overlay = document.getElementById('tutorial-overlay');
             if (overlay) overlay.style.display = 'none';
         }
@@ -8221,26 +8281,72 @@ function getPswcWinnerCount(username) {
         document.addEventListener('keydown', handleTutorialKeydown);
 
         function changeTutorialStep(delta) {
-            if (delta > 0 && tutorialStep >= TUTORIAL_STEPS.length - 1) {
-                closeTutorial();
+            const steps = getActiveTutorialSteps();
+            const current = steps[tutorialStep];
+            if (delta > 0 && current?.action === 'control' && !tutorialControlChosen) return;
+            if (delta > 0 && tutorialStep >= steps.length - 1) {
+                if (isRegistrationTutorial) launchRegistrationTutorialStage();
+                else closeTutorial(true);
                 return;
             }
-            tutorialStep = Math.max(0, Math.min(TUTORIAL_STEPS.length - 1, tutorialStep + delta));
+            tutorialStep = Math.max(0, Math.min(steps.length - 1, tutorialStep + delta));
             renderTutorialStep();
         }
 
+        function selectTutorialControlMode(mode) {
+            setControlMode(mode);
+            tutorialControlChosen = true;
+            renderTutorialControlChoices();
+            const next = document.getElementById('tutorial-next-btn');
+            if (next) next.disabled = false;
+        }
+
+        function renderTutorialControlChoices() {
+            const area = document.getElementById('tutorial-action-area');
+            if (!area) return;
+            area.innerHTML = '';
+            const choices = [
+                { mode:'keyboard', mark:'C', label:'キーボード' },
+                { mode:'buttons', mark:'M', label:'モバイル' },
+                { mode:'joystick', mark:'J', label:'ジョイスティック' }
+            ];
+            choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `pixel-btn small tutorial-control-choice${tutorialControlChosen && controlMode === choice.mode ? ' selected' : ''}`;
+                button.innerHTML = `<b>${choice.mark}</b><br>${choice.label}`;
+                button.onclick = () => selectTutorialControlMode(choice.mode);
+                area.appendChild(button);
+            });
+        }
+
+        function launchRegistrationTutorialStage() {
+            closeTutorial(true);
+            isRegistrationTutorial = false;
+            tutorialControlChosen = false;
+            // ランキングや報酬には記録しない専用モードで開始する。
+            startGame(NEW_PLAYER_TUTORIAL_STAGE, 'tutorial');
+        }
+
         function renderTutorialStep() {
-            const step = TUTORIAL_STEPS[tutorialStep];
+            const steps = getActiveTutorialSteps();
+            const step = steps[tutorialStep];
             if (!step) return;
-            document.getElementById('tutorial-step-label').textContent = `TUTORIAL ${tutorialStep + 1} / ${TUTORIAL_STEPS.length}`;
+            document.getElementById('tutorial-step-label').textContent = `TUTORIAL ${tutorialStep + 1} / ${steps.length}`;
             document.getElementById('tutorial-title').textContent = step.title;
             document.getElementById('tutorial-icon').textContent = step.icon || '✦';
             document.getElementById('tutorial-text').textContent = step.text;
             document.getElementById('tutorial-tip').textContent = step.tip || '';
+            const actionArea = document.getElementById('tutorial-action-area');
+            if (actionArea) {
+                actionArea.style.display = step.action === 'control' ? 'grid' : 'none';
+                if (step.action === 'control') renderTutorialControlChoices();
+                else actionArea.innerHTML = '';
+            }
             const progress = document.getElementById('tutorial-progress');
             if (progress) {
                 progress.innerHTML = '';
-                TUTORIAL_STEPS.forEach((_, index) => {
+                steps.forEach((_, index) => {
                     const dot = document.createElement('span');
                     dot.className = `tutorial-progress-dot${index < tutorialStep ? ' done' : ''}${index === tutorialStep ? ' active' : ''}`;
                     progress.appendChild(dot);
@@ -8250,9 +8356,11 @@ function getPswcWinnerCount(username) {
             const next = document.getElementById('tutorial-next-btn');
             if (prev) prev.disabled = tutorialStep === 0;
             if (next) {
-                next.disabled = false;
-                next.textContent = tutorialStep === TUTORIAL_STEPS.length - 1 ? 'はじめる' : '次へ';
+                next.disabled = step.action === 'control' && !tutorialControlChosen;
+                next.textContent = step.action === 'practice' ? 'ステージへ' : (tutorialStep === steps.length - 1 ? 'はじめる' : '次へ');
             }
+            const closeButton = document.getElementById('tutorial-close-btn');
+            if (closeButton) closeButton.style.display = isRegistrationTutorial ? 'none' : 'block';
         }
 
         function closePasswordChange() {
@@ -10823,6 +10931,123 @@ function getPswcWinnerCount(username) {
             }
         }
 
+        const NORMAL_BLOCK_STAGE_THEMES = {
+            normal: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
+            freestyle: { base:'#d5a600', shadow:'#745900', light:'#ffe45b', accent:'#1d2838', motif:'grip' },
+            water: { base:'#147b9c', shadow:'#084c69', light:'#6cddf4', accent:'#d5fbff', motif:'wave' },
+            dark: { base:'#24213b', shadow:'#0c0b18', light:'#555078', accent:'#9a8cff', motif:'eye' },
+            deepsea: { base:'#082c4a', shadow:'#031322', light:'#12678a', accent:'#62e9e3', motif:'bubbles' },
+            mist: { base:'#9ebfae', shadow:'#537265', light:'#e2f4e8', accent:'#f8ffff', motif:'mist' },
+            submarine_volcano: { base:'#303945', shadow:'#15161b', light:'#247d91', accent:'#ff6b25', motif:'magmawave' },
+            autorun: { base:'#d06820', shadow:'#74300d', light:'#d06820', accent:'#74300d', motif:'classic' },
+            big: { base:'#454276', shadow:'#24213f', light:'#8884c4', accent:'#e4deff', motif:'corners' },
+            timeattack: { base:'#eee6ce', shadow:'#302b38', light:'#fff9e9', accent:'#1f1c25', motif:'checker' },
+            hard: { base:'#5d4037', shadow:'#3e2723', light:'#8a6253', accent:'#c49a82', motif:'brick' },
+            untouchable: { base:'#c62828', shadow:'#7f0000', light:'#c62828', accent:'#7f0000', motif:'classic' },
+            solitude: { base:'#48515d', shadow:'#1c2229', light:'#7a8793', accent:'#dbe7ed', motif:'alone' },
+            volcano: { base:'#4a1c18', shadow:'#180705', light:'#7c3025', accent:'#ff6a1f', motif:'magma' },
+            moon: { base:'#737b8c', shadow:'#363b47', light:'#b9c0cf', accent:'#e9edf5', motif:'crater' },
+            beach: { base:'#d7ad59', shadow:'#8c682b', light:'#f5da91', accent:'#67d9f0', motif:'shore' },
+            sky: { base:'#eaf9ff', shadow:'#8fc7df', light:'#ffffff', accent:'#bcecff', motif:'cloudBlock' },
+            rai_alvaro: { base:'#3f354f', shadow:'#16111f', light:'#716080', accent:'#ffe500', motif:'lightning' },
+            rai_alvaro_v2: { base:'#3f354f', shadow:'#16111f', light:'#716080', accent:'#ffe500', motif:'lightning' },
+            troll: { base:'#663b83', shadow:'#281535', light:'#a66fc2', accent:'#b8ff48', motif:'question' }
+        };
+
+        function drawStageNormalBlock(ctx, left, top, width, height, stageType, weeklyCup = false) {
+            ctx.save();
+            const typeKey = typeof stageType === 'string' ? stageType : getFrontStageType(stageType);
+            const theme = weeklyCup
+                ? { base:'#b77b05', shadow:'#704300', light:'#f1b92f', accent:'#fff0a3', motif:'crown' }
+                : (NORMAL_BLOCK_STAGE_THEMES[typeKey] || NORMAL_BLOCK_STAGE_THEMES.normal);
+            const size = Math.min(width, height);
+            const line = Math.max(1, size * .055);
+            // クラシックは従来の茶色ブロックをそのまま維持。オートランはその配色違い。
+            if (theme.motif === 'classic') {
+                ctx.fillStyle = theme.base;
+                ctx.fillRect(left, top, width, height);
+                ctx.fillStyle = theme.shadow;
+                ctx.fillRect(left, top + height * .4, width, Math.max(1, height * .1));
+                ctx.restore();
+                return;
+            }
+            // スカイは当たり判定と同じ1ブロック分を使い切る雲として描く。
+            if (theme.motif === 'cloudBlock') {
+                ctx.beginPath();
+                ctx.moveTo(left + line*.5, top + height*.72);
+                ctx.bezierCurveTo(left - width*.04, top + height*.53, left + width*.08, top + height*.32, left + width*.27, top + height*.35);
+                ctx.bezierCurveTo(left + width*.3, top + height*.03, left + width*.66, top - height*.03, left + width*.72, top + height*.31);
+                ctx.bezierCurveTo(left + width*.96, top + height*.25, left + width*1.05, top + height*.5, left + width - line*.5, top + height*.71);
+                ctx.lineTo(left + width - line*.5, top + height - line*.5);
+                ctx.lineTo(left + line*.5, top + height - line*.5);
+                ctx.closePath();
+                ctx.fillStyle = theme.base;
+                ctx.fill();
+                ctx.strokeStyle = theme.shadow;
+                ctx.lineWidth = line;
+                ctx.stroke();
+                ctx.fillStyle = theme.light;
+                ctx.beginPath();
+                ctx.ellipse(left + width*.52, top + height*.25, width*.2, height*.11, -.18, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+                return;
+            }
+            ctx.fillStyle = theme.base;
+            ctx.fillRect(left, top, width, height);
+            ctx.fillStyle = theme.light;
+            ctx.fillRect(left, top, width, Math.max(1, height * .12));
+            ctx.fillStyle = theme.shadow;
+            ctx.fillRect(left, top + height * .78, width, height * .22);
+            ctx.strokeStyle = theme.accent;
+            ctx.fillStyle = theme.accent;
+            ctx.lineWidth = line;
+
+            const cx = left + width / 2, cy = top + height / 2;
+            ctx.beginPath();
+            if (theme.motif === 'brick') {
+                ctx.moveTo(left, top + height*.45); ctx.lineTo(left + width, top + height*.45);
+                ctx.moveTo(cx, top + height*.12); ctx.lineTo(cx, top + height*.45);
+                ctx.moveTo(left + width*.27, top + height*.45); ctx.lineTo(left + width*.27, top + height*.78);
+                ctx.moveTo(left + width*.74, top + height*.45); ctx.lineTo(left + width*.74, top + height*.78);
+            } else if (theme.motif === 'grip') {
+                for (let i=1;i<=3;i++) { const gx=left+width*i/4; ctx.moveTo(gx,top+height*.25); ctx.lineTo(gx,top+height*.68); }
+            } else if (theme.motif === 'wave' || theme.motif === 'shore' || theme.motif === 'magmawave') {
+                for (let i=0;i<=4;i++) { const px=left+width*i/4, py=cy+Math.sin(i*Math.PI/2)*height*.12; if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py); }
+                if (theme.motif === 'magmawave') { ctx.stroke(); ctx.strokeStyle='#65ddec'; ctx.beginPath(); ctx.moveTo(left,top+height*.3); ctx.lineTo(left+width,top+height*.3); }
+            } else if (theme.motif === 'eye') {
+                ctx.ellipse(cx, cy, width*.27, height*.14, 0, 0, Math.PI*2);
+            } else if (theme.motif === 'bubbles') {
+                ctx.arc(left+width*.3,top+height*.55,size*.08,0,Math.PI*2); ctx.moveTo(left+width*.72+size*.055,top+height*.34); ctx.arc(left+width*.72,top+height*.34,size*.055,0,Math.PI*2);
+            } else if (theme.motif === 'mist') {
+                ctx.moveTo(left+width*.12,top+height*.38);ctx.lineTo(left+width*.82,top+height*.38);ctx.moveTo(left+width*.3,top+height*.58);ctx.lineTo(left+width*.9,top+height*.58);
+            } else if (theme.motif === 'arrow') {
+                ctx.moveTo(left+width*.2,cy);ctx.lineTo(left+width*.72,cy);ctx.lineTo(left+width*.55,top+height*.32);ctx.moveTo(left+width*.72,cy);ctx.lineTo(left+width*.55,top+height*.68);
+            } else if (theme.motif === 'corners') {
+                const r=size*.07; [[.22,.3],[.78,.3],[.22,.65],[.78,.65]].forEach(p=>{ctx.moveTo(left+width*p[0]+r,top+height*p[1]);ctx.arc(left+width*p[0],top+height*p[1],r,0,Math.PI*2);});
+            } else if (theme.motif === 'checker') {
+                ctx.fillRect(left+width*.2,top+height*.28,width*.2,height*.2);ctx.fillRect(left+width*.6,top+height*.28,width*.2,height*.2);ctx.fillRect(left+width*.4,top+height*.48,width*.2,height*.2);
+            } else if (theme.motif === 'crack' || theme.motif === 'magma') {
+                ctx.moveTo(cx,top+height*.18);ctx.lineTo(left+width*.42,top+height*.42);ctx.lineTo(left+width*.6,top+height*.55);ctx.lineTo(left+width*.48,top+height*.76);
+            } else if (theme.motif === 'hazard') {
+                ctx.moveTo(left+width*.25,top+height*.3);ctx.lineTo(left+width*.75,top+height*.7);ctx.moveTo(left+width*.75,top+height*.3);ctx.lineTo(left+width*.25,top+height*.7);
+            } else if (theme.motif === 'alone') {
+                ctx.moveTo(cx,top+height*.25);ctx.lineTo(cx,top+height*.68);
+            } else if (theme.motif === 'crater') {
+                ctx.arc(cx,cy,size*.18,0,Math.PI*2);ctx.moveTo(left+width*.76+size*.06,top+height*.3);ctx.arc(left+width*.76,top+height*.3,size*.06,0,Math.PI*2);
+            } else if (theme.motif === 'cloud') {
+                ctx.arc(left+width*.38,cy,size*.12,Math.PI,0);ctx.arc(left+width*.57,cy,size*.17,Math.PI,0);ctx.lineTo(left+width*.78,cy);
+            } else if (theme.motif === 'lightning') {
+                ctx.moveTo(left+width*.58,top+height*.2);ctx.lineTo(left+width*.35,cy);ctx.lineTo(left+width*.55,cy);ctx.lineTo(left+width*.4,top+height*.75);
+            } else if (theme.motif === 'question') {
+                ctx.font=`bold ${height*.48}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('?',cx,cy);
+            } else if (theme.motif === 'crown') {
+                ctx.moveTo(left+width*.22,top+height*.62);ctx.lineTo(left+width*.18,top+height*.34);ctx.lineTo(left+width*.4,top+height*.48);ctx.lineTo(cx,top+height*.25);ctx.lineTo(left+width*.62,top+height*.48);ctx.lineTo(left+width*.82,top+height*.34);ctx.lineTo(left+width*.78,top+height*.62);ctx.closePath();
+            }
+            if (theme.motif !== 'checker' && theme.motif !== 'question') ctx.stroke();
+            ctx.restore();
+        }
+
         function drawTile(ctx, x, y, cw, ch, type, time = 0, stageType = currentStageType, clipToTile = true) {
             // 各ブロックの描画は自分のマス（ビッグ時は2x2マス）の背景内に限定する。
             // エフェクトや線が隣接マス・ステージ外へはみ出さないようにするための共通クリップ。
@@ -10836,14 +11061,7 @@ function getPswcWinnerCount(username) {
             }
             const pad = 2;
             const drawNormalBlock = () => {
-                ctx.fillStyle = isWeeklyCupMatch ? "#b77b05" : "#5d4037";
-                ctx.fillRect(x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2);
-                ctx.fillStyle = isWeeklyCupMatch ? "#704300" : "#3e2723";
-                ctx.fillRect(x*cw + pad, y*ch + ch*0.4, cw - pad*2, ch*0.1);
-                if (isWeeklyCupMatch) {
-                    ctx.fillStyle = "#fff0a3";
-                    ctx.fillRect(x*cw + pad + 2, y*ch + pad + 2, cw - pad * 2 - 4, Math.max(1, ch * .08));
-                }
+                drawStageNormalBlock(ctx, x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2, stageType, isWeeklyCupMatch);
             };
             const drawNormalSpike = () => {
                 ctx.fillStyle = isWeeklyCupMatch ? '#ffd02e' : '#78909c';
@@ -12927,7 +13145,9 @@ function getPswcWinnerCount(username) {
             const shouldReturnToWeeklyCup = returnToWeeklyCupAfterGame;
             returnToWeeklyCupAfterGame = false;
             isWeeklyCupMatch = false;
-            if (gameMode === 'test') {
+            if (gameMode === 'tutorial') {
+                showLoggedInHome(CONFIG.USERNAME);
+            } else if (gameMode === 'test') {
                 document.getElementById('editor-screen').style.display = 'block';
                 drawEditor();
             } else if (shouldReturnToWeeklyCup) {
@@ -15047,7 +15267,9 @@ function getPswcWinnerCount(username) {
                 });
                 player.vx = 0; player.vy = 0;
                 
-                if (gameMode === 'test') {
+                if (gameMode === 'tutorial') {
+                    showMessage("TUTORIAL CLEAR!", "基本操作は完璧です。Pixel Stagesへようこそ！");
+                } else if (gameMode === 'test') {
                     setClearChecked();
                     checkedGridSnapshot = JSON.stringify(editorGrid); // クリア時のグリッドを記憶
                     showMessage("CHECK OK!", "ステージを完走しました！投稿が可能です。");
@@ -15853,7 +16075,9 @@ function getPswcWinnerCount(username) {
                 // 死亡場所を記録
                 callApi('recordDeath', { stageId: currentStageData.id, x: player.x, y: player.y });
             }
-            if (gameMode === 'test') {
+            if (gameMode === 'tutorial') {
+                showMessage("TRY AGAIN", "操作を確かめながら、もう一度挑戦してみましょう。", true);
+            } else if (gameMode === 'test') {
                 showMessage("TEST FAILED", "ミスしてしまいました。", true);
             } else if (gameMode === 'play') {
                 // プレイモードでもメッセージを出して「OK（戻る）」を押せるように修正
