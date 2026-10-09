@@ -10934,23 +10934,24 @@ function getPswcWinnerCount(username) {
         const NORMAL_BLOCK_STAGE_THEMES = {
             normal: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
             freestyle: { base:'#d5a600', shadow:'#745900', light:'#ffe45b', accent:'#1d2838', motif:'grip' },
-            water: { base:'#147b9c', shadow:'#084c69', light:'#6cddf4', accent:'#d5fbff', motif:'wave' },
-            dark: { base:'#24213b', shadow:'#0c0b18', light:'#555078', accent:'#9a8cff', motif:'eye' },
-            deepsea: { base:'#082c4a', shadow:'#031322', light:'#12678a', accent:'#62e9e3', motif:'bubbles' },
-            mist: { base:'#9ebfae', shadow:'#537265', light:'#e2f4e8', accent:'#f8ffff', motif:'mist' },
-            submarine_volcano: { base:'#303945', shadow:'#15161b', light:'#247d91', accent:'#ff6b25', motif:'magmawave' },
+            water: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
+            dark: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
+            deepsea: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
+            deepmist: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
+            mist: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
+            submarine_volcano: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
             autorun: { base:'#d06820', shadow:'#74300d', light:'#d06820', accent:'#74300d', motif:'classic' },
             big: { base:'#454276', shadow:'#24213f', light:'#8884c4', accent:'#e4deff', motif:'corners' },
             timeattack: { base:'#eee6ce', shadow:'#302b38', light:'#fff9e9', accent:'#1f1c25', motif:'checker' },
             hard: { base:'#5d4037', shadow:'#3e2723', light:'#8a6253', accent:'#c49a82', motif:'brick' },
             untouchable: { base:'#c62828', shadow:'#7f0000', light:'#c62828', accent:'#7f0000', motif:'classic' },
             solitude: { base:'#48515d', shadow:'#1c2229', light:'#7a8793', accent:'#dbe7ed', motif:'alone' },
-            volcano: { base:'#4a1c18', shadow:'#180705', light:'#7c3025', accent:'#ff6a1f', motif:'magma' },
+            volcano: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
             moon: { base:'#737b8c', shadow:'#363b47', light:'#b9c0cf', accent:'#e9edf5', motif:'crater' },
             beach: { base:'#d7ad59', shadow:'#8c682b', light:'#f5da91', accent:'#67d9f0', motif:'shore' },
             sky: { base:'#eaf9ff', shadow:'#8fc7df', light:'#ffffff', accent:'#bcecff', motif:'cloudBlock' },
-            rai_alvaro: { base:'#3f354f', shadow:'#16111f', light:'#716080', accent:'#ffe500', motif:'lightning' },
-            rai_alvaro_v2: { base:'#3f354f', shadow:'#16111f', light:'#716080', accent:'#ffe500', motif:'lightning' },
+            rai_alvaro: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
+            rai_alvaro_v2: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
             troll: { base:'#663b83', shadow:'#281535', light:'#a66fc2', accent:'#b8ff48', motif:'question' }
         };
 
@@ -11060,8 +11061,8 @@ function getPswcWinnerCount(username) {
                 ctx.clip();
             }
             const pad = 2;
-            const drawNormalBlock = () => {
-                drawStageNormalBlock(ctx, x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2, stageType, isWeeklyCupMatch);
+            const drawNormalBlock = (visualStageType = stageType, weeklyCup = isWeeklyCupMatch) => {
+                drawStageNormalBlock(ctx, x*cw + pad, y*ch + pad, cw - pad*2, ch - pad*2, visualStageType, weeklyCup);
             };
             const drawNormalSpike = () => {
                 ctx.fillStyle = isWeeklyCupMatch ? '#ffd02e' : '#78909c';
@@ -11177,7 +11178,7 @@ function getPswcWinnerCount(username) {
                 ctx.fillText('W', x*cw + cw/2, y*ch + ch*.44);
             } else if(type === 'K') {
                 // トロールでは見た目だけ通常ブロックと交換し、判定はKのまま。
-                if (stageType === 'troll') drawNormalBlock();
+                if (stageType === 'troll') drawNormalBlock('normal', false);
                 else drawNormalSpike();
             } else if(type === 'A') {
                 // 弓発射台
