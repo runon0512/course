@@ -4977,6 +4977,29 @@ function getPswcWinnerCount(username) {
             completeLogin(res, 0);
         }
 
+        async function confirmRegistrationByLogin(user, pass, remember, msg) {
+            // 登録の保存後に応答だけ失敗した場合もあるため、失敗理由を限定せずログインで確認する。
+            msg.style.color = "#fff";
+            msg.innerText = '登録状態を確認しています...';
+            try {
+                const loginRes = await callApi('login', {
+                    username: user,
+                    password: pass,
+                    version: CONFIG.VERSION,
+                    remember
+                }, 60000);
+                if (!loginRes?.success) return false;
+                msg.style.color = "var(--primary-color)";
+                msg.innerText = '登録を確認しました。ゲームを開始しています...';
+                // ログインで存在を確認できた場合も、新規登録成功時と同じチュートリアル判定にする。
+                acceptAuthLoginResult(loginRes, remember, true);
+                return true;
+            } catch (confirmError) {
+                console.warn('新規登録失敗後のログイン確認にも失敗しました:', confirmError);
+                return false;
+            }
+        }
+
         async function handleAuth(type) {
             if (authRequestInFlight) return;
             const user = document.getElementById('username').value;
@@ -5009,17 +5032,9 @@ function getPswcWinnerCount(username) {
                     return;
                 }
 
-                if (type === 'register' && !res?.success && /通信|混雑|既に使用|タイムアウト/i.test(apiMessageText(res?.message, ''))) {
-                    // 登録保存後に応答だけ失われた可能性を確認する。成功していれば重複登録せずそのままログインできる。
-                    msg.innerText = '登録状態を確認しています...';
-                    const loginRes = await callApi('login', { username: user, password: pass, version: CONFIG.VERSION, remember }, 60000);
-                    if (loginRes?.success) {
-                        loginAccepted = true;
-                        msg.style.color = "var(--primary-color)";
-                        msg.innerText = '登録を確認しました。ゲームを開始しています...';
-                        acceptAuthLoginResult(loginRes, remember, true);
-                        return;
-                    }
+                if (type === 'register' && !res?.success) {
+                    loginAccepted = await confirmRegistrationByLogin(user, pass, remember, msg);
+                    if (loginAccepted) return;
                 }
 
                 if (type === 'login' && res?.success) {
@@ -5033,6 +5048,10 @@ function getPswcWinnerCount(username) {
                 msg.style.color = "var(--secondary-color)";
                 msg.innerText = apiMessageText(res?.message, '処理に失敗しました。');
             } catch (error) {
+                if (type === 'register') {
+                    loginAccepted = await confirmRegistrationByLogin(user, pass, remember, msg);
+                    if (loginAccepted) return;
+                }
                 msg.style.color = "var(--secondary-color)";
                 msg.innerText = apiMessageText(error?.message, '認証通信に失敗しました。');
             } finally {
