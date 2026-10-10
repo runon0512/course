@@ -16234,8 +16234,10 @@ function getPswcWinnerCount(username) {
             // 動的なタイル（風など）のみをリストから高速に描画
             for (let i = 0; i < dynamicTiles.length; i++) {
                 const t = dynamicTiles[i];
+                // ターンウィンドだけは端末時刻ではなくステージ開始フレームを基準にし、必ず右向きから始める。
+                const tileTime = t.type === 'TW' ? frameCount / 30 : time;
                 drawTile(cachedGameCtx, t.big ? t.x / 2 : t.x, t.big ? t.y / 2 : t.y,
-                    t.big ? cw * 2 : cw, t.big ? ch * 2 : ch, t.type, time);
+                    t.big ? cw * 2 : cw, t.big ? ch * 2 : ch, t.type, tileTime);
             }
 
             // 木箱は物理座標で描画するため、静的なステージキャッシュには含めない。
@@ -16720,7 +16722,8 @@ function getPswcWinnerCount(username) {
                 cachedGameCtx.drawImage(stageCacheCanvas, 0, 0);
                 for (let i = 0; i < dynamicTiles.length; i++) {
                     const t = dynamicTiles[i];
-                    drawTile(cachedGameCtx, t.x, t.y, cw, ch, t.type, time);
+                    const tileTime = t.type === 'TW' ? frameCount / 30 : time;
+                    drawTile(cachedGameCtx, t.x, t.y, cw, ch, t.type, tileTime);
                 }
                 cachedGameCtx.restore();
             } else if (isMistStageType(currentStageType)) {
