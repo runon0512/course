@@ -5015,8 +5015,9 @@ function getPswcWinnerCount(username) {
             setAuthRequestBusy(true);
             let loginAccepted = false;
             try {
-                // GASの起動待ちも考慮し、認証通信は最大60秒待つ。
-                let res = await callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember }, 60000);
+                // 新規登録はGAS側のロック待ちや書き込みを考慮して、通常ログインの3倍（最大180秒）待つ。
+                const authTimeoutMs = type === 'register' ? 180000 : 60000;
+                let res = await callApi(type, { username: user, password: pass, version: CONFIG.VERSION, remember }, authTimeoutMs);
 
                 if (type === 'register' && res?.success) {
                     msg.style.color = "var(--primary-color)";
