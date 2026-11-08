@@ -1127,7 +1127,7 @@
         .event-shop-header { width:min(56cqw,760px); display:flex; flex-direction:column; align-items:center; gap:.8cqh; color:#ffe4a7; font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
         .event-shop-grid { width:min(39cqw,500px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1cqw; }
         #shop-overlay .event-shop-grid .shop-item { position:relative; min-height:24cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #d69b44; background:linear-gradient(180deg,rgba(101,45,33,.98),rgba(43,18,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
-        #shop-overlay .event-shop-grid .shop-item::before { content:'EVENT'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,229,157,.68); font-size:.65cqw; letter-spacing:.12em; pointer-events:none; }
+        #shop-overlay .event-shop-grid .shop-item::before { content:'0.5 EVE'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,229,157,.68); font-size:.65cqw; letter-spacing:.12em; pointer-events:none; }
         #shop-overlay .event-shop-grid .shop-item canvas { flex:0 0 auto; margin-top:.8cqh; width:7cqw; height:7cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .55cqw rgba(255,121,72,.55)); }
         #shop-overlay .event-shop-grid .daily-item-name { position:absolute; z-index:2; top:4.2cqh; left:.42cqw; right:.42cqw; margin:0; padding:.18cqh .28cqw; color:#fff7d5; font-size:1cqw; line-height:1.2; text-align:center; text-shadow:0 .1cqw .14cqw #21100b; background:rgba(37,18,15,.67); border-radius:.22cqw; pointer-events:none; }
         #shop-overlay .event-shop-grid .daily-price-tag { width:100%; margin-top:.55cqh; border-color:#ffbd63; background:linear-gradient(135deg,#713116,#c65325); color:#fff0c1; }
@@ -1150,7 +1150,7 @@
         #shop-overlay .daily-shelf-item .daily-owned-tag::first-letter { color:#fff5cc; }
         #shop-overlay .daily-shelf-item .daily-price-tag { width:100% !important; min-width:0; box-sizing:border-box; margin-top:.35cqh; padding:.55cqh .35cqw; border:.12cqw solid #f1c56b; border-radius:.35cqw; background:linear-gradient(135deg,#5d3517,#a56525); color:#fff1bf; font:700 .85cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:inset 0 0 0 .08cqw rgba(255,241,190,.28),0 .16cqh 0 rgba(34,15,8,.65); transition:filter .16s ease,transform .16s ease; }
         #shop-overlay .daily-shelf-item .daily-price-tag:hover { background:linear-gradient(135deg,#8a4c17,#d68b2e); color:#fffbe8; border-color:#fff0a8; filter:brightness(1.1); transform:translateY(-.1cqh); }
-        #shop-overlay .event-shop-grid .shop-item.event-shelf-item::before { content:'EVENT'; color:rgba(255,229,157,.68); }
+        #shop-overlay .event-shop-grid .shop-item.event-shelf-item::before { content:'0.5 EVE'; color:rgba(255,229,157,.68); }
         #shop-overlay .event-shop-grid .event-shelf-item .daily-price-tag { border-color:#ffbd63; background:linear-gradient(135deg,#713116,#c65325); }
         #explanation-btn { overflow:visible !important; }
         #explanation-btn::after { content:'New!'; position:absolute; top:-.9cqh; right:-1.2cqw; padding:.12cqh .42cqw; border:.1cqw solid #fff6a3; border-radius:.45cqw; background:#f04b7d; color:#fff; font:700 .8cqw/1 sans-serif; letter-spacing:.04em; text-shadow:none; box-shadow:0 0 .5cqw rgba(255,71,132,.8); animation:triviaNewPulse 1.2s ease-in-out infinite; pointer-events:none; }
@@ -1385,6 +1385,57 @@
             padding: 1cqh 0.7cqw;
             font-size: 1.1cqw;
             min-width: 6cqw;
+        }
+
+        /* ステージタイプ専用ピッカー。端末標準のselectに依存せず同じ見た目・操作感にする。 */
+        .editor-stage-type-picker { position:relative; flex:0 0 auto; z-index:45; }
+        .editor-stage-type-trigger {
+            height:5.8cqh; min-width:11.5cqw; box-sizing:border-box; display:flex; align-items:center; gap:.55cqw;
+            padding:.45cqh .65cqw; color:#effcff; border:.14cqw solid #6ce8ff; border-radius:0;
+            background:linear-gradient(145deg,rgba(8,27,55,.98),rgba(18,61,92,.96));
+            box-shadow:inset 0 0 .8cqw rgba(82,221,255,.12),0 0 .6cqw rgba(61,216,255,.28);
+            cursor:pointer; font-family:'Roboto','Noto Sans JP',sans-serif; text-align:left;
+        }
+        .editor-stage-type-trigger:hover, .editor-stage-type-picker.open .editor-stage-type-trigger { border-color:#d5fbff; box-shadow:inset 0 0 1cqw rgba(82,221,255,.22),0 0 1cqw rgba(61,216,255,.48); }
+        .editor-stage-type-icon { width:2.2cqw; height:2.2cqw; display:block; flex:0 0 auto; border:.1cqw solid rgba(255,255,255,.36); border-radius:0; background:rgba(255,255,255,.1); image-rendering:pixelated; }
+        .editor-stage-type-copy { min-width:0; display:flex; flex-direction:column; line-height:1.05; }
+        .editor-stage-type-copy small { color:#70dff5; font-size:.52cqw; letter-spacing:.13em; }
+        .editor-stage-type-copy b { max-width:7cqw; overflow:hidden; text-overflow:ellipsis; color:#fff; font-size:.92cqw; }
+        .editor-stage-type-chevron { margin-left:auto; color:#8eeeff; font-size:.8cqw; transition:transform .15s ease; }
+        .editor-stage-type-picker.open .editor-stage-type-chevron { transform:rotate(180deg); }
+        .editor-stage-type-menu {
+            position:absolute; top:calc(100% + .45cqh); left:50%; transform:translateX(-50%); width:31cqw; max-height:56cqh;
+            display:none; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.45cqw; overflow-y:auto; box-sizing:border-box;
+            padding:.7cqw; border:.16cqw solid #6ce8ff; border-radius:0; background:rgba(3,14,34,.985);
+            box-shadow:0 1cqh 2.5cqw rgba(0,0,0,.7),0 0 1.3cqw rgba(71,221,255,.35);
+        }
+        .editor-stage-type-picker.open .editor-stage-type-menu { display:grid; }
+        .editor-stage-type-choice {
+            min-height:7cqh; display:grid; grid-template-columns:2.4cqw minmax(0,1fr); align-items:center; gap:.55cqw;
+            position:relative; padding:.55cqw; color:#eafaff; border:.1cqw solid rgba(107,218,255,.32); border-radius:0;
+            background:linear-gradient(145deg,rgba(14,38,68,.96),rgba(7,22,44,.96)); cursor:pointer; text-align:left;
+        }
+        .editor-stage-type-choice:hover { transform:translateY(-.08cqh); border-color:#baf7ff; background:linear-gradient(145deg,rgba(20,72,105,.98),rgba(8,35,65,.98)); }
+        .editor-stage-type-choice.selected { border-color:#fff36b; box-shadow:inset .26cqw 0 #fff36b,0 0 .65cqw rgba(255,243,107,.3); }
+        .editor-stage-type-choice .type-choice-icon { width:2.3cqw; height:2.3cqw; display:block; border:.08cqw solid rgba(255,255,255,.35); border-radius:0; background:var(--type-color,#257aa2); image-rendering:pixelated; }
+        .editor-stage-type-choice b { display:block; font-size:.84cqw; line-height:1.15; }
+        .editor-stage-type-choice small { display:block; margin-top:.22cqh; color:#9ccada; font-size:.58cqw; line-height:1.25; white-space:normal; }
+        .editor-stage-type-choice.locked { color:#d8d8d8; border-color:#787878; background:linear-gradient(145deg,#313131,#101010); box-shadow:inset 0 0 0 .08cqw #050505; }
+        .editor-stage-type-choice.locked:hover { transform:none; border-color:#aaa; background:linear-gradient(145deg,#3b3b3b,#151515); }
+        .editor-stage-type-choice.locked .type-choice-icon { filter:grayscale(1) contrast(1.15); border-color:#d0d0d0; }
+        .editor-stage-type-choice.locked small { color:#aaa; }
+        .editor-stage-type-choice.locked::after { content:'LOCKED'; position:absolute; top:.18cqh; right:.28cqw; color:#ddd; font-size:.45cqw; letter-spacing:.1em; }
+        .editor-stage-type-picker.locked .editor-stage-type-trigger { filter:grayscale(1); border-color:#999; }
+        @media (max-aspect-ratio:1/1) {
+            .editor-stage-type-trigger { min-width:14cqw; }
+            .editor-stage-type-icon { width:3cqw; height:3cqw; }
+            .editor-stage-type-copy small { font-size:.75cqw; }
+            .editor-stage-type-copy b { max-width:8cqw; font-size:1.15cqw; }
+            .editor-stage-type-menu { width:54cqw; grid-template-columns:1fr; }
+            .editor-stage-type-choice { grid-template-columns:4cqw minmax(0,1fr); }
+            .editor-stage-type-choice .type-choice-icon { width:3.5cqw; height:3.5cqw; }
+            .editor-stage-type-choice b { font-size:1.15cqw; }
+            .editor-stage-type-choice small { font-size:.85cqw; }
         }
 
         /* UI非表示モード: トグルボタン以外のエディタUIを隠して盤面全体を見やすくする */
@@ -2490,7 +2541,7 @@
             <button id="menu-play" class="pixel-btn" data-i18n="home.play" onclick="openStageSelect()">プレイ</button>
             <button id="menu-create" class="pixel-btn" data-i18n="home.create" onclick="startEditor()">ステージ制作</button>
             <button id="menu-locker" class="pixel-btn" data-i18n="home.locker" onclick="openLocker()">ロッカー</button>
-            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice" data-i18n="home.eventNow">トレード開始！</span></button>
+            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice">0.5周年前夜祭 開催中！</span></button>
             <button id="guild-btn" class="pixel-btn" data-i18n="home.guild" onclick="openGuild()">ギルド</button>
             </div>
 
@@ -2517,7 +2568,7 @@
         <div id="shop-overlay" class="screen daily-shop-room">
             <h2 class="daily-shop-sign" style="margin:0;">DAILY SHOP</h2>
             <div class="daily-shop-subtitle">本日の入荷品　—　毎日0:00（JST）更新</div>
-            <div id="shop-wallet" class="shop-wallet"><span>G: 0</span><span>AS: 0</span></div>
+            <div id="shop-wallet" class="shop-wallet"><span>G: 0</span><span>AS: 0</span><span>ES: 0</span></div>
             <div class="shop-tabs">
                 <button class="pixel-btn small" onclick="closeShop()" style="background: #f44336; color: #fff;">戻る</button>
             </div>
@@ -2529,17 +2580,17 @@
                     <div id="shopkeeper-speech" class="daily-shop-speech" onclick="showNextShopkeeperLine()">「いらっしゃい。今日の掘り出し物を、ゆっくり見ていって。」</div>
                 </aside>
                 <section class="daily-shop-stock">
-                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div class="stock-head-tools"><div id="daily-shop-date"></div><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab active" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div></div>
+                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div class="stock-head-tools"><div id="daily-shop-date"></div><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab active" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">前夜祭</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div></div>
                     <div class="shop-grid" id="shop-container"></div>
                 </section>
             </div>
             <div id="event-shop-interior" class="event-shop-interior" style="display:none;">
-                <div class="event-shop-empty">OLYMPUS EVENT<span>オリンポス12神　第一弾</span></div>
-                <div class="event-shop-header"><span>イベント商品棚</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
+                <div class="event-shop-empty">0.5 ANNIVERSARY EVE<span>0.5周年前夜祭ショップ</span></div>
+                <div class="event-shop-header"><span>前夜祭限定商品棚</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">前夜祭</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
                 <div id="event-shop-container" class="event-shop-grid"></div>
             </div>
             <div id="trade-shop-interior" class="trade-shop-interior" style="display:none;">
-                <div class="event-shop-header"><span>TRADE MARKET</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">イベント</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
+                <div class="event-shop-header"><span>TRADE MARKET</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">前夜祭</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
                 <div id="trade-market-content" class="trade-rate-card">Loading...</div>
             </div>
         </div>
@@ -3043,7 +3094,15 @@
                     <button id="editor-switch-btn" class="pixel-btn small" style="margin-top:0; background:#ff5252; color:#fff;" onclick="toggleEditorSwitch()">R/B: ON</button>
                     <button class="pixel-btn small" style="margin-top:0; background:#f1c40f; color:#000;" onclick="testPlay()">✅テスト</button>
                     <button id="publish-btn" class="pixel-btn small" style="margin-top:0; background:var(--primary-color); color:#000;" onclick="publishStage()">🌐投稿</button>
-                    <select id="stage-type-select" class="filter-control" style="font-size:1.2cqw; padding:0.3cqh 0.5cqw; background:#1a1a2e; color:#fff; border:0.15cqw solid var(--primary-color); cursor:pointer;" title="ステージタイプ" onchange="onStageTypeChange(this)">
+                    <div id="editor-stage-type-picker" class="editor-stage-type-picker">
+                        <button id="editor-stage-type-trigger" class="editor-stage-type-trigger" type="button" onclick="toggleEditorStageTypeMenu(event)" aria-haspopup="listbox" aria-expanded="false">
+                            <canvas id="editor-stage-type-icon" class="editor-stage-type-icon" width="48" height="48"></canvas>
+                            <span class="editor-stage-type-copy"><small>STAGE TYPE</small><b id="editor-stage-type-label">クラシック</b></span>
+                            <span class="editor-stage-type-chevron">▼</span>
+                        </button>
+                        <div id="editor-stage-type-menu" class="editor-stage-type-menu" role="listbox"></div>
+                    </div>
+                    <select id="stage-type-select" style="display:none;" title="ステージタイプ" onchange="onStageTypeChange(this)">
                         <option value="normal">🌿 クラシック</option>
                         <option value="freestyle">🧗 フリースタイル</option>
                         <option value="water">🌊 ウォーター</option>
@@ -3051,6 +3110,7 @@
                         <option value="timeattack">⌛ タイムアタック</option>
                         <option value="autorun">🏃 オートラン</option>
                         <option id="stage-type-option-sky" value="sky" disabled hidden>☁️ スカイ</option>
+                        <option id="stage-type-option-highspeed" value="highspeed" disabled hidden>⚡ ハイスピード</option>
                         <option id="stage-type-option-big" value="big" disabled hidden>⬛ ビッグ</option>
                         <option id="stage-type-option-hard" value="hard" disabled hidden>💀 ハード</option>
                         <option id="stage-type-option-untouchable" value="untouchable" disabled hidden>☠️ アンタッチャブル</option>
@@ -3104,6 +3164,7 @@
                     <div class="tool-btn rank-common" id="btn-tool-!" onclick="setTool('!', this)" title="R/B SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-Y" onclick="setTool('Y', this)" title="SLOW BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-SN" onclick="setTool('SN', this)" title="SNOW" style="display:none;"><canvas id="icon-SN" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-epic" id="btn-tool-LF" onclick="setTool('LF', this)" title="LIGHT FLOOR" style="display:none;"><canvas id="icon-LF" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-CB" onclick="setTool('CB', this)" title="CRACK BLOCK" style="display:none;"><canvas id="icon-CB" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-HBK" onclick="setTool('HBK', this)" title="HALF BLOCK" style="display:none;"><canvas id="icon-HBK" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-TL" onclick="setTool('TL', this)" title="LEFT TRAMPOLINE" style="display:none;"><canvas id="icon-TL" class="tool-canvas"></canvas></div>
@@ -3266,7 +3327,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwNplov9i23vZBd8N5C95sO2mVbDyUIwNackKOcVPOlPlGHtj5gtCeuanaMPbwzPS_m/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.10.1"
+            VERSION: "3.10.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3536,6 +3597,7 @@ function getPswcWinnerCount(username) {
             'LM': { title: 'ランプブロック', text: '暗闇ステージで周囲を明るく照らすブロックです。それ以外のステージでは通常のブロックとして機能します。ミサイルで破壊できます。' },
             'WC': { title: '木箱ブロック', text: '従来の木箱です。横から押すと1マス単位で動きます。' },
             'WCN': { title: '物理木箱', text: '重力で落下し、横から押すと1px刻みで動く新しい木箱です。' },
+            'LF': { title: '軽い床', text: 'グレーの橋型の床です。橋と同じく下や横から通過でき、一度踏むと6F後から離れても、ほかのブロックを通り抜けて落ち続けます。' },
             'IC': { title: 'IRON CRATE', text: '鉄製の箱です。従来の木箱（WC）と同じく、横から押すと1マス単位で動きます。Creator Road 200,000CPで解放できます。' },
             'EC': { title: '噴火制御機', text: '火山・海辺ステージに1つだけ設置できる装置です。火山では溶岩の最大上昇高さを、海辺では水面の高さを、この装置がある高さに設定します。' },
             'PB': { title: 'パープル', text: '通常の敵の2倍の大きさを持つボス敵です。ステージに1体だけ配置できます。倒すとステージ上の粘液ブロックがすべて消えます。' },
@@ -3567,6 +3629,7 @@ function getPswcWinnerCount(username) {
             { type: 'moon', title: 'ムーン', text: '重力が通常の半分になるステージです。敵にも影響します。' },
             { type: 'beach', title: 'ビーチ', text: '下半分が水、上側が地上のステージです。噴火制御機で水位を変えられます。' },
             { type: 'sky', title: 'スカイ', text: '空中でも何度でもジャンプできます。空中ジャンプの高さは前回の60%になり、着地で戻ります。' },
+            { type: 'highspeed', title: 'ハイスピード', text: 'プレイヤーの移動速度が通常の3倍になる高速ステージです。' },
             { type: 'rai_alvaro', title: 'ライ・アルバロ', text: '専用スキンになり、移動速度上昇と雷ダッシュが使えるステージです。' }
         ];
         const BASE_GRID_W = 20, BASE_GRID_H = 10;
@@ -3576,7 +3639,7 @@ function getPswcWinnerCount(username) {
         let bigStageActive = false;
         let bigStagePair = false;
         const BIG_SINGLE_TILES = new Set([
-            'S', 'M', 'IE', 'j', 'e', 'WCN',
+            'S', 'M', 'IE', 'j', 'e', 'WCN', 'LF',
             'PB', 'WB', 'BL', 'HS', 'HM', 'DM'
         ]);
         // ビッグの2x2展開後に、元の1マスを一意に示す左上座標を返す。
@@ -4537,6 +4600,8 @@ function getPswcWinnerCount(username) {
             'hestia_boss': { name: 'HESTIA', price: 20, isES: true, isBlockSet: true, sprite: null },
             'hermes_boss': { name: 'HERMES', price: 20, isES: true, isBlockSet: true, sprite: null },
             'demeter_boss': { name: 'DEMETER', price: 25000, isBlockSet: true, sprite: null },
+            'highspeed_stage': { name: 'HIGH SPEED', price: 30, isES: true, isStageType: true, sprite: null },
+            'light_floor': { name: 'LIGHT FLOOR', price: 50, isES: true, isBlockSet: true, sprite: null },
             'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
             // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
             'rai_alvaro': { name: 'RAI ALVARO', price: 0, sprite: RAI_ALVARO_SPRITE, recolorIndex: null, isHiddenShop: true }
@@ -5429,7 +5494,7 @@ function getPswcWinnerCount(username) {
         function updateShopWallet() {
             const wallet = document.getElementById('shop-wallet');
             if (!wallet) return;
-            wallet.innerHTML = `<span>G: ${Math.max(0, Number(userGold) || 0).toLocaleString()}</span><span>AS: ${Math.max(0, Number(userAS) || 0).toLocaleString()}</span>`;
+            wallet.innerHTML = `<span>G: ${Math.max(0, Number(userGold) || 0).toLocaleString()}</span><span>AS: ${Math.max(0, Number(userAS) || 0).toLocaleString()}</span><span>ES: ${Math.max(0, Number(userES) || 0).toLocaleString()}</span>`;
         }
 
         async function openShop(preserveShopkeeperLine = false, section = activeShopSection) {
@@ -5446,10 +5511,10 @@ function getPswcWinnerCount(username) {
             document.querySelectorAll('[data-shop-section]').forEach(button => {
                 button.classList.toggle('active', button.dataset.shopSection === activeShopSection);
             });
-            overlay.querySelector('.daily-shop-sign').innerText = isDaily ? 'DAILY SHOP' : (isEvent ? 'EVENT SHOP' : 'TRADE MARKET');
+            overlay.querySelector('.daily-shop-sign').innerText = isDaily ? 'DAILY SHOP' : (isEvent ? '0.5 ANNIVERSARY EVE' : 'TRADE MARKET');
             overlay.querySelector('.daily-shop-subtitle').innerText = isDaily
                 ? '本日の入荷品　—　毎日0:00（JST）更新'
-                : (isEvent ? 'オリンポス12神　第一弾 開催中' : '全プレイヤー共通のAS相場');
+                : (isEvent ? '0.5周年前夜祭ショップ 開催中' : '全プレイヤー共通のAS相場');
             if (isEvent) {
                 renderEventShop();
                 return;
@@ -5574,12 +5639,11 @@ function getPswcWinnerCount(username) {
             const container = document.getElementById('event-shop-container');
             if (!container) return;
             container.innerHTML = '';
-            ['hestia_boss', 'hermes_boss', 'demeter_boss'].forEach(id => {
+            ['highspeed_stage', 'light_floor'].forEach(id => {
                 const item = SKINS[id];
                 if (!item) return;
-                const toolKey = id === 'hestia_boss' ? 'HS' : id === 'hermes_boss' ? 'HM' : 'DM';
-                createShopItem(container, id, item, hasEventBossOwnership(toolKey), false,
-                    event => buyItem(id, item.price, event.target, item.isES ? 'ES' : 'gold'));
+                createShopItem(container, id, item, purchasedSkins.includes(id), false,
+                    event => buyItem(id, item.price, event.target, 'ES'));
             });
         }
 
@@ -5730,6 +5794,15 @@ function getPswcWinnerCount(username) {
                 ctx.fillStyle = 'rgba(255,255,255,.9)';
                 [[14,18,12],[43,29,15],[25,48,10]].forEach(([x,y,r]) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); });
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('SKY', 32, 59);
+            } else if (data.isStageType && id === 'highspeed_stage') {
+                const speedBg = ctx.createLinearGradient(0, 0, 64, 64);
+                speedBg.addColorStop(0, '#08182f'); speedBg.addColorStop(1, '#087fba');
+                ctx.fillStyle = speedBg; ctx.fillRect(0, 0, 64, 64);
+                ctx.strokeStyle = '#8ff5ff'; ctx.lineWidth = 3;
+                [14, 27, 40, 53].forEach((y, index) => {
+                    ctx.beginPath(); ctx.moveTo(5 + index * 3, y); ctx.lineTo(36 + index * 4, y); ctx.stroke();
+                });
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('×3', 45, 38);
             } else if (data.isStageType && id === 'rai_alvaro_stage') {
                 ctx.fillStyle = '#101226'; ctx.fillRect(0, 0, 64, 64);
                 drawPlayer(ctx, 0, 0, 64, 64, 'rai_alvaro_stage_avatar');
@@ -5755,6 +5828,7 @@ function getPswcWinnerCount(username) {
                 if (id === 'hestia_boss') previewType = 'HS';
                 if (id === 'hermes_boss') previewType = 'HM';
                 if (id === 'demeter_boss') previewType = 'DM';
+                if (id === 'light_floor') previewType = 'LF';
                 drawTile(ctx, 0, 0, 64, 64, previewType);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -5851,7 +5925,7 @@ function getPswcWinnerCount(username) {
         const TOOL_RANK_GROUPS = {
             common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', '^N', 'C', 'q', 'k', 'r', 'b', '!'],
             rare: ['Y', 'SN', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'IE', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
-            epic: ['hr', 'hb', 'e', '#', 'TW'],
+            epic: ['LF', 'hr', 'hb', 'e', '#', 'TW'],
             legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
             aurora: ['IC', 'WH']
         };
@@ -5866,7 +5940,7 @@ function getPswcWinnerCount(username) {
         // 下部バーは役割ごとに一定の順番で並べる。
         // ブロック系 → 敵・トゲ・銃 → R/B系 → 特殊系
         const CREATOR_TOOL_CATEGORY_ORDER = [
-            'T', 'TD', 'X', 'H', '>N', '<N', 'vN', '^N', 'Y', 'SN', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
+            'T', 'TD', 'X', 'H', '>N', '<N', 'vN', '^N', 'Y', 'SN', 'LF', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
             'k', 'q', 'y', 'j', 'IE', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
             'r', 'b', '!', 'J', 'hr', 'hb',
             'W', 'L', 'U', 'd', 'TW', 'P', 'C', 'KG', 'BH', 'WH', 'sp', 'EC'
@@ -5967,7 +6041,7 @@ function getPswcWinnerCount(username) {
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', deepsea: '#00182d', troll: '#673a67', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', hard: '#2a1018', untouchable: '#2a1018', solitude: '#10162b', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', sky: '#54bdf2', rai_alvaro: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', deepsea: '#00182d', troll: '#673a67', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', hard: '#2a1018', untouchable: '#2a1018', solitude: '#10162b', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', sky: '#54bdf2', highspeed: '#087fba', rai_alvaro: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach' || type === 'deepsea') {
@@ -9554,7 +9628,7 @@ function getPswcWinnerCount(username) {
             const stageTypeCrownKey = tab.startsWith('typeCrowns:') ? tab.slice('typeCrowns:'.length) : '';
             const stageTypeCrownNames = {
                 normal:'クラシック', freestyle:'フリースタイル', water:'ウォーター', dark:'ダーク', mist:'ミスト', autorun:'オートラン', big:'ビッグ',
-                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', solitude:'ソリチュード', deepsea:'ディープシー', troll:'トロール', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', sky:'スカイ', rai_alvaro:'ライ・アルバロ'
+                timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', solitude:'ソリチュード', deepsea:'ディープシー', troll:'トロール', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', sky:'スカイ', highspeed:'ハイスピード', rai_alvaro:'ライ・アルバロ'
             };
             if (stageTypeCrownKey) {
                 const typeName = stageTypeCrownNames[stageTypeCrownKey] || stageTypeCrownKey;
@@ -10176,6 +10250,7 @@ function getPswcWinnerCount(username) {
             if (['RT', 'BT'].includes(key)) return purchasedSkins.includes('rb_trampoline');
             if (key === 'Y') return claimedRoadRewards.includes(3);
             if (key === 'SN') return purchasedSkins.includes('snow_block');
+            if (key === 'LF') return purchasedSkins.includes('light_floor');
             if (key === 'CB') return purchasedSkins.includes('crack_block');
             if (key === 'HBK') return purchasedSkins.includes('half_block');
             if (['TL', 'TR'].includes(key)) return purchasedSkins.includes('side_trampoline_set');
@@ -10325,9 +10400,123 @@ function getPswcWinnerCount(username) {
                 stageTypeSelect.value = editorFace === 'front' ? editorFrontStageType : editorBackStageType;
                 stageTypeSelect.dataset.prevValue = stageTypeSelect.value;
             }
+            refreshEditorStageTypePicker();
             drawEditor();
             updateEruptionControlToolVisibility();
         }
+
+        const EDITOR_STAGE_TYPE_COLORS = {
+            normal:'#3f8f5b', freestyle:'#29a081', water:'#168bd1', dark:'#31354b', timeattack:'#d49b25', autorun:'#df6c27',
+            sky:'#6ecdf4', highspeed:'#04a9d9', big:'#526d8d', hard:'#9d314b', untouchable:'#d13b43', solitude:'#514f85',
+            deepsea:'#075377', troll:'#9b4c9d', volcano:'#c44124', moon:'#596182', beach:'#18b6c9', rai_alvaro:'#d6bd1c',
+            mist:'#83bfa0', submarine_volcano:'#486f9b'
+        };
+        const EDITOR_STAGE_TYPE_SYMBOLS = {
+            normal:'B', freestyle:'AC', water:'B', dark:'LM', timeattack:'C', autorun:'P', sky:'B', highspeed:'P',
+            big:'B', hard:'B', untouchable:'K', solitude:'WG', deepsea:'LM', troll:'K', volcano:'FL', moon:'B',
+            beach:'B', rai_alvaro:'P', mist:'LM', submarine_volcano:'FL'
+        };
+
+        function drawEditorStageTypeSymbol(canvas, stageType, locked = false) {
+            if (!canvas) return;
+            canvas.width = 48;
+            canvas.height = 48;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 48, 48);
+            ctx.fillStyle = EDITOR_STAGE_TYPE_COLORS[stageType] || '#257aa2';
+            ctx.fillRect(0, 0, 48, 48);
+            const blockType = EDITOR_STAGE_TYPE_SYMBOLS[stageType] || 'B';
+            drawTile(ctx, 0, 0, 48, 48, blockType, performance.now() / 1000, stageType);
+            if (locked) {
+                ctx.fillStyle = 'rgba(0,0,0,.42)';
+                ctx.fillRect(0, 0, 48, 48);
+                // 実際の鍵ブロックを右下へ重ね、未所持で選択できないことを示す。
+                drawTile(ctx, 1.18, 1.18, 20, 20, 'D', 0, 'normal');
+            }
+        }
+
+        function getEditorStageTypeOptionParts(option) {
+            const text = (option?.textContent || '🌿 クラシック').trim();
+            const separator = text.indexOf(' ');
+            return separator > 0
+                ? { icon: text.slice(0, separator), label: text.slice(separator + 1) }
+                : { icon: '◆', label: text };
+        }
+
+        function closeEditorStageTypeMenu() {
+            const picker = document.getElementById('editor-stage-type-picker');
+            const trigger = document.getElementById('editor-stage-type-trigger');
+            picker?.classList.remove('open');
+            trigger?.setAttribute('aria-expanded', 'false');
+        }
+
+        function isEditorStageTypeMenuOpen() {
+            return !!document.getElementById('editor-stage-type-picker')?.classList.contains('open');
+        }
+
+        function toggleEditorStageTypeMenu(event) {
+            event?.stopPropagation();
+            const picker = document.getElementById('editor-stage-type-picker');
+            const trigger = document.getElementById('editor-stage-type-trigger');
+            if (!picker) return;
+            const willOpen = !picker.classList.contains('open');
+            picker.classList.toggle('open', willOpen);
+            trigger?.setAttribute('aria-expanded', String(willOpen));
+        }
+
+        function selectEditorStageType(value) {
+            const select = document.getElementById('stage-type-select');
+            if (!select || select.value === value) {
+                closeEditorStageTypeMenu();
+                return;
+            }
+            select.value = value;
+            closeEditorStageTypeMenu();
+            onStageTypeChange(select);
+            refreshEditorStageTypePicker();
+        }
+
+        function refreshEditorStageTypePicker() {
+            const select = document.getElementById('stage-type-select');
+            const menu = document.getElementById('editor-stage-type-menu');
+            const label = document.getElementById('editor-stage-type-label');
+            const icon = document.getElementById('editor-stage-type-icon');
+            if (!select || !menu || !label || !icon) return;
+
+            const selectedOption = select.options[select.selectedIndex] || select.options[0];
+            const selectedParts = getEditorStageTypeOptionParts(selectedOption);
+            const selectedLocked = !!(selectedOption.disabled || selectedOption.hidden || selectedOption.style.display === 'none');
+            label.textContent = selectedParts.label;
+            document.getElementById('editor-stage-type-picker')?.classList.toggle('locked', selectedLocked);
+            drawEditorStageTypeSymbol(icon, select.value, selectedLocked);
+            menu.innerHTML = '';
+
+            [...select.options].forEach(option => {
+                const locked = !!(option.disabled || option.hidden || option.style.display === 'none');
+                const parts = getEditorStageTypeOptionParts(option);
+                const description = STAGE_TYPE_DESCRIPTIONS.find(item => item.type === option.value)?.text || 'ステージのルールと演出を変更します。';
+                const choice = document.createElement('button');
+                choice.type = 'button';
+                choice.className = `editor-stage-type-choice${option.value === select.value ? ' selected' : ''}${locked ? ' locked' : ''}`;
+                choice.setAttribute('role', 'option');
+                choice.setAttribute('aria-selected', String(option.value === select.value));
+                choice.setAttribute('aria-disabled', String(locked));
+                choice.style.setProperty('--type-color', EDITOR_STAGE_TYPE_COLORS[option.value] || '#257aa2');
+                choice.innerHTML = `<canvas class="type-choice-icon" width="48" height="48"></canvas><span><b></b><small></small></span>`;
+                drawEditorStageTypeSymbol(choice.querySelector('.type-choice-icon'), option.value, locked);
+                choice.querySelector('b').textContent = parts.label;
+                choice.querySelector('small').textContent = locked ? `未所持：${description}` : description;
+                choice.onclick = locked
+                    ? () => showQuickMsg('このステージタイプは未所持です。ショップまたはロードで解放できます。', '#d0d0d0')
+                    : () => selectEditorStageType(option.value);
+                menu.appendChild(choice);
+            });
+        }
+
+        document.addEventListener('pointerdown', event => {
+            const picker = document.getElementById('editor-stage-type-picker');
+            if (picker && !picker.contains(event.target)) closeEditorStageTypeMenu();
+        });
 
         // --- エディタ関連 ---
         function startEditor() {
@@ -10384,6 +10573,7 @@ function getPswcWinnerCount(username) {
             document.getElementById('btn-tool-Y').style.display = claimedRoadRewards.includes(3) ? 'flex' : 'none';
             // 雪
             if(document.getElementById('btn-tool-SN')) document.getElementById('btn-tool-SN').style.display = hasCreatorToolOwnership('SN') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-LF')) document.getElementById('btn-tool-LF').style.display = hasCreatorToolOwnership('LF') ? 'flex' : 'none';
             // クラックブロック
             if(document.getElementById('btn-tool-CB')) document.getElementById('btn-tool-CB').style.display = purchasedSkins.includes('crack_block') ? 'flex' : 'none';
             // ハーフブロック
@@ -10502,6 +10692,9 @@ function getPswcWinnerCount(username) {
             const skyOpt = document.getElementById('stage-type-option-sky');
             const hasSkyStage = purchasedSkins.includes('sky_stage');
             setStageTypeOptionAvailability(skyOpt, CONFIG.USERNAME === 'Runon' || hasSkyStage, '☁️ スカイ');
+            const highspeedOpt = document.getElementById('stage-type-option-highspeed');
+            const hasHighspeedStage = purchasedSkins.includes('highspeed_stage');
+            setStageTypeOptionAvailability(highspeedOpt, CONFIG.USERNAME === 'Runon' || hasHighspeedStage, '⚡ ハイスピード');
             const hardOpt = document.getElementById('stage-type-option-hard');
             const hasHardStage = purchasedSkins.includes('hard_stage');
             setStageTypeOptionAvailability(hardOpt, CONFIG.USERNAME === 'Runon' || hasHardStage, '💀 ハード');
@@ -10536,11 +10729,13 @@ function getPswcWinnerCount(username) {
                         : option.value === 'moon' ? '🌙 ムーン'
                         : option.value === 'beach' ? '🏖️ ビーチ'
                         : option.value === 'sky' ? '☁️ スカイ'
+                        : option.value === 'highspeed' ? '⚡ ハイスピード'
                         : option.value === 'rai_alvaro' ? '⚡ ライ・アルバロ'
                         : option.textContent;
                 });
             }
 
+            refreshEditorStageTypePicker();
             resizeCanvas('editor-canvas');
             drawEditor();
             // 水中・暗闇エフェクトのためにアニメーションループを開始
@@ -10616,7 +10811,7 @@ function getPswcWinnerCount(username) {
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'IE', id:'icon-IE'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'}, {type:'WH', id:'icon-WH'},
                 {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'^N', id:'icon-uow'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
-                {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'SN', id:'icon-SN'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
+                {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'SN', id:'icon-SN'}, {type:'LF', id:'icon-LF'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
                 {type:'LM', id:'icon-LM'}, {type:'CA', id:'icon-CA'}, {type:'WC', id:'icon-WC'}, {type:'IC', id:'icon-IC'}, {type:'EC', id:'icon-EC'}, {type:'PB', id:'icon-PB'}, {type:'WB', id:'icon-WB'}, {type:'BL', id:'icon-BL'}, {type:'HS', id:'icon-HS'}, {type:'HM', id:'icon-HM'}, {type:'DM', id:'icon-DM'}, {type:'SM', id:'icon-SM'}, {type:'FL', id:'icon-FL'}, {type:'GB', id:'icon-GB'}
@@ -10832,13 +11027,14 @@ function getPswcWinnerCount(username) {
         if (window.PointerEvent) {
             editorCanvas.addEventListener('pointerdown', e => {
                 if (e.button === 2) return; // 右クリックはcontextmenuで処理
+                if (isEditorStageTypeMenuOpen()) { isDrawing = false; return; }
                 e.preventDefault();
                 isDrawing = true;
                 try { editorCanvas.setPointerCapture(e.pointerId); } catch (_) {}
                 handleEditorInput(e);
             });
             editorCanvas.addEventListener('pointermove', e => {
-                if (!isDrawing) return;
+                if (!isDrawing || isEditorStageTypeMenuOpen()) return;
                 e.preventDefault();
                 handleEditorInput(e);
             });
@@ -10853,6 +11049,7 @@ function getPswcWinnerCount(username) {
             editorCanvas.addEventListener('touchstart', event => {
                 const touch = getFirstTouch(event);
                 if (!touch) return;
+                if (isEditorStageTypeMenuOpen()) { isDrawing = false; return; }
                 event.preventDefault();
                 isDrawing = true;
                 handleEditorInput(touch);
@@ -10866,8 +11063,8 @@ function getPswcWinnerCount(username) {
             const stopLegacyEditorDrawing = () => { isDrawing = false; };
             editorCanvas.addEventListener('touchend', stopLegacyEditorDrawing, { passive: false });
             editorCanvas.addEventListener('touchcancel', stopLegacyEditorDrawing, { passive: false });
-            editorCanvas.addEventListener('mousedown', event => { if (event.button === 0) { isDrawing = true; handleEditorInput(event); } });
-            editorCanvas.addEventListener('mousemove', event => { if (isDrawing) handleEditorInput(event); });
+            editorCanvas.addEventListener('mousedown', event => { if (event.button === 0 && !isEditorStageTypeMenuOpen()) { isDrawing = true; handleEditorInput(event); } });
+            editorCanvas.addEventListener('mousemove', event => { if (isDrawing && !isEditorStageTypeMenuOpen()) handleEditorInput(event); });
             window.addEventListener('mouseup', stopLegacyEditorDrawing);
         }
         window.addEventListener('blur', () => { isDrawing = false; });
@@ -10893,6 +11090,7 @@ function getPswcWinnerCount(username) {
         }
 
         function eraseAt(e) {
+            if (isEditorStageTypeMenuOpen()) return;
             const tile = getEditorTileFromInput(e);
             if (!tile) return;
             const { x, y } = tile;
@@ -10908,6 +11106,7 @@ function getPswcWinnerCount(username) {
         }
 
         function handleEditorInput(e) {
+            if (isEditorStageTypeMenuOpen()) return;
             const tile = getEditorTileFromInput(e);
             if (!tile) return;
             const { x, y } = tile;
@@ -12002,6 +12201,12 @@ function getPswcWinnerCount(username) {
                 ctx.moveTo(x*cw + cw*0.85, y*ch + ch*0.15);
                 ctx.lineTo(x*cw + cw*0.15, y*ch + ch*0.85);
                 ctx.stroke();
+            } else if(type === 'LF') {
+                // 軽い床: 通常の橋と同じ形で、色だけグレーにする。
+                ctx.fillStyle = '#9e9e9e';
+                ctx.fillRect(x*cw, y*ch, cw, ch*0.2);
+                ctx.fillStyle = '#616161';
+                ctx.fillRect(x*cw, y*ch + ch*0.1, cw, ch*0.1);
             } else if(type === 'EC') {
                 // 噴火制御機 (Eruption Control Device): 溶岩の最大上昇高さをこの位置に制限する
                 ctx.fillStyle = "#455a64";
@@ -12288,6 +12493,7 @@ function getPswcWinnerCount(username) {
                 if (faceButton) faceButton.innerText = '🪞 裏面へ';
                 const stageTypeSelect = document.getElementById('stage-type-select');
                 if (stageTypeSelect) { stageTypeSelect.value = editorFrontStageType; stageTypeSelect.dataset.prevValue = editorFrontStageType; }
+                refreshEditorStageTypePicker();
                 resetClearCheck();
                 drawEditor();
                 closeStageCodeDialog();
@@ -12314,6 +12520,7 @@ function getPswcWinnerCount(username) {
                     stageTypeSelect.value = editorFrontStageType;
                     stageTypeSelect.dataset.prevValue = editorFrontStageType;
                 }
+                refreshEditorStageTypePicker();
                 resetClearCheck(); // 読み込み後はクリアチェックをリセット
                 drawEditor();
                 alert("保存データを読み込みました。\n※ 投稿するには再度クリアチェックが必要です。");
@@ -12619,7 +12826,7 @@ function getPswcWinnerCount(username) {
                 const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
                 const stageTypeNames = {
                     normal: 'クラシック', freestyle: 'フリースタイル', water: 'ウォーター', dark: 'ダーク', mist: 'ミスト', autorun: 'オートラン', big: 'ビッグ', timeattack: 'タイムアタック',
-                    hard: 'ハード', untouchable: 'アンタッチャブル', solitude: 'ソリチュード', deepsea: 'ディープシー', troll: 'トロール', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', sky: 'スカイ', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
+                    hard: 'ハード', untouchable: 'アンタッチャブル', solitude: 'ソリチュード', deepsea: 'ディープシー', troll: 'トロール', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', sky: 'スカイ', highspeed: 'ハイスピード', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
                 };
                 const stageTypeSource = getStageTypeSource(s);
                 const frontType = getStageTypeForFace(stageTypeSource, 'front');
@@ -12823,7 +13030,7 @@ function getPswcWinnerCount(username) {
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'deepsea', 'troll', 'mist', 'submarine_volcano', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'solitude', 'volcano', 'moon', 'beach', 'sky', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'deepsea', 'troll', 'mist', 'submarine_volcano', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'solitude', 'volcano', 'moon', 'beach', 'sky', 'highspeed', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -12889,6 +13096,7 @@ function getPswcWinnerCount(username) {
         function isTimeAttackStageType(type) { return type === 'timeattack'; }
         function isAutoRunStageType(type) { return type === 'autorun'; }
         function isSkyStageType(type) { return type === 'sky'; }
+        function isHighSpeedStageType(type) { return type === 'highspeed'; }
         function isFreestyleStageType(type) { return type === 'freestyle'; }
         function isUntouchableStageType(type) { return type === 'untouchable'; }
         function isSolitudeStageType(type) { return type === 'solitude'; }
@@ -12928,7 +13136,7 @@ function getPswcWinnerCount(username) {
             'B','CB','HBK','S','G','WG','KG','K','M','IE','E','A','T','TD','RT','BT','TL','TR','X','W','TW','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','^N','C','q','k','r','b','!','Y','SN','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','WH','sp','mg','BB','BBN','LM','WC','WCN','IC',
-            'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB'
+            'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB','LF'
         ]);
 
         function checkStageCompatibility(stageObj) {
@@ -13206,8 +13414,9 @@ function getPswcWinnerCount(username) {
                         // スタート地点は開始時の位置情報だけ残し、プレイ中は描画しない。
                         activeStage[y][x] = null;
                     }
-                    if(activeStage[y][x] === 'WCN') {
-                        woodCrates.push({ x: x, y: y, vx: 0, vy: 0 });
+                    if(activeStage[y][x] === 'WCN' || activeStage[y][x] === 'LF') {
+                        const physicalType = activeStage[y][x] === 'LF' ? 'LF' : 'WC';
+                        woodCrates.push({ x: x, y: y, vx: 0, vy: 0, type: physicalType, activated: false, triggerFrames: null });
                         activeStage[y][x] = null;
                     }
                     if(activeStage[y][x] === 'M') {
@@ -13926,6 +14135,8 @@ function getPswcWinnerCount(username) {
             for (let i = 0; i < woodCrates.length; i++) {
                 const other = woodCrates[i];
                 if (other === ignoredCrate) continue;
+                // 軽い床は橋と同じ上面だけの判定なので、横方向の箱同士の衝突には含めない。
+                if (other.type === 'LF') continue;
                 if (x + w > other.x + 0.05 && x < other.x + 0.95 && y + h > other.y + 0.05 && y < other.y + 0.95) return other;
             }
             return null;
@@ -13933,6 +14144,13 @@ function getPswcWinnerCount(username) {
 
         function isWoodCrateBridgeBelow(crate, nextY) {
             if (nextY + 1 <= crate.y + 1) return false;
+            // 動く軽い床も通常の橋と同じく、上から落ちてきた物だけを支える。
+            for (let i = 0; i < woodCrates.length; i++) {
+                const floor = woodCrates[i];
+                if (floor === crate || floor.type !== 'LF') continue;
+                const overlapsX = crate.x + 0.95 > floor.x + 0.05 && crate.x + 0.05 < floor.x + 0.95;
+                if (overlapsX && crate.y + 1 <= floor.y + 0.05 && nextY + 1 >= floor.y) return true;
+            }
             const bridgeY = Math.floor(nextY + 1);
             if (crate.y + 1 > bridgeY + 0.05 || !activeStage[bridgeY]) return false;
             const x0 = Math.floor(crate.x + 0.05), x1 = Math.floor(crate.x + 0.95);
@@ -13966,6 +14184,7 @@ function getPswcWinnerCount(username) {
             const inset = 0.025;
             for (let i = 0; i < woodCrates.length; i++) {
                 const crate = woodCrates[i];
+                if (crate.type === 'LF') continue;
                 const playerLeft = player.x + inset, playerRight = player.x + player.w - inset;
                 const playerTop = player.y + inset, playerBottom = player.y + player.h - inset;
                 const crateLeft = crate.x + inset, crateRight = crate.x + 1 - inset;
@@ -14043,6 +14262,7 @@ function getPswcWinnerCount(username) {
         function getWoodCrateHitFromBelow(nextY) {
             for (let i = 0; i < woodCrates.length; i++) {
                 const crate = woodCrates[i];
+                if (crate.type === 'LF') continue;
                 const overlapsX = player.x + player.w - 0.05 > crate.x + 0.05 && player.x + 0.05 < crate.x + 0.95;
                 const crateBottom = crate.y + 1;
                 if (overlapsX && player.y >= crateBottom - 0.05 && nextY < crateBottom - 0.01) return crate;
@@ -14065,6 +14285,15 @@ function getPswcWinnerCount(username) {
         }
 
         function moveWoodCrate(crate, dx, dy, ignoredBody = null, pushingCrates = null) {
+            // 起動後の軽い床は、地形・橋・木箱・キャラクターをすべて無視して真下へ落ちる。
+            // 横・上方向から与えられた移動量は無効にする。
+            if (crate.type === 'LF') {
+                if (dy > 0) {
+                    crate.y += dy;
+                    return true;
+                }
+                return false;
+            }
             const distance = Math.max(Math.abs(dx), Math.abs(dy));
             if (!distance) return false;
             const stepSize = getWoodCratePixelStep();
@@ -14108,19 +14337,39 @@ function getPswcWinnerCount(username) {
                 const y0 = Math.floor(crate.y + 0.05), y1 = Math.floor(crate.y + 0.95);
                 const touchingFire = (activeStage[y0] && (activeStage[y0][x0] === 'FL' || activeStage[y0][x1] === 'FL')) ||
                     (activeStage[y1] && (activeStage[y1][x0] === 'FL' || activeStage[y1][x1] === 'FL'));
-                if ((isVolcanoStageType(currentStageType) && isTouchingLava(crate.y, crate.y + 1)) || touchingFire) {
-                    spawnBlockDebris(Math.floor(crate.x), Math.floor(crate.y), 'WC');
+                if (crate.type !== 'LF' && ((isVolcanoStageType(currentStageType) && isTouchingLava(crate.y, crate.y + 1)) || touchingFire)) {
+                    spawnBlockDebris(Math.floor(crate.x), Math.floor(crate.y), crate.type === 'LF' ? 'LF' : 'WC');
                     woodCrates.splice(i, 1);
                     continue;
                 }
-                // 通常時は静止したまま、ブラックホールやボスなどが与えた横速度だけを反映する。
-                // これがないと vx に加えた吸引力が座標更新に使われず、木箱だけ吸引されない。
-                if (Math.abs(crate.vx) > 0.0001) {
+                // 通常の木箱だけ、ブラックホールやボスなどが与えた横速度を反映する。
+                // 軽い床は横方向へ動かないため、外部から加わった横速度も破棄する。
+                if (crate.type === 'LF') {
+                    crate.vx = 0;
+                } else if (Math.abs(crate.vx) > 0.0001) {
                     moveWoodCrate(crate, crate.vx, 0);
                     crate.vx *= 0.90;
                     if (Math.abs(crate.vx) < 0.0001) crate.vx = 0;
                 }
-                crate.vy = Math.min(crate.vy + crateGravity, 0.25);
+                if (crate.type === 'LF') {
+                    const playerBottom = player.y + player.h;
+                    const playerOverlapsFloor = player.x + player.w - 0.05 > crate.x && player.x + 0.05 < crate.x + 1;
+                    const playerIsOnFloor = playerOverlapsFloor && playerBottom >= crate.y - 0.10 && playerBottom <= crate.y + 0.12 && player.vy >= -0.02;
+                    // 一度踏んだ時点で起動を予約し、離れても6F後から落ち続ける。
+                    const justTriggered = playerIsOnFloor && !crate.activated && crate.triggerFrames == null;
+                    if (justTriggered) crate.triggerFrames = 6;
+                    if (!crate.activated && crate.triggerFrames != null && !justTriggered) {
+                        crate.triggerFrames--;
+                        if (crate.triggerFrames <= 0) {
+                            crate.triggerFrames = 0;
+                            crate.activated = true;
+                        }
+                    }
+                    // 吸引・反発・下からの押し上げによる上下速度は使わず、起動後は真下へだけ落とす。
+                    crate.vy = crate.activated ? Math.min(Math.max(0, crate.vy) + 0.0012, 0.045) : 0;
+                } else {
+                    crate.vy = Math.min(crate.vy + crateGravity, 0.25);
+                }
                 moveWoodCrate(crate, 0, crate.vy);
             }
         }
@@ -14419,6 +14668,7 @@ function getPswcWinnerCount(username) {
 
             let currentSpeed = 0.015; // デフォルトの加速
             if (isRaiAlvaroStageType(currentStageType)) currentSpeed *= 1.3;
+            if (isHighSpeedStageType(currentStageType)) currentSpeed *= 3;
             const isBeachWater = currentStageType === 'beach' && (player.y + player.h / 2 >= beachWaterSurfaceTiles);
             const isWater = (isWaterStageType(currentStageType) || isBeachWater);
             const isInSnow = isPlayerInSnow();
@@ -15595,8 +15845,8 @@ function getPswcWinnerCount(username) {
             for (let y = 0; y < GRID_H; y++) {
                 for (let x = 0; x < GRID_W; x++) {
                     const tile = activeStage[y][x];
-                    if (tile === 'WCN') {
-                        woodCrates.push({ x, y, vx: 0, vy: 0 });
+                    if (tile === 'WCN' || tile === 'LF') {
+                        woodCrates.push({ x, y, vx: 0, vy: 0, type: tile === 'LF' ? 'LF' : 'WC', activated: false, triggerFrames: null });
                         activeStage[y][x] = null;
                     } else if (tile === 'M' || tile === 'IE' || tile === 'j' || tile === 'e') {
                         const isIronEnemy = tile === 'IE';
@@ -16004,6 +16254,9 @@ function getPswcWinnerCount(username) {
             for (let i = 0; i < woodCrates.length; i++) {
                 const crate = woodCrates[i];
                 if (crate === ignoredCrate) continue;
+                // 軽い床は橋と同様に、矩形の側面・下面では衝突させない。
+                // 上面への着地だけは getWoodCrateLandingSurface で処理する。
+                if (crate.type === 'LF') continue;
                 if (x + w - inset > crate.x + inset && x + inset < crate.x + 1 - inset &&
                     y + h - inset > crate.y + inset && y + inset < crate.y + 1 - inset) return true;
             }
@@ -16468,7 +16721,7 @@ function getPswcWinnerCount(username) {
             // 木箱は物理座標で描画するため、静的なステージキャッシュには含めない。
             for (let i = 0; i < woodCrates.length; i++) {
                 const crate = woodCrates[i];
-                drawTile(cachedGameCtx, crate.x, crate.y, cw, ch, 'WC', time);
+                drawTile(cachedGameCtx, crate.x, crate.y, cw, ch, crate.type === 'LF' ? 'LF' : 'WC', time);
             }
 
             // 敵の描画
