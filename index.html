@@ -3597,7 +3597,7 @@ function getPswcWinnerCount(username) {
             'LM': { title: 'ランプブロック', text: '暗闇ステージで周囲を明るく照らすブロックです。それ以外のステージでは通常のブロックとして機能します。ミサイルで破壊できます。' },
             'WC': { title: '木箱ブロック', text: '従来の木箱です。横から押すと1マス単位で動きます。' },
             'WCN': { title: '物理木箱', text: '重力で落下し、横から押すと1px刻みで動く新しい木箱です。' },
-            'LF': { title: '軽い床', text: 'グレーの橋型の床です。橋と同じく下や横から通過でき、一度踏むと6F後から離れても、ほかのブロックを通り抜けて落ち続けます。' },
+            'LF': { title: '軽い床', text: 'グレーの橋型の床です。プレイヤーや敵が上に乗れ、一度踏まれると6F後から、ほかのブロックを通り抜けて落ち続けます。' },
             'IC': { title: 'IRON CRATE', text: '鉄製の箱です。従来の木箱（WC）と同じく、横から押すと1マス単位で動きます。Creator Road 200,000CPで解放できます。' },
             'EC': { title: '噴火制御機', text: '火山・海辺ステージに1つだけ設置できる装置です。火山では溶岩の最大上昇高さを、海辺では水面の高さを、この装置がある高さに設定します。' },
             'PB': { title: 'パープル', text: '通常の敵の2倍の大きさを持つボス敵です。ステージに1体だけ配置できます。倒すとステージ上の粘液ブロックがすべて消えます。' },
@@ -14284,6 +14284,20 @@ function getPswcWinnerCount(username) {
             return null;
         }
 
+        // 軽い床は橋と同じく、敵も上からだけ着地できる。
+        function getEnemyLightFloorLandingSurface(enemy, nextY, size) {
+            const previousBottom = enemy.y + size;
+            const nextBottom = nextY + size + 0.05;
+            if (nextBottom < previousBottom) return null;
+            for (let i = 0; i < woodCrates.length; i++) {
+                const floor = woodCrates[i];
+                if (floor.type !== 'LF') continue;
+                const overlapsX = enemy.x + size - 0.05 > floor.x + 0.05 && enemy.x + 0.05 < floor.x + 0.95;
+                if (overlapsX && previousBottom <= floor.y + 0.08 && nextBottom >= floor.y) return floor.y - size;
+            }
+            return null;
+        }
+
         function moveWoodCrate(crate, dx, dy, ignoredBody = null, pushingCrates = null) {
             // 起動後の軽い床は、地形・橋・木箱・キャラクターをすべて無視して真下へ落ちる。
             // 横・上方向から与えられた移動量は無効にする。
@@ -14355,8 +14369,20 @@ function getPswcWinnerCount(username) {
                     const playerBottom = player.y + player.h;
                     const playerOverlapsFloor = player.x + player.w - 0.05 > crate.x && player.x + 0.05 < crate.x + 1;
                     const playerIsOnFloor = playerOverlapsFloor && playerBottom >= crate.y - 0.10 && playerBottom <= crate.y + 0.12 && player.vy >= -0.02;
+                    let enemyIsOnFloor = false;
+                    for (let enemyIndex = 0; enemyIndex < enemies.length; enemyIndex++) {
+                        const enemy = enemies[enemyIndex];
+                        if (!enemy || enemy.dead) continue;
+                        const enemySize = enemy.size || 0.9;
+                        const enemyBottom = enemy.y + enemySize;
+                        const overlapsFloor = enemy.x + enemySize - 0.05 > crate.x && enemy.x + 0.05 < crate.x + 1;
+                        if (overlapsFloor && enemyBottom >= crate.y - 0.10 && enemyBottom <= crate.y + 0.12 && enemy.vy >= -0.02) {
+                            enemyIsOnFloor = true;
+                            break;
+                        }
+                    }
                     // 一度踏んだ時点で起動を予約し、離れても6F後から落ち続ける。
-                    const justTriggered = playerIsOnFloor && !crate.activated && crate.triggerFrames == null;
+                    const justTriggered = (playerIsOnFloor || enemyIsOnFloor) && !crate.activated && crate.triggerFrames == null;
                     if (justTriggered) crate.triggerFrames = 6;
                     if (!crate.activated && crate.triggerFrames != null && !justTriggered) {
                         crate.triggerFrames--;
@@ -15341,6 +15367,14 @@ function getPswcWinnerCount(username) {
                     nextY = enemyHalfBlockLandingY - enSize;
                 }
                 let isBridge = false;
+                const enemyLightFloorLandingY = en.vy >= 0
+                    ? getEnemyLightFloorLandingSurface(en, nextY, enSize)
+                    : null;
+                if (enemyLightFloorLandingY !== null) {
+                    collidedY = true;
+                    nextY = enemyLightFloorLandingY;
+                    isBridge = true;
+                }
 
                 if (!collidedY && en.vy >= 0) {
                     let footY = en.y + enSize;
