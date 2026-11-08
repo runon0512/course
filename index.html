@@ -2190,6 +2190,30 @@
         #home-sync-status > div:last-child { border-color:#bf9448 !important; background:rgba(32,20,24,.88) !important; box-shadow:0 0 .7cqw rgba(218,167,72,.35) !important; }
         #home-sync-gauge { background:linear-gradient(90deg,#925d2d,#f4cd6c) !important; }
 
+        /* 11/17 0.5周年限定 ── ホームをキャンディのようなスイートテーマへ切り替える。 */
+        #half-anniversary-banner { display:none; position:absolute; top:28.2cqh; left:25cqw; width:50cqw; z-index:14; padding:.65cqh 1cqw; box-sizing:border-box; text-align:center; color:#fff; font:900 1.25cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.1em; border:.12cqw solid rgba(255,255,255,.9); border-radius:2cqw; background:linear-gradient(90deg,rgba(255,94,169,.9),rgba(255,163,205,.92),rgba(169,114,255,.9)); box-shadow:0 0 1.4cqw rgba(255,111,190,.75),inset 0 0 .6cqw rgba(255,255,255,.35); text-shadow:0 .1cqw .25cqw #9b286a; }
+        .container.bg-city.half-anniversary-home { background:radial-gradient(circle at 18% 18%,rgba(255,255,255,.95) 0 1.3%,transparent 1.5%),radial-gradient(circle at 82% 24%,rgba(255,255,255,.8) 0 1%,transparent 1.2%),linear-gradient(150deg,#ff91c8 0%,#ffc6df 36%,#c9a7ff 70%,#8fdcff 100%); }
+        .container.bg-city.half-anniversary-home::before { opacity:.72; background:repeating-linear-gradient(135deg,rgba(255,255,255,.12) 0 1.2cqw,transparent 1.2cqw 2.4cqw),radial-gradient(circle at 12% 42%,#fff 0 .42cqw,#ff76b7 .45cqw .72cqw,transparent .76cqw),radial-gradient(circle at 88% 60%,#fff 0 .42cqw,#ad76ff .45cqw .72cqw,transparent .76cqw); background-size:auto,12cqw 12cqw,14cqw 14cqw; }
+        .container.bg-city.half-anniversary-home::after { height:22%; opacity:.92; clip-path:none; background:radial-gradient(ellipse at 12% 100%,#ff83bd 0 38%,transparent 39%),radial-gradient(ellipse at 36% 108%,#ffd0e4 0 42%,transparent 43%),radial-gradient(ellipse at 64% 108%,#c594ff 0 42%,transparent 43%),radial-gradient(ellipse at 90% 100%,#72d8ff 0 38%,transparent 39%); }
+        .half-anniversary-home #half-anniversary-banner { display:block; }
+        .half-anniversary-home h1 .cursive-font { color:#fff5fb; text-shadow:0 0 .7cqw #ff4fa6,0 .22cqw 0 #8f3c78; }
+        .half-anniversary-home #subtitle { color:#fff !important; text-shadow:0 0 .65cqw #ff4fa6 !important; }
+        .half-anniversary-home #home-fantasy-motto { display:none; }
+        .half-anniversary-home #main-menu { border-color:#ffb6d9; background:linear-gradient(120deg,rgba(118,40,91,.91),rgba(255,111,170,.84),rgba(111,68,157,.92)); box-shadow:inset 0 0 1cqw rgba(255,255,255,.25),0 0 1.8cqw rgba(255,84,165,.5); }
+        .half-anniversary-home #main-menu .pixel-btn { color:#fff7fc; border-bottom-color:rgba(255,255,255,.28); text-shadow:0 .1cqw .25cqw #7e285d; }
+        .half-anniversary-home #main-menu .pixel-btn::before { color:#ffd3e8; }
+        .half-anniversary-home #home-level-gauge { background:linear-gradient(135deg,rgba(104,31,78,.94),rgba(204,74,145,.9)); border-color:#ffb8dd; box-shadow:0 0 1.2cqw rgba(255,94,169,.65),inset 0 0 .7cqw rgba(255,255,255,.18); }
+        .half-anniversary-home #home-level-gauge-title,
+        .half-anniversary-home #home-level-gauge-level,
+        .half-anniversary-home #user-level { color:#ff9fd0 !important; text-shadow:0 0 .55cqw #ff4fa6 !important; }
+        #half-anniversary-exp-label { display:none; margin-left:.45cqw; padding:.12cqh .38cqw; border:.07cqw solid #ffd7ea; border-radius:1cqw; color:#fff; background:#ff4fa6; font-size:.68em; letter-spacing:.04em; vertical-align:.12em; }
+        .half-anniversary-home #half-anniversary-exp-label { display:inline-block; }
+        .half-anniversary-home #home-level-gauge-track { background:#541d43; border-color:#ffd1e7; }
+        .half-anniversary-home #home-level-gauge-fill { background:linear-gradient(90deg,#ff3d9c,#ff91c8,#fff2fa); }
+        .bonus-card.half-anniversary-special { border-color:#ff70b7 !important; background:linear-gradient(145deg,#6f2456,#d44f98,#7446a7) !important; box-shadow:0 0 1.2cqw rgba(255,80,165,.72) !important; transform:translateY(-.45cqh); }
+        .bonus-card.half-anniversary-special .bonus-amount { color:#fff !important; text-shadow:0 0 .55cqw #ff4fa6; }
+        .bonus-card.half-anniversary-special::before { content:'0.5周年 SPECIAL'; display:block; color:#ffe1f1; font-size:.72cqw; font-weight:900; letter-spacing:.08em; margin-bottom:.4cqh; }
+
         /* ゴール後リザルト: 左のキャラクター演出と右の記録・操作を分離する。 */
         #reward-overlay { background:rgba(3,9,23,.82); backdrop-filter:blur(5px); }
         .reward-modern-card { width:min(82cqw,980px); min-height:54cqh; display:grid; grid-template-columns:42% 58%; overflow:hidden; border:.16cqw solid #65cfff; background:linear-gradient(135deg,rgba(8,21,53,.98),rgba(10,13,33,.98)); box-shadow:0 0 0 .11cqw rgba(255,255,255,.14),0 1.2cqw 4cqw rgba(0,0,0,.55),0 0 3cqw rgba(31,147,255,.28); }
@@ -2290,7 +2314,8 @@
             <button id="image-lightbox-close" onclick="closeImageLightbox()">✕</button>
         </div>
         <div id="level-up-effect"><div class="level-up-text">Level Up!!<span id="level-up-detail" class="level-up-sub"></span></div></div>
-        <div id="home-level-gauge"><div id="home-level-gauge-title"><span>PLAYER LEVEL <span id="home-level-gauge-level">Lv.1</span></span><span id="home-level-gauge-exp">0 / 400 EXP</span></div><div id="home-level-gauge-track"><div id="home-level-gauge-fill"></div></div></div>
+        <div id="home-level-gauge"><div id="home-level-gauge-title"><span>PLAYER LEVEL <span id="home-level-gauge-level">Lv.1</span><span id="half-anniversary-exp-label">EXP ×2</span></span><span id="home-level-gauge-exp">0 / 400 EXP</span></div><div id="home-level-gauge-track"><div id="home-level-gauge-fill"></div></div></div>
+        <div id="half-anniversary-banner">♡ 0.5 ANNIVERSARY ♡　PLAYER EXP ×2　／　LOGIN BONUS 50,000G</div>
 
         <!-- ユーザー情報 -->
         <div id="user-info">
@@ -2887,8 +2912,8 @@
 
         <!-- デイリーログインボーナス画面 -->
         <div id="login-bonus-overlay" class="screen">
-            <h2 style="font-size: 3.5cqw; color: #ffd700; margin-bottom: 1cqh; text-shadow: 0 0 10px rgba(255,215,0,0.5);">DAILY LOGIN BONUS</h2>
-            <p style="font-size: 1.3cqw; color: #aaa; margin: 0 0 3cqh 0;">毎日ログインしてゴールドを獲得しよう！</p>
+            <h2 id="login-bonus-title" style="font-size: 3.5cqw; color: #ffd700; margin-bottom: 1cqh; text-shadow: 0 0 10px rgba(255,215,0,0.5);">DAILY LOGIN BONUS</h2>
+            <p id="login-bonus-description" style="font-size: 1.3cqw; color: #aaa; margin: 0 0 3cqh 0;">毎日ログインしてゴールドを獲得しよう！</p>
             
             <div class="calendar-container" id="login-bonus-calendar">
                 <!-- 動的に生成 -->
@@ -3238,10 +3263,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbyEklzPOL39grfkWxtC_6LKE_8aD2C_Ecj_t9MbOSFwOvlcJhG1LpP2beY3BKd79Jyv/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwNplov9i23vZBd8N5C95sO2mVbDyUIwNackKOcVPOlPlGHtj5gtCeuanaMPbwzPS_m/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.9.8"
+            VERSION: "3.10.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3422,7 +3447,8 @@ function getPswcWinnerCount(username) {
             { id: 18, cp: 140000, unlock: 'troll_stage', text: 'ステージタイプ「トロール」' },
             { id: 19, cp: 160000, unlock: 'TW', text: 'ターンウィンド' },
             { id: 20, cp: 180000, unlock: 'WH', text: 'ホワイトホール' },
-            { id: 21, cp: 200000, unlock: 'IC', text: '鉄箱' }
+            { id: 21, cp: 200000, unlock: 'IC', text: '鉄箱' },
+            { id: 22, cp: 220000, unlock: 'big_stage', text: 'ステージタイプ「ビッグ」' }
         ];
         const LEVEL_ROAD_MILESTONES = [
             { id:'level-road:10', level:10, gold:5000 },
@@ -3531,7 +3557,7 @@ function getPswcWinnerCount(username) {
             { type: 'mist', title: 'ミスト', text: '薄緑の霧が未探索の道を覆います。一度明るくなった固定地形は見え続けます。' },
             { type: 'submarine_volcano', title: 'サブマリンボルケーノ', text: '水中の抵抗と、下から迫る溶岩が同時に適用されるステージです。' },
             { type: 'autorun', title: 'オートラン', text: '左右の移動はできず、プレイヤーが自動で走ります。壁にぶつかると方向を反転し、ジャンプだけを操作します。' },
-            { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。' },
+            { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。Creator Road 220,000CPで解放できます。' },
             { type: 'hard', title: 'ハード', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
             { type: 'untouchable', title: 'アンタッチャブル', text: '敵には上からでも触れられません。接触すると即座にミスになります。' },
             { type: 'solitude', title: 'ソリチュード', text: 'この面を通常プレイしている間は、ほかのプレイヤーのゴーストが表示されません。ランキングからの観戦はできます。' },
@@ -3549,7 +3575,10 @@ function getPswcWinnerCount(username) {
         let GRID_W = BASE_GRID_W, GRID_H = BASE_GRID_H;
         let bigStageActive = false;
         let bigStagePair = false;
-        const BIG_SINGLE_TILES = new Set(['S', 'M', 'j', 'e', 'WCN', 'PB', 'WB', 'BL']);
+        const BIG_SINGLE_TILES = new Set([
+            'S', 'M', 'IE', 'j', 'e', 'WCN',
+            'PB', 'WB', 'BL', 'HS', 'HM', 'DM'
+        ]);
         // ビッグの2x2展開後に、元の1マスを一意に示す左上座標を返す。
         // チェックポイントや扉など、4マスを1つのギミックとして扱う処理で共有する。
         function getBigTileOrigin(x, y) {
@@ -6059,6 +6088,7 @@ function getPswcWinnerCount(username) {
         function showLoggedInHome(username) {
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('main-menu').classList.add('active');
+            applyHalfAnniversaryHomeTheme();
             document.getElementById('subtitle').style.display = 'block';
             document.getElementById('user-info').style.display = 'block';
             document.getElementById('home-level-gauge').style.display = 'block';
@@ -6136,6 +6166,7 @@ function getPswcWinnerCount(username) {
         }
 
         // --- ログインボーナス関連 ---
+        const HALF_ANNIVERSARY_DATE = '2026-11-17';
         function getJstDateString(date = new Date()) {
             const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
             const jstDate = new Date(utc + (3600000 * 9));
@@ -6143,6 +6174,19 @@ function getPswcWinnerCount(username) {
             const mm = String(jstDate.getMonth() + 1).padStart(2, '0');
             const dd = String(jstDate.getDate()).padStart(2, '0');
             return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function isHalfAnniversaryDay(dateString = getJstDateString()) {
+            return dateString === HALF_ANNIVERSARY_DATE;
+        }
+
+        function applyHalfAnniversaryHomeTheme() {
+            const container = document.querySelector('.container');
+            if (!container) return;
+            const active = isHalfAnniversaryDay();
+            container.classList.toggle('half-anniversary-home', active);
+            const bonusButton = document.getElementById('login-bonus-btn');
+            if (bonusButton) bonusButton.innerText = active ? '♡ 0.5周年ボーナス 50,000G' : '🎁 ボーナス';
         }
 
         function openLoginBonus(autoOpen = false) {
@@ -6161,6 +6205,19 @@ function getPswcWinnerCount(username) {
             const dayLabels = ["月", "火", "水", "木", "金", "土", "日"];
             const defaultAmounts = [1000, 1000, 1000, 1000, 2000, 3000, 3000];
             const todayStr = getJstDateString(jstToday);
+            const anniversaryToday = isHalfAnniversaryDay(todayStr);
+            const bonusTitle = document.getElementById('login-bonus-title');
+            const bonusDescription = document.getElementById('login-bonus-description');
+            if (bonusTitle) {
+                bonusTitle.innerText = anniversaryToday ? '♡ 0.5 ANNIVERSARY BONUS ♡' : 'DAILY LOGIN BONUS';
+                bonusTitle.style.color = anniversaryToday ? '#ff8fc8' : '#ffd700';
+            }
+            if (bonusDescription) {
+                bonusDescription.innerText = anniversaryToday
+                    ? '11/17限定スペシャル！ 50,000Gを受け取ろう！'
+                    : '毎日ログインしてゴールドを獲得しよう！';
+                bonusDescription.style.color = anniversaryToday ? '#ffd9ec' : '#aaa';
+            }
             
             const calendar = document.getElementById('login-bonus-calendar');
             calendar.innerHTML = '';
@@ -6172,13 +6229,15 @@ function getPswcWinnerCount(username) {
                 const dateStr = getJstDateString(cardDate);
                 const isClaimed = loginBonusHistory.includes(dateStr);
                 const isToday = (dateStr === todayStr);
+                const isAnniversaryCard = isHalfAnniversaryDay(dateStr);
+                const rewardAmount = isAnniversaryCard ? 50000 : defaultAmounts[i];
                 
                 let cardClass = "future";
                 let statusText = "未到達";
                 
                 if (isToday) {
                     cardClass = isClaimed ? "today claimed" : "today";
-                    statusText = isClaimed ? "獲得済み" : "今日獲得！";
+                    statusText = isClaimed ? "獲得済み" : (isAnniversaryCard ? "記念ボーナス！" : "今日獲得！");
                     if (isClaimed) todayClaimed = true;
                 } else if (cardDate < jstToday) {
                     cardClass = isClaimed ? "past-claimed" : "past-missed";
@@ -6189,11 +6248,11 @@ function getPswcWinnerCount(username) {
                 }
                 
                 const card = document.createElement('div');
-                card.className = `bonus-card ${cardClass}`;
+                card.className = `bonus-card ${cardClass}${isAnniversaryCard ? ' half-anniversary-special' : ''}`;
                 card.innerHTML = `
                     <div class="day-name">${dayLabels[i]}曜日</div>
                     <div style="font-size: 0.8cqw; color: #888;">${cardDate.getMonth() + 1}/${cardDate.getDate()}</div>
-                    <div class="bonus-amount">${defaultAmounts[i]}G</div>
+                    <div class="bonus-amount">${rewardAmount.toLocaleString()}G</div>
                     <div class="status-label">${statusText}</div>
                 `;
                 calendar.appendChild(card);
@@ -6226,7 +6285,12 @@ function getPswcWinnerCount(username) {
                     updateGoldDisplay();
                     
                     // 獲得演出メッセージ
-                    showQuickMsg(`ログインボーナス ${res.rewardGold}G を獲得しました！`, "var(--primary-color)");
+                    showQuickMsg(
+                        res.specialBonus
+                            ? '♡ 0.5周年記念ログインボーナス 50,000Gを獲得しました！'
+                            : `ログインボーナス ${Number(res.rewardGold).toLocaleString()}G を獲得しました！`,
+                        res.specialBonus ? '#ff78bb' : 'var(--primary-color)'
+                    );
                     
                     // カレンダーを再描画
                     openLoginBonus();
@@ -6732,8 +6796,9 @@ function getPswcWinnerCount(username) {
                 if (m.attachedStageId) {
                     const stageBtn = document.createElement('button');
                     stageBtn.className = 'chat-stage-link';
-                    stageBtn.innerText = `🎮 プレイ: ${m.attachedStageName || '添付ステージ'}`;
-                    stageBtn.onclick = () => playAttachedStage(m.attachedStageId);
+                    const numberLabel = m.attachedStageNumber ? `No.${m.attachedStageNumber} ` : '';
+                    stageBtn.innerText = `🎮 プレイ: ${numberLabel}${m.attachedStageName || '添付ステージ'}`;
+                    stageBtn.onclick = () => playAttachedStage(m.attachedStageId, m.attachedStageNumber);
                     content.appendChild(stageBtn);
                 }
                 if (m.image) {
@@ -6780,7 +6845,7 @@ function getPswcWinnerCount(username) {
             if (!message && !dmAttachedStageId && !dmAttachedImageData) return;
             input.disabled = true; sendBtn.disabled = true; sendBtn.innerText = '送信中...';
             try {
-                const res = await callApi('postDirectMessage', { username: CONFIG.USERNAME, to: currentDmPartner, message, skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null, attachedStageId: dmAttachedStageId, attachedStageName: dmAttachedStageName, image: dmAttachedImageData });
+                const res = await callApi('postDirectMessage', { username: CONFIG.USERNAME, to: currentDmPartner, message, skin: equippedSkin, color: equippedColor, customSprite: customSpriteStore[equippedSkin] || null, attachedStageId: dmAttachedStageId, attachedStageName: dmAttachedStageName, attachedStageNumber: dmAttachedStageNumber, image: dmAttachedImageData });
                 if (!res || !res.success) { alert((res && res.message) || 'DMの送信に失敗しました。'); return; }
                 input.value = '';
                 clearDmAttachedStage();
@@ -6793,6 +6858,7 @@ function getPswcWinnerCount(username) {
 
         let dmAttachedStageId = null;
         let dmAttachedStageName = null;
+        let dmAttachedStageNumber = null;
         let dmAttachedImageData = null;
         const attachmentStageSearchState = {
             chat: { timer: null, version: 0 },
@@ -6834,18 +6900,21 @@ function getPswcWinnerCount(username) {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.style.cssText = 'display:block;width:100%;background:#222;border:.1cqw solid #fff;padding:.5cqw;cursor:pointer;font-size:1.2cqw;color:var(--primary-color);text-align:left;';
-                button.innerText = `${stage.name} (by ${stage.creator})`;
+                button.innerText = `No.${stage.stageNumber || (Number(stage.id) + 1)} ${stage.name} (by ${stage.creator})`;
                 button.onclick = () => {
+                    const selectedStageNumber = Number(stage.stageNumber) || Number(stage.id) + 1;
                     if (isDm) {
                         dmAttachedStageId = stage.id;
                         dmAttachedStageName = stage.name;
-                        document.getElementById('dm-attached-name').innerText = stage.name;
+                        dmAttachedStageNumber = selectedStageNumber;
+                        document.getElementById('dm-attached-name').innerText = `No.${selectedStageNumber} ${stage.name}`;
                         document.getElementById('dm-selected-stage-info').style.display = 'flex';
                         document.getElementById('dm-stage-search').style.display = 'none';
                     } else {
                         attachedStageId = stage.id;
                         attachedStageName = stage.name;
-                        document.getElementById('attached-name').innerText = stage.name;
+                        attachedStageNumber = selectedStageNumber;
+                        document.getElementById('attached-name').innerText = `No.${selectedStageNumber} ${stage.name}`;
                         document.getElementById('selected-stage-info').style.display = 'flex';
                         document.getElementById('chat-stage-search').style.display = 'none';
                     }
@@ -6871,6 +6940,7 @@ function getPswcWinnerCount(username) {
         function clearDmAttachedStage() {
             dmAttachedStageId = null;
             dmAttachedStageName = null;
+            dmAttachedStageNumber = null;
             document.getElementById('dm-selected-stage-info').style.display = 'none';
         }
 
@@ -6991,7 +7061,8 @@ function getPswcWinnerCount(username) {
                 
                 item.appendChild(canvas);
                 const content = document.createElement('div');
-                const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}')">🎮 プレイ: ${m.attachedStageName}</button>` : '';
+                const stageNumber = Number(m.attachedStageNumber) || null;
+                const stageBtn = m.attachedStageId ? `<br><button class="chat-stage-link" onclick="playAttachedStage('${m.attachedStageId}', ${stageNumber || 'null'})">🎮 プレイ: ${stageNumber ? `No.${stageNumber} ` : ''}${m.attachedStageName}</button>` : '';
                 const replyInfo = '';
                 content.innerHTML = `
                     <div class="chat-user" style="display:flex; align-items:center; gap:0.5cqw;">${getPlayerLevelPrefix(m.username)}<span class="${getUserNameClasses(m.username)}" style="color:var(--primary-color); font-weight:bold; cursor:pointer; text-decoration:underline;" onclick="openProfile('${m.username}')">${renderGuildAbbreviation(m.username)}${m.username}</span>${renderPlayerControlLogo(m.username)}${renderBadgeChip(m.username, 'small')}</div>
@@ -7078,6 +7149,7 @@ function getPswcWinnerCount(username) {
 
         let attachedStageId = null;
         let attachedStageName = null;
+        let attachedStageNumber = null;
         let replyToUsername = null;
         let replyToMessage = null;
 
@@ -7276,6 +7348,7 @@ function getPswcWinnerCount(username) {
                     customSprite: SKINS[equippedSkin].isCustom ? customSpriteStore[equippedSkin] : null,
                     attachedStageId: attachedStageId,
                     attachedStageName: attachedStageName,
+                    attachedStageNumber: attachedStageNumber,
                     image: attachedImageData,
                     audio: attachedAudioData,
                     replyToUsername: replyToUsername,
@@ -7317,6 +7390,7 @@ function getPswcWinnerCount(username) {
         function clearAttachedStage() {
             attachedStageId = null;
             attachedStageName = null;
+            attachedStageNumber = null;
             document.getElementById('selected-stage-info').style.display = 'none';
         }
 
@@ -7328,6 +7402,13 @@ function getPswcWinnerCount(username) {
 
         let attachedStagePlayInFlight = false;
         let attachedStageInputLocked = false;
+        const attachedStageCache = new Map();
+        function getAttachedStageCacheKeys(stageId, stageNumber) {
+            const keys = [];
+            if (stageId !== null && stageId !== undefined && String(stageId) !== '') keys.push(`id:${stageId}`);
+            if (Number(stageNumber) >= 2) keys.push(`number:${Number(stageNumber)}`);
+            return keys;
+        }
         function blockInputWhileAttachedStageLoads(event) {
             if (!attachedStageInputLocked) return;
             event.preventDefault();
@@ -7349,7 +7430,7 @@ function getPswcWinnerCount(username) {
             overlay.setAttribute('aria-busy', active ? 'true' : 'false');
         }
 
-        async function playAttachedStage(stageId) {
+        async function playAttachedStage(stageId, stageNumber = null) {
             if (attachedStagePlayInFlight) return;
             attachedStagePlayInFlight = true;
             setAttachedStageLoading(true);
@@ -7358,17 +7439,26 @@ function getPswcWinnerCount(username) {
             let gameStarted = false;
             try {
                 const localSources = [stageListPageStages, cachedStages];
-                let stage = null;
+                const cacheKeys = getAttachedStageCacheKeys(stageId, stageNumber);
+                let stage = cacheKeys.map(key => attachedStageCache.get(key)).find(Boolean) || null;
                 for (const source of localSources) {
+                    if (stage) break;
                     if (!Array.isArray(source)) continue;
-                    stage = source.find(item => item?.data && String(item.id || item.name) === String(stageId));
+                    stage = source.find(item => {
+                        if (!item?.data) return false;
+                        if (String(item.id || item.name) === String(stageId)) return true;
+                        const itemStageNumber = Number(item.stageNumber) || (Number.isFinite(Number(item.id)) ? Number(item.id) + 1 : null);
+                        return Number(stageNumber) >= 2 && itemStageNumber === Number(stageNumber);
+                    });
                     if (stage) break;
                 }
                 if (!stage) {
-                    const res = await callApi('getPublishedStage', { stageId }, 30000);
+                    const res = await callApi('getPublishedStage', { stageId, stageNumber }, 30000);
                     if (!res?.success || !res.stage?.data) throw new Error(apiMessageText(res?.message, 'ステージが見つかりませんでした。'));
                     stage = res.stage;
                 }
+                const resolvedNumber = Number(stage.stageNumber) || (Number.isFinite(Number(stage.id)) ? Number(stage.id) + 1 : stageNumber);
+                getAttachedStageCacheKeys(stage.id || stageId, resolvedNumber).forEach(key => attachedStageCache.set(key, stage));
                 closeAttachedStageSource();
                 startGame(stage, 'play');
                 gameStarted = true;
@@ -8953,7 +9043,7 @@ function getPswcWinnerCount(username) {
 
         function updateRoadProgress() {
             document.getElementById('road-current-cp').innerText = userCP;
-            const maxCP = 200000;
+            const maxCP = CREATORS_ROAD_MILESTONES.reduce((max, milestone) => Math.max(max, milestone.cp), 0);
             const progress = Math.min(100, (userCP / maxCP) * 100);
             document.getElementById('road-progress-bar').style.width = `${progress}%`;
         }
@@ -10428,13 +10518,12 @@ function getPswcWinnerCount(username) {
             setStageTypeOptionAvailability(raiAlvaroOpt, CONFIG.USERNAME === 'Runon' || hasRaiAlvaroStage, '⚡ ライ・アルバロ');
             setStageTypeOptionAvailability(document.getElementById('stage-type-option-mist'), CONFIG.USERNAME === 'Runon' || purchasedSkins.includes('mist_stage'), '🌫️ ミスト');
             setStageTypeOptionAvailability(document.getElementById('stage-type-option-submarine-volcano'), CONFIG.USERNAME === 'Runon' || purchasedSkins.includes('submarine_volcano_stage'), '🌊🌋 サブマリンボルケーノ');
-            // ビッグは既存ステージの再生互換だけを残し、制作画面の選択肢には表示しない。
             const bigOpt = document.getElementById('stage-type-option-big');
-            if (bigOpt) { bigOpt.hidden = true; bigOpt.disabled = true; bigOpt.style.display = 'none'; }
+            const hasBigStage = CONFIG.USERNAME === 'Runon' || claimedRoadRewards.includes(22);
+            setStageTypeOptionAvailability(bigOpt, hasBigStage, '⬛ ビッグ');
             // Runon はステージタイプも含め、制作に必要な全要素を常に利用できる。
             if (CONFIG.USERNAME === 'Runon') {
                 document.querySelectorAll('#stage-type-select option').forEach(option => {
-                    if (option.value === 'big') return;
                     option.disabled = false;
                     option.hidden = false;
                     option.style.display = '';
@@ -12663,14 +12752,20 @@ function getPswcWinnerCount(username) {
 
         function renderPreview(canvas, data, stageType = 'normal') {
             const ctx = canvas.getContext('2d');
-            const cw = canvas.width / GRID_W;
-            const ch = canvas.height / GRID_H;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (data && !Array.isArray(data) && Array.isArray(data.front)) data = data.front;
             if (!data || !Array.isArray(data)) return; // データの型チェックを強化
-            for(let y=0; y<GRID_H; y++){
+            // 一覧のデータはプレイ中の論理グリッドとは独立して描画する。
+            // ビッグを遊んだ直後はGRID_W/GRID_Hが40x20のままになることがあり、
+            // それを使うと通常ステージの画像が左上1/4へずれてしまう。
+            const previewH = Math.max(BASE_GRID_H, Math.min(BASE_GRID_H * 2, data.length || BASE_GRID_H));
+            const maxRowLength = data.reduce((max, row) => Array.isArray(row) ? Math.max(max, row.length) : max, 0);
+            const previewW = Math.max(BASE_GRID_W, Math.min(BASE_GRID_W * 2, maxRowLength || BASE_GRID_W));
+            const cw = canvas.width / previewW;
+            const ch = canvas.height / previewH;
+            for(let y=0; y<previewH; y++){
                 if (!data[y] || !Array.isArray(data[y])) continue; // 行が配列でない場合は飛ばす
-                for(let x=0; x<GRID_W; x++){
+                for(let x=0; x<previewW; x++){
                     if(data[y][x]) drawTile(ctx, x, y, cw, ch, data[y][x], 0, stageType);
                 }
             }
@@ -14192,12 +14287,16 @@ function getPswcWinnerCount(username) {
         function refreshBlackHolePositions() {
             blackHolePositions = [];
             whiteHolePositions = [];
-            for (let y = 0; y < GRID_H; y++) {
+            // ビッグでは同じホールが2x2へ複製されるため、左上だけを1個として扱う。
+            // 4個分の吸引・反発が重なったり、中心がずれたりするのを防ぐ。
+            const step = bigStageActive ? 2 : 1;
+            const centerOffset = bigStageActive ? 1 : .5;
+            for (let y = 0; y < GRID_H; y += step) {
                 const row = activeStage[y];
                 if (!row) continue;
-                for (let x = 0; x < GRID_W; x++) {
-                    if (row[x] === 'BH') blackHolePositions.push({ x: x + .5, y: y + .5 });
-                    if (row[x] === 'WH') whiteHolePositions.push({ x: x + .5, y: y + .5 });
+                for (let x = 0; x < GRID_W; x += step) {
+                    if (row[x] === 'BH') blackHolePositions.push({ x: x + centerOffset, y: y + centerOffset });
+                    if (row[x] === 'WH') whiteHolePositions.push({ x: x + centerOffset, y: y + centerOffset });
                 }
             }
         }
@@ -15827,9 +15926,9 @@ function getPswcWinnerCount(username) {
 
         function onStageTypeChange(sel) {
             const previousType = sel.dataset.prevValue || (editorFace === 'front' ? editorFrontStageType : editorBackStageType) || 'normal';
-            if (sel.value === 'big' && previousType !== 'big') {
+            if (sel.value === 'big' && previousType !== 'big' && CONFIG.USERNAME !== 'Runon' && !claimedRoadRewards.includes(22)) {
                 sel.value = previousType;
-                showQuickMsg('ビッグは新規作成できません。', '#ffb74d');
+                showQuickMsg('ビッグはCreator Road 220,000CPで解放できます。', '#ffb74d');
                 return;
             }
             const saveSelectedType = () => {
@@ -16849,7 +16948,10 @@ function getPswcWinnerCount(username) {
                 for (let i = 0; i < dynamicTiles.length; i++) {
                     const t = dynamicTiles[i];
                     const tileTime = t.type === 'TW' ? frameCount / 30 : time;
-                    drawTile(cachedGameCtx, t.x, t.y, cw, ch, t.type, tileTime);
+                    // 通常描画と同じビッグ座標補正を使う。ここだけ補正が無いと、
+                    // 暗闇で炎・ワープ・風などが半分の大きさで右下へずれる。
+                    drawTile(cachedGameCtx, t.big ? t.x / 2 : t.x, t.big ? t.y / 2 : t.y,
+                        t.big ? cw * 2 : cw, t.big ? ch * 2 : ch, t.type, tileTime);
                 }
                 cachedGameCtx.restore();
             } else if (isMistStageType(currentStageType)) {
