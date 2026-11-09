@@ -1123,16 +1123,16 @@
         .daily-shop-stock-head .stock-head-tools { display:flex; align-items:center; justify-content:space-between; gap:.8cqw; }
         #shop-overlay .shop-section-tab { color:#f6d59b; background:rgba(77,39,24,.88); }
         #shop-overlay .shop-section-tab.active { color:#281508; border-color:#ffe09b; background:linear-gradient(135deg,#ffd571,#e89b3e); box-shadow:0 0 .8cqw rgba(255,199,99,.48); }
-        .event-shop-interior { width:min(88cqw,1180px); height:70cqh; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.3cqh; padding:1.2cqw; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:radial-gradient(circle at 50% 38%,rgba(255,197,84,.16),transparent 30%),linear-gradient(135deg,rgba(43,22,18,.98),rgba(92,43,26,.92),rgba(43,22,18,.98)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
-        .event-shop-header { width:min(56cqw,760px); display:flex; flex-direction:column; align-items:center; gap:.8cqh; color:#ffe4a7; font:700 1.65cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
-        .event-shop-grid { width:min(39cqw,500px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1cqw; }
-        #shop-overlay .event-shop-grid .shop-item { position:relative; min-height:24cqh; box-sizing:border-box; overflow:hidden; padding:.75cqw; border:.16cqw solid #d69b44; background:linear-gradient(180deg,rgba(101,45,33,.98),rgba(43,18,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
+        .event-shop-interior { width:min(88cqw,1180px); height:70cqh; box-sizing:border-box; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:1.1cqh; padding:1.2cqh 1.2cqw; overflow:hidden; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:radial-gradient(circle at 50% 38%,rgba(255,197,84,.16),transparent 30%),linear-gradient(135deg,rgba(43,22,18,.98),rgba(92,43,26,.92),rgba(43,22,18,.98)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
+        .event-shop-header { width:100%; min-height:4.4cqh; box-sizing:border-box; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:1cqw; padding:0 .5cqw; color:#ffe4a7; font:700 1.55cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
+        .event-shop-grid { width:min(72cqw,900px); min-height:0; flex:1; align-self:center; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-auto-rows:minmax(28cqh,1fr); align-content:start; gap:1.2cqw; padding:.45cqh .35cqw .8cqh; box-sizing:border-box; overflow-y:auto; overflow-x:hidden; }
+        #shop-overlay .event-shop-grid .shop-item { position:relative; width:100%; min-width:0; min-height:28cqh; max-height:39cqh; box-sizing:border-box; overflow:hidden; padding:.7cqw; border:.16cqw solid #d69b44; background:linear-gradient(180deg,rgba(101,45,33,.98),rgba(43,18,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
         #shop-overlay .event-shop-grid .shop-item::before { content:'0.5 EVE'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,229,157,.68); font-size:.65cqw; letter-spacing:.12em; pointer-events:none; }
-        #shop-overlay .event-shop-grid .shop-item canvas { flex:0 0 auto; margin-top:.8cqh; width:7cqw; height:7cqw; image-rendering:pixelated; filter:drop-shadow(0 0 .55cqw rgba(255,121,72,.55)); }
-        #shop-overlay .event-shop-grid .daily-item-name { position:absolute; z-index:2; top:4.2cqh; left:.42cqw; right:.42cqw; margin:0; padding:.18cqh .28cqw; color:#fff7d5; font-size:1cqw; line-height:1.2; text-align:center; text-shadow:0 .1cqw .14cqw #21100b; background:rgba(37,18,15,.67); border-radius:.22cqw; pointer-events:none; }
-        #shop-overlay .event-shop-grid .daily-price-tag { width:100%; margin-top:.55cqh; border-color:#ffbd63; background:linear-gradient(135deg,#713116,#c65325); color:#fff0c1; }
-        .event-shop-empty { min-width:min(60cqw,680px); box-sizing:border-box; padding:4cqh 3cqw; border:.18cqw dashed #e3ae56; color:#ffe7ad; font:700 2cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.12em; text-align:center; background:rgba(24,12,13,.48); text-shadow:0 0 .8cqw rgba(255,190,82,.6); }
-        .event-shop-empty span { display:block; margin-top:1.3cqh; color:#e8c38b; font-size:1.05cqw; letter-spacing:.08em; }
+        #shop-overlay .event-shop-grid .shop-item.event-shelf-item canvas { flex:0 0 auto; order:2; margin:.45cqh 0; width:min(8.5cqw,112px); height:min(8.5cqw,112px); image-rendering:pixelated; filter:drop-shadow(0 0 .55cqw rgba(255,121,72,.55)); }
+        #shop-overlay .event-shop-grid .event-shelf-item .daily-item-name { position:static; z-index:2; order:1; width:100%; min-height:2.5cqh; box-sizing:border-box; display:flex; align-items:center; justify-content:center; margin:1.15cqh 0 0; padding:.28cqh .28cqw; overflow-wrap:anywhere; color:#fff7d5; font-size:1cqw !important; line-height:1.15; text-align:center; text-shadow:0 .1cqw .14cqw #21100b; background:rgba(37,18,15,.67); border-radius:.22cqw; pointer-events:none; }
+        #shop-overlay .event-shop-grid .event-shelf-item .daily-price-tag, #shop-overlay .event-shop-grid .event-shelf-item .daily-owned-tag { order:3; width:100%; min-height:4.2cqh; box-sizing:border-box; margin-top:auto; padding:.55cqh .35cqw; display:flex; align-items:center; justify-content:center; border-color:#ffbd63; background:linear-gradient(135deg,#713116,#c65325); color:#fff0c1; font-size:.9cqw; white-space:nowrap; }
+        .event-shop-empty { width:100%; min-height:6.5cqh; box-sizing:border-box; display:flex; align-items:center; justify-content:center; gap:1.2cqw; padding:.75cqh 1.5cqw; border:.18cqw dashed #e3ae56; color:#ffe7ad; font:700 1.45cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.12em; text-align:center; background:rgba(24,12,13,.48); text-shadow:0 0 .8cqw rgba(255,190,82,.6); }
+        .event-shop-empty span { display:inline; margin:0; color:#e8c38b; font-size:.9cqw; letter-spacing:.08em; }
         .trade-shop-interior { width:min(88cqw,1180px); height:70cqh; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.8cqh; padding:2.2cqw; border:.26cqw solid #73e7ff; outline:.12cqw solid rgba(210,250,255,.42); background:radial-gradient(circle at 50% 28%,rgba(73,218,255,.2),transparent 34%),linear-gradient(135deg,rgba(8,30,56,.98),rgba(16,60,92,.92),rgba(10,22,48,.98)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(72,216,255,.22); }
         .trade-rate-card { width:min(52cqw,700px); box-sizing:border-box; padding:2.1cqh 2cqw; text-align:center; border:.18cqw solid #8af2ff; background:linear-gradient(135deg,rgba(13,66,102,.88),rgba(17,28,74,.94)); box-shadow:inset 0 0 1.4cqw rgba(89,228,255,.14),0 0 1.1cqw rgba(69,213,255,.2); }
         .trade-rate-label { color:#bdf6ff; font-size:1.05cqw; letter-spacing:.16em; }
@@ -1155,7 +1155,7 @@
         #explanation-btn { overflow:visible !important; }
         #explanation-btn::after { content:'New!'; position:absolute; top:-.9cqh; right:-1.2cqw; padding:.12cqh .42cqw; border:.1cqw solid #fff6a3; border-radius:.45cqw; background:#f04b7d; color:#fff; font:700 .8cqw/1 sans-serif; letter-spacing:.04em; text-shadow:none; box-shadow:0 0 .5cqw rgba(255,71,132,.8); animation:triviaNewPulse 1.2s ease-in-out infinite; pointer-events:none; }
         @keyframes triviaNewPulse { 50% { transform:translateY(-.18cqh) scale(1.08); filter:brightness(1.2); } }
-        @media (max-aspect-ratio:1/1) { #shop-overlay.daily-shop-room { padding:2cqh 2cqw; } .daily-shop-interior, .event-shop-interior { width:94cqw; height:77cqh; } .daily-shop-interior { grid-template-columns:28cqw minmax(0,1fr); gap:1cqh; } .event-shop-header { width:80cqw; font-size:2.2cqw; } .event-shop-grid { width:76cqw; } #shop-overlay .event-shop-grid .shop-item canvas { width:18cqw; height:18cqw; } #shop-overlay .event-shop-grid .shop-item::before { font-size:1.4cqw; } #shop-overlay .event-shop-grid .daily-item-name { font-size:1.7cqw; top:7.3cqh; } .event-shop-empty { min-width:74cqw; font-size:3cqw; } .event-shop-empty span { font-size:1.7cqw; } .daily-shop-counter { min-height:62cqh; } #shopkeeper-canvas, #shopkeeper-placeholder { width:22cqw; font-size:1.7cqw; } .daily-shop-keeper-name { font-size:1.9cqw; } .daily-shop-speech { font-size:1.55cqw; } #shop-overlay .shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2cqw; } #shop-overlay .shop-item.daily-shelf-item canvas { width:10cqw; height:10cqw; } #shop-overlay .shop-item.daily-shelf-item::before { font-size:1.1cqw; } .daily-shop-stock-head b { font-size:2.4cqw; } #daily-shop-date { font-size:1.3cqw !important; } }
+        @media (max-aspect-ratio:1/1) { #shop-overlay.daily-shop-room { padding:2cqh 2cqw; } .daily-shop-interior, .event-shop-interior { width:94cqw; height:77cqh; } .daily-shop-interior { grid-template-columns:28cqw minmax(0,1fr); gap:1cqh; } .event-shop-header { min-height:7cqh; flex-direction:column; justify-content:center; gap:.55cqh; font-size:2.2cqw; } .event-shop-grid { width:88cqw; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:30cqh; } #shop-overlay .event-shop-grid .shop-item { min-height:30cqh; max-height:none; } #shop-overlay .event-shop-grid .shop-item.event-shelf-item canvas { width:14cqw; height:14cqw; } #shop-overlay .event-shop-grid .shop-item::before { font-size:1.4cqw; } #shop-overlay .event-shop-grid .event-shelf-item .daily-item-name { min-height:3.2cqh; font-size:1.7cqw !important; } #shop-overlay .event-shop-grid .event-shelf-item .daily-price-tag, #shop-overlay .event-shop-grid .event-shelf-item .daily-owned-tag { min-height:4.6cqh; font-size:1.55cqw; } .event-shop-empty { min-height:6cqh; font-size:2.25cqw; } .event-shop-empty span { font-size:1.5cqw; } .daily-shop-counter { min-height:62cqh; } #shopkeeper-canvas, #shopkeeper-placeholder { width:22cqw; font-size:1.7cqw; } .daily-shop-keeper-name { font-size:1.9cqw; } .daily-shop-speech { font-size:1.55cqw; } #shop-overlay .shop-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2cqw; } #shop-overlay .shop-item.daily-shelf-item canvas { width:10cqw; height:10cqw; } #shop-overlay .shop-item.daily-shelf-item::before { font-size:1.1cqw; } .daily-shop-stock-head b { font-size:2.4cqw; } #daily-shop-date { font-size:1.3cqw !important; } }
         /* カスタムエディタ用 */
         #custom-editor-overlay {
             display: none;
@@ -2541,7 +2541,7 @@
             <button id="menu-play" class="pixel-btn" data-i18n="home.play" onclick="openStageSelect()">プレイ</button>
             <button id="menu-create" class="pixel-btn" data-i18n="home.create" onclick="startEditor()">ステージ制作</button>
             <button id="menu-locker" class="pixel-btn" data-i18n="home.locker" onclick="openLocker()">ロッカー</button>
-            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice">0.5周年前夜祭 開催中！</span></button>
+            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice">0.5周年前夜祭 Day2</span></button>
             <button id="guild-btn" class="pixel-btn" data-i18n="home.guild" onclick="openGuild()">ギルド</button>
             </div>
 
@@ -2745,7 +2745,7 @@
                 <button onclick="clearChatReply()" style="background:none; border:none; color:#d9ebff; cursor:pointer; font-size:1.4cqw;">✕</button>
             </div>
             <div style="width: 90%; display: flex; gap: 1cqw;">
-                <input type="text" id="chat-input" maxlength="50" placeholder="メッセージを入力..." style="flex: 1; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.5cqw;">
+                <input type="text" id="chat-input" maxlength="300" placeholder="メッセージを入力...（最大300文字）" style="flex: 1; background: #1a1a2e; border: 0.2cqw solid #fff; color: #fff; padding: 1cqw; font-size: 1.5cqw;">
                 <button class="pixel-btn small" style="width: 15cqw;" onclick="sendChat()">送信</button>
             </div>
         </div>
@@ -3109,6 +3109,7 @@
                         <option value="dark">🌑 ダーク</option>
                         <option value="timeattack">⌛ タイムアタック</option>
                         <option value="autorun">🏃 オートラン</option>
+                        <option id="stage-type-option-small" value="small" disabled hidden>🔎 スモール</option>
                         <option id="stage-type-option-sky" value="sky" disabled hidden>☁️ スカイ</option>
                         <option id="stage-type-option-highspeed" value="highspeed" disabled hidden>⚡ ハイスピード</option>
                         <option id="stage-type-option-big" value="big" disabled hidden>⬛ ビッグ</option>
@@ -3263,6 +3264,9 @@
     <div id="mention-dropdown" style="display:none; position:fixed; z-index:9999; background:#1a1a2e; border:0.15cqw solid var(--primary-color); max-height:28vh; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.7); min-width:12cqw;"></div>
 
     <script>
+        // ゲーム内では右クリックを操作に使うため、ブラウザ標準メニューは表示しない。
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
         // モバイルでは 100vh にブラウザのアドレスバー等が含まれることがあるため、
         // 実際に見えている Visual Viewport をゲーム全体の基準にする。
         function syncVisibleViewportHeight() {
@@ -3327,7 +3331,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwNplov9i23vZBd8N5C95sO2mVbDyUIwNackKOcVPOlPlGHtj5gtCeuanaMPbwzPS_m/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.10.2"
+            VERSION: "3.11.1 11/17 0.5周年！"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3619,6 +3623,7 @@ function getPswcWinnerCount(username) {
             { type: 'mist', title: 'ミスト', text: '薄緑の霧が未探索の道を覆います。一度明るくなった固定地形は見え続けます。' },
             { type: 'submarine_volcano', title: 'サブマリンボルケーノ', text: '水中の抵抗と、下から迫る溶岩が同時に適用されるステージです。' },
             { type: 'autorun', title: 'オートラン', text: '左右の移動はできず、プレイヤーが自動で走ります。壁にぶつかると方向を反転し、ジャンプだけを操作します。' },
+            { type: 'small', title: 'スモール', text: 'プレイヤーとゴーストの縦横サイズが通常の2倍になります。ブロックと敵のサイズは変わりません。' },
             { type: 'big', title: 'ビッグ', text: 'ブロックと当たり判定が縦横2倍になります。プレイヤーの大きさは変わりません。Creator Road 220,000CPで解放できます。' },
             { type: 'hard', title: 'ハード', text: '通常の敵が体力30になり、踏みつけ3回で倒せる高難度ステージです。' },
             { type: 'untouchable', title: 'アンタッチャブル', text: '敵には上からでも触れられません。接触すると即座にミスになります。' },
@@ -4601,6 +4606,7 @@ function getPswcWinnerCount(username) {
             'hermes_boss': { name: 'HERMES', price: 20, isES: true, isBlockSet: true, sprite: null },
             'demeter_boss': { name: 'DEMETER', price: 25000, isBlockSet: true, sprite: null },
             'highspeed_stage': { name: 'HIGH SPEED', price: 30, isES: true, isStageType: true, sprite: null },
+            'small_stage': { name: 'SMALL', price: 25, isES: true, isStageType: true, sprite: null },
             'light_floor': { name: 'LIGHT FLOOR', price: 50, isES: true, isBlockSet: true, sprite: null },
             'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
             // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
@@ -5639,7 +5645,7 @@ function getPswcWinnerCount(username) {
             const container = document.getElementById('event-shop-container');
             if (!container) return;
             container.innerHTML = '';
-            ['highspeed_stage', 'light_floor'].forEach(id => {
+            ['highspeed_stage', 'small_stage', 'light_floor'].forEach(id => {
                 const item = SKINS[id];
                 if (!item) return;
                 createShopItem(container, id, item, purchasedSkins.includes(id), false,
@@ -5803,6 +5809,12 @@ function getPswcWinnerCount(username) {
                     ctx.beginPath(); ctx.moveTo(5 + index * 3, y); ctx.lineTo(36 + index * 4, y); ctx.stroke();
                 });
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('×3', 45, 38);
+            } else if (data.isStageType && id === 'small_stage') {
+                const smallBg = ctx.createLinearGradient(0, 0, 64, 64);
+                smallBg.addColorStop(0, '#102c35'); smallBg.addColorStop(1, '#2d7180');
+                ctx.fillStyle = smallBg; ctx.fillRect(0, 0, 64, 64);
+                drawPlayer(ctx, 8, 4, 48, 48, 'default');
+                ctx.fillStyle = '#dcffff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('2× SIZE', 32, 61);
             } else if (data.isStageType && id === 'rai_alvaro_stage') {
                 ctx.fillStyle = '#101226'; ctx.fillRect(0, 0, 64, 64);
                 drawPlayer(ctx, 0, 0, 64, 64, 'rai_alvaro_stage_avatar');
@@ -6041,7 +6053,7 @@ function getPswcWinnerCount(username) {
         }
 
         function drawStageTypeGuideIcon(ctx, type) {
-            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', deepsea: '#00182d', troll: '#673a67', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', hard: '#2a1018', untouchable: '#2a1018', solitude: '#10162b', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', sky: '#54bdf2', highspeed: '#087fba', rai_alvaro: '#263c8a' };
+            const backgrounds = { normal: '#70a1ff', freestyle: '#316b59', water: '#006da8', dark: '#000', deepsea: '#00182d', troll: '#673a67', mist: '#bde8cf', submarine_volcano: '#006da8', big: '#2d4d75', small: '#4d8587', hard: '#2a1018', untouchable: '#2a1018', solitude: '#10162b', volcano: '#5a1300', moon: '#10142b', beach: '#22a9dc', sky: '#54bdf2', highspeed: '#087fba', rai_alvaro: '#263c8a' };
             ctx.fillStyle = backgrounds[type] || '#70a1ff';
             ctx.fillRect(0, 0, 60, 60);
             if (type === 'water' || type === 'beach' || type === 'deepsea') {
@@ -7398,6 +7410,10 @@ function getPswcWinnerCount(username) {
             const audioBtn = document.getElementById('chat-audio-btn');
             const msg = input.value.trim() || (attachedStageId ? "このステージを遊んでみて！" : "");
             if (!msg && !attachedStageId && !attachedImageData && !attachedAudioData) return;
+            if (msg.length > 300) {
+                alert('チャットは300文字以内で入力してください。');
+                return;
+            }
             // サーバー側でも同じ検査を行い、直接APIを呼ばれた場合も投稿させない。
             const normalizedChatMessage = msg.normalize('NFKC');
             if (normalizedChatMessage.includes('死') || normalizedChatMessage.includes('タヒ')) {
@@ -9627,7 +9643,7 @@ function getPswcWinnerCount(username) {
 
             const stageTypeCrownKey = tab.startsWith('typeCrowns:') ? tab.slice('typeCrowns:'.length) : '';
             const stageTypeCrownNames = {
-                normal:'クラシック', freestyle:'フリースタイル', water:'ウォーター', dark:'ダーク', mist:'ミスト', autorun:'オートラン', big:'ビッグ',
+                normal:'クラシック', freestyle:'フリースタイル', water:'ウォーター', dark:'ダーク', mist:'ミスト', autorun:'オートラン', big:'ビッグ', small:'スモール',
                 timeattack:'タイムアタック', hard:'ハード', untouchable:'アンタッチャブル', solitude:'ソリチュード', deepsea:'ディープシー', troll:'トロール', volcano:'ボルケーノ', submarine_volcano:'サブマリンボルケーノ', moon:'ムーン', beach:'ビーチ', sky:'スカイ', highspeed:'ハイスピード', rai_alvaro:'ライ・アルバロ'
             };
             if (stageTypeCrownKey) {
@@ -10406,13 +10422,13 @@ function getPswcWinnerCount(username) {
         }
 
         const EDITOR_STAGE_TYPE_COLORS = {
-            normal:'#3f8f5b', freestyle:'#29a081', water:'#168bd1', dark:'#31354b', timeattack:'#d49b25', autorun:'#df6c27',
+            normal:'#3f8f5b', freestyle:'#29a081', water:'#168bd1', dark:'#31354b', timeattack:'#d49b25', autorun:'#df6c27', small:'#4d8587',
             sky:'#6ecdf4', highspeed:'#04a9d9', big:'#526d8d', hard:'#9d314b', untouchable:'#d13b43', solitude:'#514f85',
             deepsea:'#075377', troll:'#9b4c9d', volcano:'#c44124', moon:'#596182', beach:'#18b6c9', rai_alvaro:'#d6bd1c',
             mist:'#83bfa0', submarine_volcano:'#486f9b'
         };
         const EDITOR_STAGE_TYPE_SYMBOLS = {
-            normal:'B', freestyle:'AC', water:'B', dark:'LM', timeattack:'C', autorun:'P', sky:'B', highspeed:'P',
+            normal:'B', freestyle:'AC', water:'B', dark:'LM', timeattack:'C', autorun:'P', small:'HBK', sky:'B', highspeed:'P',
             big:'B', hard:'B', untouchable:'K', solitude:'WG', deepsea:'LM', troll:'K', volcano:'FL', moon:'B',
             beach:'B', rai_alvaro:'P', mist:'LM', submarine_volcano:'FL'
         };
@@ -10695,6 +10711,9 @@ function getPswcWinnerCount(username) {
             const highspeedOpt = document.getElementById('stage-type-option-highspeed');
             const hasHighspeedStage = purchasedSkins.includes('highspeed_stage');
             setStageTypeOptionAvailability(highspeedOpt, CONFIG.USERNAME === 'Runon' || hasHighspeedStage, '⚡ ハイスピード');
+            const smallOpt = document.getElementById('stage-type-option-small');
+            const hasSmallStage = purchasedSkins.includes('small_stage');
+            setStageTypeOptionAvailability(smallOpt, CONFIG.USERNAME === 'Runon' || hasSmallStage, '🔎 スモール');
             const hardOpt = document.getElementById('stage-type-option-hard');
             const hasHardStage = purchasedSkins.includes('hard_stage');
             setStageTypeOptionAvailability(hardOpt, CONFIG.USERNAME === 'Runon' || hasHardStage, '💀 ハード');
@@ -10730,6 +10749,7 @@ function getPswcWinnerCount(username) {
                         : option.value === 'beach' ? '🏖️ ビーチ'
                         : option.value === 'sky' ? '☁️ スカイ'
                         : option.value === 'highspeed' ? '⚡ ハイスピード'
+                        : option.value === 'small' ? '🔎 スモール'
                         : option.value === 'rai_alvaro' ? '⚡ ライ・アルバロ'
                         : option.textContent;
                 });
@@ -11311,6 +11331,7 @@ function getPswcWinnerCount(username) {
             submarine_volcano: { base:'#5d4037', shadow:'#3e2723', light:'#5d4037', accent:'#3e2723', motif:'classic' },
             autorun: { base:'#d06820', shadow:'#74300d', light:'#d06820', accent:'#74300d', motif:'classic' },
             big: { base:'#454276', shadow:'#24213f', light:'#8884c4', accent:'#e4deff', motif:'corners' },
+            small: { base:'#4d8587', shadow:'#24484a', light:'#86c8ca', accent:'#dcffff', motif:'corners' },
             timeattack: { base:'#eee6ce', shadow:'#302b38', light:'#fff9e9', accent:'#1f1c25', motif:'checker' },
             hard: { base:'#5d4037', shadow:'#3e2723', light:'#8a6253', accent:'#c49a82', motif:'brick' },
             untouchable: { base:'#c62828', shadow:'#7f0000', light:'#c62828', accent:'#7f0000', motif:'classic' },
@@ -12825,7 +12846,7 @@ function getPswcWinnerCount(username) {
                 const hasWarpGate = grid => Array.isArray(grid) && grid.some(row => Array.isArray(row) && row.includes('WG'));
                 const hasBackFace = Array.isArray(backGrid) && backGrid.some(row => Array.isArray(row) && row.some(cell => cell !== null && cell !== undefined));
                 const stageTypeNames = {
-                    normal: 'クラシック', freestyle: 'フリースタイル', water: 'ウォーター', dark: 'ダーク', mist: 'ミスト', autorun: 'オートラン', big: 'ビッグ', timeattack: 'タイムアタック',
+                    normal: 'クラシック', freestyle: 'フリースタイル', water: 'ウォーター', dark: 'ダーク', mist: 'ミスト', autorun: 'オートラン', big: 'ビッグ', small: 'スモール', timeattack: 'タイムアタック',
                     hard: 'ハード', untouchable: 'アンタッチャブル', solitude: 'ソリチュード', deepsea: 'ディープシー', troll: 'トロール', volcano: 'ボルケーノ', submarine_volcano: 'サブマリンボルケーノ', moon: 'ムーン', beach: 'ビーチ', sky: 'スカイ', highspeed: 'ハイスピード', rai_alvaro: 'ライ・アルバロ', rai_alvaro_v2: 'ライ・アルバロ'
                 };
                 const stageTypeSource = getStageTypeSource(s);
@@ -13030,7 +13051,7 @@ function getPswcWinnerCount(username) {
         }
 
         // このバージョンで対応しているステージタイプ
-        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'deepsea', 'troll', 'mist', 'submarine_volcano', 'autorun', 'big', 'timeattack', 'hard', 'untouchable', 'solitude', 'volcano', 'moon', 'beach', 'sky', 'highspeed', 'rai_alvaro', 'rai_alvaro_v2'];
+        const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'deepsea', 'troll', 'mist', 'submarine_volcano', 'autorun', 'big', 'small', 'timeattack', 'hard', 'untouchable', 'solitude', 'volcano', 'moon', 'beach', 'sky', 'highspeed', 'rai_alvaro', 'rai_alvaro_v2'];
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -13097,6 +13118,7 @@ function getPswcWinnerCount(username) {
         function isAutoRunStageType(type) { return type === 'autorun'; }
         function isSkyStageType(type) { return type === 'sky'; }
         function isHighSpeedStageType(type) { return type === 'highspeed'; }
+        function isSmallStageType(type) { return type === 'small'; }
         function isFreestyleStageType(type) { return type === 'freestyle'; }
         function isUntouchableStageType(type) { return type === 'untouchable'; }
         function isSolitudeStageType(type) { return type === 'solitude'; }
@@ -13408,7 +13430,13 @@ function getPswcWinnerCount(username) {
             for(let y=0; y<GRID_H; y++) {
                 for(let x=0; x<GRID_W; x++) {
                     if(activeStage[y][x] === 'S') {
-                        player.x = x + 0.1; player.y = y + 0.1;
+                        if (isSmallStageType(currentStageType)) {
+                            // 通常のスタート地点と同じ足元・中心を基準に、2倍サイズを上方向へ展開する。
+                            player.x = x + (1 - player.w) / 2;
+                            player.y = y + 1 - player.h;
+                        } else {
+                            player.x = x + 0.1; player.y = y + 0.1;
+                        }
                         stageStartRespawn = { x: player.x, y: player.y };
                         timeAttackRespawn = { ...stageStartRespawn, face: false };
                         // スタート地点は開始時の位置情報だけ残し、プレイ中は描画しない。
@@ -15367,15 +15395,8 @@ function getPswcWinnerCount(username) {
                     nextY = enemyHalfBlockLandingY - enSize;
                 }
                 let isBridge = false;
-                const enemyLightFloorLandingY = en.vy >= 0
-                    ? getEnemyLightFloorLandingSurface(en, nextY, enSize)
-                    : null;
-                if (enemyLightFloorLandingY !== null) {
-                    collidedY = true;
-                    nextY = enemyLightFloorLandingY;
-                    isBridge = true;
-                }
-
+                // 固定された橋を先に判定する。落下中の軽い床に乗っていても、
+                // 敵が別の足場へ届いたらその足場へ正常に着地できるようにする。
                 if (!collidedY && en.vy >= 0) {
                     let footY = en.y + enSize;
                     let nextFootY = nextY + enSize + 0.05; // 橋の判定も同様に深く
@@ -15387,6 +15408,18 @@ function getPswcWinnerCount(username) {
                         nextY = iy_idx - enSize; // 地面に密着させる
                         isBridge = true;
                     }
+                }
+
+                // 軽い床は、通常ブロック・ハーフブロック・固定橋のいずれにも
+                // 着地しなかった場合にだけ足場として使う。従来はここで既存の
+                // 衝突結果を上書きし、敵が軽い床から他のブロックへ移れなかった。
+                const enemyLightFloorLandingY = (!collidedY && en.vy >= 0)
+                    ? getEnemyLightFloorLandingSurface(en, nextY, enSize)
+                    : null;
+                if (enemyLightFloorLandingY !== null) {
+                    collidedY = true;
+                    nextY = enemyLightFloorLandingY;
+                    isBridge = true;
                 }
 
                 if (collidedY) {
@@ -15994,11 +16027,12 @@ function getPswcWinnerCount(username) {
                 }
             }
 
-            if (tile === 'K' || footTile === 'K') handlePlayerDeath();
-            if (isSwitchOn && (tile === 'k' || footTile === 'k')) handlePlayerDeath();
-            if (!isSwitchOn && (tile === 'q' || footTile === 'q')) handlePlayerDeath();
-            if (tile === 'y' || footTile === 'y') handlePlayerDeath();
-            if (tile === 'FL' || footTile === 'FL') handlePlayerDeath();
+            const largePlayerTouches = type => isSmallStageType(currentStageType) && isTouchingType(player.x, player.y, type);
+            if (tile === 'K' || footTile === 'K' || largePlayerTouches('K')) handlePlayerDeath();
+            if (isSwitchOn && (tile === 'k' || footTile === 'k' || largePlayerTouches('k'))) handlePlayerDeath();
+            if (!isSwitchOn && (tile === 'q' || footTile === 'q' || largePlayerTouches('q'))) handlePlayerDeath();
+            if (tile === 'y' || footTile === 'y' || largePlayerTouches('y')) handlePlayerDeath();
+            if (tile === 'FL' || footTile === 'FL' || largePlayerTouches('FL')) handlePlayerDeath();
             if (footTile === 'T' && player.vy > 0) player.vy = -0.45;
             if (headTile === 'TD' && player.vy < 0) player.vy = 0.45;
             if (footTile === 'RT' && isSwitchOn && player.vy > 0) player.vy = -0.45;
@@ -16080,9 +16114,10 @@ function getPswcWinnerCount(username) {
             bigStageActive = isBigFace;
             GRID_W = isBigFace ? BASE_GRID_W * 2 : BASE_GRID_W;
             GRID_H = isBigFace ? BASE_GRID_H * 2 : BASE_GRID_H;
-            // プレイヤー本体は常に通常サイズ。通常面の物理挙動を変えない。
-            player.w = BASE_PLAYER_SIZE;
-            player.h = BASE_PLAYER_SIZE;
+            // スモールでは世界に対してプレイヤーが縦横2倍になる。それ以外は従来サイズを維持する。
+            const playerScale = isSmallStageType(currentStageType) ? 2 : 1;
+            player.w = BASE_PLAYER_SIZE * playerScale;
+            player.h = BASE_PLAYER_SIZE * playerScale;
             refreshBlackHolePositions();
 
             eruptionControlLimitTiles = null;
@@ -16250,9 +16285,23 @@ function getPswcWinnerCount(username) {
             const inset = 0.05;
             const px0 = x + inset,       py0 = y + inset;
             const px1 = x + w - inset,   py1 = y + h - inset;
-            for(let i = 0; i < 4; i++) {
-                const px = (i & 1) ? px1 : px0;
-                const py = (i & 2) ? py1 : py0;
+            let collisionPoints = [[px0, py0], [px1, py0], [px0, py1], [px1, py1]];
+            if (isPlayer && isSmallStageType(currentStageType)) {
+                // 2倍サイズでは最大3列・3行へまたがるため、四隅だけでなく覆っている全セルを調べる。
+                // これにより中央のブロックを大きなプレイヤーがすり抜けることを防ぐ。
+                collisionPoints = [];
+                for (let iy = Math.floor(py0); iy <= Math.floor(py1); iy++) {
+                    for (let ix = Math.floor(px0); ix <= Math.floor(px1); ix++) {
+                        collisionPoints.push([
+                            Math.max(px0, Math.min(px1, ix + 0.5)),
+                            Math.max(py0, Math.min(py1, iy + 0.5))
+                        ]);
+                    }
+                }
+            }
+            for(let i = 0; i < collisionPoints.length; i++) {
+                const px = collisionPoints[i][0];
+                const py = collisionPoints[i][1];
                 const ix = Math.floor(px), iy = Math.floor(py);
                 if(ix < 0 || ix >= GRID_W) return true;
                 if(iy < 0) return false;
@@ -16407,10 +16456,12 @@ function getPswcWinnerCount(username) {
 
         function isTouchingType(x, y, type) {
             const inset = 0.02;
-            const points = [[x+inset, y+inset], [x+player.w-inset, y+inset], [x+inset, y+player.h-inset], [x+player.w-inset, y+player.h-inset]];
-            for(let p of points) {
-                const ix = Math.floor(p[0]), iy = Math.floor(p[1]);
-                if(activeStage[iy] && activeStage[iy][ix] === type) return true;
+            const left = Math.floor(x + inset), right = Math.floor(x + player.w - inset);
+            const top = Math.floor(y + inset), bottom = Math.floor(y + player.h - inset);
+            for (let iy = top; iy <= bottom; iy++) {
+                for (let ix = left; ix <= right; ix++) {
+                    if(activeStage[iy] && activeStage[iy][ix] === type) return true;
+                }
             }
             return false;
         }
