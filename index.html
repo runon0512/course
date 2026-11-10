@@ -3678,14 +3678,18 @@ function getPswcWinnerCount(username) {
         }
         function configureGameGridForStage(frontGrid, backGrid, frontType, backType) {
             resetGameGridSize();
-            // 表裏どちらかがビッグなら、ワープ後も同じ座標系・同じ大きさを保つため両面を展開する。
-            bigStagePair = frontType === 'big' || backType === 'big';
-            bigStageActive = bigStagePair;
-            GRID_W = bigStagePair ? BASE_GRID_W * 2 : BASE_GRID_W;
-            GRID_H = bigStagePair ? BASE_GRID_H * 2 : BASE_GRID_H;
-            return bigStagePair
-                ? { front: expandBigStageGrid(frontGrid), back: expandBigStageGrid(backGrid) }
-                : { front: frontGrid, back: backGrid };
+            // ビッグは設定された面だけを2倍グリッドへ展開する。
+            // 反対面は通常の20x10を維持し、ワープ時に座標系だけを換算する。
+            const frontIsBig = frontType === 'big';
+            const backIsBig = backType === 'big';
+            bigStagePair = frontIsBig && backIsBig;
+            bigStageActive = frontIsBig;
+            GRID_W = frontIsBig ? BASE_GRID_W * 2 : BASE_GRID_W;
+            GRID_H = frontIsBig ? BASE_GRID_H * 2 : BASE_GRID_H;
+            return {
+                front: frontIsBig ? expandBigStageGrid(frontGrid) : frontGrid,
+                back: backIsBig ? expandBigStageGrid(backGrid) : backGrid
+            };
         }
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
@@ -4757,20 +4761,21 @@ function getPswcWinnerCount(username) {
             for(let y=0; y<GRID_H; y += cacheStep){
                 for(let x=0; x<GRID_W; x += cacheStep){
                     const type = activeStage[y][x];
-                    // 鍵・鍵ブロック・チェックポイントはビッグでも4つに分割され、個別に状態を持つ。
+                    // 鍵・鍵ブロック・チェックポイント・クラックブロックは、
+                    // ビッグでも4つに分割して描画し、それぞれが個別に状態を持つ。
                     // 左上が先に消えても残りを正しく描くため、2x2全体を確認する。
                     if (bigStageActive) {
                         let hasSplitKeyItem = false;
                         for (let dy = 0; dy < 2 && !hasSplitKeyItem; dy++) {
                             for (let dx = 0; dx < 2; dx++) {
                                 const item = activeStage[y + dy]?.[x + dx];
-                                if (item === 'o' || item === 'D' || item === 'C') { hasSplitKeyItem = true; break; }
+                                if (item === 'o' || item === 'D' || item === 'C' || item === 'CB') { hasSplitKeyItem = true; break; }
                             }
                         }
                         if (hasSplitKeyItem) {
                             for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
                                 const item = activeStage[y + dy]?.[x + dx];
-                                if (item === 'o' || item === 'D' || item === 'C') drawTile(stageCacheCtx, x + dx, y + dy, cw, ch, item, 0);
+                                if (item === 'o' || item === 'D' || item === 'C' || item === 'CB') drawTile(stageCacheCtx, x + dx, y + dy, cw, ch, item, 0);
                             }
                             continue;
                         }
@@ -12868,7 +12873,7 @@ function getPswcWinnerCount(username) {
                     faceButton.onclick = event => {
                         event.stopPropagation();
                         showingBack = !showingBack;
-                        renderPreview(canvas, showingBack ? backGrid : frontGrid, showingBack ? backType : frontType);
+                        renderPreview(canvas, showingBack ? backGrid : frontGrid, showingBack ? backType : frontType, s);
                         faceButton.style.background = showingBack ? 'rgba(118,56,190,.95)' : 'rgba(28,18,74,.88)';
                         faceButton.title = showingBack ? '表面プレビューへ切り替え' : '裏面プレビューへ切り替え';
                     };
@@ -12950,7 +12955,7 @@ function getPswcWinnerCount(username) {
                 container.appendChild(div);
 
                 // タイマーをステージ数ぶん作らず、後で少数ずつ描画する。
-                previewJobs.push({ canvas, data: s.data, stageType: frontType });
+                previewJobs.push({ canvas, data: s.data, stageType: frontType, stage: s });
             });
             renderStagePreviewsInBatches(previewJobs, renderVersion);
         }
@@ -12978,9 +12983,81 @@ function getPswcWinnerCount(username) {
             }
         }
 
-        function renderPreview(canvas, data, stageType = 'normal') {
+        function fillPreviewGradient(ctx, width, height, stops) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            stops.forEach(([position, color]) => gradient.addColorStop(position, color));
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // ステージ一覧のミニビューにも、実際のプレイ画面と同じ優先順位で背景を描く。
+        // タイプ固有背景がない場合は、プレイ数・クリア率から難易度背景を選ぶ。
+        function drawStagePreviewBackground(ctx, width, height, stageType = 'normal', stage = null) {
+            let theme = 'clear-sky';
+            if (isWaterStageType(stageType)) theme = 'water';
+            else if (isDarkStageType(stageType) || isMistStageType(stageType)) theme = 'dark';
+            else if (isVolcanoStageType(stageType)) theme = 'volcano';
+            else if (stageType === 'moon') theme = 'moon';
+            else if (stageType === 'beach') theme = 'beach';
+            else {
+                const attempts = Number(stage?.attempts) || 0;
+                const clears = Number(stage?.clears) || 0;
+                if (attempts >= 5) {
+                    const clearRate = clears / attempts * 100;
+                    if (clearRate <= 0.1 && (clears > 0 || attempts >= 1000)) theme = 'aurora';
+                    else if ((clears === 0 && attempts >= 500) || (clearRate > 0.1 && clearRate <= 0.2)) theme = 'limit';
+                    else if ((clears === 0 && attempts >= 200) || (clearRate > 0.2 && clearRate <= 0.5)) theme = 'heaven-plus';
+                    else if ((clears === 0 && attempts >= 100) || (clearRate > 0.5 && clearRate <= 1)) theme = 'heaven';
+                    else if (clearRate <= 0.1) theme = 'unknown';
+                    else if (clearRate <= 3) theme = 'hell';
+                    else if (clearRate <= 10) theme = 'sunset';
+                    else if (clearRate <= 25) theme = 'cloudy';
+                }
+            }
+
+            if (theme === 'water') fillPreviewGradient(ctx, width, height, [[0,'#003d6b'],[.4,'#005580'],[1,'#004466']]);
+            else if (theme === 'dark') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, width, height); }
+            else if (theme === 'volcano') fillPreviewGradient(ctx, width, height, [[0,'#1a0500'],[.55,'#3d0f00'],[1,'#1a0500']]);
+            else if (theme === 'moon') {
+                fillPreviewGradient(ctx, width, height, [[0,'#050816'],[1,'#141b36']]);
+                ctx.fillStyle = '#e9edf5'; ctx.beginPath(); ctx.arc(width * .72, height * .2, height * .085, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; [[.16,.24],[.38,.66],[.84,.72],[.55,.17],[.91,.38]].forEach(([x,y]) => ctx.fillRect(Math.floor(width*x),Math.floor(height*y),2,2));
+            } else if (theme === 'beach') {
+                fillPreviewGradient(ctx, width, height, [[0,'#6fd4ff'],[.62,'#d8f5ff'],[.63,'#f5d68c'],[1,'#dba95b']]);
+                ctx.fillStyle = 'rgba(255,250,194,.95)'; ctx.beginPath(); ctx.arc(width * .74, height * .16, height * .07, 0, Math.PI * 2); ctx.fill();
+            } else if (theme === 'cloudy') {
+                fillPreviewGradient(ctx, width, height, [[0,'#4a2379'],[.48,'#6c3d9a'],[1,'#30144f']]);
+                ctx.fillStyle = 'rgba(221,170,255,.25)'; ctx.beginPath(); ctx.ellipse(width*.5, 0, width*.34, height*.3, 0, 0, Math.PI*2); ctx.fill();
+            } else if (theme === 'sunset') fillPreviewGradient(ctx, width, height, [[0,'#ff7043'],[1,'#3f51b5']]);
+            else if (theme === 'hell') fillPreviewGradient(ctx, width, height, [[0,'#000'],[1,'#b71c1c']]);
+            else if (theme === 'heaven' || theme === 'heaven-plus') {
+                fillPreviewGradient(ctx, width, height, theme === 'heaven'
+                    ? [[0,'#63bcff'],[.42,'#a8dcff'],[.7,'#e4f6ff'],[1,'#fff9df']]
+                    : [[0,'#7766b7'],[.43,'#a8c5ee'],[.72,'#eadfff'],[1,'#fff5cc']]);
+                ctx.fillStyle = 'rgba(255,249,196,.95)'; ctx.beginPath(); ctx.arc(width*.72,height*.18,height*.055,0,Math.PI*2); ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.beginPath(); ctx.ellipse(width*.5,height*1.05,width*.52,height*.28,0,0,Math.PI*2); ctx.fill();
+            } else if (theme === 'unknown') {
+                ctx.fillStyle = '#060000'; ctx.fillRect(0,0,width,height);
+                ctx.fillStyle = 'rgba(255,0,0,.34)';
+                for (let y = 3; y < height; y += 9) for (let x = (y * 7) % 13; x < width; x += 17) ctx.fillRect(x,y,1,1);
+            } else if (theme === 'aurora') {
+                fillPreviewGradient(ctx, width, height, [[0,'#050510'],[1,'#101333']]);
+                ctx.lineWidth = height * .08;
+                ['rgba(0,255,210,.35)','rgba(145,70,255,.32)','rgba(255,60,190,.25)'].forEach((color,index) => {
+                    ctx.strokeStyle = color; ctx.beginPath(); ctx.moveTo(-10,height*(.2+index*.16)); ctx.bezierCurveTo(width*.28,height*(.05+index*.2),width*.62,height*(.55-index*.08),width+10,height*(.18+index*.18)); ctx.stroke();
+                });
+            } else if (theme === 'limit') {
+                fillPreviewGradient(ctx, width, height, [[0,'#e3efff'],[.29,'#8aa3c9'],[.51,'#281b2c'],[.74,'#4b080b'],[1,'#130003']]);
+                const glow = ctx.createRadialGradient(width*.5,0,0,width*.5,0,width*.45);
+                glow.addColorStop(0,'rgba(255,252,204,.9)'); glow.addColorStop(1,'rgba(255,234,132,0)');
+                ctx.fillStyle = glow; ctx.fillRect(0,0,width,height*.55);
+            } else fillPreviewGradient(ctx, width, height, [[0,'#35aef2'],[.58,'#76cef8'],[1,'#c8efff']]);
+        }
+
+        function renderPreview(canvas, data, stageType = 'normal', stage = null) {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawStagePreviewBackground(ctx, canvas.width, canvas.height, stageType, stage);
             if (data && !Array.isArray(data) && Array.isArray(data.front)) data = data.front;
             if (!data || !Array.isArray(data)) return; // データの型チェックを強化
             // 一覧のデータはプレイ中の論理グリッドとは独立して描画する。
@@ -13008,7 +13085,7 @@ function getPswcWinnerCount(username) {
                 const end = Math.min(index + 3, jobs.length);
                 for (; index < end; index++) {
                     const job = jobs[index];
-                    if (document.contains(job.canvas)) renderPreview(job.canvas, job.data, job.stageType);
+                    if (document.contains(job.canvas)) renderPreview(job.canvas, job.data, job.stageType, job.stage);
                 }
                 if (index < jobs.length) requestAnimationFrame(renderNext);
             };
@@ -14300,16 +14377,22 @@ function getPswcWinnerCount(username) {
 
         // 木箱の上面を床として扱う。これを通常の縦衝突より先に判定して、
         // 落下中のプレイヤーが木箱へ食い込む前に安定して着地させる。
-        function getWoodCrateLandingSurface(nextY) {
+        function getWoodCrateLandingSurface(nextY, surfaceKind = 'all') {
+            let landingY = null;
             for (let i = 0; i < woodCrates.length; i++) {
                 const crate = woodCrates[i];
+                if (surfaceKind === 'solid' && crate.type === 'LF') continue;
+                if (surfaceKind === 'light' && crate.type !== 'LF') continue;
                 const overlapsX = player.x + player.w - 0.05 > crate.x + 0.05 && player.x + 0.05 < crate.x + 0.95;
                 if (!overlapsX) continue;
                 const playerBottom = player.y + player.h;
                 const nextBottom = nextY + player.h;
-                if (playerBottom <= crate.y + 0.05 && nextBottom >= crate.y) return crate.y - player.h;
+                if (playerBottom <= crate.y + 0.05 && nextBottom >= crate.y) {
+                    const candidate = crate.y - player.h;
+                    if (landingY === null || candidate < landingY) landingY = candidate;
+                }
             }
-            return null;
+            return landingY;
         }
 
         // 軽い床は橋と同じく、敵も上からだけ着地できる。
@@ -14567,7 +14650,9 @@ function getPswcWinnerCount(username) {
                 if (activeStage[footY]) {
                     for (let x = leftX; x <= rightX; x++) {
                         if (activeStage[footY][x] === 'CB') {
-                            const key = `${x},${footY}`;
+                            // 表裏で同じ座標のクラックブロックを混同しない。
+                            // ビッグでは2x2の各マスが別々のキーになり、踏んだ区画だけが崩れる。
+                            const key = `${isUsingBackFace ? 'back' : 'front'}:${x},${footY}`;
                             if (!crackBlockTimers.has(key)) crackBlockTimers.set(key, frameCount);
                         }
                     }
@@ -14575,11 +14660,17 @@ function getPswcWinnerCount(username) {
             }
             for (const [key, startedFrame] of crackBlockTimers) {
                 if (frameCount - startedFrame < 30) continue;
-                const [x, y] = key.split(',').map(Number);
-                if (activeStage[y] && activeStage[y][x] === 'CB') {
-                    spawnBlockDebris(x, y, 'CB');
-                    activeStage[y][x] = null;
-                    updateStageCacheTile(x, y);
+                const separator = key.indexOf(':');
+                const face = key.slice(0, separator);
+                const [x, y] = key.slice(separator + 1).split(',').map(Number);
+                const targetStage = face === 'back' ? activeBackStage : activeFrontStage;
+                const isCurrentFace = (face === 'back') === isUsingBackFace;
+                if (targetStage[y] && targetStage[y][x] === 'CB') {
+                    targetStage[y][x] = null;
+                    if (isCurrentFace) {
+                        spawnBlockDebris(x, y, 'CB');
+                        updateStageCacheTile(x, y);
+                    }
                 }
                 crackBlockTimers.delete(key);
             }
@@ -15015,7 +15106,10 @@ function getPswcWinnerCount(username) {
                 collidedY = true;
                 nextY = halfBlockLandingY - player.h;
             }
-            const woodCrateLandingY = player.vy >= 0 ? getWoodCrateLandingSurface(nextY) : null;
+            // 通常木箱は従来どおり先に判定するが、軽い床は固定床の判定後に回す。
+            // 落下中の軽い床が通常ブロックを通過する瞬間、プレイヤーまで床を
+            // すり抜けたり上下に跳ねたりするのを防ぐ。
+            let woodCrateLandingY = player.vy >= 0 ? getWoodCrateLandingSurface(nextY, 'solid') : null;
             if (woodCrateLandingY !== null) {
                 collidedY = true;
                 nextY = woodCrateLandingY;
@@ -15083,6 +15177,17 @@ function getPswcWinnerCount(username) {
                         collidedY = true; nextY = wEn.y + wSize;
                     }
                 }
+            }
+
+            // 通常ブロック・ハーフブロック・橋・一方通行・ボスのいずれにも
+            // 着地しなかった時だけ、軽い床を足場として選ぶ。
+            const lightFloorLandingY = (!collidedY && player.vy >= 0)
+                ? getWoodCrateLandingSurface(nextY, 'light')
+                : null;
+            if (lightFloorLandingY !== null) {
+                collidedY = true;
+                nextY = lightFloorLandingY;
+                woodCrateLandingY = lightFloorLandingY;
             }
 
             if(!collidedY) {
@@ -15996,7 +16101,11 @@ function getPswcWinnerCount(username) {
                 }
                 killerGoalActive = killerGoalTiles.length > 0;
                 lastKillerGoalEnemyCount = -1;
-                playBackFaceWarpEffect(gx, gy);
+                // ビッグ面との往復では座標系が変わるため、換算後の現在座標から演出位置を出す。
+                playBackFaceWarpEffect(
+                    Math.floor(player.x + player.w / 2),
+                    Math.floor(player.y + player.h / 2)
+                );
                 warpGateLocked = true;
                 restoreActiveFaceRuntime();
                 arrows = [];
@@ -16101,10 +16210,10 @@ function getPswcWinnerCount(username) {
             const wasBigFace = bigStageActive;
             activeStage = isUsingBackFace ? activeBackStage : activeFrontStage;
             currentStageType = isUsingBackFace ? activeBackStageType : activeFrontStageType;
-            const isBigFace = bigStagePair;
+            const isBigFace = currentStageType === 'big';
             if (convertPlayerCoordinates && wasBigFace !== isBigFace) {
-                // 通常ステージからビッグステージへ切り替わる場合だけ座標を換算する。
-                // 表裏内ではbigStagePairが共通なので、ワープ時の換算は発生しない。
+                // 表裏でグリッド密度が違う場合も画面上の同じ位置へワープするよう、
+                // プレイヤーの座標と速度を現在面の論理タイル単位へ換算する。
                 const scale = isBigFace ? 2 : 0.5;
                 player.x *= scale;
                 player.y *= scale;
