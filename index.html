@@ -1125,7 +1125,7 @@
         #shop-overlay .shop-section-tab.active { color:#281508; border-color:#ffe09b; background:linear-gradient(135deg,#ffd571,#e89b3e); box-shadow:0 0 .8cqw rgba(255,199,99,.48); }
         .event-shop-interior { width:min(88cqw,1180px); height:70cqh; box-sizing:border-box; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:1.1cqh; padding:1.2cqh 1.2cqw; overflow:hidden; border:.26cqw solid #a87536; outline:.12cqw solid rgba(255,225,155,.38); background:radial-gradient(circle at 50% 38%,rgba(255,197,84,.16),transparent 30%),linear-gradient(135deg,rgba(43,22,18,.98),rgba(92,43,26,.92),rgba(43,22,18,.98)); box-shadow:inset 0 0 3cqw rgba(0,0,0,.45),0 0 2cqw rgba(255,174,82,.18); }
         .event-shop-header { width:100%; min-height:4.4cqh; box-sizing:border-box; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:1cqw; padding:0 .5cqw; color:#ffe4a7; font:700 1.55cqw 'Roboto','Noto Sans JP',sans-serif; letter-spacing:.08em; }
-        .event-shop-grid { width:min(72cqw,900px); min-height:0; flex:1; align-self:center; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-auto-rows:minmax(28cqh,1fr); align-content:start; gap:1.2cqw; padding:.45cqh .35cqw .8cqh; box-sizing:border-box; overflow-y:auto; overflow-x:hidden; }
+        .event-shop-grid { width:min(78cqw,1020px); min-height:0; flex:1; align-self:center; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-rows:minmax(28cqh,1fr); align-content:start; gap:1.2cqw; padding:.45cqh .35cqw .8cqh; box-sizing:border-box; overflow-y:auto; overflow-x:hidden; }
         #shop-overlay .event-shop-grid .shop-item { position:relative; width:100%; min-width:0; min-height:28cqh; max-height:39cqh; box-sizing:border-box; overflow:hidden; padding:.7cqw; border:.16cqw solid #d69b44; background:linear-gradient(180deg,rgba(101,45,33,.98),rgba(43,18,25,.98)); box-shadow:inset 0 -.55cqh 0 rgba(0,0,0,.26),0 .28cqh 0 rgba(16,7,8,.75); display:flex; flex-direction:column; align-items:center; }
         #shop-overlay .event-shop-grid .shop-item::before { content:'0.5 EVE'; position:absolute; top:.3cqh; left:.42cqw; color:rgba(255,229,157,.68); font-size:.65cqw; letter-spacing:.12em; pointer-events:none; }
         #shop-overlay .event-shop-grid .shop-item.event-shelf-item canvas { flex:0 0 auto; order:2; margin:.45cqh 0; width:min(8.5cqw,112px); height:min(8.5cqw,112px); image-rendering:pixelated; filter:drop-shadow(0 0 .55cqw rgba(255,121,72,.55)); }
@@ -2541,7 +2541,7 @@
             <button id="menu-play" class="pixel-btn" data-i18n="home.play" onclick="openStageSelect()">プレイ</button>
             <button id="menu-create" class="pixel-btn" data-i18n="home.create" onclick="startEditor()">ステージ制作</button>
             <button id="menu-locker" class="pixel-btn" data-i18n="home.locker" onclick="openLocker()">ロッカー</button>
-            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice">0.5周年前夜祭 Day3</span></button>
+            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice">0.5周年前夜祭 Day4</span></button>
             <button id="guild-btn" class="pixel-btn" data-i18n="home.guild" onclick="openGuild()">ギルド</button>
             </div>
 
@@ -3158,6 +3158,7 @@
                     <div class="tool-btn rank-common" onclick="setTool('vN', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('^N', this)" title="ONEWAY UP"><canvas id="icon-uow" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-TP" onclick="setTool('TP', this)" title="TRAP BLOCK" style="display:none;"><canvas id="icon-TP" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-q" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-k" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-r" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
@@ -3550,6 +3551,7 @@ function getPswcWinnerCount(username) {
             'WG': { title: 'ワープゲート', text: '表面で入ると、同じ座標の裏面へワープします。' },
             'KG': { title: 'キラーゴール', text: '紫の特殊ゴールです。すべてのチェックポイントを取り、ボスを含む敵を全滅させるまで開きません。' },
             'K': { title: 'スパイク', text: '触れるとプレイヤーがやられる危険なトゲです。' },
+            'TP': { title: 'トラップブロック', text: '1秒ごとに棘が突出・収納されます。突出アニメーション中は安全で、収納アニメーションは前半だけ攻撃判定が残ります。' },
             'M': { title: '敵', text: '動く敵キャラクターです。ぶつかると死亡します。' },
             'IE': { title: 'IRON ENEMY', text: '鉄の体を持つ無敵の敵です。横・下から当たると死亡しますが、上から踏むと倒れず、そのまま足場として乗れます。キラーゴールの対象にはなりません。' },
             'E': { title: '消しゴム', text: '配置したブロックやアイテムを消すツールです。' },
@@ -4612,6 +4614,7 @@ function getPswcWinnerCount(username) {
             'highspeed_stage': { name: 'HIGH SPEED', price: 30, isES: true, isStageType: true, sprite: null },
             'small_stage': { name: 'SMALL', price: 25, isES: true, isStageType: true, sprite: null },
             'light_floor': { name: 'LIGHT FLOOR', price: 50, isES: true, isBlockSet: true, sprite: null },
+            'trap_block': { name: 'TRAP BLOCK', price: 50, isES: true, isBlockSet: true, sprite: null },
             'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
             // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
             'rai_alvaro': { name: 'RAI ALVARO', price: 0, sprite: RAI_ALVARO_SPRITE, recolorIndex: null, isHiddenShop: true }
@@ -4796,7 +4799,7 @@ function getPswcWinnerCount(username) {
                     if (type === 'A' || type === 'rg' || type === 'ug' || type === 'dg') arrowLauncherPositions.push({ x, y, type });
                     if (type === 'mg') missileLauncherPositions.push({ x, y });
 
-                    if(['W', 'TW', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL', 'BH', 'WH'].includes(type)) {
+                    if(['W', 'TW', 'L', 'U', 'd', 'J', 'LM', 'CA', 'EC', 'WG', 'FL', 'BH', 'WH', 'TP'].includes(type)) {
                         dynamicTiles.push({x, y, type, big: bigStageActive});
                     } else {
                         drawTile(stageCacheCtx, drawX, drawY, drawCW, drawCH, type, 0);
@@ -5650,7 +5653,7 @@ function getPswcWinnerCount(username) {
             const container = document.getElementById('event-shop-container');
             if (!container) return;
             container.innerHTML = '';
-            ['highspeed_stage', 'small_stage', 'light_floor'].forEach(id => {
+            ['highspeed_stage', 'small_stage', 'light_floor', 'trap_block'].forEach(id => {
                 const item = SKINS[id];
                 if (!item) return;
                 createShopItem(container, id, item, purchasedSkins.includes(id), false,
@@ -5846,7 +5849,8 @@ function getPswcWinnerCount(username) {
                 if (id === 'hermes_boss') previewType = 'HM';
                 if (id === 'demeter_boss') previewType = 'DM';
                 if (id === 'light_floor') previewType = 'LF';
-                drawTile(ctx, 0, 0, 64, 64, previewType);
+                if (id === 'trap_block') previewType = 'TP';
+                drawTile(ctx, 0, 0, 64, 64, previewType, previewType === 'TP' ? .5 : 0);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
             }
@@ -5943,7 +5947,7 @@ function getPswcWinnerCount(username) {
             common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', '^N', 'C', 'q', 'k', 'r', 'b', '!'],
             rare: ['Y', 'SN', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'IE', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['LF', 'hr', 'hb', 'e', '#', 'TW'],
-            legendary: ['V', 'BH', 'sp', 'mg', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
+            legendary: ['V', 'BH', 'sp', 'mg', 'TP', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
             aurora: ['IC', 'WH']
         };
         const TOOL_RANK_LABELS = {
@@ -5958,7 +5962,7 @@ function getPswcWinnerCount(username) {
         // ブロック系 → 敵・トゲ・銃 → R/B系 → 特殊系
         const CREATOR_TOOL_CATEGORY_ORDER = [
             'T', 'TD', 'X', 'H', '>N', '<N', 'vN', '^N', 'Y', 'SN', 'LF', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
-            'k', 'q', 'y', 'j', 'IE', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
+            'k', 'q', 'y', 'TP', 'j', 'IE', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
             'r', 'b', '!', 'J', 'hr', 'hb',
             'W', 'L', 'U', 'd', 'TW', 'P', 'C', 'KG', 'BH', 'WH', 'sp', 'EC'
         ];
@@ -10272,6 +10276,7 @@ function getPswcWinnerCount(username) {
             if (key === 'Y') return claimedRoadRewards.includes(3);
             if (key === 'SN') return purchasedSkins.includes('snow_block');
             if (key === 'LF') return purchasedSkins.includes('light_floor');
+            if (key === 'TP') return purchasedSkins.includes('trap_block');
             if (key === 'CB') return purchasedSkins.includes('crack_block');
             if (key === 'HBK') return purchasedSkins.includes('half_block');
             if (['TL', 'TR'].includes(key)) return purchasedSkins.includes('side_trampoline_set');
@@ -10595,6 +10600,7 @@ function getPswcWinnerCount(username) {
             // 雪
             if(document.getElementById('btn-tool-SN')) document.getElementById('btn-tool-SN').style.display = hasCreatorToolOwnership('SN') ? 'flex' : 'none';
             if(document.getElementById('btn-tool-LF')) document.getElementById('btn-tool-LF').style.display = hasCreatorToolOwnership('LF') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-TP')) document.getElementById('btn-tool-TP').style.display = hasCreatorToolOwnership('TP') ? 'flex' : 'none';
             // クラックブロック
             if(document.getElementById('btn-tool-CB')) document.getElementById('btn-tool-CB').style.display = purchasedSkins.includes('crack_block') ? 'flex' : 'none';
             // ハーフブロック
@@ -10767,8 +10773,8 @@ function getPswcWinnerCount(username) {
             if (editorAnimId) cancelAnimationFrame(editorAnimId);
             (function editorLoop() {
                 const t = document.getElementById('stage-type-select')?.value || 'normal';
-                const hasMovingWind = editorGrid.some(row => row.some(tile => ['W', 'TW', 'L', 'U', 'd', 'J'].includes(tile)));
-                if (document.getElementById('editor-screen').style.display !== 'none' && (t !== 'normal' || hasMovingWind)) {
+                const hasAnimatedTile = editorGrid.some(row => row.some(tile => ['W', 'TW', 'L', 'U', 'd', 'J', 'TP'].includes(tile)));
+                if (document.getElementById('editor-screen').style.display !== 'none' && (t !== 'normal' || hasAnimatedTile)) {
                     drawEditor();
                 }
                 editorAnimId = requestAnimationFrame(editorLoop);
@@ -10835,7 +10841,7 @@ function getPswcWinnerCount(username) {
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'RT', id:'icon-RT'}, {type:'BT', id:'icon-BT'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, {type:'TW', id:'icon-TW'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'IE', id:'icon-IE'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'}, {type:'WH', id:'icon-WH'},
-                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'^N', id:'icon-uow'}, {type:'C', id:'icon-C'}, {type:'AC', id:'icon-AC'},
+                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'^N', id:'icon-uow'}, {type:'C', id:'icon-C'}, {type:'TP', id:'icon-TP'}, {type:'AC', id:'icon-AC'},
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'SN', id:'icon-SN'}, {type:'LF', id:'icon-LF'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
@@ -10862,7 +10868,7 @@ function getPswcWinnerCount(username) {
                     ctx.clearRect(0, 0, 60, 60);
                     if (tool.type === 'E') drawEraserIcon(ctx, 60, 60);
                     // アイコンは制作中の面・ステージタイプに影響されない静的プレビューにする。
-                    else drawTile(ctx, 0, 0, 60, 60, tool.type, 0, 'normal', false);
+                    else drawTile(ctx, 0, 0, 60, 60, tool.type, tool.type === 'TP' ? .5 : 0, 'normal', false);
                     if (button) button.classList.add('tool-icon-ready');
                 } catch (error) {
                     // 個別ブロックの描画エラーでバー全体が透明になることを防ぐ。
@@ -11207,7 +11213,7 @@ function getPswcWinnerCount(username) {
                     ctx.strokeStyle = "rgba(255,255,255,0.3)";
                     ctx.strokeRect(x*cw, y*ch, cw, ch);
                     const tile = editorGrid[y] && editorGrid[y][x];
-                    if(tile) drawTile(ctx, x, y, cw, ch, tile, time, editorStageType);
+                    if(tile) drawTile(ctx, x, y, cw, ch, tile, tile === 'TP' ? Date.now() / 1000 : time, editorStageType);
                 }
             }
 
@@ -11444,6 +11450,26 @@ function getPswcWinnerCount(username) {
             ctx.restore();
         }
 
+        const TRAP_TOGGLE_FRAMES = 60;
+        const TRAP_ANIMATION_FRAMES = 15;
+        function getTrapBlockState(frameValue = frameCount) {
+            const cycleFrames = TRAP_TOGGLE_FRAMES * 2;
+            const phase = ((Math.floor(frameValue) % cycleFrames) + cycleFrames) % cycleFrames;
+            if (phase < TRAP_TOGGLE_FRAMES) {
+                // 突出アニメーション中は、見た目だけ伸ばして攻撃判定を持たせない。
+                return {
+                    progress: Math.min(1, phase / TRAP_ANIMATION_FRAMES),
+                    dangerous: phase >= TRAP_ANIMATION_FRAMES
+                };
+            }
+            const retractFrame = phase - TRAP_TOGGLE_FRAMES;
+            return {
+                progress: Math.max(0, 1 - retractFrame / TRAP_ANIMATION_FRAMES),
+                // 収納アニメーションの前半だけ攻撃判定を残し、後半は安全にする。
+                dangerous: retractFrame < Math.ceil(TRAP_ANIMATION_FRAMES / 2)
+            };
+        }
+
         function drawTile(ctx, x, y, cw, ch, type, time = 0, stageType = currentStageType, clipToTile = true) {
             // 各ブロックの描画は自分のマス（ビッグ時は2x2マス）の背景内に限定する。
             // エフェクトや線が隣接マス・ステージ外へはみ出さないようにするための共通クリップ。
@@ -11575,6 +11601,36 @@ function getPswcWinnerCount(username) {
                 // トロールでは見た目だけ通常ブロックと交換し、判定はKのまま。
                 if (stageType === 'troll') drawNormalBlock('normal', false);
                 else drawNormalSpike();
+            } else if(type === 'TP') {
+                // 1秒ごとに突出／収納するトラップ。timeは秒として受け取る。
+                const trap = getTrapBlockState(time * 60);
+                const left = x * cw + pad;
+                const right = x * cw + cw - pad;
+                const bottom = y * ch + ch - pad;
+                const baseHeight = Math.max(2, ch * .22);
+                const spikeHeight = Math.max(0, (ch - baseHeight - pad * 2) * trap.progress);
+                ctx.fillStyle = '#252b35';
+                ctx.fillRect(left, bottom - baseHeight, right - left, baseHeight);
+                ctx.fillStyle = '#f3b62f';
+                for (let stripe = 0; stripe < 4; stripe++) {
+                    ctx.fillRect(left + (right - left) * (stripe / 4), bottom - baseHeight, (right - left) * .11, baseHeight);
+                }
+                if (spikeHeight > .5) {
+                    const toothWidth = (right - left) / 3;
+                    ctx.fillStyle = trap.dangerous ? '#ef3e4d' : '#aeb7c4';
+                    ctx.beginPath();
+                    ctx.moveTo(left, bottom - baseHeight);
+                    for (let tooth = 0; tooth < 3; tooth++) {
+                        const start = left + toothWidth * tooth;
+                        ctx.lineTo(start + toothWidth * .5, bottom - baseHeight - spikeHeight);
+                        ctx.lineTo(start + toothWidth, bottom - baseHeight);
+                    }
+                    ctx.fill();
+                    ctx.strokeStyle = trap.dangerous ? '#ffd2d6' : '#e8edf4';
+                    ctx.lineWidth = Math.max(1, Math.min(cw, ch) * .035);
+                    ctx.stroke();
+                    ctx.lineWidth = 1;
+                }
             } else if(type === 'A') {
                 // 弓発射台
                 ctx.fillStyle = "#455a64";
@@ -13071,7 +13127,7 @@ function getPswcWinnerCount(username) {
             for(let y=0; y<previewH; y++){
                 if (!data[y] || !Array.isArray(data[y])) continue; // 行が配列でない場合は飛ばす
                 for(let x=0; x<previewW; x++){
-                    if(data[y][x]) drawTile(ctx, x, y, cw, ch, data[y][x], 0, stageType);
+                    if(data[y][x]) drawTile(ctx, x, y, cw, ch, data[y][x], data[y][x] === 'TP' ? .5 : 0, stageType);
                 }
             }
         }
@@ -13232,7 +13288,7 @@ function getPswcWinnerCount(username) {
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','CB','HBK','S','G','WG','KG','K','M','IE','E','A','T','TD','RT','BT','TL','TR','X','W','TW','L','U','P','H','AC',
+            'B','CB','HBK','S','G','WG','KG','K','TP','M','IE','E','A','T','TD','RT','BT','TL','TR','X','W','TW','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','^N','C','q','k','r','b','!','Y','SN','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','WH','sp','mg','BB','BBN','LM','WC','WCN','IC',
             'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB','LF'
@@ -16138,6 +16194,7 @@ function getPswcWinnerCount(username) {
 
             const largePlayerTouches = type => isSmallStageType(currentStageType) && isTouchingType(player.x, player.y, type);
             if (tile === 'K' || footTile === 'K' || largePlayerTouches('K')) handlePlayerDeath();
+            if (getTrapBlockState(frameCount).dangerous && isTouchingType(player.x, player.y, 'TP')) handlePlayerDeath();
             if (isSwitchOn && (tile === 'k' || footTile === 'k' || largePlayerTouches('k'))) handlePlayerDeath();
             if (!isSwitchOn && (tile === 'q' || footTile === 'q' || largePlayerTouches('q'))) handlePlayerDeath();
             if (tile === 'y' || footTile === 'y' || largePlayerTouches('y')) handlePlayerDeath();
@@ -16907,7 +16964,7 @@ function getPswcWinnerCount(username) {
             for (let i = 0; i < dynamicTiles.length; i++) {
                 const t = dynamicTiles[i];
                 // ターンウィンドだけは端末時刻ではなくステージ開始フレームを基準にし、必ず右向きから始める。
-                const tileTime = t.type === 'TW' ? frameCount / 30 : time;
+                const tileTime = t.type === 'TW' ? frameCount / 30 : (t.type === 'TP' ? frameCount / 60 : time);
                 drawTile(cachedGameCtx, t.big ? t.x / 2 : t.x, t.big ? t.y / 2 : t.y,
                     t.big ? cw * 2 : cw, t.big ? ch * 2 : ch, t.type, tileTime);
             }
@@ -17394,7 +17451,7 @@ function getPswcWinnerCount(username) {
                 cachedGameCtx.drawImage(stageCacheCanvas, 0, 0);
                 for (let i = 0; i < dynamicTiles.length; i++) {
                     const t = dynamicTiles[i];
-                    const tileTime = t.type === 'TW' ? frameCount / 30 : time;
+                    const tileTime = t.type === 'TW' ? frameCount / 30 : (t.type === 'TP' ? frameCount / 60 : time);
                     // 通常描画と同じビッグ座標補正を使う。ここだけ補正が無いと、
                     // 暗闇で炎・ワープ・風などが半分の大きさで右下へずれる。
                     drawTile(cachedGameCtx, t.big ? t.x / 2 : t.x, t.big ? t.y / 2 : t.y,
