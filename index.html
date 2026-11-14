@@ -16194,7 +16194,7 @@ function getPswcWinnerCount(username) {
 
             const largePlayerTouches = type => isSmallStageType(currentStageType) && isTouchingType(player.x, player.y, type);
             if (tile === 'K' || footTile === 'K' || largePlayerTouches('K')) handlePlayerDeath();
-            if (getTrapBlockState(frameCount).dangerous && isTouchingType(player.x, player.y, 'TP')) handlePlayerDeath();
+            if (getTrapBlockState(frameCount).dangerous && (tile === 'TP' || footTile === 'TP' || largePlayerTouches('TP'))) handlePlayerDeath();
             if (isSwitchOn && (tile === 'k' || footTile === 'k' || largePlayerTouches('k'))) handlePlayerDeath();
             if (!isSwitchOn && (tile === 'q' || footTile === 'q' || largePlayerTouches('q'))) handlePlayerDeath();
             if (tile === 'y' || footTile === 'y' || largePlayerTouches('y')) handlePlayerDeath();
