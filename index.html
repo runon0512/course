@@ -2541,7 +2541,7 @@
             <button id="menu-play" class="pixel-btn" data-i18n="home.play" onclick="openStageSelect()">プレイ</button>
             <button id="menu-create" class="pixel-btn" data-i18n="home.create" onclick="startEditor()">ステージ制作</button>
             <button id="menu-locker" class="pixel-btn" data-i18n="home.locker" onclick="openLocker()">ロッカー</button>
-            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice">0.5周年前夜祭 Day6</span></button>
+            <button id="menu-shop" class="pixel-btn" onclick="openShop(false, 'daily')"><span data-i18n="home.shop">ショップ</span><span class="shop-event-notice" style="display:none;">0.5周年記念ショップ 開催中！</span></button>
             <button id="guild-btn" class="pixel-btn" data-i18n="home.guild" onclick="openGuild()">ギルド</button>
             </div>
 
@@ -2580,17 +2580,17 @@
                     <div id="shopkeeper-speech" class="daily-shop-speech" onclick="showNextShopkeeperLine()">「いらっしゃい。今日の掘り出し物を、ゆっくり見ていって。」</div>
                 </aside>
                 <section class="daily-shop-stock">
-                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div class="stock-head-tools"><div id="daily-shop-date"></div><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab active" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">前夜祭</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div></div>
+                    <div class="daily-shop-stock-head"><b>本日の商品棚</b><div class="stock-head-tools"><div id="daily-shop-date"></div><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab active" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">0.5周年</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div></div>
                     <div class="shop-grid" id="shop-container"></div>
                 </section>
             </div>
             <div id="event-shop-interior" class="event-shop-interior" style="display:none;">
-                <div class="event-shop-empty">0.5 ANNIVERSARY EVE<span>0.5周年前夜祭ショップ</span></div>
-                <div class="event-shop-header"><span>前夜祭限定商品棚</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">前夜祭</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
+                <div class="event-shop-empty">0.5 ANNIVERSARY<span>0.5周年記念ショップ</span></div>
+                <div class="event-shop-header"><span>0.5周年限定商品棚</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">0.5周年</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
                 <div id="event-shop-container" class="event-shop-grid"></div>
             </div>
             <div id="trade-shop-interior" class="trade-shop-interior" style="display:none;">
-                <div class="event-shop-header"><span>TRADE MARKET</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">前夜祭</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
+                <div class="event-shop-header"><span>TRADE MARKET</span><div class="shop-switch-tabs"><button class="pixel-btn small shop-section-tab" data-shop-section="daily" onclick="switchShopSection('daily')">デイリー</button><button class="pixel-btn small shop-section-tab" data-shop-section="event" onclick="switchShopSection('event')">0.5周年</button><button class="pixel-btn small shop-section-tab" data-shop-section="trade" onclick="switchShopSection('trade')">トレード</button></div></div>
                 <div id="trade-market-content" class="trade-rate-card">Loading...</div>
             </div>
         </div>
@@ -3158,12 +3158,14 @@
                     <div class="tool-btn rank-common" onclick="setTool('vN', this)" title="ONEWAY DOWN"><canvas id="icon-v" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('^N', this)" title="ONEWAY UP"><canvas id="icon-uow" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" onclick="setTool('C', this)" title="CHECKPOINT"><canvas id="icon-C" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-PP" onclick="setTool('PP', this)" title="CRACKER BLOCK" style="display:none;"><canvas id="icon-PP" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-legendary" id="btn-tool-TP" onclick="setTool('TP', this)" title="TRAP BLOCK" style="display:none;"><canvas id="icon-TP" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-q" onclick="setTool('q', this)" title="BLUE SPIKE"><canvas id="icon-q" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-k" onclick="setTool('k', this)" title="RED SPIKE"><canvas id="icon-k" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-r" onclick="setTool('r', this)" title="RED BLOCK"><canvas id="icon-r" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-b" onclick="setTool('b', this)" title="BLUE BLOCK"><canvas id="icon-b" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-common" id="btn-tool-!" onclick="setTool('!', this)" title="R/B SWITCH"><canvas id="icon-!" class="tool-canvas"></canvas></div>
+                    <div class="tool-btn rank-legendary" id="btn-tool-RE" onclick="setTool('RE', this)" title="R/B ENEMY" style="display:none;"><canvas id="icon-RE" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-Y" onclick="setTool('Y', this)" title="SLOW BLOCK" style="display:none;"><canvas id="icon-Y" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-rare" id="btn-tool-SN" onclick="setTool('SN', this)" title="SNOW" style="display:none;"><canvas id="icon-SN" class="tool-canvas"></canvas></div>
                     <div class="tool-btn rank-epic" id="btn-tool-LF" onclick="setTool('LF', this)" title="LIGHT FLOOR" style="display:none;"><canvas id="icon-LF" class="tool-canvas"></canvas></div>
@@ -3551,6 +3553,8 @@ function getPswcWinnerCount(username) {
             'WG': { title: 'ワープゲート', text: '表面で入ると、同じ座標の裏面へワープします。' },
             'KG': { title: 'キラーゴール', text: '紫の特殊ゴールです。すべてのチェックポイントを取り、ボスを含む敵を全滅させるまで開きません。' },
             'K': { title: 'スパイク', text: '触れるとプレイヤーがやられる危険なトゲです。' },
+            'PP': { title: 'クラッカーブロック', text: '通常ブロックと同じ足場です。上に乗った瞬間だけ、0.5周年を祝うクラッカー音が鳴ります。' },
+            'RE': { title: 'R/B敵', text: 'Rのときは左、Bのときは右へ進み続ける敵です。壁に当たっても勝手に反転しません。' },
             'TP': { title: 'トラップブロック', text: '1秒ごとに棘が突出・収納されます。突出アニメーション中は安全で、収納アニメーションは前半だけ攻撃判定が残ります。' },
             'M': { title: '敵', text: '動く敵キャラクターです。ぶつかると死亡します。' },
             'IE': { title: 'IRON ENEMY', text: '鉄の体を持つ無敵の敵です。横・下から当たると死亡しますが、上から踏むと倒れず、そのまま足場として乗れます。キラーゴールの対象にはなりません。' },
@@ -3646,7 +3650,7 @@ function getPswcWinnerCount(username) {
         let bigStageActive = false;
         let bigStagePair = false;
         const BIG_SINGLE_TILES = new Set([
-            'S', 'M', 'IE', 'j', 'e', 'WCN', 'LF',
+            'S', 'M', 'RE', 'IE', 'j', 'e', 'WCN', 'LF',
             'PB', 'WB', 'BL', 'HS', 'HM', 'DM'
         ]);
         // ビッグの2x2展開後に、元の1マスを一意に示す左上座標を返す。
@@ -3696,7 +3700,7 @@ function getPswcWinnerCount(username) {
         let isDrawing = false; // エディタでの描画中フラグ 
         let gameLoopId = null;
         const BASE_PLAYER_SIZE = 0.9;
-        let player = { x: 0, y: 0, w: BASE_PLAYER_SIZE, h: BASE_PLAYER_SIZE, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0, skyJumpForce: -0.3, wasInSnow: false };
+        let player = { x: 0, y: 0, w: BASE_PLAYER_SIZE, h: BASE_PLAYER_SIZE, vx: 0, vy: 0, onGround: false, facing: 'right', onSwitch: false, hasKey: 0, skyJumpForce: -0.3, wasInSnow: false, crackerTileKey: null };
         let isSwitchOn = true;
         let keys = {};
         let pendingJumpPress = false;
@@ -4082,6 +4086,7 @@ function getPswcWinnerCount(username) {
         let lastKillerGoalEnemyCount = -1;
         let lastTime = 0;
         let dynamicTiles = []; // 動的ギミックのキャッシュ用
+        let crackerConfetti = []; // クラッカーブロックから噴き出す紙吹雪
         let lampPositions = []; // 暗闇ステージのランプ位置キャッシュ（毎フレームのグリッド走査を防ぐ）
         let candlePositions = [];
         let spawnerPositions = [];
@@ -4121,6 +4126,124 @@ function getPswcWinnerCount(username) {
         horizonBGM.loop = true;
         let bgmVolume = 0.7;
         let audioPreviewTrack = null;
+        let crackerAudioContext = null;
+
+        function playCrackerSound() {
+            if (isSchoolMode || bgmVolume <= 0) return;
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            try {
+                const audioContext = crackerAudioContext || (crackerAudioContext = new AudioContextClass());
+                if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+                const now = audioContext.currentTime;
+                const master = audioContext.createGain();
+                master.gain.setValueAtTime(Math.max(.03, bgmVolume * .34), now);
+                master.gain.exponentialRampToValueAtTime(.001, now + .24);
+                master.connect(audioContext.destination);
+
+                const pop = audioContext.createOscillator();
+                pop.type = 'square';
+                pop.frequency.setValueAtTime(210, now);
+                pop.frequency.exponentialRampToValueAtTime(70, now + .09);
+                pop.connect(master);
+                pop.start(now);
+                pop.stop(now + .11);
+
+                const length = Math.max(1, Math.floor(audioContext.sampleRate * .22));
+                const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+                const noise = audioContext.createBufferSource();
+                const noiseGain = audioContext.createGain();
+                noise.buffer = buffer;
+                noiseGain.gain.setValueAtTime(.5, now);
+                noiseGain.gain.exponentialRampToValueAtTime(.001, now + .22);
+                noise.connect(noiseGain);
+                noiseGain.connect(master);
+                noise.start(now);
+            } catch (_) {}
+        }
+
+        function updateCrackerBlockStep() {
+            if (!player.onGround || !Array.isArray(activeStage)) {
+                player.crackerTileKey = null;
+                return;
+            }
+            const tileY = Math.floor(player.y + player.h + .025);
+            const leftTile = Math.max(0, Math.floor(player.x + .05));
+            const rightTile = Math.min(GRID_W - 1, Math.floor(player.x + player.w - .05));
+            let tileX = -1;
+            if (tileY >= 0 && tileY < GRID_H) {
+                for (let x = leftTile; x <= rightTile; x++) {
+                    if (activeStage[tileY]?.[x] === 'PP') { tileX = x; break; }
+                }
+            }
+            if (tileX < 0) {
+                player.crackerTileKey = null;
+                return;
+            }
+            // ビッグの2x2展開では、同じ元ブロック内の4マスを1つとして扱う。
+            const originX = bigStageActive ? tileX & ~1 : tileX;
+            const originY = bigStageActive ? tileY & ~1 : tileY;
+            const tileKey = `${isUsingBackFace ? 'back' : 'front'}:${originX},${originY}`;
+            if (player.crackerTileKey !== tileKey) {
+                playCrackerSound();
+                spawnCrackerConfetti(bigStageActive ? originX + .5 : tileX, originY);
+            }
+            player.crackerTileKey = tileKey;
+        }
+
+        function spawnCrackerConfetti(tileX, tileY) {
+            const colors = ['#ff3d8d', '#ffda3d', '#54e8ff', '#7cff77', '#b477ff', '#ffffff'];
+            const face = isUsingBackFace ? 1 : 0;
+            for (let i = 0; i < 28; i++) {
+                const direction = i % 2 === 0 ? -1 : 1;
+                crackerConfetti.push({
+                    x: tileX + .5 + direction * Math.random() * .12,
+                    y: tileY + .06,
+                    vx: direction * (.025 + Math.random() * .085),
+                    vy: -(.105 + Math.random() * .12),
+                    gravity: .0045 + Math.random() * .003,
+                    life: 52 + Math.floor(Math.random() * 32),
+                    maxLife: 84,
+                    color: colors[i % colors.length],
+                    rotation: Math.random() * Math.PI,
+                    spin: (Math.random() - .5) * .38,
+                    face
+                });
+            }
+            // 連続発動しても描画負荷が増え続けないよう、古い紙吹雪から制限する。
+            if (crackerConfetti.length > 280) crackerConfetti.splice(0, crackerConfetti.length - 280);
+        }
+
+        function updateCrackerConfetti() {
+            for (let i = crackerConfetti.length - 1; i >= 0; i--) {
+                const piece = crackerConfetti[i];
+                piece.x += piece.vx;
+                piece.y += piece.vy;
+                piece.vy += piece.gravity;
+                piece.vx *= .992;
+                piece.rotation += piece.spin;
+                piece.life--;
+                if (piece.life <= 0 || piece.y > GRID_H + 1) crackerConfetti.splice(i, 1);
+            }
+        }
+
+        function drawCrackerConfetti(ctx, cw, ch) {
+            const activeFace = isUsingBackFace ? 1 : 0;
+            ctx.save();
+            for (let i = 0; i < crackerConfetti.length; i++) {
+                const piece = crackerConfetti[i];
+                if (piece.face !== activeFace) continue;
+                ctx.globalAlpha = Math.max(0, Math.min(1, piece.life / 18));
+                ctx.fillStyle = piece.color;
+                ctx.translate(piece.x * cw, piece.y * ch);
+                ctx.rotate(piece.rotation);
+                ctx.fillRect(-cw * .055, -ch * .025, cw * .11, ch * .05);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+            }
+            ctx.restore();
+        }
 
         function applyBgmVolume() {
             stageBGM.volume = bgmVolume;
@@ -4615,6 +4738,8 @@ function getPswcWinnerCount(username) {
             'small_stage': { name: 'SMALL', price: 25, isES: true, isStageType: true, sprite: null },
             'light_floor': { name: 'LIGHT FLOOR', price: 50, isES: true, isBlockSet: true, sprite: null },
             'trap_block': { name: 'TRAP BLOCK', price: 50, isES: true, isBlockSet: true, sprite: null },
+            'cracker_block': { name: 'CRACKER BLOCK', price: 0, isBlockSet: true, sprite: null },
+            'rb_enemy': { name: 'R/B ENEMY', price: 0, isBlockSet: true, sprite: null },
             'rai_alvaro_stage': { name: 'RAI ALVARO STAGE', price: 50, isStageType: true, isCollab: true, isES: true, sprite: null },
             // ステージ購入の特典スキン。単独ではショップに並べず、ロッカーでのみ選択できる。
             'rai_alvaro': { name: 'RAI ALVARO', price: 0, sprite: RAI_ALVARO_SPRITE, recolorIndex: null, isHiddenShop: true }
@@ -4712,6 +4837,8 @@ function getPswcWinnerCount(username) {
         let editorFace = 'front';
         let editorFrontStageType = 'normal';
         let editorBackStageType = 'normal';
+        let editorDraftSaveTimer = null;
+        let activeEditorDraftOwner = null;
         function initGrid() {
             editorFrontGrid = createEmptyGrid();
             editorBackGrid = createEmptyGrid();
@@ -4722,6 +4849,89 @@ function getPswcWinnerCount(username) {
         }
         initGrid();
 
+        function getEditorDraftStorageKey() {
+            const owner = String(CONFIG.USERNAME || '').trim();
+            return owner ? `pixel_stages_editor_draft:${encodeURIComponent(owner)}` : '';
+        }
+
+        function syncEditorFaceUi() {
+            editorGrid = editorFace === 'front' ? editorFrontGrid : editorBackGrid;
+            const faceButton = document.getElementById('editor-face-btn');
+            if (faceButton) faceButton.innerText = editorFace === 'front' ? '🪞 裏面へ' : '🪞 表面へ';
+            const stageTypeSelect = document.getElementById('stage-type-select');
+            if (stageTypeSelect) {
+                stageTypeSelect.value = editorFace === 'front' ? editorFrontStageType : editorBackStageType;
+                stageTypeSelect.dataset.prevValue = stageTypeSelect.value;
+            }
+            refreshEditorStageTypePicker();
+            updateEruptionControlToolVisibility();
+        }
+
+        function saveEditorDraftNow() {
+            if (editorDraftSaveTimer) {
+                clearTimeout(editorDraftSaveTimer);
+                editorDraftSaveTimer = null;
+            }
+            const key = getEditorDraftStorageKey();
+            if (!key) return false;
+            try {
+                localStorage.setItem(key, JSON.stringify({
+                    version: 1,
+                    owner: CONFIG.USERNAME,
+                    front: editorFrontGrid,
+                    back: editorBackGrid,
+                    stageTypes: { front: editorFrontStageType, back: editorBackStageType },
+                    face: editorFace,
+                    updatedAt: Date.now()
+                }));
+                activeEditorDraftOwner = String(CONFIG.USERNAME);
+                return true;
+            } catch (error) {
+                console.warn('制作途中データを端末へ保存できませんでした:', error);
+                return false;
+            }
+        }
+
+        function scheduleEditorDraftSave() {
+            if (!CONFIG.IS_LOGGED_IN || !CONFIG.USERNAME) return;
+            if (editorDraftSaveTimer) clearTimeout(editorDraftSaveTimer);
+            editorDraftSaveTimer = setTimeout(saveEditorDraftNow, 180);
+        }
+
+        function restoreEditorDraftForCurrentUser() {
+            const owner = String(CONFIG.USERNAME || '');
+            if (!owner || activeEditorDraftOwner === owner) return false;
+            const key = getEditorDraftStorageKey();
+            let restored = false;
+            try {
+                const raw = key ? localStorage.getItem(key) : null;
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    if (!Array.isArray(data?.front)) throw new Error('invalid editor draft');
+                    editorFrontGrid = normalizeGrid(data.front);
+                    editorBackGrid = normalizeGrid(data.back || []);
+                    editorFrontStageType = data?.stageTypes?.front || 'normal';
+                    editorBackStageType = data?.stageTypes?.back || 'normal';
+                    editorFace = data.face === 'back' ? 'back' : 'front';
+                    restored = true;
+                } else {
+                    initGrid();
+                }
+            } catch (error) {
+                console.warn('制作途中データを復元できなかったため初期化しました:', error);
+                if (key) localStorage.removeItem(key);
+                initGrid();
+            }
+            activeEditorDraftOwner = owner;
+            syncEditorFaceUi();
+            resetClearCheck();
+            return restored;
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (CONFIG.IS_LOGGED_IN && CONFIG.USERNAME) saveEditorDraftNow();
+        });
+
         // ステージデータを規定のサイズ(GRID_H x GRID_W)に整形し、欠損を補完する
         function normalizeGrid(data) {
             const grid = Array(GRID_H).fill().map(() => Array(GRID_W).fill(null));
@@ -4731,7 +4941,9 @@ function getPswcWinnerCount(username) {
             for (let y = 0; y < Math.min(GRID_H, data.length); y++) {
                 if (data[y] && Array.isArray(data[y])) {
                     for (let x = 0; x < Math.min(GRID_W, data[y].length); x++) {
-                        grid[y][x] = data[y][x] || null;
+                        // 廃止済みの床型トグルスイッチは、古いローカル下書きでも空マスとして扱う。
+                        const tile = data[y][x];
+                        grid[y][x] = tile === 'TS' ? null : (tile || null);
                     }
                 }
             }
@@ -5512,7 +5724,9 @@ function getPswcWinnerCount(username) {
         }
 
         async function openShop(preserveShopkeeperLine = false, section = activeShopSection) {
+            const anniversaryShopOpen = isHalfAnniversaryShopPeriod();
             activeShopSection = ['daily', 'event', 'trade'].includes(section) ? section : 'daily';
+            if (activeShopSection === 'event' && !anniversaryShopOpen) activeShopSection = 'daily';
             const isDaily = activeShopSection === 'daily';
             const isEvent = activeShopSection === 'event';
             const isTrade = activeShopSection === 'trade';
@@ -5523,12 +5737,13 @@ function getPswcWinnerCount(username) {
             document.getElementById('event-shop-interior').style.display = isEvent ? 'flex' : 'none';
             document.getElementById('trade-shop-interior').style.display = isTrade ? 'flex' : 'none';
             document.querySelectorAll('[data-shop-section]').forEach(button => {
+                if (button.dataset.shopSection === 'event') button.style.display = anniversaryShopOpen ? '' : 'none';
                 button.classList.toggle('active', button.dataset.shopSection === activeShopSection);
             });
-            overlay.querySelector('.daily-shop-sign').innerText = isDaily ? 'DAILY SHOP' : (isEvent ? '0.5 ANNIVERSARY EVE' : 'TRADE MARKET');
+            overlay.querySelector('.daily-shop-sign').innerText = isDaily ? 'DAILY SHOP' : (isEvent ? '0.5 ANNIVERSARY' : 'TRADE MARKET');
             overlay.querySelector('.daily-shop-subtitle').innerText = isDaily
                 ? '本日の入荷品　—　毎日0:00（JST）更新'
-                : (isEvent ? '0.5周年前夜祭ショップ 開催中' : '全プレイヤー共通のAS相場');
+                : (isEvent ? '11/17〜11/20　0.5周年記念ショップ 開催中' : '全プレイヤー共通のAS相場');
             if (isEvent) {
                 renderEventShop();
                 return;
@@ -5653,11 +5868,17 @@ function getPswcWinnerCount(username) {
             const container = document.getElementById('event-shop-container');
             if (!container) return;
             container.innerHTML = '';
-            ['highspeed_stage', 'small_stage', 'light_floor', 'trap_block'].forEach(id => {
+            if (!isHalfAnniversaryShopPeriod()) {
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#ffe2f1;">0.5周年記念ショップは11/17〜11/20限定です。</div>';
+                return;
+            }
+            const anniversaryItems = ['cracker_block'];
+            if (isHalfAnniversaryDay()) anniversaryItems.push('rb_enemy');
+            anniversaryItems.forEach(id => {
                 const item = SKINS[id];
                 if (!item) return;
                 createShopItem(container, id, item, purchasedSkins.includes(id), false,
-                    event => buyItem(id, item.price, event.target, 'ES'));
+                    event => buyItem(id, item.price, event.target, 'gold'));
             });
         }
 
@@ -5850,6 +6071,8 @@ function getPswcWinnerCount(username) {
                 if (id === 'demeter_boss') previewType = 'DM';
                 if (id === 'light_floor') previewType = 'LF';
                 if (id === 'trap_block') previewType = 'TP';
+                if (id === 'cracker_block') previewType = 'PP';
+                if (id === 'rb_enemy') previewType = 'RE';
                 drawTile(ctx, 0, 0, 64, 64, previewType, previewType === 'TP' ? .5 : 0);
             } else {
                 drawPlayer(ctx, 0, 0, 64, 64, id, false, 'default', customSpriteStore[id]);
@@ -5947,7 +6170,7 @@ function getPswcWinnerCount(username) {
             common: ['A', 'T', 'TD', 'X', 'W', 'L', 'U', 'P', 'H', '>', '<', 'v', '^N', 'C', 'q', 'k', 'r', 'b', '!'],
             rare: ['Y', 'SN', 'CB', 'HBK', 'TL', 'TR', 'd', 'J', 'j', 'IE', 'y', 'ug', 'dg', 'rg', 'I', 'KG', 'Z', 'o', 'D', 'BB', 'LM', 'CA', 'WC', 'WCN', 'SM', 'FL', 'GB'],
             epic: ['LF', 'hr', 'hb', 'e', '#', 'TW'],
-            legendary: ['V', 'BH', 'sp', 'mg', 'TP', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
+            legendary: ['V', 'BH', 'sp', 'mg', 'PP', 'RE', 'TP', 'EC', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'],
             aurora: ['IC', 'WH']
         };
         const TOOL_RANK_LABELS = {
@@ -5958,13 +6181,14 @@ function getPswcWinnerCount(username) {
             aurora: 'Aurora'
         };
 
-        // 下部バーは役割ごとに一定の順番で並べる。
-        // ブロック系 → 敵・トゲ・銃 → R/B系 → 特殊系
+        // 下部バーはジャンル順に固定する。
+        // ブロック・足場 → 移動・風 → 敵・危険・銃 → R/B → 進行・特殊
         const CREATOR_TOOL_CATEGORY_ORDER = [
-            'T', 'TD', 'X', 'H', '>N', '<N', 'vN', '^N', 'Y', 'SN', 'LF', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
-            'k', 'q', 'y', 'TP', 'j', 'IE', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
+            'T', 'TD', 'H', '>N', '<N', 'vN', '^N', 'Y', 'SN', 'LF', 'PP', 'CB', 'HBK', 'TL', 'TR', 'BBN', 'I', 'Z', 'o', 'D', '#', 'V', 'LM', 'CA', 'WCN', 'SM', 'FL', 'GB', 'IC',
+            'X', 'W', 'L', 'U', 'd', 'TW', 'P', 'BH', 'WH',
+            'k', 'q', 'y', 'TP', 'RE', 'j', 'IE', 'e', 'A', 'ug', 'dg', 'rg', 'mg', 'sp', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM',
             'r', 'b', '!', 'J', 'hr', 'hb',
-            'W', 'L', 'U', 'd', 'TW', 'P', 'C', 'KG', 'BH', 'WH', 'sp', 'EC'
+            'C', 'KG', 'EC'
         ];
 
         function arrangeCreatorToolsByCategory() {
@@ -6262,6 +6486,8 @@ function getPswcWinnerCount(username) {
 
         // --- ログインボーナス関連 ---
         const HALF_ANNIVERSARY_DATE = '2026-11-17';
+        const HALF_ANNIVERSARY_SHOP_START = '2026-11-17';
+        const HALF_ANNIVERSARY_SHOP_END = '2026-11-20';
         function getJstDateString(date = new Date()) {
             const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
             const jstDate = new Date(utc + (3600000 * 9));
@@ -6275,6 +6501,10 @@ function getPswcWinnerCount(username) {
             return dateString === HALF_ANNIVERSARY_DATE;
         }
 
+        function isHalfAnniversaryShopPeriod(dateString = getJstDateString()) {
+            return dateString >= HALF_ANNIVERSARY_SHOP_START && dateString <= HALF_ANNIVERSARY_SHOP_END;
+        }
+
         function applyHalfAnniversaryHomeTheme() {
             const container = document.querySelector('.container');
             if (!container) return;
@@ -6282,6 +6512,8 @@ function getPswcWinnerCount(username) {
             container.classList.toggle('half-anniversary-home', active);
             const bonusButton = document.getElementById('login-bonus-btn');
             if (bonusButton) bonusButton.innerText = active ? '♡ 0.5周年ボーナス 50,000G' : '🎁 ボーナス';
+            const shopNotice = document.querySelector('.shop-event-notice');
+            if (shopNotice) shopNotice.style.display = isHalfAnniversaryShopPeriod() ? 'block' : 'none';
         }
 
         function openLoginBonus(autoOpen = false) {
@@ -10276,6 +10508,8 @@ function getPswcWinnerCount(username) {
             if (key === 'Y') return claimedRoadRewards.includes(3);
             if (key === 'SN') return purchasedSkins.includes('snow_block');
             if (key === 'LF') return purchasedSkins.includes('light_floor');
+            if (key === 'PP') return purchasedSkins.includes('cracker_block');
+            if (key === 'RE') return purchasedSkins.includes('rb_enemy');
             if (key === 'TP') return purchasedSkins.includes('trap_block');
             if (key === 'CB') return purchasedSkins.includes('crack_block');
             if (key === 'HBK') return purchasedSkins.includes('half_block');
@@ -10429,6 +10663,7 @@ function getPswcWinnerCount(username) {
             refreshEditorStageTypePicker();
             drawEditor();
             updateEruptionControlToolVisibility();
+            scheduleEditorDraftSave();
         }
 
         const EDITOR_STAGE_TYPE_COLORS = {
@@ -10551,6 +10786,7 @@ function getPswcWinnerCount(username) {
             isDrawing = false;
             resetGameGridSize();
             activeStage = [];
+            restoreEditorDraftForCurrentUser();
             // エディタ背景をリセット
             const container = document.querySelector('.container');
             container.classList.remove('bg-city', 'bg-night', 'bg-cloudy', 'bg-sunset', 'bg-hell', 'bg-heaven', 'bg-heaven-plus', 'bg-bw', 'bg-aurora', 'bg-limit', 'bg-water', 'bg-dark', 'bg-volcano', 'bg-clear-sky');
@@ -10600,6 +10836,8 @@ function getPswcWinnerCount(username) {
             // 雪
             if(document.getElementById('btn-tool-SN')) document.getElementById('btn-tool-SN').style.display = hasCreatorToolOwnership('SN') ? 'flex' : 'none';
             if(document.getElementById('btn-tool-LF')) document.getElementById('btn-tool-LF').style.display = hasCreatorToolOwnership('LF') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-PP')) document.getElementById('btn-tool-PP').style.display = hasCreatorToolOwnership('PP') ? 'flex' : 'none';
+            if(document.getElementById('btn-tool-RE')) document.getElementById('btn-tool-RE').style.display = hasCreatorToolOwnership('RE') ? 'flex' : 'none';
             if(document.getElementById('btn-tool-TP')) document.getElementById('btn-tool-TP').style.display = hasCreatorToolOwnership('TP') ? 'flex' : 'none';
             // クラックブロック
             if(document.getElementById('btn-tool-CB')) document.getElementById('btn-tool-CB').style.display = purchasedSkins.includes('crack_block') ? 'flex' : 'none';
@@ -10789,6 +11027,7 @@ function getPswcWinnerCount(username) {
         }
 
         function exitEditor() {
+            saveEditorDraftNow();
             if (editorAnimId) { cancelAnimationFrame(editorAnimId); editorAnimId = null; }
             document.getElementById('editor-screen').style.display = 'none';
             // UI非表示状態が残らないようリセット
@@ -10822,8 +11061,10 @@ function getPswcWinnerCount(username) {
         function clearStage() {
             if (confirm("本当に全削除しますか？\n※ クリアチェックも取り消されます。")) {
                 initGrid();
+                syncEditorFaceUi();
                 resetClearCheck();
                 drawEditor();
+                saveEditorDraftNow();
             }
         }
 
@@ -10841,7 +11082,7 @@ function getPswcWinnerCount(username) {
                 {type:'A', id:'icon-A'}, {type:'T', id:'icon-T'}, {type:'TD', id:'icon-TD'}, {type:'RT', id:'icon-RT'}, {type:'BT', id:'icon-BT'}, {type:'X', id:'icon-X'}, {type:'W', id:'icon-W'}, {type:'TW', id:'icon-TW'}, 
                 {type:'L', id:'icon-L'}, {type:'U', id:'icon-U'}, {type:'P', id:'icon-P'}, {type:'H', id:'icon-H'}, 
                 {type:'M', id:'icon-M'}, {type:'IE', id:'icon-IE'}, {type:'!', id:'icon-!'}, {type:'r', id:'icon-r'}, {type:'b', id:'icon-b'}, {type:'V', id:'icon-V'}, {type:'BH', id:'icon-BH'}, {type:'WH', id:'icon-WH'},
-                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'^N', id:'icon-uow'}, {type:'C', id:'icon-C'}, {type:'TP', id:'icon-TP'}, {type:'AC', id:'icon-AC'},
+                {type:'>N', id:'icon-owr'}, {type:'<N', id:'icon-owl'}, {type:'vN', id:'icon-v'}, {type:'^N', id:'icon-uow'}, {type:'C', id:'icon-C'}, {type:'PP', id:'icon-PP'}, {type:'RE', id:'icon-RE'}, {type:'TP', id:'icon-TP'}, {type:'AC', id:'icon-AC'},
                 {type:'k', id:'icon-k'}, {type:'q', id:'icon-q'}, {type:'Y', id:'icon-Y'}, {type:'SN', id:'icon-SN'}, {type:'LF', id:'icon-LF'}, {type:'d', id:'icon-d'}, {type:'J', id:'icon-J'}, 
                 {type:'j', id:'icon-j'}, {type:'y', id:'icon-y'}, {type:'Z', id:'icon-Z'}, {type:'o', id:'icon-o'}, {type:'D', id:'icon-D'}, 
                 {type:'hr', id:'icon-hr'}, {type:'hb', id:'icon-hb'}, {type:'e', id:'icon-e'}, {type:'#', id:'icon-#'}, {type:'sp', id:'icon-sp'}, {type:'mg', id:'icon-mg'}, {type:'E', id:'icon-E'}, {type:'BBN', id:'icon-BB'},
@@ -11132,6 +11373,7 @@ function getPswcWinnerCount(username) {
                     isClearChecked = false;
                     checkedGridSnapshot = null;
                     drawEditor();
+                    scheduleEditorDraftSave();
                 }
             }
         }
@@ -11150,6 +11392,7 @@ function getPswcWinnerCount(username) {
                         isClearChecked = false;
                         checkedGridSnapshot = null;
                         drawEditor();
+                        scheduleEditorDraftSave();
                     }
                 } else {
                     if (currentTool === 'EC') {
@@ -11195,6 +11438,7 @@ function getPswcWinnerCount(username) {
                     isClearChecked = false;
                     checkedGridSnapshot = null;
                     drawEditor();
+                    scheduleEditorDraftSave();
                 }
             }
         }
@@ -11500,9 +11744,31 @@ function getPswcWinnerCount(username) {
                 }
             };
 
-            if(type === 'B') {
+            if(type === 'B' || type === 'PP') {
+                // プレイ中などは通常ブロックと同じ。制作キャンバスと制作バーだけ識別マークを重ねる。
                 if (stageType === 'troll') drawNormalSpike();
                 else drawNormalBlock();
+                const showCrackerEditorMark = type === 'PP'
+                    && (ctx.canvas?.id === 'editor-canvas' || ctx.canvas?.id === 'icon-PP');
+                if (showCrackerEditorMark) {
+                    ctx.save();
+                    ctx.fillStyle = '#ff4f9a';
+                    ctx.beginPath();
+                    ctx.moveTo(x * cw + cw * .25, y * ch + ch * .76);
+                    ctx.lineTo(x * cw + cw * .48, y * ch + ch * .34);
+                    ctx.lineTo(x * cw + cw * .63, y * ch + ch * .87);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff4a8';
+                    ctx.lineWidth = Math.max(1, Math.min(cw, ch) * .055);
+                    [[.53,.27,.58,.14],[.62,.31,.76,.23],[.48,.25,.41,.13],[.70,.40,.84,.40]].forEach(line => {
+                        ctx.beginPath();
+                        ctx.moveTo(x * cw + cw * line[0], y * ch + ch * line[1]);
+                        ctx.lineTo(x * cw + cw * line[2], y * ch + ch * line[3]);
+                        ctx.stroke();
+                    });
+                    ctx.restore();
+                }
             } else if(type === 'CB') {
                 // クラックブロック: 通常ブロックより少し明るく、ひびで崩れやすさを示す。
                 ctx.fillStyle = '#795548';
@@ -11893,6 +12159,21 @@ function getPswcWinnerCount(username) {
                 ctx.fillStyle = "#fff";
                 ctx.fillRect(x*cw + cw*0.2, y*ch + ch*0.4, cw*0.2, ch*0.2);
                 ctx.fillRect(x*cw + cw*0.6, y*ch + ch*0.4, cw*0.2, ch*0.2);
+            } else if(type === 'RE') {
+                // R/B敵: 現在の状態と進行方向がひと目で分かるアイコン。
+                ctx.fillStyle = '#68727d';
+                ctx.fillRect(x*cw + cw*.1, y*ch + ch*.2, cw*.8, ch*.8);
+                ctx.fillStyle = '#8d98a4';
+                ctx.fillRect(x*cw + cw*.14, y*ch + ch*.24, cw*.72, ch*.12);
+                ctx.fillStyle = isSwitchOn ? '#ff5252' : '#448aff';
+                ctx.fillRect(x*cw + cw*.2, y*ch + ch*.4, cw*.18, ch*.18);
+                ctx.fillRect(x*cw + cw*.62, y*ch + ch*.4, cw*.18, ch*.18);
+                ctx.save();
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${Math.max(7, ch*.28)}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(isSwitchOn ? 'R ←' : 'B →', x*cw + cw*.5, y*ch + ch*.9);
+                ctx.restore();
             } else if(type === 'IE') {
                 // IRON ENEMY: 倒せない鉄製の敵。暗い鉄板、継ぎ目、リベットで区別する。
                 ctx.fillStyle = '#4b5963';
@@ -12578,6 +12859,7 @@ function getPswcWinnerCount(username) {
                 refreshEditorStageTypePicker();
                 resetClearCheck();
                 drawEditor();
+                saveEditorDraftNow();
                 closeStageCodeDialog();
                 showQuickMsg('ステージコードを読み込みました。投稿には再度クリアチェックが必要です。', 'var(--primary-color)');
             } catch (_) {
@@ -12605,6 +12887,7 @@ function getPswcWinnerCount(username) {
                 refreshEditorStageTypePicker();
                 resetClearCheck(); // 読み込み後はクリアチェックをリセット
                 drawEditor();
+                saveEditorDraftNow();
                 alert("保存データを読み込みました。\n※ 投稿するには再度クリアチェックが必要です。");
             }
             else { alert("保存データが見つかりません。"); }
@@ -13185,6 +13468,33 @@ function getPswcWinnerCount(username) {
 
         // このバージョンで対応しているステージタイプ
         const SUPPORTED_STAGE_TYPES = ['normal', 'freestyle', 'water', 'dark', 'deepsea', 'troll', 'mist', 'submarine_volcano', 'autorun', 'big', 'small', 'timeattack', 'hard', 'untouchable', 'solitude', 'volcano', 'moon', 'beach', 'sky', 'highspeed', 'rai_alvaro', 'rai_alvaro_v2'];
+        const STAGE_TYPE_DISPLAY_NAMES = Object.freeze({
+            normal: 'クラシック',
+            freestyle: 'フリースタイル',
+            water: 'ウォーター',
+            dark: 'ダーク',
+            deepsea: 'ディープシー',
+            troll: 'トロール',
+            mist: 'ミスト',
+            submarine_volcano: 'サブマリンボルケーノ',
+            autorun: 'オートラン',
+            big: 'ビッグ',
+            small: 'スモール',
+            timeattack: 'タイムアタック',
+            hard: 'ハード',
+            untouchable: 'アンタッチャブル',
+            solitude: 'ソリチュード',
+            volcano: 'ボルケーノ',
+            moon: 'ムーン',
+            beach: 'ビーチ',
+            sky: 'スカイ',
+            highspeed: 'ハイスピード',
+            rai_alvaro: 'ライ・アルバロ',
+            rai_alvaro_v2: 'ライ・アルバロ'
+        });
+        function getStageTypeDisplayName(type) {
+            return STAGE_TYPE_DISPLAY_NAMES[type] || STAGE_TYPE_DISPLAY_NAMES.normal;
+        }
         function getStageTypeForFace(stageType, face = 'front', fallback = 'normal') {
             let value = stageType;
             // 過去の保存形式（stageType / stageTypes が重なった形式）も順にほどく。
@@ -13288,7 +13598,7 @@ function getPswcWinnerCount(username) {
 
         // このバージョンで対応しているブロックタイプ
         const SUPPORTED_BLOCK_TYPES = new Set([
-            'B','CB','HBK','S','G','WG','KG','K','TP','M','IE','E','A','T','TD','RT','BT','TL','TR','X','W','TW','L','U','P','H','AC',
+            'B','PP','CB','HBK','S','G','WG','KG','K','TP','M','RE','IE','E','A','T','TD','RT','BT','TL','TR','X','W','TW','L','U','P','H','AC',
             '>','<','v','>N','<N','vN','^N','C','q','k','r','b','!','Y','SN','d','J','j','y',
             'ug','dg','rg','I','Z','o','D','hr','hb','e','#','V','BH','WH','sp','mg','BB','BBN','LM','WC','WCN','IC',
             'EC','PB','WB','BL','HS','HM','DM','SM','FL','CA','GB','LF'
@@ -13539,6 +13849,7 @@ function getPswcWinnerCount(username) {
             startTime = 0;
             player.autoRunDirection = 1;
             player.skyJumpForce = -0.3;
+            player.crackerTileKey = null;
             activeCheckpoints.clear();
             spectatorLastSwitchKey = null;
             stageStartRespawn = null;
@@ -13553,6 +13864,7 @@ function getPswcWinnerCount(username) {
             frontFaceRuntime = null;
             backFaceRuntime = null;
             crackBlockTimers.clear();
+            crackerConfetti = [];
             wolfBossRefs = [];
             blackBossRefs = [];
             let hardHestiaSpawned = false;
@@ -13583,6 +13895,10 @@ function getPswcWinnerCount(username) {
                     if(activeStage[y][x] === 'M') {
                         enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false});
                         activeStage[y][x] = null; // スポーン後はグリッドから削除
+                    }
+                    if(activeStage[y][x] === 'RE') {
+                        enemies.push({x: x, y: y, vx: isSwitchOn ? -0.04 : 0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, isRbEnemy: true});
+                        activeStage[y][x] = null;
                     }
                     if(activeStage[y][x] === 'IE') {
                         enemies.push({x: x, y: y, vx: -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, isIronEnemy: true, hp: Infinity, maxHp: Infinity});
@@ -14172,6 +14488,7 @@ function getPswcWinnerCount(username) {
                 if (editorFace === 'front') editorFrontStageType = stageTypeSelect.value;
                 else editorBackStageType = stageTypeSelect.value;
             }
+            saveEditorDraftNow();
             const stageType = { front: editorFrontStageType, back: editorBackStageType };
             startGame({data: { front: editorFrontGrid, back: editorBackGrid }, name: 'TEST', stageType}, 'test');
         }
@@ -14255,7 +14572,9 @@ function getPswcWinnerCount(username) {
             const gx = Math.floor(player.x + player.w / 2);
             const gy = Math.floor(player.y + player.h / 2);
             const tile = activeStage[gy] ? activeStage[gy][gx] : null;
-            const switchKey = tile === '!' ? `${isUsingBackFace ? 'back' : 'front'}:${gx},${gy}` : null;
+            const switchKey = tile === '!'
+                ? `${isUsingBackFace ? 'back' : 'front'}:head:${gx},${gy}`
+                : null;
             if (switchKey && switchKey !== spectatorLastSwitchKey) {
                 isSwitchOn = !isSwitchOn;
                 player.onSwitch = true;
@@ -15270,6 +15589,9 @@ function getPswcWinnerCount(username) {
                 player.vy = 0;
             }
 
+            updateCrackerBlockStep();
+            updateCrackerConfetti();
+
             // 木箱とプレイヤーが重なったまま残らないよう、移動確定後にも押し戻しを行う。
             // ジャンプ入力中なら、木箱の反動からそのままジャンプできる。
             resolvePlayerWoodCrateOverlap(!isWater && keys['Space'] && frameCount > 10, jumpForce);
@@ -15476,7 +15798,10 @@ function getPswcWinnerCount(username) {
                 if(head_tile === 'TD' && en.vy < 0) en.vy = 0.4; // 下向きトランポリン
 
                 // 横移動
-                if (en.sync) {
+                if (en.isRbEnemy) {
+                    // Rでは左、Bでは右へ進み続ける。方向はR/B状態以外では変えない。
+                    en.vx = isSwitchOn ? -0.04 : 0.04;
+                } else if (en.sync) {
                     en.vx = syncEnemyVx;
                 }
 
@@ -15500,6 +15825,9 @@ function getPswcWinnerCount(username) {
                             en.isDashing = false;
                             en.vx = -en.dashDirection * 0.04;
                             en.vy = 0;
+                        } else if (en.isRbEnemy) {
+                            // 壁では停止し、次フレームも現在のR/B方向へ進もうとする。
+                            en.vx = 0;
                         } else {
                             const egx = Math.floor(en.x + (en.vx > 0 ? enSize : 0));
                             const egy = Math.floor(en.y + enHalf);
@@ -15749,6 +16077,7 @@ function getPswcWinnerCount(username) {
                 }
             }
 
+            // プレイヤーと敵の移動が確定してから、床型スイッチへの新規着地をまとめて判定する。
 
             // dead フラグの敵をまとめて削除
             // ※以前はループ条件で毎回 enemies.filter() を呼んでおり、フレームごとに配列全体を
@@ -15813,7 +16142,7 @@ function getPswcWinnerCount(username) {
                 
                 // 壁にあたったら消える（先端の1点のみで判定）
                 const checkX = Math.floor(a.x), checkY = Math.floor(a.y);
-                const hitWall = activeStage[checkY] && (activeStage[checkY][checkX] === 'B' || activeStage[checkY][checkX] === 'X' || activeStage[checkY][checkX] === 'LM' || ['WC', 'IC'].includes(activeStage[checkY][checkX]));
+                const hitWall = activeStage[checkY] && (['B', 'PP', 'X', 'LM'].includes(activeStage[checkY][checkX]) || ['WC', 'IC'].includes(activeStage[checkY][checkX]));
                 
                 if(a.x < 0 || a.x > GRID_W || hitWall) {
                     arrows.splice(i, 1);
@@ -15914,7 +16243,7 @@ function getPswcWinnerCount(username) {
                 // 壁（主要なソリッドブロック）に当たったら消える（矢の壁判定に準拠）
                 const sx_tile = Math.floor(s.x), sy_tile = Math.floor(s.y);
                 const sTile = activeStage[sy_tile] && activeStage[sy_tile][sx_tile];
-                const sHitWall = sTile === 'B' || sTile === 'X' || sTile === 'LM' || ['WC', 'IC'].includes(sTile) || sTile === 'BB' || sTile === 'BBN' || sTile === '>N' || sTile === '<N' || sTile === 'vN' || sTile === '^N';
+                const sHitWall = ['B', 'PP', 'X', 'LM'].includes(sTile) || ['WC', 'IC'].includes(sTile) || sTile === 'BB' || sTile === 'BBN' || sTile === '>N' || sTile === '<N' || sTile === 'vN' || sTile === '^N';
 
                 if (s.life <= 0 || s.x < -1 || s.x > GRID_W + 1 || s.y < -1 || s.y > GRID_H + 1 || sHitWall) {
                     sickles.splice(i, 1);
@@ -15941,7 +16270,7 @@ function getPswcWinnerCount(username) {
 
                 const fx_tile = Math.floor(f.x), fy_tile = Math.floor(f.y);
                 const fTile = activeStage[fy_tile] && activeStage[fy_tile][fx_tile];
-                const fHitWall = fTile === 'B' || fTile === 'X' || fTile === 'LM' || ['WC', 'IC'].includes(fTile) || fTile === 'BB' || fTile === 'BBN' || fTile === '>N' || fTile === '<N' || fTile === 'vN' || fTile === '^N';
+                const fHitWall = ['B', 'PP', 'X', 'LM'].includes(fTile) || ['WC', 'IC'].includes(fTile) || fTile === 'BB' || fTile === 'BBN' || fTile === '>N' || fTile === '<N' || fTile === 'vN' || fTile === '^N';
 
                 if (f.life <= 0 || f.x < -1 || f.x > GRID_W + 1 || f.y < -1 || f.y > GRID_H + 1 || fHitWall) {
                     fireballs.splice(i, 1);
@@ -16021,7 +16350,7 @@ function getPswcWinnerCount(username) {
                 let count = 0;
                 for (let y = 0; y < GRID_H; y++) {
                     for (let x = 0; x < GRID_W; x++) {
-                        if (stage[y] && ['M', 'j', 'e', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'].includes(stage[y][x])) count++;
+                        if (stage[y] && ['M', 'RE', 'j', 'e', 'PB', 'WB', 'BL', 'HS', 'HM', 'DM'].includes(stage[y][x])) count++;
                     }
                 }
                 return count;
@@ -16076,9 +16405,10 @@ function getPswcWinnerCount(username) {
                     if (tile === 'WCN' || tile === 'LF') {
                         woodCrates.push({ x, y, vx: 0, vy: 0, type: tile === 'LF' ? 'LF' : 'WC', activated: false, triggerFrames: null });
                         activeStage[y][x] = null;
-                    } else if (tile === 'M' || tile === 'IE' || tile === 'j' || tile === 'e') {
+                    } else if (tile === 'M' || tile === 'RE' || tile === 'IE' || tile === 'j' || tile === 'e') {
                         const isIronEnemy = tile === 'IE';
-                        enemies.push({ x, y, vx: tile === 'e' ? 0 : -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: tile === 'j', sync: tile === 'e', isIronEnemy, maxHp: isIronEnemy ? Infinity : getNormalEnemyMaxHp(), hp: isIronEnemy ? Infinity : getNormalEnemyMaxHp(), hitCooldown: 0 });
+                        const isRbEnemy = tile === 'RE';
+                        enemies.push({ x, y, vx: tile === 'e' ? 0 : isRbEnemy ? (isSwitchOn ? -0.04 : 0.04) : -0.04, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: tile === 'j', sync: tile === 'e', isRbEnemy, isIronEnemy, maxHp: isIronEnemy ? Infinity : getNormalEnemyMaxHp(), hp: isIronEnemy ? Infinity : getNormalEnemyMaxHp(), hitCooldown: 0 });
                         activeStage[y][x] = null;
                     } else if (tile === 'PB') {
                         enemies.push({ x, y, vx: -0.03, vy: 0, dead: false, onSwitch: false, onGround: false, jumper: false, sync: false, size: 1.8, isPurple: true, isBoss: true, name: 'PURPLE', hp: 100, maxHp: 100, nextDashFrame: 300, chargeFrames: 0, isDashing: false, dashDirection: -1, dashVerticalDirection: 0, purpleBrokenBlocks: [], isAuroraPurple: false, hitCooldown: 0 });
@@ -16420,6 +16750,7 @@ function getPswcWinnerCount(username) {
                 if (editorFace === 'front') editorFrontStageType = sel.value;
                 else editorBackStageType = sel.value;
                 sel.dataset.prevValue = sel.value;
+                scheduleEditorDraftSave();
             };
             if (!isClearChecked) {
                 // チェックがなければそのまま変更
@@ -16477,7 +16808,7 @@ function getPswcWinnerCount(username) {
                     const tc = tile.charCodeAt(0);
                     // ハーフブロックはセルの下半分だけを実体にする。
                     if (tile === 'HBK' && py >= iy + 0.5) return true;
-                    if(tile === 'B' || tile === 'CB' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'AC' ||
+                    if(tile === 'B' || tile === 'PP' || tile === 'CB' || tile === 'X' || tile === '!' || tile === 'Y' || tile === 'AC' ||
                        tile === 'I' || tile === 'V' || tile === 'sp' || tile === 'sp_blue' ||
                        tile === 'mg' || tile === 'BB' || tile === 'BBN' || tile === 'GB' || tile === 'CA' || tile === 'LM' || tile === 'WC' || tile === 'IC' ||
                        tile === 'SM' || tile === 'EC' ||
@@ -16975,6 +17306,9 @@ function getPswcWinnerCount(username) {
                 drawTile(cachedGameCtx, crate.x, crate.y, cw, ch, crate.type === 'LF' ? 'LF' : 'WC', time);
             }
 
+            // 紙吹雪は足場より手前、プレイヤー・敵より奥へ描画する。
+            drawCrackerConfetti(cachedGameCtx, cw, ch);
+
             // 敵の描画
             for (let edi = 0; edi < enemies.length; edi++) {
                 const en = enemies[edi];
@@ -17113,6 +17447,20 @@ function getPswcWinnerCount(username) {
                         cachedGameCtx.fillStyle = '#ffec8b';
                         cachedGameCtx.fillRect(en.x * cw + cw * .18, en.y * ch + ch * .38, cw * .18, ch * .18);
                         cachedGameCtx.fillRect(en.x * cw + cw * .55, en.y * ch + ch * .38, cw * .18, ch * .18);
+                    } else if (en.isRbEnemy) {
+                        cachedGameCtx.fillStyle = '#68727d';
+                        cachedGameCtx.fillRect(en.x * cw, en.y * ch, cw*.9, ch*.9);
+                        cachedGameCtx.fillStyle = '#8d98a4';
+                        cachedGameCtx.fillRect(en.x * cw + cw*.05, en.y * ch + ch*.05, cw*.8, ch*.12);
+                        cachedGameCtx.fillStyle = isSwitchOn ? '#ff5252' : '#448aff';
+                        cachedGameCtx.fillRect(en.x * cw + cw*.15, en.y * ch + ch*.2, cw*.2, ch*.2);
+                        cachedGameCtx.fillRect(en.x * cw + cw*.55, en.y * ch + ch*.2, cw*.2, ch*.2);
+                        cachedGameCtx.save();
+                        cachedGameCtx.fillStyle = '#fff';
+                        cachedGameCtx.font = `bold ${Math.max(8, ch*.24)}px sans-serif`;
+                        cachedGameCtx.textAlign = 'center';
+                        cachedGameCtx.fillText(isSwitchOn ? 'R ←' : 'B →', (en.x + .45) * cw, (en.y + .79) * ch);
+                        cachedGameCtx.restore();
                     } else {
                         if (en.sync) cachedGameCtx.fillStyle = "#ffeb3b"; // シンクロ敵は黄色
                         else if (en.blue) cachedGameCtx.fillStyle = "#00bcd4"; // 青スポナー由来は水色
@@ -17498,6 +17846,17 @@ function getPswcWinnerCount(username) {
                 cachedGameCtx.font = `bold ${ch * 2}px 'Press Start 2P'`;
                 cachedGameCtx.textAlign = "center";
                 cachedGameCtx.fillText(countdown, cachedGameCanvas.width/2, cachedGameCanvas.height/2 + ch/2);
+                cachedGameCtx.save();
+                cachedGameCtx.font = `bold ${Math.max(12, ch * .42)}px 'Noto Sans JP', sans-serif`;
+                cachedGameCtx.textBaseline = 'middle';
+                cachedGameCtx.shadowColor = 'rgba(0,0,0,.9)';
+                cachedGameCtx.shadowBlur = Math.max(3, ch * .12);
+                cachedGameCtx.fillText(
+                    `ステージタイプ：「${getStageTypeDisplayName(currentStageType)}」`,
+                    cachedGameCanvas.width / 2,
+                    cachedGameCanvas.height / 2 + ch * 1.35
+                );
+                cachedGameCtx.restore();
             }
             cachedGameCtx.globalAlpha = 1.0;
 
