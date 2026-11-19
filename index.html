@@ -3334,7 +3334,7 @@
             DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwNplov9i23vZBd8N5C95sO2mVbDyUIwNackKOcVPOlPlGHtj5gtCeuanaMPbwzPS_m/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.11.1 11/17 0.5周年！"
+            VERSION: "3.11.2"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -14528,12 +14528,45 @@ function getPswcWinnerCount(username) {
             if (updates > 0) drawGame();
         }
 
+        // ゴーストは5Fごとの記録なので、表示・観戦用座標はその間を補間する。
+        // 表裏が切り替わる区間だけは座標を混ぜず、次の記録点で瞬時に切り替える。
+        function getInterpolatedGhostPosition(ghost, framePosition = frameCount / 5) {
+            const frames = ghost?.frames || [];
+            if (!frames.length) return null;
+            const clampedPosition = Math.max(0, Math.min(frames.length - 1, Number(framePosition) || 0));
+            const baseIndex = Math.floor(clampedPosition);
+            const nextIndex = Math.min(frames.length - 1, baseIndex + 1);
+            const from = frames[baseIndex];
+            const to = frames[nextIndex] || from;
+            if (!from || !to) return null;
+
+            const fromX = Number(from[0]);
+            const fromY = Number(from[1]);
+            const toX = Number(to[0]);
+            const toY = Number(to[1]);
+            if (![fromX, fromY, toX, toY].every(Number.isFinite)) return null;
+
+            const fromFace = from[3] === 1 ? 1 : 0;
+            const toFace = to[3] === 1 ? 1 : 0;
+            const progress = clampedPosition - baseIndex;
+            const sameFace = fromFace === toFace;
+            return [
+                sameFace ? fromX + (toX - fromX) * progress : fromX,
+                sameFace ? fromY + (toY - fromY) * progress : fromY,
+                progress < .5 ? from[2] : to[2],
+                fromFace
+            ];
+        }
+
+        function getActiveSpectatorGhost() {
+            return selectedSpectatorGhost || playbackGhosts[0] || null;
+        }
+
         function syncSpectatorFaceToGhost() {
             // カウントダウン中も先頭フレームの面へ合わせることで、裏面から始まる観戦で
             // 表面が一瞬表示されるのを防ぐ。
             if (!isGhostSpectatorMode || !playbackGhosts.length) return;
-            const frames = playbackGhosts[0].frames || [];
-            const pos = frames[Math.floor(frameCount / 5)] || frames[frames.length - 1];
+            const pos = getInterpolatedGhostPosition(getActiveSpectatorGhost());
             if (!pos) return;
             const shouldUseBackFace = pos[3] === 1;
             if (shouldUseBackFace === isUsingBackFace) return;
@@ -14549,24 +14582,17 @@ function getPswcWinnerCount(username) {
         function applySpectatorGhostState() {
             if (!isGhostSpectatorMode || !playbackGhosts.length) return false;
             syncSpectatorFaceToGhost();
-            const frames = playbackGhosts[0].frames || [];
-            if (!frames.length) return false;
-            const framePosition = frameCount / 5;
-            const baseIndex = Math.min(frames.length - 1, Math.floor(framePosition));
-            const nextIndex = Math.min(frames.length - 1, baseIndex + 1);
-            const t = Math.min(1, Math.max(0, framePosition - baseIndex));
-            const from = frames[baseIndex];
-            const to = frames[nextIndex] || from;
-            if (!from || !to) return false;
-            const nextX = Number(from[0]) + (Number(to[0]) - Number(from[0])) * t;
-            const nextY = Number(from[1]) + (Number(to[1]) - Number(from[1])) * t;
+            const pos = getInterpolatedGhostPosition(getActiveSpectatorGhost());
+            if (!pos) return false;
+            const nextX = pos[0];
+            const nextY = pos[1];
             const previousX = player.x;
             const previousY = player.y;
             player.x = nextX;
             player.y = nextY;
             player.vx = nextX - previousX;
             player.vy = nextY - previousY;
-            player.facing = to[2] === 1 ? 'right' : 'left';
+            player.facing = pos[2] === 1 ? 'right' : 'left';
 
             // スイッチは同じマスに滞在中に連続で切り替わらないよう、侵入時だけ反映する。
             const gx = Math.floor(player.x + player.w / 2);
@@ -16077,8 +16103,6 @@ function getPswcWinnerCount(username) {
                 }
             }
 
-            // プレイヤーと敵の移動が確定してから、床型スイッチへの新規着地をまとめて判定する。
-
             // dead フラグの敵をまとめて削除
             // ※以前はループ条件で毎回 enemies.filter() を呼んでおり、フレームごとに配列全体を
             //   スキャンする O(n^2) 処理になっていた（敵の数が増えるほど指数的に重くなりラグの原因に）。
@@ -17575,13 +17599,10 @@ function getPswcWinnerCount(username) {
                 cachedGameCtx.globalAlpha = isGhostSpectatorMode ? 1 : 0.5;
                 cachedGameCtx.font = `${ch * 0.3}px sans-serif`; // フォント設定をループの外へ
                 cachedGameCtx.textAlign = "center";
-                const frameIdx = Math.floor(frameCount / 5);
                 
                 for (let i = 0; i < playbackGhosts.length; i++) {
                     const ghost = playbackGhosts[i];
-                    const frames = ghost.frames;
-                    if (!frames || frames.length === 0) continue;
-                    const pos = frames[frameIdx] || frames[frames.length - 1];
+                    const pos = getInterpolatedGhostPosition(ghost);
                     if (!pos) continue;
                     // 4要素目がある新形式では、同じ面にいるゴーストだけを表示する。
                     // 旧形式（3要素以下）は従来どおり表面のゴーストとして扱う。
@@ -17890,15 +17911,13 @@ function getPswcWinnerCount(username) {
                 cachedGameCtx.save();
                 cachedGameCtx.font = `${ch * 0.3}px sans-serif`;
                 cachedGameCtx.textAlign = 'center';
-                const ghost = selectedSpectatorGhost || playbackGhosts[0];
-                const frameIdx = Math.floor(frameCount / 5);
+                const ghost = getActiveSpectatorGhost();
                 // 選択対象以外は、GHOSTSがONの時だけ半透明で再生する。
                 if (showGhosts) for (const otherGhost of playbackGhosts) {
                     const isSelected = otherGhost === ghost
                         || (String(otherGhost.name) === String(ghost?.name) && Number(otherGhost.time) === Number(ghost?.time));
                     if (isSelected) continue;
-                    const otherFrames = otherGhost.frames || [];
-                    const otherPos = otherFrames[frameIdx] || otherFrames[otherFrames.length - 1];
+                    const otherPos = getInterpolatedGhostPosition(otherGhost);
                     if (!otherPos || ((otherPos[3] === 1) !== isUsingBackFace)) continue;
                     const otherFacing = otherPos[2] === 1 ? 'right' : 'left';
                     const otherSkin = isRaiAlvaroStageType(currentStageType) ? 'rai_alvaro_stage_avatar' : (otherGhost.skin || 'default');
@@ -17908,8 +17927,7 @@ function getPswcWinnerCount(username) {
                     cachedGameCtx.fillText(otherGhost.name || 'GHOST', (otherPos[0] + player.w / 2) * cw, otherPos[1] * ch - 10);
                 }
                 cachedGameCtx.globalAlpha = 1;
-                const frames = ghost.frames || [];
-                const pos = frames[frameIdx] || frames[frames.length - 1];
+                const pos = getInterpolatedGhostPosition(ghost);
                 if (pos && ((pos[3] === 1) === isUsingBackFace)) {
                     const gx = pos[0], gy = pos[1];
                     const gf = pos[2] === 1 ? 'right' : 'left';
