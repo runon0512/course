@@ -227,13 +227,10 @@
         .clouds {
         }
 
-        /* 走査線エフェクト（レトロ感） */
+        /* 走査線は全画面で無効化する。 */
         .scanlines {
+            display: none;
             pointer-events: none;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 4px, 3px 100%;
-            z-index: 10;
         }
 
         h1 {
@@ -1775,7 +1772,7 @@
         .difficulty-badge {
             display:inline-flex; align-items:center; gap:.28cqw; box-sizing:border-box;
             min-height:1.85cqw; padding:.3cqh .72cqw; border:.1cqw solid rgba(255,255,255,.4);
-            border-radius:99px; color:#fff; font-size:.9cqw; font-weight:800; line-height:1;
+            border-radius:0; color:#fff; font-size:.9cqw; font-weight:800; line-height:1;
             letter-spacing:.06em; white-space:nowrap; vertical-align:middle;
             box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 .18cqw .5cqw rgba(0,0,0,.3);
             text-shadow:0 .08cqw .12cqw rgba(0,0,0,.55);
@@ -1783,7 +1780,7 @@
         .difficulty-badge::before { content:''; width:.43cqw; height:.43cqw; flex:0 0 .43cqw; border-radius:50%; background:currentColor; box-shadow:0 0 .4cqw currentColor; }
         .hot-rank-badge {
             display:inline-flex; align-items:center; min-height:1.85cqw; box-sizing:border-box;
-            padding:.3cqh .72cqw; border:.1cqw solid rgba(255,255,255,.58); border-radius:99px;
+            padding:.3cqh .72cqw; border:.1cqw solid rgba(255,255,255,.58); border-radius:0;
             color:#fff; font-size:.86cqw; font-weight:950; line-height:1; letter-spacing:.04em;
             white-space:nowrap; vertical-align:middle; text-shadow:0 .08cqw .16cqw rgba(0,0,0,.75);
             box-shadow:inset 0 1px 0 rgba(255,255,255,.34), 0 0 .68cqw rgba(255,72,0,.55);
@@ -1792,9 +1789,9 @@
         .hot-rank-2 { background:linear-gradient(115deg,#a90f00 0%,#ff4b00 28%,#ff9800 47%,#f4f8fb 69%,#aeb9c4 84%,#ff6500 100%); border-color:#eef6ff; }
         .hot-rank-3 { background:linear-gradient(115deg,#9f1200 0%,#ff3d00 28%,#ff8f00 48%,#e2a06c 69%,#9a4f24 84%,#ff5b00 100%); border-color:#f3b27a; }
         .hot-rank-normal { background:linear-gradient(115deg,#9f0b00 0%,#ef2600 35%,#ff5b00 67%,#ff9d00 100%); border-color:#ffad55; }
-        .stage-type-badge { display:inline-flex; align-items:center; min-height:1.85cqw; box-sizing:border-box; padding:.3cqh .7cqw !important; border-radius:99px !important; font-size:.86cqw !important; font-weight:800; line-height:1; letter-spacing:.035em; box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); }
+        .stage-type-badge { display:inline-flex; align-items:center; min-height:1.85cqw; box-sizing:border-box; padding:.3cqh .7cqw !important; border-radius:0 !important; font-size:.86cqw !important; font-weight:800; line-height:1; letter-spacing:.035em; box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); }
         /* 従来のステージタイプバッジに近い丸い見た目で、表／裏だけを控えめに区別する。 */
-        .stage-face-types { display:inline-flex; align-items:center; min-height:1.85cqw; border:1px solid #85e6ff; border-radius:99px; overflow:hidden; background:linear-gradient(135deg,#166bb0,#269fbe); box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); white-space:nowrap; }
+        .stage-face-types { display:inline-flex; align-items:center; min-height:1.85cqw; border:1px solid #85e6ff; border-radius:0; overflow:hidden; background:linear-gradient(135deg,#166bb0,#269fbe); box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); white-space:nowrap; }
         .stage-face-type { display:inline-flex; align-items:center; padding:.3cqh .58cqw; color:#fff; font-size:.86cqw; font-weight:800; line-height:1; letter-spacing:.035em; }
         .stage-face-type.back { border-left:1px solid rgba(255,255,255,.48); }
         .difficulty-new { background:linear-gradient(135deg,#1d9273,#3578b8); border-color:#8ff3ce; }
