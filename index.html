@@ -1781,6 +1781,17 @@
             text-shadow:0 .08cqw .12cqw rgba(0,0,0,.55);
         }
         .difficulty-badge::before { content:''; width:.43cqw; height:.43cqw; flex:0 0 .43cqw; border-radius:50%; background:currentColor; box-shadow:0 0 .4cqw currentColor; }
+        .hot-rank-badge {
+            display:inline-flex; align-items:center; min-height:1.85cqw; box-sizing:border-box;
+            padding:.3cqh .72cqw; border:.1cqw solid rgba(255,255,255,.58); border-radius:99px;
+            color:#fff; font-size:.86cqw; font-weight:950; line-height:1; letter-spacing:.04em;
+            white-space:nowrap; vertical-align:middle; text-shadow:0 .08cqw .16cqw rgba(0,0,0,.75);
+            box-shadow:inset 0 1px 0 rgba(255,255,255,.34), 0 0 .68cqw rgba(255,72,0,.55);
+        }
+        .hot-rank-1 { background:linear-gradient(115deg,#8d1300 0%,#ff3d00 24%,#ff9800 48%,#ffd54f 68%,#fff2a8 82%,#ff5a00 100%); border-color:#ffe082; color:#fffde7; }
+        .hot-rank-2 { background:linear-gradient(115deg,#a90f00 0%,#ff4b00 28%,#ff9800 47%,#f4f8fb 69%,#aeb9c4 84%,#ff6500 100%); border-color:#eef6ff; }
+        .hot-rank-3 { background:linear-gradient(115deg,#9f1200 0%,#ff3d00 28%,#ff8f00 48%,#e2a06c 69%,#9a4f24 84%,#ff5b00 100%); border-color:#f3b27a; }
+        .hot-rank-normal { background:linear-gradient(115deg,#9f0b00 0%,#ef2600 35%,#ff5b00 67%,#ff9d00 100%); border-color:#ffad55; }
         .stage-type-badge { display:inline-flex; align-items:center; min-height:1.85cqw; box-sizing:border-box; padding:.3cqh .7cqw !important; border-radius:99px !important; font-size:.86cqw !important; font-weight:800; line-height:1; letter-spacing:.035em; box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); }
         /* 従来のステージタイプバッジに近い丸い見た目で、表／裏だけを控えめに区別する。 */
         .stage-face-types { display:inline-flex; align-items:center; min-height:1.85cqw; border:1px solid #85e6ff; border-radius:99px; overflow:hidden; background:linear-gradient(135deg,#166bb0,#269fbe); box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 .16cqw .45cqw rgba(0,0,0,.28); white-space:nowrap; }
@@ -2090,11 +2101,11 @@
         #login-bonus-calendar { max-width:90cqw; justify-content:center; align-self:center; }
         #explanation-list { max-width:85cqw; align-self:center; box-sizing:border-box; }
 
-        /* プロフィール: プレイヤーカードと分析パネルを分けたスクロール対応ダッシュボード。 */
+        /* プロフィール: SNSカードを意識した、ランク主役のレスポンシブUI。 */
         #profile-overlay {
             justify-content:flex-start;
             box-sizing:border-box;
-            gap:1.5cqh;
+            gap:1.2cqh;
             padding:0 4cqw 3cqh !important;
             overflow-x:hidden;
             overflow-y:auto;
@@ -2102,35 +2113,66 @@
             -webkit-overflow-scrolling:touch;
             scrollbar-gutter:stable;
             background:
-                radial-gradient(circle at 14% 18%,rgba(0,214,255,.18),transparent 31%),
-                radial-gradient(circle at 88% 78%,rgba(126,78,255,.16),transparent 36%),
-                linear-gradient(145deg,#020814,#07172d 52%,#030814) !important;
+                radial-gradient(circle at 10% 14%,rgba(0,231,255,.2),transparent 27%),
+                radial-gradient(circle at 88% 82%,rgba(151,82,255,.19),transparent 34%),
+                linear-gradient(145deg,#010611,#07182e 48%,#090720) !important;
         }
-        .profile-topbar { position:sticky; top:0; z-index:3; flex:0 0 auto; width:min(92cqw,1120px); box-sizing:border-box; display:flex; align-items:center; justify-content:space-between; gap:2cqw; margin:0 auto; padding:1.2cqh 1.2cqw; border-bottom:.12cqw solid rgba(111,226,255,.58); background:linear-gradient(180deg,rgba(2,8,20,.98),rgba(4,17,36,.91)); backdrop-filter:blur(8px); }
+        .profile-topbar { position:sticky; top:0; z-index:3; flex:0 0 auto; width:min(94cqw,1180px); box-sizing:border-box; display:flex; align-items:center; justify-content:space-between; gap:2cqw; margin:0 auto; padding:1.15cqh 1.25cqw; border-bottom:.1cqw solid rgba(111,226,255,.48); background:linear-gradient(180deg,rgba(1,7,18,.98),rgba(4,17,36,.93)); backdrop-filter:blur(10px); }
         .profile-heading { min-width:0; }
         .profile-kicker { color:#69eaff; font-size:.72cqw; font-weight:900; letter-spacing:.24em; }
-        #profile-title { margin:.25cqh 0 0 !important; color:#f2fdff !important; font-size:clamp(24px,3.1cqw,48px) !important; line-height:1; letter-spacing:.08em !important; text-shadow:0 0 1cqw rgba(72,222,255,.42) !important; }
+        #profile-title { margin:.25cqh 0 0 !important; color:#f2fdff !important; font-size:clamp(22px,2.6cqw,42px) !important; line-height:1; letter-spacing:.08em !important; text-shadow:0 0 1cqw rgba(72,222,255,.42) !important; overflow-wrap:anywhere; }
         .profile-close-btn { width:auto !important; min-width:8cqw; margin:0 !important; padding:.7cqh 1.1cqw !important; color:#dffaff; background:rgba(8,37,65,.9) !important; border:.12cqw solid #62ddff !important; }
         #profile-overlay > .profile-container { flex-shrink:0; }
-        .profile-container.profile-dashboard { width:min(92cqw,1120px); height:auto; min-height:0; margin:0 auto; padding-bottom:3cqh; display:grid; grid-template-columns:minmax(230px,.72fr) minmax(340px,1.28fr); gap:1.6cqw; align-items:stretch; }
-        .profile-identity-card, .profile-radar-panel { position:relative; overflow:hidden; box-sizing:border-box; border:.12cqw solid rgba(103,225,255,.7); background:linear-gradient(145deg,rgba(7,34,64,.94),rgba(4,12,30,.97)) !important; box-shadow:inset 0 0 2cqw rgba(55,207,255,.07),0 .7cqh 2cqw rgba(0,0,0,.35) !important; }
-        .profile-identity-card::before, .profile-radar-panel::before { content:''; position:absolute; left:0; top:0; width:38%; height:.28cqh; background:linear-gradient(90deg,#62f1ff,#8e72ff,transparent); }
-        .profile-identity-card { min-width:0 !important; padding:1.5cqw !important; text-align:center; }
-        .profile-card-eyebrow { margin-bottom:1.1cqh; color:#74def4; font-size:.72cqw; font-weight:900; letter-spacing:.17em; text-align:left; }
-        .profile-ovr-label { color:#9bb5ca; font-size:.78cqw; font-weight:800; letter-spacing:.16em; }
-        #profile-ovr { margin:.25cqh 0 1cqh; font-size:clamp(50px,7cqw,94px) !important; line-height:1; background:linear-gradient(180deg,#fff,#72ecff 56%,#7a8cff); -webkit-background-clip:text; background-clip:text; color:transparent !important; filter:drop-shadow(0 0 .55cqw rgba(72,221,255,.42)); }
-        .profile-avatar-shell { width:min(12cqw,160px); aspect-ratio:1; margin:0 auto 1.1cqh; display:grid; place-items:center; border:.12cqw solid rgba(140,237,255,.62); border-radius:1.1cqw; background:radial-gradient(circle,rgba(73,205,255,.2),rgba(5,19,39,.78) 68%); box-shadow:inset 0 0 1.2cqw rgba(95,226,255,.14); }
+        .profile-container.profile-dashboard { width:min(94cqw,1180px); height:auto; min-height:0; margin:0 auto; padding-bottom:3cqh; display:grid; grid-template-columns:minmax(0,.98fr) minmax(0,1.02fr); gap:1.4cqw; align-items:stretch; }
+        .profile-identity-card, .profile-radar-panel { position:relative; overflow:hidden; box-sizing:border-box; border:.1cqw solid rgba(103,225,255,.62); border-radius:1.25cqw; background:linear-gradient(145deg,rgba(7,34,64,.95),rgba(4,10,27,.98)) !important; box-shadow:inset 0 0 2cqw rgba(55,207,255,.08),0 .8cqh 2.2cqw rgba(0,0,0,.4) !important; }
+        .profile-identity-card::before, .profile-radar-panel::before { content:''; position:absolute; left:0; top:0; width:42%; height:.24cqh; background:linear-gradient(90deg,#62f1ff,#a878ff,transparent); }
+        .profile-identity-card { min-width:0 !important; padding:1.35cqw !important; text-align:left; isolation:isolate; }
+        .profile-identity-card::after { content:''; position:absolute; inset:0; z-index:-1; opacity:.16; background:linear-gradient(90deg,transparent 49.6%,rgba(126,232,255,.23) 50%,transparent 50.4%),linear-gradient(transparent 49.6%,rgba(126,232,255,.2) 50%,transparent 50.4%); background-size:3.2cqw 3.2cqw; mask-image:linear-gradient(135deg,#000,transparent 66%); pointer-events:none; }
+        .profile-card-eyebrow { margin-bottom:.8cqh; color:#74def4; font-size:.72cqw; font-weight:900; letter-spacing:.17em; text-align:left; }
+        #profile-badge-holder { width:100%; min-width:0; min-height:0 !important; margin:0 0 1.1cqh !important; }
+        .profile-rank-showcase { --rank-bg:linear-gradient(135deg,#263746,#738696); --rank-border:#9fb4c4; --rank-glow:rgba(120,170,200,.4); position:relative; min-width:0; display:grid; grid-template-columns:clamp(94px,9.5cqw,142px) minmax(0,1fr); align-items:center; gap:1.25cqw; min-height:clamp(120px,14cqh,176px); padding:1.2cqw; box-sizing:border-box; overflow:hidden; border:.12cqw solid var(--rank-border); border-radius:1cqw; background:linear-gradient(115deg,rgba(2,8,20,.9),rgba(5,18,37,.72)),var(--rank-bg); box-shadow:inset 0 0 2.4cqw rgba(255,255,255,.05),0 0 1.4cqw var(--rank-glow); }
+        .profile-rank-showcase::before { content:''; position:absolute; inset:-70% -20%; background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.2) 48%,transparent 61%); transform:translateX(-45%); animation:profileRankShine 5s ease-in-out infinite; pointer-events:none; }
+        .profile-rank-showcase::after { content:'PIXEL STAGES'; position:absolute; right:.7cqw; bottom:.45cqh; color:rgba(255,255,255,.15); font-size:.66cqw; font-weight:900; letter-spacing:.24em; white-space:nowrap; }
+        .profile-rank-emblem-wrap { position:relative; z-index:1; display:grid; place-items:center; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,.035) 55%,transparent 71%); filter:drop-shadow(0 0 .8cqw var(--rank-glow)); }
+        .profile-rank-emblem { width:clamp(84px,8.3cqw,126px); height:clamp(84px,8.3cqw,126px); display:grid; place-items:center; color:#fff; font-size:clamp(18px,1.45cqw,25px); font-weight:1000; line-height:1; text-shadow:0 2px 3px rgba(0,0,0,.85); box-shadow:inset 0 2px 0 rgba(255,255,255,.62),inset 0 -5px 12px rgba(0,0,0,.32); }
+        .profile-rank-emblem.rank-rookie { clip-path:polygon(50% 0,92% 20%,82% 88%,50% 100%,18% 88%,8% 20%); }
+        .profile-rank-emblem.rank-iron { clip-path:polygon(18% 0,82% 0,100% 28%,82% 100%,18% 100%,0 28%); }
+        .profile-rank-emblem.rank-bronze { clip-path:polygon(50% 0,95% 18%,82% 88%,50% 100%,18% 88%,5% 18%); }
+        .profile-rank-emblem.rank-silver,.profile-rank-emblem.rank-diamond { clip-path:polygon(50% 0,100% 38%,72% 100%,28% 100%,0 38%); }
+        .profile-rank-emblem.rank-gold { clip-path:polygon(50% 0,64% 22%,100% 25%,74% 54%,82% 100%,50% 78%,18% 100%,26% 54%,0 25%,36% 22%); }
+        .profile-rank-emblem.rank-blackdiamond,.profile-rank-emblem.rank-master,.profile-rank-emblem.rank-developer { clip-path:polygon(50% 0,84% 16%,100% 50%,84% 84%,50% 100%,16% 84%,0 50%,16% 16%); }
+        .profile-rank-emblem.rank-grandmaster,.profile-rank-emblem.rank-ultimatemaster { clip-path:polygon(50% 0,68% 25%,100% 18%,82% 50%,100% 82%,68% 75%,50% 100%,32% 75%,0 82%,18% 50%,0 18%,32% 25%); }
+        .profile-rank-emblem.rank-suprememaster,.profile-rank-emblem.rank-aurora { clip-path:polygon(50% 0,61% 30%,97% 32%,68% 54%,79% 91%,50% 69%,21% 91%,32% 54%,3% 32%,39% 30%); }
+        .profile-rank-emblem.rank-legend { clip-path:polygon(50% 0,61% 26%,89% 14%,82% 43%,100% 62%,70% 67%,58% 100%,42% 100%,30% 67%,0 62%,18% 43%,11% 14%,39% 26%); }
+        .profile-rank-emblem.rank-developer { animation:developerRankGlow 2.8s ease-in-out infinite; }
+        .profile-rank-copy { position:relative; z-index:1; min-width:0; }
+        .profile-rank-copy small { display:block; color:rgba(232,249,255,.68); font-size:clamp(9px,.68cqw,12px); font-weight:900; letter-spacing:.22em; }
+        .profile-rank-copy strong { display:block; max-width:100%; margin:.45cqh 0; color:#fff; font-size:clamp(28px,3.2cqw,50px); line-height:.96; letter-spacing:.015em; overflow-wrap:anywhere; text-shadow:0 0 .8cqw var(--rank-glow); }
+        .profile-rank-copy span { color:#b9d3e6; font-size:clamp(10px,.82cqw,14px); letter-spacing:.08em; }
+        @keyframes profileRankShine { 0%,58% { transform:translateX(-55%); } 78%,100% { transform:translateX(55%); } }
+        .profile-person-row { min-width:0; display:grid; grid-template-columns:clamp(88px,9cqw,132px) minmax(0,1fr); align-items:center; gap:1.1cqw; padding:.9cqw; border:.08cqw solid rgba(126,226,255,.25); border-radius:.85cqw; background:rgba(2,12,29,.62); }
+        .profile-avatar-shell { width:100%; max-width:132px; aspect-ratio:1; margin:0; display:grid; place-items:center; border:.1cqw solid rgba(140,237,255,.62); border-radius:.9cqw; background:radial-gradient(circle,rgba(73,205,255,.2),rgba(5,19,39,.78) 68%); box-shadow:inset 0 0 1.2cqw rgba(95,226,255,.14),0 0 1cqw rgba(59,216,255,.12); }
         .profile-avatar-shell > * { grid-area:1/1; }
-        #profile-username { margin-top:.4cqh !important; color:#f5fdff; font-size:clamp(14px,1.45cqw,24px) !important; font-weight:900; overflow-wrap:anywhere; }
-        #profile-badge-holder { min-height:1.5cqh; }
+        .profile-person-copy { min-width:0; }
+        .profile-player-label { color:#6edff5; font-size:clamp(9px,.66cqw,12px); font-weight:900; letter-spacing:.2em; }
+        #profile-username { max-width:100%; margin:.35cqh 0 .75cqh !important; color:#f5fdff; font-size:clamp(18px,1.8cqw,30px) !important; font-weight:1000; line-height:1.08; overflow-wrap:anywhere; word-break:break-word; }
+        .profile-ovr-panel { width:fit-content; max-width:100%; display:flex; align-items:baseline; gap:.55cqw; padding:.45cqh .75cqw; box-sizing:border-box; border:.08cqw solid rgba(118,231,255,.38); border-radius:999px; background:linear-gradient(90deg,rgba(48,201,230,.16),rgba(125,88,255,.14)); }
+        .profile-ovr-label { color:#9fc7d8; font-size:clamp(9px,.68cqw,12px); font-weight:900; letter-spacing:.16em; }
+        #profile-ovr { margin:0; font-size:clamp(24px,2.45cqw,40px) !important; line-height:1; background:linear-gradient(180deg,#fff,#72ecff 56%,#9a8cff); -webkit-background-clip:text; background-clip:text; color:transparent !important; filter:drop-shadow(0 0 .4cqw rgba(72,221,255,.42)); }
+        .profile-special-row { min-width:0; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.55cqw; margin-top:.9cqh; }
+        .profile-special-row:empty { display:none; }
+        .profile-epithet-large { max-width:100%; padding:.38cqh .7cqw; box-sizing:border-box; border:1px solid; border-radius:999px; font-size:clamp(10px,.78cqw,14px); font-weight:900; line-height:1.2; overflow-wrap:anywhere; text-align:center; }
+        .profile-guild-card { min-width:0; display:inline-flex; align-items:center; gap:.45cqw; max-width:100%; padding:.3cqh .65cqw; box-sizing:border-box; border:.08cqw solid rgba(155,225,255,.32); border-radius:999px; background:rgba(3,17,37,.78); color:#dff9ff; font-size:clamp(10px,.75cqw,13px); font-weight:800; }
+        .profile-guild-card .guild-badge { margin:0; }
+        .profile-guild-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .profile-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:.65cqw; margin-top:1cqh; }
         .profile-actions .pixel-btn { width:auto !important; min-width:8cqw; margin:0 !important; padding:.65cqh .8cqw !important; }
-        .profile-radar-panel { width:auto; min-width:0; padding:1.35cqw; }
+        .profile-radar-panel { width:auto; min-width:0; padding:1.35cqw; display:flex; flex-direction:column; }
         .profile-panel-head { display:flex; align-items:flex-end; justify-content:space-between; gap:1cqw; margin-bottom:.8cqh; text-align:left; }
         .profile-panel-kicker { color:#7de9ff; font-size:.7cqw; font-weight:900; letter-spacing:.18em; }
         .profile-panel-title { margin:.2cqh 0 0; color:#f2fcff; font-size:1.45cqw; letter-spacing:.06em; }
         .profile-panel-note { color:#7894a9; font-size:.72cqw; }
-        #radar-chart { display:block; width:min(100%,48cqh) !important; max-width:520px; margin:0 auto; background:radial-gradient(circle,rgba(0,191,255,.1),rgba(5,12,30,.08) 65%,transparent 66%); border:0; }
+        #radar-chart { display:block; width:min(100%,46cqh) !important; max-width:510px; margin:auto; background:radial-gradient(circle,rgba(0,191,255,.1),rgba(5,12,30,.08) 65%,transparent 66%); border:0; }
         .profile-stat-readout { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.55cqw; margin-top:.65cqh; }
         .profile-stat-readout > div { min-width:0; padding:.7cqh .75cqw; border:.08cqw solid rgba(104,226,255,.24); border-left:.2cqw solid #64e7ff; background:rgba(110,218,255,.075); color:#b9d2e2; font-size:.86cqw; display:flex; justify-content:space-between; gap:.5cqw; }
         .profile-stat-readout b { color:#8fffd3; font-size:1.08em; }
@@ -2139,10 +2181,212 @@
             .profile-topbar, .profile-container.profile-dashboard { width:94cqw; }
             .profile-container.profile-dashboard { grid-template-columns:1fr; gap:1.4cqh; }
             .profile-identity-card, .profile-radar-panel { width:100%; }
-            .profile-avatar-shell { width:24cqw; }
+            .profile-rank-showcase { grid-template-columns:26cqw minmax(0,1fr); padding:2.2cqw; }
+            .profile-rank-emblem { width:22cqw; height:22cqw; }
+            .profile-person-row { grid-template-columns:24cqw minmax(0,1fr); padding:2cqw; gap:2.2cqw; }
             .profile-card-eyebrow, .profile-kicker, .profile-panel-kicker, .profile-panel-note { font-size:1.45cqw; }
             .profile-ovr-label, .profile-stat-readout > div { font-size:1.6cqw; }
             .profile-panel-title { font-size:2.4cqw; }
+        }
+        @media (max-width:520px) {
+            .profile-topbar { align-items:flex-start; }
+            .profile-kicker { font-size:2.2vw; letter-spacing:.14em; }
+            .profile-close-btn { min-width:70px; }
+            .profile-rank-showcase { grid-template-columns:1fr; text-align:center; padding:4vw; }
+            .profile-rank-emblem-wrap { width:32vw; margin:0 auto; }
+            .profile-rank-emblem { width:28vw; height:28vw; }
+            .profile-rank-showcase::after { font-size:2.1vw; }
+            .profile-person-row { grid-template-columns:28vw minmax(0,1fr); }
+            .profile-stat-readout { grid-template-columns:1fr; }
+        }
+
+        /* 参考UI版: 名前バー＋ランク／ロードアウト／横ゲージを1枚のプロフィールカードに集約。 */
+        #profile-overlay {
+            gap:1cqh;
+            background:
+                linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),
+                radial-gradient(circle at 50% 0,rgba(50,205,255,.14),transparent 42%),
+                rgba(3,6,11,.68) !important;
+            background-size:4cqw 4cqw,4cqw 4cqw,100% 100%,100% 100% !important;
+            backdrop-filter:blur(5px);
+            -webkit-backdrop-filter:blur(5px);
+        }
+        .profile-topbar {
+            width:min(90cqw,920px);
+            margin-top:1.2cqh;
+            padding:1.1cqh 1.35cqw;
+            border:0;
+            border-radius:1.4cqw;
+            background:rgba(35,39,45,.72);
+            box-shadow:inset .16cqw 0 0 #67e7ff,0 .45cqh 1.4cqw rgba(0,0,0,.42);
+            backdrop-filter:blur(12px);
+            -webkit-backdrop-filter:blur(12px);
+        }
+        .profile-kicker { color:#8f9aa6; font-size:clamp(8px,.62cqw,11px); letter-spacing:.18em; }
+        #profile-title {
+            max-width:min(68cqw,700px);
+            margin-top:.35cqh !important;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            color:#fff !important;
+            font-family:'Press Start 2P','Noto Sans JP',sans-serif;
+            font-size:clamp(18px,2.25cqw,34px) !important;
+            letter-spacing:.04em !important;
+            text-shadow:none !important;
+        }
+        .profile-close-btn { flex:0 0 auto; border-color:#7d8994 !important; border-radius:.7cqw !important; background:#3b4148 !important; }
+        .profile-container.profile-dashboard {
+            width:min(90cqw,920px);
+            grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);
+            gap:1cqw;
+            padding-bottom:3cqh;
+        }
+        .profile-identity-card,.profile-radar-panel {
+            border:0;
+            border-radius:1.2cqw;
+            background:rgba(76,81,88,.64) !important;
+            box-shadow:0 .65cqh 1.7cqw rgba(0,0,0,.42) !important;
+            backdrop-filter:blur(12px) saturate(1.12);
+            -webkit-backdrop-filter:blur(12px) saturate(1.12);
+        }
+        .profile-identity-card::before,.profile-radar-panel::before,.profile-identity-card::after { display:none; }
+        .profile-identity-card { padding:1.35cqw 1.55cqw !important; }
+        .profile-card-eyebrow { margin-bottom:.8cqh; color:#e8edf2; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(9px,.74cqw,12px); letter-spacing:.08em; }
+        #profile-badge-holder { margin-bottom:1cqh !important; }
+        .profile-rank-showcase {
+            grid-template-columns:clamp(92px,10cqw,140px) minmax(0,1fr);
+            min-height:clamp(112px,13cqh,158px);
+            padding:1cqw 1.3cqw;
+            border:.12cqw solid rgba(255,255,255,.14);
+            border-radius:.85cqw;
+            background:rgba(38,42,48,.7);
+            box-shadow:inset 0 0 1.2cqw rgba(0,0,0,.3);
+        }
+        .profile-rank-showcase::before { display:none; }
+        .profile-rank-showcase::after { display:none; }
+        .profile-rank-emblem-wrap { background:radial-gradient(circle,rgba(255,255,255,.18),transparent 68%); }
+        .profile-rank-emblem { width:clamp(78px,7.8cqw,116px); height:clamp(78px,7.8cqw,116px); }
+        /* 対戦ゲームのリーグ紋章を思わせる、オリジナルのメタルウイングロゴ。 */
+        .profile-rank-emblem-wrap {
+            isolation:isolate;
+            overflow:visible;
+            filter:drop-shadow(0 .5cqh .35cqw rgba(0,0,0,.72)) drop-shadow(0 0 .8cqw var(--rank-glow));
+        }
+        .profile-rank-emblem-wrap::before,.profile-rank-emblem-wrap::after {
+            content:'';
+            position:absolute;
+            z-index:-1;
+            top:22%;
+            width:48%;
+            height:58%;
+            opacity:.82;
+            background:linear-gradient(145deg,#f7fbff 0%,var(--rank-border) 24%,#313943 48%,var(--rank-border) 72%,#fff 100%);
+            box-shadow:inset 0 0 0 .12cqw rgba(255,255,255,.55),0 0 .6cqw var(--rank-glow);
+        }
+        .profile-rank-emblem-wrap::before {
+            right:71%;
+            clip-path:polygon(100% 3%,68% 17%,5% 0,50% 34%,0 42%,53% 57%,14% 83%,72% 72%,100% 98%);
+        }
+        .profile-rank-emblem-wrap::after {
+            left:71%;
+            clip-path:polygon(0 3%,32% 17%,95% 0,50% 34%,100% 42%,47% 57%,86% 83%,28% 72%,0 98%);
+        }
+        .profile-rank-emblem {
+            position:relative;
+            isolation:isolate;
+            border-width:clamp(2px,.22cqw,4px) !important;
+            outline:clamp(2px,.12cqw,3px) solid rgba(7,10,16,.92);
+            outline-offset:clamp(2px,.12cqw,3px);
+            font-family:'Press Start 2P','Noto Sans JP',sans-serif;
+            letter-spacing:-.06em;
+            text-shadow:0 2px 0 rgba(0,0,0,.88),0 0 .45cqw rgba(255,255,255,.76);
+        }
+        .profile-rank-emblem::before {
+            content:'';
+            position:absolute;
+            z-index:-1;
+            inset:11%;
+            border:clamp(1px,.1cqw,2px) solid rgba(255,255,255,.72);
+            clip-path:inherit;
+            background:linear-gradient(145deg,rgba(255,255,255,.2),transparent 42%,rgba(0,0,0,.24));
+        }
+        .profile-rank-emblem::after {
+            content:'';
+            position:absolute;
+            z-index:-1;
+            inset:5% 17% 58%;
+            border-radius:50%;
+            background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,0));
+            opacity:.48;
+            transform:skewX(-18deg);
+        }
+        .profile-rank-rookie .profile-rank-emblem-wrap::before,.profile-rank-rookie .profile-rank-emblem-wrap::after,
+        .profile-rank-iron .profile-rank-emblem-wrap::before,.profile-rank-iron .profile-rank-emblem-wrap::after { opacity:.28; transform:scale(.78); }
+        .profile-rank-bronze .profile-rank-emblem-wrap::before,.profile-rank-bronze .profile-rank-emblem-wrap::after,
+        .profile-rank-silver .profile-rank-emblem-wrap::before,.profile-rank-silver .profile-rank-emblem-wrap::after { opacity:.48; transform:scale(.88); }
+        .profile-rank-gold .profile-rank-emblem-wrap::before,.profile-rank-gold .profile-rank-emblem-wrap::after,
+        .profile-rank-diamond .profile-rank-emblem-wrap::before,.profile-rank-diamond .profile-rank-emblem-wrap::after { opacity:.68; }
+        .profile-rank-blackdiamond .profile-rank-emblem-wrap::before,.profile-rank-blackdiamond .profile-rank-emblem-wrap::after,
+        .profile-rank-master .profile-rank-emblem-wrap::before,.profile-rank-master .profile-rank-emblem-wrap::after { opacity:.8; filter:saturate(1.25); }
+        .profile-rank-grandmaster .profile-rank-emblem-wrap::before,.profile-rank-grandmaster .profile-rank-emblem-wrap::after,
+        .profile-rank-ultimatemaster .profile-rank-emblem-wrap::before,.profile-rank-ultimatemaster .profile-rank-emblem-wrap::after,
+        .profile-rank-suprememaster .profile-rank-emblem-wrap::before,.profile-rank-suprememaster .profile-rank-emblem-wrap::after { opacity:.94; filter:brightness(1.16) saturate(1.35); }
+        .profile-rank-aurora .profile-rank-emblem-wrap::before,.profile-rank-aurora .profile-rank-emblem-wrap::after,
+        .profile-rank-legend .profile-rank-emblem-wrap::before,.profile-rank-legend .profile-rank-emblem-wrap::after,
+        .profile-rank-developer .profile-rank-emblem-wrap::before,.profile-rank-developer .profile-rank-emblem-wrap::after { opacity:1; filter:brightness(1.28) saturate(1.55); animation:profileRankWingPulse 2.4s ease-in-out infinite; }
+        .profile-rank-legend .profile-rank-emblem { box-shadow:inset 0 2px 0 #fff8c4,inset 0 -7px 15px #3b2500,0 0 1.1cqw #ffd95e; }
+        .profile-rank-aurora .profile-rank-emblem,.profile-rank-developer .profile-rank-emblem { box-shadow:inset 0 2px 0 #fff,inset 0 -7px 15px rgba(24,11,67,.58),0 0 1.2cqw var(--rank-glow); }
+        @keyframes profileRankWingPulse { 0%,100% { filter:brightness(1.12) saturate(1.35); } 50% { filter:brightness(1.5) saturate(1.8); } }
+        .profile-rank-copy small { color:#bfc6cd; font-family:'Press Start 2P','Noto Sans JP',sans-serif; }
+        .profile-rank-copy strong { margin:.55cqh 0; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(25px,3cqw,44px); text-shadow:0 .18cqh #111; }
+        .profile-rank-copy span { color:#f1f4f6; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(9px,.72cqw,12px); }
+        .profile-loadout-heading { margin:.2cqh 0 .6cqh; color:#fff; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(11px,1cqw,16px); letter-spacing:.04em; }
+        .profile-person-row {
+            grid-template-columns:clamp(82px,8.2cqw,118px) minmax(0,1fr);
+            padding:.9cqw;
+            border:0;
+            border-radius:.8cqw;
+            background:rgba(43,47,53,.68);
+        }
+        .profile-avatar-shell { max-width:118px; border:0; border-radius:.65cqw; background:#24282d; box-shadow:inset 0 0 0 .14cqw #111,0 0 0 .08cqw #7e8790; }
+        .profile-player-label { color:#d8dde2; font-family:'Press Start 2P','Noto Sans JP',sans-serif; }
+        #profile-username { color:#fff; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(15px,1.5cqw,24px) !important; }
+        .profile-ovr-panel { border:0; border-radius:.45cqw; background:rgba(30,34,39,.72); }
+        .profile-ovr-label { color:#c5cbd0; }
+        #profile-ovr { background:none; color:#fff !important; filter:none; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(20px,2cqw,32px) !important; }
+        .profile-special-row { justify-content:flex-start; }
+        .profile-epithet-large,.profile-guild-card { border-radius:.48cqw; }
+        .profile-actions { justify-content:flex-start; }
+        .profile-radar-panel { padding:1.2cqw 1.55cqw 1.45cqw; }
+        .profile-panel-head { align-items:center; margin-bottom:1.1cqh; }
+        .profile-panel-kicker { color:#d8dde2; font-family:'Press Start 2P','Noto Sans JP',sans-serif; }
+        .profile-panel-title { color:#fff; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(15px,1.45cqw,22px); }
+        .profile-panel-note { color:#c0c6cc; }
+        #radar-chart { display:none !important; }
+        .profile-stat-readout { display:grid; grid-template-columns:1fr; gap:1.05cqh; margin:0; }
+        .profile-stat-readout > .profile-stat-bar { display:block; padding:0; border:0; background:none; }
+        .profile-stat-bar-head { display:flex; align-items:flex-end; justify-content:space-between; gap:1cqw; margin-bottom:.45cqh; color:#fff; font-family:'Press Start 2P','Noto Sans JP',sans-serif; font-size:clamp(10px,.86cqw,14px); }
+        .profile-stat-bar-head b { flex:0 0 auto; color:#fff; font-size:1em; }
+        .profile-stat-track { position:relative; height:clamp(18px,2.15cqh,28px); overflow:hidden; border-radius:999px; background:#292d31; box-shadow:inset 0 .22cqh .45cqh rgba(0,0,0,.45); }
+        .profile-stat-fill { display:block; width:var(--stat-value); height:100%; min-width:0; border-radius:999px; background:var(--stat-color); box-shadow:inset 0 .18cqh rgba(255,255,255,.3),0 0 .7cqw var(--stat-glow); transition:width .55s cubic-bezier(.2,.8,.2,1); }
+        .profile-stat-bar:nth-child(1) { --stat-color:linear-gradient(90deg,#ff3030,#ff6868); --stat-glow:rgba(255,65,65,.55); }
+        .profile-stat-bar:nth-child(2) { --stat-color:linear-gradient(90deg,#ffb300,#ffd85a); --stat-glow:rgba(255,187,35,.55); }
+        .profile-stat-bar:nth-child(3) { --stat-color:linear-gradient(90deg,#28caff,#72ecff); --stat-glow:rgba(60,210,255,.55); }
+        .profile-stat-bar:nth-child(4) { --stat-color:linear-gradient(90deg,#a95cff,#df82ff); --stat-glow:rgba(185,90,255,.55); }
+        @media (max-width:520px) {
+            .profile-topbar,.profile-container.profile-dashboard { width:94cqw; }
+            .profile-container.profile-dashboard { grid-template-columns:1fr; gap:.8cqh; }
+            #profile-title { max-width:66cqw; font-size:4.4vw !important; }
+            .profile-rank-showcase { grid-template-columns:25vw minmax(0,1fr); padding:2.8vw; text-align:left; }
+            .profile-rank-emblem-wrap { width:auto; margin:0; }
+            .profile-rank-emblem { width:21vw; height:21vw; }
+            .profile-person-row { grid-template-columns:24vw minmax(0,1fr); }
+            .profile-panel-note { display:none; }
+        }
+        @media (max-aspect-ratio:1/1) and (min-width:521px) {
+            .profile-container.profile-dashboard { grid-template-columns:1fr; gap:1cqh; }
         }
 
         /* Season 3: Multiverse ── ホーム画面専用の中世ファンタジーUI */
@@ -2628,22 +2872,28 @@
             </div>
             <div class="profile-container profile-dashboard">
                 <section class="ovr-box profile-identity-card">
-                    <div class="profile-card-eyebrow">IDENTITY / PERFORMANCE</div>
-                    <div class="profile-ovr-label">OVERALL RATING</div>
-                    <div id="profile-ovr">0</div>
-                    <div class="profile-avatar-shell">
-                        <div id="profile-skin-loading" style="width:100%; height:100%; margin:0; display:flex; align-items:center; justify-content:center; color:#8aa8bd; font-size:1.05cqw;">読み込み中...</div>
-                        <canvas id="profile-skin-canvas" width="128" height="128" style="display:none; image-rendering:pixelated; width:90%; height:90%; margin:0;"></canvas>
+                    <div class="profile-card-eyebrow">PIXEL STAGES / PLAYER CARD</div>
+                    <div id="profile-badge-holder"></div>
+                    <div class="profile-loadout-heading">LOADOUT / EQUIPPED SKIN</div>
+                    <div class="profile-person-row">
+                        <div class="profile-avatar-shell">
+                            <div id="profile-skin-loading" style="width:100%; height:100%; margin:0; display:flex; align-items:center; justify-content:center; color:#8aa8bd; font-size:1.05cqw;">読み込み中...</div>
+                            <canvas id="profile-skin-canvas" width="128" height="128" style="display:none; image-rendering:pixelated; width:90%; height:90%; margin:0;"></canvas>
+                        </div>
+                        <div class="profile-person-copy">
+                            <div class="profile-player-label">PLAYER NAME</div>
+                            <div id="profile-username">-</div>
+                            <div class="profile-ovr-panel"><span class="profile-ovr-label">OVR</span><strong id="profile-ovr">0</strong></div>
+                        </div>
                     </div>
-                    <div id="profile-username" style="margin-top: 1cqh; font-size: 1.5cqw;">-</div>
-                    <div id="profile-badge-holder" style="margin-top: 1cqh;"></div>
+                    <div id="profile-special-row" class="profile-special-row"></div>
                     <div class="profile-actions">
                         <button id="profile-dm-btn" class="pixel-btn small" style="display:none; font-size:1cqw;" onclick="openDirectMessageFromProfile()">💬 DMを送る</button>
                         <button id="profile-dm-inbox-btn" class="pixel-btn small" style="display:none; font-size:1cqw;" onclick="openDirectMessageInbox()">📨 DMを確認</button>
                     </div>
                 </section>
                 <section class="profile-radar-panel">
-                    <div class="profile-panel-head"><div><div class="profile-panel-kicker">PLAYER ANALYTICS</div><h3 class="profile-panel-title">PERFORMANCE MATRIX</h3></div><div class="profile-panel-note">CURRENT OVR DATA</div></div>
+                    <div class="profile-panel-head"><div><div class="profile-panel-kicker">PLAYER ANALYTICS</div><h3 class="profile-panel-title">PERFORMANCE</h3></div><div class="profile-panel-note">CURRENT OVR DATA</div></div>
                     <canvas id="radar-chart" width="400" height="400" style="width:100%; aspect-ratio:1; height:auto;"></canvas>
                     <div id="profile-stat-readout" class="profile-stat-readout" aria-label="ステータス詳細"></div>
                 </section>
@@ -3057,6 +3307,7 @@
                 <button class="pixel-btn small" onclick="openStageSelect(true)" style="margin-bottom: 0;">🔄 再読み込み</button>
                 <select id="sort-criteria" class="filter-control" onchange="openStageSelect()">
                     <option value="newest">新着順</option>
+                    <option value="hot">HOT順</option>
                     <option value="oldest">古い順</option>
                     <option value="clears">クリア数順</option>
                     <option value="plays">プレイ数順</option>
@@ -3331,10 +3582,10 @@
         const CONFIG = {
             // GASの「デプロイ」→「新しいデプロイ」で発行されたWebアプリURLをここに貼り付ける（メモ用）
             // google.script.run を使う場合は空でも動作します
-            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbwNplov9i23vZBd8N5C95sO2mVbDyUIwNackKOcVPOlPlGHtj5gtCeuanaMPbwzPS_m/exec",
+            DEPLOY_URL: "https://script.google.com/macros/s/AKfycbw9wHd8zPEJVHQ3qkh3pWeSlVOlL6nXkbFDr_9OBkMbjfba1TCNq-p_rB3rTOvumgGk/exec",
             IS_LOGGED_IN: false,
             USERNAME: "",
-            VERSION: "3.11.2"
+            VERSION: "3.12.1"
         };
         const NEW_VERSION_URL = "https://scratch.mit.edu/projects/1331690710";
         let userGold = 0;
@@ -3724,6 +3975,31 @@ function getPswcWinnerCount(username) {
         let rankingStages = [];
         let allStagesForOvrLoaded = false;
         let allStagesForOvrPromise = null;
+        // ログイン後に最初に取得した軽量ステージのうち、最新650件から一度だけHOT順位を作る。
+        let hotStageRankingReady = false;
+        let hotStageRankById = new Map();
+        let hotStageScoreById = new Map();
+        function getStagePublishedTime(stage) {
+            const raw = stage?.timestamp ?? stage?.publishedAt ?? stage?.createdAt;
+            const numeric = Number(raw);
+            if (Number.isFinite(numeric) && numeric > 0) return numeric;
+            const parsed = Date.parse(raw);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+        function buildHotStageRanking(stages) {
+            if (hotStageRankingReady || !Array.isArray(stages)) return;
+            const loadedAt = Date.now();
+            const candidates = stages.slice(0, 650).map(stage => {
+                const timestamp = getStagePublishedTime(stage);
+                const ageHours = timestamp > 0 ? Math.max(0, (loadedAt - timestamp) / 3600000) : NaN;
+                const score = Number.isFinite(ageHours) ? (Number(stage.attempts) || 0) / (ageHours + 30) : -1;
+                return { id:String(stage.id), score, stage };
+            }).filter(item => item.score >= 0);
+            candidates.sort((a, b) => (b.score - a.score) || ((Number(b.stage.id) || 0) - (Number(a.stage.id) || 0)));
+            hotStageRankById = new Map(candidates.slice(0, 50).map((item, index) => [item.id, index + 1]));
+            hotStageScoreById = new Map(candidates.map(item => [item.id, item.score]));
+            hotStageRankingReady = true;
+        }
         function getCachedStagesArray() {
             // 通信失敗時の応答などが混入しても、配列前提の画面処理を止めない。
             if (!Array.isArray(cachedStages)) cachedStages = [];
@@ -3738,6 +4014,7 @@ function getPswcWinnerCount(username) {
                         throw new Error(apiMessageText(res?.message, 'ランキング用ステージを取得できませんでした。'));
                     }
                     rankingStages = res.stages;
+                    buildHotStageRanking(rankingStages);
                     allStagesForOvrLoaded = true;
                     _badgeOvrCache = {};
                     _badgeOvrCacheRef = rankingStages;
@@ -8566,7 +8843,8 @@ function getPswcWinnerCount(username) {
             const currentSkin = await currentSkinRequest;
             document.getElementById('profile-ovr').innerText = currentSkin?.success && currentSkin.iStatus === '0' ? 'NaN' : stats.ovr;
             document.getElementById('profile-username').innerText = targetUser;
-            document.getElementById('profile-title').innerText = targetUser === CONFIG.USERNAME ? "MY PROFILE" : targetUser + "'S PROFILE";
+            // 参考UIのように名前を上部バーへ表示。長い名前はCSSで省略して戻るボタンとの重なりを防ぐ。
+            document.getElementById('profile-title').innerText = targetUser;
             
             const sCtx = skinCanvas.getContext('2d');
             sCtx.clearRect(0, 0, 128, 128);
@@ -9277,7 +9555,80 @@ function getPswcWinnerCount(username) {
         function renderProfileBadge(targetUser) {
             const holder = document.getElementById('profile-badge-holder');
             if (!holder) return;
-            holder.innerHTML = renderBadgeChip(targetUser);
+            const extras = document.getElementById('profile-special-row');
+            holder.replaceChildren();
+            if (extras) extras.replaceChildren();
+
+            const ovr = getCachedOVR(targetUser);
+            const isDeveloper = String(targetUser) === 'Runon';
+            const tier = isDeveloper ? DEVELOPER_BADGE_TIER : getBadgeTier(ovr);
+            const style = isDeveloper ? DEVELOPER_BADGE_STYLE : BADGE_GROUP_STYLE[tier.group];
+            const showcase = document.createElement('div');
+            showcase.className = `profile-rank-showcase profile-rank-${tier.group}`;
+            showcase.style.setProperty('--rank-bg', style.bg);
+            showcase.style.setProperty('--rank-border', style.border);
+            showcase.style.setProperty('--rank-glow', style.glow);
+
+            const emblemWrap = document.createElement('div');
+            emblemWrap.className = 'profile-rank-emblem-wrap';
+            const emblem = document.createElement('div');
+            emblem.className = `profile-rank-emblem rank-${tier.group}`;
+            emblem.style.background = style.bg;
+            emblem.style.color = style.text;
+            emblem.style.border = `2px solid ${style.border}`;
+            emblem.textContent = tier.mark || tier.label.charAt(0);
+            emblemWrap.appendChild(emblem);
+
+            const copy = document.createElement('div');
+            copy.className = 'profile-rank-copy';
+            const kicker = document.createElement('small');
+            kicker.textContent = 'CURRENT RANK';
+            const rankName = document.createElement('strong');
+            rankName.textContent = tier.label;
+            const rankMeta = document.createElement('span');
+            const displayedOvr = document.getElementById('profile-ovr')?.textContent || String(ovr);
+            rankMeta.textContent = `OVERALL RATING  ${displayedOvr}`;
+            copy.append(kicker, rankName, rankMeta);
+            showcase.append(emblemWrap, copy);
+            holder.appendChild(showcase);
+
+            if (!extras) return;
+            const epithet = PLAYER_EPITHETS[String(targetUser)];
+            if (epithet) {
+                const epithetEl = document.createElement('span');
+                epithetEl.className = 'profile-epithet-large';
+                epithetEl.textContent = epithet.title;
+                epithetEl.style.background = epithet.bg;
+                epithetEl.style.color = epithet.text;
+                epithetEl.style.borderColor = epithet.border;
+                epithetEl.style.boxShadow = `0 0 9px ${epithet.glow}`;
+                extras.appendChild(epithetEl);
+            }
+
+            const guild = guildBadgeByMember[targetUser];
+            const guildCard = document.createElement('span');
+            guildCard.className = 'profile-guild-card';
+            const guildBadge = document.createElement('span');
+            if (guild) {
+                const guildRank = Math.max(0, Math.min(GUILD_RANK_EXP.length - 1, Number(guild.rank) || 0));
+                guildBadge.className = `guild-badge guild-rank-${guildRank}`;
+                guildBadge.title = `${guild.name} / RANK ${guildRank}`;
+                const guildImage = document.createElement('img');
+                guildImage.src = getGuildIconDataUrl(guild.icon);
+                guildImage.alt = guild.name;
+                const guildRankLabel = document.createElement('b');
+                guildRankLabel.className = 'guild-badge-rank';
+                guildRankLabel.textContent = guildRank;
+                guildBadge.append(guildImage, guildRankLabel);
+            } else {
+                guildBadge.className = 'guild-badge guild-badge-empty';
+                guildBadge.title = 'ギルド未所属';
+            }
+            const guildName = document.createElement('span');
+            guildName.className = 'profile-guild-name';
+            guildName.textContent = guild ? guild.name : 'NO GUILD';
+            guildCard.append(guildBadge, guildName);
+            extras.appendChild(guildCard);
         }
 
         function drawRadarChart(stats) {
@@ -9291,7 +9642,27 @@ function getPswcWinnerCount(username) {
             const axisCount = labels.length;
             const readout = document.getElementById('profile-stat-readout');
             if (readout) {
-                readout.innerHTML = labels.map((label, index) => `<div><span>${label}</span><b>${Math.round(Number(values[index]) || 0)}%</b></div>`).join('');
+                readout.replaceChildren();
+                labels.forEach((label, index) => {
+                    const value = Math.max(0, Math.min(100, Math.round(Number(values[index]) || 0)));
+                    const row = document.createElement('div');
+                    row.className = 'profile-stat-bar';
+                    row.style.setProperty('--stat-value', `${value}%`);
+                    const head = document.createElement('div');
+                    head.className = 'profile-stat-bar-head';
+                    const name = document.createElement('span');
+                    name.textContent = label;
+                    const amount = document.createElement('b');
+                    amount.textContent = `${value}%`;
+                    head.append(name, amount);
+                    const track = document.createElement('div');
+                    track.className = 'profile-stat-track';
+                    const fill = document.createElement('span');
+                    fill.className = 'profile-stat-fill';
+                    track.appendChild(fill);
+                    row.append(head, track);
+                    readout.appendChild(row);
+                });
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -13017,6 +13388,10 @@ function getPswcWinnerCount(username) {
             filterStageType = 'all';
             currentSort = document.getElementById('sort-criteria').value;
             stageListPage = Math.max(0, Number(requestedPage) || 0);
+            // HOTバッジは、ログイン後に最初に取得した軽量データを基準に固定する。
+            if (!hotStageRankingReady) {
+                try { await ensureAllStagesForOvr(); } catch (error) { console.warn('HOTランキングの準備に失敗:', error); }
+            }
 
             // 一覧はサーバーで絞り込み・並び替えを行い、現在ページの100件だけ取得する。
             // 同じ条件・同じページは、手動再読み込みまで取得済みの内容を使う。
@@ -13053,6 +13428,12 @@ function getPswcWinnerCount(username) {
                     s._topPlayers = lb.filter(r => r.time === s._topTime);
                     s._myRec = lb.find(r => r.name === CONFIG.USERNAME);
                     s._idStr = String(s.id || s.name);
+                    const hotId = String(s.id);
+                    const serverHotScore = Number(s.hotScore);
+                    s._hotRank = hotStageRankById.get(hotId) || Number(s.hotRank) || 0;
+                    s._hotScore = hotStageScoreById.has(hotId)
+                        ? hotStageScoreById.get(hotId)
+                        : (Number.isFinite(serverHotScore) ? serverHotScore : -1);
             });
 
             const pageInfo = document.getElementById('stage-page-info');
@@ -13075,6 +13456,7 @@ function getPswcWinnerCount(username) {
 
             // ソート処理
             filtered.sort((a, b) => {
+                if (currentSort === 'hot') return (b._hotScore - a._hotScore) || ((Number(b.id) || 0) - (Number(a.id) || 0));
                 if (currentSort === 'clears') return (b.clears || 0) - (a.clears || 0);
                 if (currentSort === 'plays') return (b.attempts || 0) - (a.attempts || 0);
                 if (currentSort === 'easy') {
@@ -13100,7 +13482,7 @@ function getPswcWinnerCount(username) {
             const pswcStages = filtered.filter(isPswcCreator);
             const pickupStages = filtered.filter(s => !isPswcCreator(s) && isPickUpStage(s));
             const otherStages = filtered.filter(s => !isPswcCreator(s) && !isPickUpStage(s));
-            const sortedStages = [...pswcStages, ...pickupStages, ...otherStages];
+            const sortedStages = currentSort === 'hot' ? filtered : [...pswcStages, ...pickupStages, ...otherStages];
 
             container.innerHTML = "";
             const previewJobs = [];
@@ -13173,6 +13555,11 @@ function getPswcWinnerCount(username) {
                     }
                 }
 
+                const hotRank = Number(s._hotRank) || 0;
+                const hotClass = hotRank >= 1 && hotRank <= 3 ? `hot-rank-${hotRank}` : 'hot-rank-normal';
+                const hotBadge = hotRank >= 1 && hotRank <= 50
+                    ? `<span class="hot-rank-badge ${hotClass}">HOT #${hotRank}</span>`
+                    : '';
                 if (customFrameStyle) div.style.cssText += customFrameStyle;
                 // Pick up は難易度に関わらず黄色キラキラエフェクト
                 if (isPickUp || isPswcStage) div.classList.add('stage-item-pickup');
@@ -13262,6 +13649,7 @@ function getPswcWinnerCount(username) {
                                 ${isPickUp ? '<span class="stage-type-badge" style="background:#ffc107; color:#000;">Pick up!</span>' : ''}
                                 ${isPswcStage ? '<span class="stage-type-badge" style="background:linear-gradient(135deg,#805200,#ffd54a,#fff0a0); color:#2c1c00; border:1px solid #fff2af;">🏆 PSWC</span>' : ''}
                                 ${diffBadge}
+                                ${hotBadge}
                                 ${faceTypeLabel}
                                 <span style="font-size:1.3cqw; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</span>
                             </div>
